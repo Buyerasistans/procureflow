@@ -227,10 +227,10 @@ export default function SupplierLoginPage() {
       setTimeout(() => {
         navigate("/supplier/dashboard");
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
       const errorMessage =
-        err.response?.data?.detail ||
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
         "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol ediniz.";
       setError({ message: errorMessage });
     } finally {

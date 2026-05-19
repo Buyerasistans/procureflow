@@ -1,0 +1,6 @@
+<?xml version="1.0" standalone="no"?>
+<svg id="svg-logo-4" viewBox="15 5 70 90" width="100px" height="100px" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="25" y="15" width="10" height="70" rx="4" fill="#D4AF37"/>
+                        <path d="M 45 20 H 55 L 75 34 L 55 48 H 45 L 65 34 Z" fill="#112a25"/>
+                        <path d="M 45 52 H 55 L 75 66 L 55 80 H 45 L 65 66 Z" fill="#D4AF37"/>
+                    </svg>

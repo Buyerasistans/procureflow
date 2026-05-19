@@ -10,6 +10,7 @@ const api = axios.create({
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getToken();
   if (token) {
+    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
     // Request'te token tipini debug için ekle
     config.headers["X-Token-Type"] = isSupplierLoggedIn() ? "supplier" : "admin";

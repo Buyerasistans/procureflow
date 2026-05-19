@@ -2,15 +2,51 @@
 import { http } from "../lib/http";
 
 export interface EmailSettingsData {
+  id?: number;
+  owner_user_id?: number | null;
   smtp_host?: string;
   smtp_port?: number;
+  imap_host?: string;
+  imap_port?: number;
+  pop3_host?: string;
+  pop3_port?: number;
   smtp_username?: string;
   smtp_password?: string;
+  incoming_use_ssl?: boolean;
   from_email?: string;
   from_name?: string;
   use_tls?: boolean;
   use_ssl?: boolean;
   enable_email_notifications?: boolean;
+  dashboard_mail_button_enabled?: boolean;
+  mail_domain?: string;
+  app_url?: string;
+  use_custom_app_url?: boolean;
+  reply_to_email?: string;
+  bounce_email?: string;
+  mailbox_support_email?: string;
+  enable_list_unsubscribe?: boolean;
+  enable_strict_from_alignment?: boolean;
+  mailbox_provider_type?: string;
+  mailbox_provider_url?: string;
+  mailbox_provider_api_url?: string;
+  mailbox_provider_username?: string;
+  mailbox_provider_password?: string;
+  mailbox_provider_api_token?: string;
+  mailbox_provider_verify_ssl?: boolean;
+  mailbox_provider_auto_create?: boolean;
+  mailbox_provider_custom_endpoint?: string;
+  signature_name?: string;
+  signature_title?: string;
+  signature_note?: string;
+  signature_image_url?: string;
+}
+
+export interface EmailProfileSummary {
+  owner_user_id: number | null;
+  label: string;
+  kind: "default" | "personal";
+  from_email?: string;
 }
 
 export interface LoggingSettingsData {
@@ -57,28 +93,90 @@ export interface APIKeyData {
   last_used_at?: string;
 }
 
+export interface EmailHealthSummary {
+  outbound_total_7d: number;
+  delivered_7d: number;
+  failed_7d: number;
+  bounced_7d: number;
+  spam_flagged_7d: number;
+  success_rate_7d: number;
+  bounce_rate_7d: number;
+  spam_rate_7d: number;
+  last_error_at?: string | null;
+  last_error_message?: string | null;
+}
+
 /**
  * Email Settings
  */
-export async function getEmailSettings(): Promise<EmailSettingsData> {
-  const res = await http.get<EmailSettingsData>("/advanced-settings/email");
+export async function getEmailSettings(ownerUserId?: number | null): Promise<EmailSettingsData> {
+  const res = await http.get<EmailSettingsData>("/advanced-settings/email", {
+    params: ownerUserId === undefined ? undefined : { owner_user_id: ownerUserId },
+  });
+  return res.data;
+}
+
+export async function getEmailProfiles(): Promise<EmailProfileSummary[]> {
+  const res = await http.get<EmailProfileSummary[]>("/advanced-settings/email/profiles");
   return res.data;
 }
 
 export async function updateEmailSettings(
-  payload: EmailSettingsData
+  payload: EmailSettingsData,
+  ownerUserId?: number | null,
 ): Promise<EmailSettingsData> {
   const res = await http.put<EmailSettingsData>(
     "/advanced-settings/email",
-    payload
+    payload,
+    {
+      params: ownerUserId === undefined ? undefined : { owner_user_id: ownerUserId },
+    }
   );
   return res.data;
 }
 
-export async function testEmailSettings(toEmail: string): Promise<{ message: string }> {
+export async function testEmailSettings(payload: EmailSettingsData & { to_email: string }, ownerUserId?: number | null): Promise<{ message: string }> {
   const res = await http.post<{ message: string }>(
     "/advanced-settings/email/test",
-    { to_email: toEmail }
+    payload,
+    {
+      params: ownerUserId === undefined ? undefined : { owner_user_id: ownerUserId },
+    }
+  );
+  return res.data;
+}
+
+export async function testMailboxProviderSettings(ownerUserId?: number | null): Promise<{ success: boolean; message: string; status: string }> {
+  const res = await http.post<{ success: boolean; message: string; status: string }>(
+    "/advanced-settings/email/provider/test",
+    {},
+    {
+      params: ownerUserId === undefined ? undefined : { owner_user_id: ownerUserId },
+    },
+  );
+  return res.data;
+}
+
+export async function getEmailHealthSummary(ownerUserId?: number | null): Promise<EmailHealthSummary> {
+  const res = await http.get<EmailHealthSummary>(
+    "/advanced-settings/email/health",
+    {
+      params: ownerUserId === undefined ? undefined : { owner_user_id: ownerUserId },
+    },
+  );
+  return res.data;
+}
+
+export async function uploadEmailSignatureImage(file: File, ownerUserId?: number | null): Promise<{ success: boolean; signature_image_url: string }> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await http.post<{ success: boolean; signature_image_url: string }>(
+    "/advanced-settings/email/signature-image",
+    form,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+      params: ownerUserId === undefined ? undefined : { owner_user_id: ownerUserId },
+    },
   );
   return res.data;
 }

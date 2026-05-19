@@ -1,5 +1,6 @@
 """Tedarikçi (Supplier) ve İlgili Modeller"""
 
+import json
 from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from api.models.user import User
     from api.models.project import Project
     from api.models.quote import Quote, QuoteItem
+    from api.models.tenant import Tenant
 
 
 class Supplier(Base):
@@ -29,6 +31,9 @@ class Supplier(Base):
     __tablename__ = "suppliers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id"), nullable=True, index=True
+    )
     created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     # Firma Bilgileri
@@ -64,6 +69,8 @@ class Supplier(Base):
     category: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )  # e.g., "Yazılım", "Donanım", "Hizmet"
+    category_tags_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    partner_category_tags_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_url: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )  # Logo/Amblem URL'si
@@ -83,6 +90,7 @@ class Supplier(Base):
     )
 
     # İlişkiler
+    tenant: Mapped["Tenant | None"] = relationship("Tenant", back_populates="suppliers")
     created_by: Mapped["User"] = relationship("User", foreign_keys=[created_by_id])
     users: Mapped[list["SupplierUser"]] = relationship(
         "SupplierUser", back_populates="supplier", cascade="all, delete-orphan"
@@ -90,6 +98,57 @@ class Supplier(Base):
     quotes: Mapped[list["SupplierQuote"]] = relationship(
         "SupplierQuote", back_populates="supplier", cascade="all, delete-orphan"
     )
+
+    @property
+    def source_type(self) -> str:
+        return "private" if self.tenant_id is not None else "platform_network"
+
+    @staticmethod
+    def _parse_category_tags(raw: str | None) -> list[str]:
+        if not raw:
+            return []
+        try:
+            parsed = json.loads(raw)
+        except (TypeError, ValueError):
+            return []
+        if not isinstance(parsed, list):
+            return []
+        values: list[str] = []
+        seen: set[str] = set()
+        for item in parsed:
+            normalized = str(item).strip()
+            if not normalized:
+                continue
+            lowered = normalized.casefold()
+            if lowered in seen:
+                continue
+            seen.add(lowered)
+            values.append(normalized)
+        return values
+
+    @property
+    def category_tags(self) -> list[str]:
+        return self._parse_category_tags(self.category_tags_json)
+
+    @property
+    def partner_category_tags(self) -> list[str]:
+        return self._parse_category_tags(self.partner_category_tags_json)
+
+    @property
+    def effective_category_tags(self) -> list[str]:
+        values: list[str] = []
+        seen: set[str] = set()
+        for item in [*self.category_tags, *self.partner_category_tags]:
+            lowered = item.casefold()
+            if lowered in seen:
+                continue
+            seen.add(lowered)
+            values.append(item)
+        if self.category:
+            normalized = str(self.category).strip()
+            if normalized and normalized.casefold() not in seen:
+                values.append(normalized)
+        return values
 
 
 class SupplierUser(Base):
@@ -103,6 +162,9 @@ class SupplierUser(Base):
     # Kişi Bilgileri
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    work_email: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     # Durum
@@ -160,6 +222,9 @@ class SupplierQuote(Base):
     status: Mapped[str] = mapped_column(String(50), default="tasarı")
 
     # Finansal
+    currency: Mapped[str] = mapped_column(
+        String(3), nullable=False, default="TRY", server_default=text("'TRY'")
+    )
     total_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     discount_percent: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
     discount_amount: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)

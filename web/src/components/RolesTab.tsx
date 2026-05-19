@@ -1,8 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getRoles, createRole, updateRole, deleteRole, getPermissions } from "../services/admin.service";
-import type { Role, Permission } from "../services/admin.service";
+import type { CatalogRequest, Role, Permission } from "../services/admin.service";
+import { useAuth } from "../hooks/useAuth";
+import { filterVisibleRoleHierarchy, isPlatformStaffUser } from "../auth/permissions";
 
-export function RolesTab() {
+interface RolesTabProps {
+  catalogRequests?: CatalogRequest[];
+  requestBusyId?: number | null;
+  onCreateRoleRequest?: (payload: { name: string; description?: string }) => Promise<void>;
+  onReviewRequest?: (requestId: number, decision: "approved" | "rejected") => Promise<void>;
+}
+
+export function RolesTab({
+  catalogRequests = [],
+  requestBusyId = null,
+  onCreateRoleRequest,
+  onReviewRequest,
+}: RolesTabProps) {
+  const { user } = useAuth();
+  const readOnly = isPlatformStaffUser(user);
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [showNewRoleForm, setShowNewRoleForm] = useState(false);
@@ -16,6 +32,8 @@ export function RolesTab() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [requestName, setRequestName] = useState("");
+  const [requestDescription, setRequestDescription] = useState("");
 
   useEffect(() => {
     loadData();
@@ -55,6 +73,28 @@ export function RolesTab() {
       setShowNewRoleForm(false);
     } catch (err) {
       alert("Rol ekleme hatası: " + String(err));
+    }
+  };
+
+  const handleRequestRole = async () => {
+    if (!roleForm.name.trim()) {
+      alert("Rol adı gereklidir");
+      return;
+    }
+    if (!onCreateRoleRequest) {
+      return;
+    }
+    try {
+      await onCreateRoleRequest({
+        name: roleForm.name,
+        description: roleForm.description || undefined,
+      });
+      await loadData();
+      setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
+      setSelectedPermissions([]);
+      setShowNewRoleForm(false);
+    } catch (err) {
+      alert("Rol talep hatası: " + String(err));
     }
   };
 
@@ -111,12 +151,107 @@ export function RolesTab() {
     );
   };
 
+  const visibleRoles = useMemo(() => {
+    return filterVisibleRoleHierarchy(roles, (user as { role?: string } | null)?.role);
+  }, [roles, user]);
+
+  const roleRequests = useMemo(
+    () => catalogRequests.filter((item) => item.entity_type === "role"),
+    [catalogRequests],
+  );
+
+  const pendingRoleRequests = roleRequests.filter((item) => item.review_status === "pending_review");
+
+  const handleSubmitRoleRequest = async () => {
+    if (!onCreateRoleRequest || !requestName.trim()) {
+      return;
+    }
+    await onCreateRoleRequest({
+      name: requestName.trim(),
+      description: requestDescription.trim() || undefined,
+    });
+    setRequestName("");
+    setRequestDescription("");
+  };
+
   if (loading) {
     return <div style={{ padding: 20 }}>Yükleniyor...</div>;
   }
 
   return (
     <div>
+      {onCreateRoleRequest && !readOnly && (
+        <section style={{ marginBottom: 20, borderRadius: 18, border: '1px solid #dbeafe', background: '#f8fbff', padding: 16, display: 'grid', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#1d4ed8' }}>Onayli Katalog Akisi</div>
+            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Yeni rol talebi ac</div>
+            <div style={{ marginTop: 6, color: '#475569', fontSize: 13 }}>Ozel rolleri once talep kuyruğuna dusurup sonra kataloga onayla.</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) minmax(260px, 1.2fr) auto', gap: 10, alignItems: 'start' }}>
+            <input
+              type="text"
+              value={requestName}
+              onChange={(event) => setRequestName(event.target.value)}
+              placeholder="Or: Kategori Lideri"
+              style={{ padding: 10, borderRadius: 10, border: '1px solid #cbd5e1' }}
+            />
+            <textarea
+              value={requestDescription}
+              onChange={(event) => setRequestDescription(event.target.value)}
+              placeholder="Bu rol hangi karar veya operasyon boslugunu kapatacak?"
+              rows={2}
+              style={{ padding: 10, borderRadius: 10, border: '1px solid #cbd5e1', resize: 'vertical' }}
+            />
+            <button
+              type="button"
+              onClick={() => { void handleSubmitRoleRequest(); }}
+              disabled={!requestName.trim()}
+              style={{ padding: '11px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: 'white', fontWeight: 800, cursor: requestName.trim() ? 'pointer' : 'not-allowed', opacity: requestName.trim() ? 1 : 0.6 }}
+            >
+              Talep Ac
+            </button>
+          </div>
+        </section>
+      )}
+      {roleRequests.length > 0 && (
+        <section style={{ marginBottom: 20, borderRadius: 18, border: '1px solid #e2e8f0', background: 'white', padding: 16, display: 'grid', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#7c3aed' }}>Rol Talep Kuyrugu</div>
+            <div style={{ marginTop: 6, fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{pendingRoleRequests.length} bekleyen rol talebi</div>
+          </div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {roleRequests.slice(0, 6).map((request) => (
+              <div key={request.id} style={{ borderRadius: 14, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'grid', gap: 4 }}>
+                  <div style={{ fontWeight: 800, color: '#0f172a' }}>{request.proposed_name}</div>
+                  <div style={{ color: '#64748b', fontSize: 13 }}>{request.proposed_description || 'Aciklama girilmedi'}</div>
+                  <div style={{ color: '#475569', fontSize: 12 }}>Durum: {request.review_status}</div>
+                </div>
+                {request.review_status === 'pending_review' && onReviewRequest ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      disabled={requestBusyId === request.id}
+                      onClick={() => { void onReviewRequest(request.id, 'approved'); }}
+                      style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#166534', color: 'white', fontWeight: 700, cursor: requestBusyId === request.id ? 'not-allowed' : 'pointer' }}
+                    >
+                      Onayla
+                    </button>
+                    <button
+                      type="button"
+                      disabled={requestBusyId === request.id}
+                      onClick={() => { void onReviewRequest(request.id, 'rejected'); }}
+                      style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#b91c1c', color: 'white', fontWeight: 700, cursor: requestBusyId === request.id ? 'not-allowed' : 'pointer' }}
+                    >
+                      Reddet
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       {error && (
         <div style={{ padding: 12, background: "#fecaca", color: "#dc2626", borderRadius: 4, marginBottom: 20 }}>
           {error}
@@ -124,6 +259,11 @@ export function RolesTab() {
       )}
 
       <div style={{ marginBottom: 20 }}>
+        {readOnly && (
+          <div style={{ marginBottom: 12, padding: 12, borderRadius: 12, background: '#fff7ed', color: '#9a3412', border: '1px solid #fed7aa' }}>
+            Platform personeli rol hiyerarsisini inceleyebilir; yeni rol ekleme, duzenleme ve silme aksiyonlari bu yuzeyde kapatildi.
+          </div>
+        )}
         <button
           onClick={() => {
             setShowNewRoleForm(!showNewRoleForm);
@@ -131,21 +271,23 @@ export function RolesTab() {
             setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
             setSelectedPermissions([]);
           }}
+          disabled={readOnly}
           style={{
             padding: "10px 16px",
             background: "#10b981",
             color: "white",
             border: "none",
             borderRadius: "4px",
-            cursor: "pointer",
+            cursor: readOnly ? "not-allowed" : "pointer",
             fontWeight: "bold",
+            opacity: readOnly ? 0.6 : 1,
           }}
         >
           {showNewRoleForm ? "❌ İptal" : "➕ Yeni Rol"}
         </button>
       </div>
 
-      {(showNewRoleForm || editingRoleId !== null) && (
+      {!readOnly && (showNewRoleForm || editingRoleId !== null) && (
         <div style={{ background: "#f9fafb", padding: 20, borderRadius: 8, marginBottom: 20, border: "1px solid #ddd" }}>
           <h3>{editingRoleId ? "Rolü Düzenle" : "Yeni Rol Ekle"}</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -177,7 +319,7 @@ export function RolesTab() {
               style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", width: "100%", maxWidth: 300 }}
             >
               <option value="">Yok (Root Role)</option>
-              {roles
+              {visibleRoles
                 .filter((r) => r.id !== editingRoleId)
                 .map((role) => (
                   <option key={role.id} value={role.id}>
@@ -281,6 +423,21 @@ export function RolesTab() {
                 >
                   Ekle
                 </button>
+                {onCreateRoleRequest ? (
+                  <button
+                    onClick={handleRequestRole}
+                    style={{
+                      padding: "8px 16px",
+                      background: "#eff6ff",
+                      color: "#1d4ed8",
+                      border: "1px solid #bfdbfe",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Onaya Gonder
+                  </button>
+                ) : null}
                 <button
                   onClick={() => {
                     setShowNewRoleForm(false);
@@ -311,15 +468,16 @@ export function RolesTab() {
             <RoleTreeNode
               key={role.id}
               role={role}
-              allRoles={roles}
+              allRoles={visibleRoles}
               onEdit={handleEditRole}
               onDelete={handleDeleteRole}
+              readOnly={readOnly}
             />
           ))}
         </div>
       </div>
 
-      {roles.length === 0 && (
+      {visibleRoles.length === 0 && (
         <div style={{ padding: 20, textAlign: "center", color: "#999" }}>
           Hiç rol yoktur. Yeni bir rol oluşturun.
         </div>
@@ -328,7 +486,7 @@ export function RolesTab() {
   );
 
   function getRoleTree(parentId: number | null = null): Role[] {
-    return roles
+    return visibleRoles
       .filter((r) => r.parent_id === parentId)
       .sort((a, b) => a.hierarchy_level - b.hierarchy_level);
   }
@@ -339,6 +497,7 @@ interface RoleNodeProps {
   allRoles: Role[];
   onEdit: (role: Role) => void;
   onDelete: (id: number) => void;
+  readOnly?: boolean;
 }
 
 function RoleTreeNode({
@@ -346,11 +505,13 @@ function RoleTreeNode({
   allRoles,
   onEdit,
   onDelete,
+  readOnly = false,
 }: RoleNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   
   const children = allRoles.filter((r) => r.parent_id === role.id);
   const hasChildren = children.length > 0;
+  const parentRole = role.parent_id ? allRoles.find((r) => r.id === role.parent_id) : null;
 
   return (
     <div>
@@ -389,6 +550,9 @@ function RoleTreeNode({
           <div style={{ fontSize: 12, color: "#666" }}>
             {role.description} {role.permissions.length > 0 && `(${role.permissions.length} izin)`}
           </div>
+          <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
+            Ust Rol: {parentRole?.name || "Root"} | Alt Rol Sayisi: {children.length}
+          </div>
         </div>
 
         <span
@@ -403,35 +567,39 @@ function RoleTreeNode({
           {role.is_active ? "Aktif" : "Pasif"}
         </span>
 
-        <button
-          onClick={() => onEdit(role)}
-          style={{
-            padding: "4px 12px",
-            background: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: 12,
-          }}
-        >
-          Düzenle
-        </button>
+        {!readOnly && (
+          <>
+            <button
+              onClick={() => onEdit(role)}
+              style={{
+                padding: "4px 12px",
+                background: "#3b82f6",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              Düzenle
+            </button>
 
-        <button
-          onClick={() => onDelete(role.id)}
-          style={{
-            padding: "4px 12px",
-            background: "#ef4444",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: 12,
-          }}
-        >
-          Sil
-        </button>
+            <button
+              onClick={() => onDelete(role.id)}
+              style={{
+                padding: "4px 12px",
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              Sil
+            </button>
+          </>
+        )}
       </div>
 
       {isExpanded &&

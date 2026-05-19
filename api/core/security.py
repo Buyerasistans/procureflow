@@ -19,7 +19,7 @@ pwd_context = CryptContext(
 )
 
 
-def create_access_token(sub: str, role: str) -> str:
+def create_access_token(sub: str, role: str, system_role: str | None = None) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": sub,
@@ -27,6 +27,8 @@ def create_access_token(sub: str, role: str) -> str:
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=EXPIRE_MINUTES)).timestamp()),
     }
+    if system_role:
+        payload["system_role"] = system_role
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -48,7 +50,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_refresh_token(sub: str, role: str) -> str:
+def create_refresh_token(sub: str, role: str, system_role: str | None = None) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": sub,
@@ -58,6 +60,8 @@ def create_refresh_token(sub: str, role: str) -> str:
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(days=REFRESH_EXPIRE_DAYS)).timestamp()),
     }
+    if system_role:
+        payload["system_role"] = system_role
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 

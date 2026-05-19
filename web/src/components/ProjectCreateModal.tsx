@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { createProject } from "../services/project.service";
-import { getCompanies } from "../services/admin.service";
+import { getCompanies, getTenantUsers } from "../services/admin.service";
 import { modalStyles } from "../styles/modalStyles";
-import type { Company } from "../services/admin.service";
+import { getCityNames, getDistricts } from "../data/turkey-cities";
+import type { Company, TenantUser } from "../services/admin.service";
+import { filterUsersByAssignmentScope } from "../utils/tenantUserAssignments";
+import { SUBSCRIPTION_ADDON_CTA_LABEL, SUBSCRIPTION_UPGRADE_CTA_LABEL, getSubscriptionAddonHref, getSubscriptionLimitGuidanceMessage, getSubscriptionUpgradeHref, hasSubscriptionUpgradeGuidance } from "../utils/subscriptionLimitErrors";
 
 interface ProjectCreateModalProps {
   isOpen: boolean;
@@ -13,6 +16,7 @@ interface ProjectCreateModalProps {
 
 export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreateModalProps) {
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [personnel, setPersonnel] = useState<TenantUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,15 +27,32 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
   const [managerName, setManagerName] = useState("");
   const [managerPhone, setManagerPhone] = useState("");
   const [managerEmail, setManagerEmail] = useState("");
+  const [responsibleUserIds, setResponsibleUserIds] = useState<number[]>([]);
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
   const [address, setAddress] = useState("");
   const [budget, setBudget] = useState<number | undefined>();
   const [isActive, setIsActive] = useState(true);
+
+  const cityOptions = useMemo(() => getCityNames(), []);
+  const districtOptions = useMemo(() => (city ? getDistricts(city) : []), [city]);
+  const fullAddress = useMemo(
+    () => [address, district, city, "Türkiye"].filter(Boolean).join(", "),
+    [address, district, city],
+  );
+  const availableResponsibleUsers = useMemo(
+    () => filterUsersByAssignmentScope(personnel, { companyId }),
+    [companyId, personnel],
+  );
 
   useEffect(() => {
     if (isOpen && companies.length === 0) {
       loadCompanies();
     }
-  }, [isOpen, companies.length]);
+    if (isOpen && personnel.length === 0) {
+      loadPersonnel();
+    }
+  }, [isOpen, companies.length, personnel.length]);
 
   async function loadCompanies() {
     try {
@@ -40,6 +61,21 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
     } catch (err) {
       setError("Firmalar yüklenemedi: " + String(err));
     }
+  }
+
+  async function loadPersonnel() {
+    try {
+      const data = await getTenantUsers();
+      setPersonnel(data.filter((p) => p.is_active));
+    } catch (err) {
+      setError("Personel yüklenemedi: " + String(err));
+    }
+  }
+
+  function toggleResponsibleUser(userId: number) {
+    setResponsibleUserIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,16 +95,18 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
         project_type: projectType,
         manager_name: managerName || undefined,
         manager_phone: managerPhone || undefined,
-        address: address || undefined,
+        manager_email: managerEmail || undefined,
+        address: [city, district, address].filter(Boolean).join(", ") || undefined,
         budget: budget || undefined,
         is_active: isActive,
+        responsible_user_ids: responsibleUserIds,
       });
 
       onSuccess();
       onClose();
       resetForm();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Proje oluşturulamadı";
+      const errorMessage = getSubscriptionLimitGuidanceMessage(err, "Proje oluşturulamadı");
       setError(errorMessage);
       // Detaylı error log
       if (axios.isAxiosError(err)) {
@@ -93,6 +131,9 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
     setManagerName("");
     setManagerPhone("");
     setManagerEmail("");
+    setResponsibleUserIds([]);
+    setCity("");
+    setDistrict("");
     setAddress("");
     setBudget(undefined);
     setIsActive(true);
@@ -115,7 +156,21 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
         {/* Form */}
         <form onSubmit={handleSubmit} style={modalStyles.content}>
           {/* Error */}
-          {error && <div style={modalStyles.errorMessage}>{error}</div>}
+          {error ? (
+            <div style={{ ...modalStyles.errorMessage, display: "grid", gap: 10 }}>
+              <div>{error}</div>
+              {hasSubscriptionUpgradeGuidance(error) ? (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <a href={getSubscriptionUpgradeHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                    {SUBSCRIPTION_UPGRADE_CTA_LABEL}
+                  </a>
+                  <a href={getSubscriptionAddonHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                    {SUBSCRIPTION_ADDON_CTA_LABEL}
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {/* Row 1: Name & Code */}
           <div style={modalStyles.grid}>
@@ -211,17 +266,78 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
             />
           </div>
 
+          {/* Responsible Purchasing Personnel */}
+          <div style={modalStyles.fullWidth}>
+            <label style={modalStyles.label}>Satın Alma Sorumluları</label>
+            <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "8px" }}>
+              Projeyi olusturan kullanici sistem tarafinda otomatik olarak projeye eklenir.
+            </div>
+            <div style={{ maxHeight: "140px", overflowY: "auto", border: "1px solid #d1d5db", borderRadius: "6px", padding: "8px" }}>
+              {personnel.length === 0 ? (
+                <div style={{ fontSize: "12px", color: "#6b7280" }}>Personel bulunamadı</div>
+              ) : (
+                availableResponsibleUsers.map((p) => (
+                  <label key={p.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", fontSize: "13px", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={responsibleUserIds.includes(p.id)}
+                      onChange={() => toggleResponsibleUser(p.id)}
+                    />
+                    <span>{p.full_name} ({p.email})</span>
+                  </label>
+                ))
+              )}
+              {personnel.length > 0 && availableResponsibleUsers.length === 0 ? (
+                <div style={{ fontSize: "12px", color: "#6b7280" }}>Secili firmaya bagli aktif ekip uyesi bulunamadi</div>
+              ) : null}
+            </div>
+          </div>
+
           {/* Address */}
           <div style={modalStyles.fullWidth}>
             <label style={modalStyles.label}>Adres</label>
+            <div style={{ ...modalStyles.grid, marginBottom: "8px" }}>
+              <div>
+                <select
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setDistrict("");
+                  }}
+                  style={modalStyles.input}
+                >
+                  <option value="">İl seçin</option>
+                  {cityOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <select
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  style={modalStyles.input}
+                  disabled={!city}
+                >
+                  <option value="">İlçe seçin</option>
+                  {districtOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Proje adresi..."
+              placeholder="Mahalle, cadde, sokak, bina no"
               rows={2}
               style={modalStyles.textarea}
             />
-            {address && (
+            {fullAddress.trim() && (
               <div
                 style={{
                   width: "100%",
@@ -238,7 +354,7 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
                   style={{ border: 0 }}
                   loading="lazy"
                   allowFullScreen
-                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBaXW3jHmQX3Q6K5Z9Y0L2M0N1O2P3Q4R&q=${encodeURIComponent(address)}`}
+                  src={`https://maps.google.com/maps?output=embed&t=k&q=${encodeURIComponent(fullAddress)}`}
                 />
               </div>
             )}

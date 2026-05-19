@@ -1,18 +1,8 @@
 // Admin Quote Management Page
 import { useEffect, useState, useCallback } from "react";
-import { getQuotes, approveQuote, rejectQuote } from "../services/quote.service";
-import type { Quote } from "../services/quote.service";
-import { QuoteStatusLabel, QuoteStatusColor, type QuoteStatus } from "../types/quote.types";
-
-function normalizeQuoteStatus(status: Quote["status"]): QuoteStatus {
-  const normalized = String(status).toLowerCase();
-  if (normalized === "approved") return "approved";
-  if (normalized === "rejected") return "rejected";
-  if (normalized === "submitted" || normalized === "sent" || normalized === "pending" || normalized === "responded") {
-    return "submitted";
-  }
-  return "draft";
-}
+import { getRfqs, approveRfq, rejectRfq } from "../services/quote.service";
+import type { Rfq as Quote } from "../services/quote.service";
+import { QuoteStatusLabel, QuoteStatusColor, normalizeQuoteStatus } from "../types/quote.types";
 
 export default function AdminQuoteManagementPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -28,7 +18,7 @@ export default function AdminQuoteManagementPage() {
   const fetchQuotes = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await getQuotes(page, PAGE_SIZE);
+      const result = await getRfqs(page, PAGE_SIZE);
       setQuotes(result.items);
       setTotal(result.total);
     } catch (err) {
@@ -68,7 +58,7 @@ export default function AdminQuoteManagementPage() {
 
     try {
       for (const id of selectedQuotes) {
-        await approveQuote(id, actionReason ? { reason: actionReason } : undefined);
+        await approveRfq(id, actionReason ? { reason: actionReason } : undefined);
       }
       setSelectedQuotes(new Set());
       setActionReason("");
@@ -90,7 +80,7 @@ export default function AdminQuoteManagementPage() {
 
     try {
       for (const id of selectedQuotes) {
-        await rejectQuote(id, actionReason ? { reason: actionReason } : undefined);
+        await rejectRfq(id, actionReason ? { reason: actionReason } : undefined);
       }
       setSelectedQuotes(new Set());
       setActionReason("");
@@ -106,7 +96,7 @@ export default function AdminQuoteManagementPage() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Yönetici - Teklif Yönetimi</h1>
+      <h1>Yönetici - RFQ / Teklif Yönetimi</h1>
 
       {error && (
         <div style={{ color: "red", padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px" }}>
@@ -117,7 +107,7 @@ export default function AdminQuoteManagementPage() {
       {selectedQuotes.size > 0 && (
         <div style={{ background: "#f0f4ff", padding: "16px", borderRadius: "8px", marginBottom: "16px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <strong>{selectedQuotes.size} teklif seçili</strong>
+            <strong>{selectedQuotes.size} RFQ / teklif seçili</strong>
             <button
               onClick={() => setSelectedQuotes(new Set())}
               style={{

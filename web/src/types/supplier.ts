@@ -3,6 +3,7 @@
 export interface Supplier {
   id: number;
   created_by_id: number;
+  source_type?: "private" | "platform_network";
   company_name: string;
   logo_url?: string;
   company_title?: string;
@@ -13,20 +14,25 @@ export interface Supplier {
   website?: string;
   address?: string;
   city?: string;
+  address_district?: string;
   postal_code?: string;
   invoice_name?: string;
   invoice_address?: string;
   invoice_city?: string;
+  invoice_district?: string;
   invoice_postal_code?: string;
   reference_score: number;
   notes?: string;
   category?: string;
+  category_tags?: string[];
+  partner_category_tags?: string[];
+  effective_category_tags?: string[];
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
   updated_at?: string;
   users?: SupplierUser[];
-  quotes?: any[];
+  quotes?: SupplierQuote[];
 }
 
 export interface SupplierUser {

@@ -23,6 +23,24 @@ export async function deleteProject(id: number): Promise<{ message: string }> {
   return res.data;
 }
 
+export async function addProjectPersonnel(projectId: number, userId: number): Promise<{ message: string }> {
+  const res = await http.post<{ message: string }>(`/admin/users/${userId}/projects/${projectId}`);
+  return res.data;
+}
+
+export async function addProjectTenantUser(projectId: number, userId: number): Promise<{ message: string }> {
+  return addProjectPersonnel(projectId, userId);
+}
+
+export async function removeProjectPersonnel(projectId: number, userId: number): Promise<{ message: string }> {
+  const res = await http.delete<{ message: string }>(`/admin/users/${userId}/projects/${projectId}`);
+  return res.data;
+}
+
+export async function removeProjectTenantUser(projectId: number, userId: number): Promise<{ message: string }> {
+  return removeProjectPersonnel(projectId, userId);
+}
+
 // PROJECT FILES
 export async function uploadProjectFile(projectId: number, file: File): Promise<ProjectFile> {
   const formData = new FormData();

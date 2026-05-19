@@ -10,6 +10,12 @@ vi.mock("../lib/token", () => ({
   getAccessToken: vi.fn(),
   setAccessToken: vi.fn(),
   clearAccessToken: vi.fn(),
+  getRefreshToken: vi.fn(),
+  setRefreshToken: vi.fn(),
+}));
+
+vi.mock("../lib/session", () => ({
+  shouldUseSupplierSession: vi.fn(),
 }));
 
 vi.mock("../services/auth.service", () => ({
@@ -20,6 +26,7 @@ vi.mock("../services/auth.service", () => ({
 
 import { getAccessToken, clearAccessToken } from "../lib/token";
 import { meRequest } from "../services/auth.service";
+import { shouldUseSupplierSession } from "../lib/session";
 
 function Consumer() {
   return (
@@ -39,6 +46,7 @@ describe("AuthProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    vi.mocked(shouldUseSupplierSession).mockReturnValue(false);
   });
 
   test("token yoksa user null, loading false", async () => {
@@ -95,6 +103,24 @@ describe("AuthProvider", () => {
     });
 
     expect(clearAccessToken).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("user").textContent).toBe("null");
+  });
+
+  test("supplier session root yolunda admin hydrate atlanir", async () => {
+    vi.mocked(shouldUseSupplierSession).mockReturnValue(true);
+    vi.mocked(getAccessToken).mockReturnValue(null);
+
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("loading").textContent).toBe("false");
+    });
+
+    expect(meRequest).not.toHaveBeenCalled();
     expect(screen.getByTestId("user").textContent).toBe("null");
   });
 });

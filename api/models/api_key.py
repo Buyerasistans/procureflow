@@ -1,6 +1,6 @@
 """API Key Management Model"""
 
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, Integer
+from sqlalchemy import String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 

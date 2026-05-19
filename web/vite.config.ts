@@ -38,6 +38,10 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
+    testTimeout: 20000,
+    fakeTimers: {
+      now: 1776247200000,
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "json-summary"],

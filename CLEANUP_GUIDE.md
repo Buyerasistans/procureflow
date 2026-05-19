@@ -196,7 +196,7 @@ git commit -m "docs: update gitignore and architecture guidelines"
 | `__init__.py` | `api/schemas/` | ✅ OLMALI | Kontrol |
 | `__init__.py` | `api/routers/` | ✅ OLMALI | Kontrol |
 | `__init__.py` | `api/services/` | ✅ OLMALI | Kontrol |
-| `quote_router.py` | `api/routers/` | ⚠️ Eski versyon | Konsol et → `quotes.py` |
+| Legacy quote router | `api/routers/` | ✅ Kaldirildi | RFQ runtime `quotes.py` uzerinde |
 | `settings_router.py` | `api/routers/` | ⚠️ Eski versyon | Konsol et → `advanced_settings_router.py` |
 | `email_service.py` | `api/services/` | ✅ MODERN (Date/Message-ID) | Kontrol |
 | `.env` | Kök | ⚠️ Silme karari vermeden once kontrol et | Aktif degilse gitignore'a al |
@@ -298,7 +298,7 @@ if __name__ == "__main__":
 | **.db Dosyalari** | 3+ | Silmeden once aktif kullanim ve yedek kontrolu zorunlu |
 | **Node cleanup** | 1 | `web/node_modules/` (npm install'la regenerate) |
 | **Python cache cleanup** | 2 | `__pycache__/`, `.pytest_cache/` |
-| **Yeniden yapılandırılacak Routers** | 2 | `quote_router.py` → `quotes.py`, `settings_router.py` → `advanced_settings_router.py` |
+| **Yeniden yapılandırılacak Routers** | 1 | `settings_router.py` → `advanced_settings_router.py` |
 
 **Tahmini Disk Boşaltılması:** ~500 MB-2 GB (node_modules'e bağlı olarak)
 

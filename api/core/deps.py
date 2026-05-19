@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from api.db.session import get_db
+from api.core.authz import normalized_role
 from api.core.security import decode_access_token
 from api.models import User, SupplierUser
 
@@ -92,7 +93,7 @@ def get_current_supplier_user(
 
     supplier_user = (
         db.query(SupplierUser)
-        .filter(SupplierUser.email == email, SupplierUser.is_active == True)
+        .filter(SupplierUser.email == email, SupplierUser.is_active)
         .first()
     )
 
@@ -143,7 +144,7 @@ def get_any_user(
             raise HTTPException(status_code=401, detail="Token missing email")
         supplier_user = (
             db.query(SupplierUser)
-            .filter(SupplierUser.email == email, SupplierUser.is_active == True)
+            .filter(SupplierUser.email == email, SupplierUser.is_active)
             .first()
         )
         if not supplier_user:
@@ -167,7 +168,7 @@ def get_any_user(
 
 def require_role(required_role: str):
     def _checker(current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role != required_role:
+        if normalized_role(current_user) != required_role.strip().lower():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"{required_role} role required",

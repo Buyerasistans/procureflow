@@ -1,5 +1,6 @@
 # health.py
 from fastapi import APIRouter
+
 from api.db.session import test_db_connection
 
 router = APIRouter(prefix="/health", tags=["health"])

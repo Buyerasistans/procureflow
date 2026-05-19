@@ -1,9 +1,5 @@
 # services/file_service.py
-import os
-import shutil
 from pathlib import Path
-from typing import Optional
-from datetime import datetime
 
 
 class FileUploadService:

@@ -15,6 +15,8 @@ import {
   type SupplierProfileResponse,
 } from "../services/supplier-profile.service";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
+import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
+import { CategorySelectionModal } from "../components/CategorySelectionModal";
 
 const PageWrap = styled.div`
   min-height: 100vh;
@@ -577,15 +579,17 @@ type FormState = {
   invoice_district: string;
   invoice_postal_code: string;
   notes: string;
+  category_tags: string[];
   payment_accounts: SupplierPaymentAccount[];
   accepts_checks: boolean;
   preferred_check_term: string;
   user_name: string;
   user_phone: string;
   user_email: string;
+  user_work_email: string;
 };
 
-type SectionKey = "invoice" | "address" | "payment" | "notes";
+type SectionKey = "invoice" | "address" | "payment" | "categories" | "notes";
 
 const BANK_OPTIONS = [
   { key: "ziraat", name: "Ziraat Bankası", short: "ZB", start: "#b91c1c", end: "#ef4444" },
@@ -617,6 +621,7 @@ function mapToForm(p: SupplierProfileResponse): FormState {
     invoice_district: t(p.supplier.invoice_district),
     invoice_postal_code: t(p.supplier.invoice_postal_code),
     notes: t(p.supplier.notes),
+    category_tags: p.supplier.category_tags ?? [],
     payment_accounts: (p.supplier.payment_accounts ?? []).map((account) => ({
       id: account.id,
       bank_key: account.bank_key,
@@ -629,6 +634,7 @@ function mapToForm(p: SupplierProfileResponse): FormState {
     user_name: t(p.user.name),
     user_phone: t(p.user.phone),
     user_email: t(p.user.email),
+    user_work_email: t(p.user.work_email),
   };
 }
 
@@ -644,6 +650,7 @@ export default function SupplierProfilePage() {
     invoice: false,
     address: false,
     payment: false,
+    categories: false,
     notes: false,
   });
   const [emailStatus, setEmailStatus] = useState<{ pending: boolean; pendingEmail: string | null }>({
@@ -652,6 +659,7 @@ export default function SupplierProfilePage() {
   });
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [editingUser, setEditingUser] = useState<number | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingUserForm, setEditingUserForm] = useState<{ name: string; email: string; phone: string }>({
     name: "",
     email: "",
@@ -847,6 +855,7 @@ export default function SupplierProfilePage() {
         invoice_district: form.invoice_district,
         invoice_postal_code: form.invoice_postal_code,
         notes: form.notes,
+        category_tags: form.category_tags,
         payment_accounts: form.payment_accounts.map((account) => ({
           bank_key: account.bank_key,
           bank_name: account.bank_name,
@@ -857,6 +866,7 @@ export default function SupplierProfilePage() {
         preferred_check_term: form.accepts_checks ? form.preferred_check_term : "",
         user_name: form.user_name,
         user_phone: form.user_phone,
+        user_work_email: form.user_work_email || null,
       };
 
       const res = await updateSupplierProfile(payload);
@@ -921,6 +931,12 @@ export default function SupplierProfilePage() {
               </MiniField>
               <MiniField>
                 <MiniFieldHeader>
+                  <MiniFieldLabel>İş Maili</MiniFieldLabel>
+                </MiniFieldHeader>
+                <input value={form.user_work_email} onChange={e => set("user_work_email", e.target.value)} placeholder="mailbox@firma.com" />
+              </MiniField>
+              <MiniField>
+                <MiniFieldHeader>
                   <MiniFieldLabel>Yetkili E-posta</MiniFieldLabel>
                   <EmailStatusRow>
                     <StatusBadge $pending={emailStatus.pending}>
@@ -935,6 +951,7 @@ export default function SupplierProfilePage() {
               E-posta değişikliğinde yeni adrese doğrulama maili gönderilir.
               {emailStatus.pending && emailStatus.pendingEmail ? ` Bekleyen onay: ${emailStatus.pendingEmail}` : ""}
             </Hint>
+            <Hint>İş maili mailbox eşlemesi için kullanılır; giriş e-postasından farklı olabilir.</Hint>
             <Hint>Şirkette toplam {profile.supplier.authorized_users_count} yetkili bulunuyor.</Hint>
             <TeamList>
               {authorizedUsers.map((teamUser) => (
@@ -1187,6 +1204,34 @@ export default function SupplierProfilePage() {
         </Card>
 
         <Card>
+          <SectionHeader $open={openSections.categories} onClick={() => toggleSection("categories")}>
+            <h3>Kategori ve Görünürlük</h3>
+            <span>⌄</span>
+          </SectionHeader>
+          {openSections.categories && (
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "#0f766e", marginBottom: 8 }}>Sizin yönettiğiniz kategoriler</div>
+                <GhostBtn type="button" onClick={() => setShowCategoryModal(true)}>Kategori Seç</GhostBtn>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+                  {form.category_tags.length > 0 ? form.category_tags.map((item) => (
+                    <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#ecfeff", color: "#0f766e", fontWeight: 700, fontSize: 12 }}>{item}</span>
+                  )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Henüz görünürlük kategorisi seçmediniz</span>}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "#1d4ed8", marginBottom: 8 }}>Stratejik partner tarafından eklenen kategoriler</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {(profile.supplier.partner_category_tags || []).length > 0 ? profile.supplier.partner_category_tags.map((item) => (
+                    <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: 12 }}>{item}</span>
+                  )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Stratejik partner henüz kategori eklemedi</span>}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <Card>
           <SectionHeader $open={openSections.notes} onClick={() => toggleSection("notes")}>
             <h3>Önemli Notlar</h3>
             <span>⌄</span>
@@ -1204,6 +1249,20 @@ export default function SupplierProfilePage() {
             {saving ? "⏳ Kaydediliyor..." : "💾 Profili Kaydet"}
           </SaveBtn>
         </FooterBar>
+
+        <CategorySelectionModal
+          isOpen={showCategoryModal}
+          title="Bulunmak İstediğiniz Kategoriler"
+          subtitle="Bu seçimler, alıcıların sizi ararken kullandığı görünürlük ve davet filtrelerini besler."
+          availableOptions={COMPANY_CATEGORY_OPTIONS}
+          value={form.category_tags}
+          maxSelectionCount={5}
+          onClose={() => setShowCategoryModal(false)}
+          onSave={(value) => {
+            setForm((prev) => prev ? { ...prev, category_tags: value } : prev);
+            setShowCategoryModal(false);
+          }}
+        />
       </Body>
 
       {toast && <Toast $type={toast.type}>{toast.msg}</Toast>}

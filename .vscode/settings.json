@@ -4,5 +4,36 @@
     "D:/Projects/procureflow"
   ],
   "python.analysis.indexing": true,
-  "json.schemaDownload.enable": false
+  "json.schemaDownload.enable": false,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "chat.tools.terminal.autoApprove": {
+    "/^D:/Projects/procureflow/api/\\.venv/Scripts/python\\.exe -m py_compile d:/Projects/procureflow/api/scripts/bootstrap_tenants\\.py$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^Set-Location \"d:\\\\Projects\\\\procureflow\\\\web\"; npm run build$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^Set-Location \"d:\\\\Projects\\\\procureflow\"; \\.\\\\\\.venv\\\\Scripts\\\\Activate\\.ps1; python -m uvicorn api\\.main:app --reload --port 8000$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^cd d:\\\\Projects\\\\procureflow ; \\.\\\\\\.venv\\\\Scripts\\\\python\\.exe seed_demo_personnel\\.py$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  },
+  "chat.mcp.serverSampling": {
+    "procureflow/.vscode/mcp.json: filesystem": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilotcli/claude-haiku-4.5"
+      ]
+    }
+  }
 }

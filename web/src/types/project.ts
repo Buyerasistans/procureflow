@@ -9,6 +9,13 @@ export interface ProjectFile {
   created_at?: string;
 }
 
+export interface ProjectPersonnel {
+  id: number;
+  full_name: string;
+  email: string;
+  role: string;
+}
+
 export interface Project {
   id: number;
   name: string;
@@ -16,6 +23,7 @@ export interface Project {
   code: string;
   budget?: number;
   company_id?: number;
+  created_by_id?: number | null;
   project_type: "merkez" | "franchise";
   address?: string;
   latitude?: number;
@@ -26,6 +34,7 @@ export interface Project {
   created_at?: string;
   updated_at?: string;
   project_files?: ProjectFile[];
+  personnel?: ProjectPersonnel[];
 }
 
 export interface ProjectCreatePayload {
@@ -40,7 +49,9 @@ export interface ProjectCreatePayload {
   longitude?: number;
   manager_name?: string;
   manager_phone?: string;
+  manager_email?: string;
   is_active?: boolean;
+  responsible_user_ids?: number[];
 }
 
 export interface ProjectUpdatePayload {
@@ -55,5 +66,7 @@ export interface ProjectUpdatePayload {
   longitude?: number;
   manager_name?: string;
   manager_phone?: string;
+  manager_email?: string;
   is_active?: boolean;
+  responsible_user_ids?: number[];
 }

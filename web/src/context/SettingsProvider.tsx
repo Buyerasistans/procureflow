@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import type { SystemSettings, SettingsUpdatePayload } from "../services/settings.service";
 import { getSettings, updateSettings as updateSettingsApi, refreshSettings as refreshSettingsApi } from "../services/settings.service";
 import type { SettingsContextType } from "./settings-types";
-import { isSupplierLoggedIn } from "../lib/session";
+import { shouldUseSupplierSession } from "../lib/session";
 import { getAccessToken, getRefreshToken } from "../lib/token";
 import { SettingsContext } from "./SettingsContext";
 
@@ -33,9 +33,9 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
           : undefined;
       const statusCode = maybeResponse?.status;
 
-      // 401 Unauthorized - kullanıcı giriş yapmamış (register sayfasında vs)
-      if (statusCode === 401) {
-        console.log("[SETTINGS] 401 - Token yok, silently skip");
+      // 401/403 yetkisiz surface'larda (channel/supplier) sessizce gec.
+      if (statusCode === 401 || statusCode === 403) {
+        console.log("[SETTINGS] 401/403 - Yetki veya oturum yok, silently skip");
         return;
       }
 
@@ -51,6 +51,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     const pathname = location.pathname;
     const isPublicRoute =
       pathname === "/login" ||
+      pathname === "/activate-account" ||
       pathname === "/supplier/login" ||
       pathname === "/supplier/register";
 
@@ -61,7 +62,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     }
 
     // Supplier session'da settings yükleme
-    const isSupplierSession = isSupplierLoggedIn();
+    const isSupplierSession = shouldUseSupplierSession(pathname);
     if (!isSupplierSession) {
       loadSettings();
     }
@@ -76,7 +77,16 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
         setSettings(updated);
         console.log("[SETTINGS] Ayarlar güncellendi:", updated);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Ayarlar güncelleme hatası";
+        const maybeResponse =
+          typeof err === "object" && err !== null && "response" in err
+            ? (err as { response?: { status?: number; data?: { detail?: string } } }).response
+            : undefined;
+        const statusCode = maybeResponse?.status;
+        const backendDetail = maybeResponse?.data?.detail;
+        const message =
+          statusCode === 401 || statusCode === 403
+            ? "Bu panelde ayar degistirme yetkiniz yok."
+            : backendDetail || (err instanceof Error ? err.message : "Ayarlar guncelleme hatasi");
         setError(message);
         console.error("[SETTINGS] Güncelleme hatası:", err);
         throw err;

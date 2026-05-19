@@ -7,6 +7,9 @@ export interface SupplierCompanyProfile {
   phone: string | null;
   website: string | null;
   category: string | null;
+  category_tags: string[];
+  partner_category_tags: string[];
+  effective_category_tags: string[];
   address: string | null;
   city: string | null;
   address_district: string | null;
@@ -60,6 +63,7 @@ export interface SupplierUserProfile {
   id: number;
   name: string;
   email: string;
+  work_email: string | null;
   phone: string | null;
   created_at: string;
   email_verified: boolean;
@@ -92,12 +96,14 @@ export interface SupplierProfileUpdatePayload {
   invoice_district?: string;
   invoice_postal_code?: string;
   notes?: string;
+  category_tags?: string[];
   payment_accounts?: SupplierPaymentAccount[];
   accepts_checks?: boolean;
   preferred_check_term?: string;
   user_name?: string;
   user_phone?: string;
   user_email?: string;
+  user_work_email?: string | null;
 }
 
 export type SupplierDocCategory = "certificates" | "company_docs" | "personnel_docs" | "guarantee_docs";

@@ -5,11 +5,10 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import mimetypes
 from urllib.parse import quote
-from typing import Optional
 
-from api.core.deps import get_db, get_current_user
+from api.core.deps import get_db
 from api.core.security import decode_access_token
-from api.models import ProjectFile, User
+from api.models import ProjectFile, User, SupplierUser
 from api.services.file_service import FileUploadService
 
 
@@ -67,24 +66,40 @@ async def download_file(
     """
     current_user = None
 
+    def resolve_authenticated_principal(raw_token: str):
+        try:
+            payload = decode_access_token(raw_token)
+        except Exception:
+            return None
+
+        role = payload.get("role")
+        subject = payload.get("sub")
+        if not subject:
+            return None
+
+        # Supplier token: sub=email
+        if role == "supplier":
+            return (
+                db.query(SupplierUser)
+                .filter(SupplierUser.email == str(subject), SupplierUser.is_active)
+                .first()
+            )
+
+        # Admin/normal token: sub=user_id
+        try:
+            user_id = int(subject)
+        except (TypeError, ValueError):
+            return None
+        return db.query(User).filter_by(id=user_id).first()
+
     # Header'dan token al (Authorization: Bearer {token})
     if authorization and authorization.startswith("Bearer "):
-        try:
-            bearer_token = authorization.split(" ")[1]
-            payload = decode_access_token(bearer_token)
-            user_id = payload.get("sub")
-            current_user = db.query(User).filter(User.id == int(user_id)).first()
-        except Exception as e:
-            current_user = None  # Invalid token, try query param
+        bearer_token = authorization.split(" ")[1]
+        current_user = resolve_authenticated_principal(bearer_token)
 
     # Query param'dan token al (fallback)
     if not current_user and token:
-        try:
-            payload = decode_access_token(token)
-            user_id = payload.get("sub")
-            current_user = db.query(User).filter(User.id == int(user_id)).first()
-        except Exception as e:
-            current_user = None
+        current_user = resolve_authenticated_principal(token)
 
     # Authenticate check
     if not current_user:
@@ -159,24 +174,38 @@ async def open_file(
     """
     current_user = None
 
+    def resolve_authenticated_principal(raw_token: str):
+        try:
+            payload = decode_access_token(raw_token)
+        except Exception:
+            return None
+
+        role = payload.get("role")
+        subject = payload.get("sub")
+        if not subject:
+            return None
+
+        if role == "supplier":
+            return (
+                db.query(SupplierUser)
+                .filter(SupplierUser.email == str(subject), SupplierUser.is_active)
+                .first()
+            )
+
+        try:
+            user_id = int(subject)
+        except (TypeError, ValueError):
+            return None
+        return db.query(User).filter_by(id=user_id).first()
+
     # Header'dan token al
     if authorization and authorization.startswith("Bearer "):
-        try:
-            bearer_token = authorization.split(" ")[1]
-            payload = decode_access_token(bearer_token)
-            user_id = payload.get("sub")
-            current_user = db.query(User).filter(User.id == int(user_id)).first()
-        except Exception as e:
-            current_user = None
+        bearer_token = authorization.split(" ")[1]
+        current_user = resolve_authenticated_principal(bearer_token)
 
     # Query param'dan token al
     if not current_user and token:
-        try:
-            payload = decode_access_token(token)
-            user_id = payload.get("sub")
-            current_user = db.query(User).filter(User.id == int(user_id)).first()
-        except Exception as e:
-            current_user = None
+        current_user = resolve_authenticated_principal(token)
 
     # Authenticate check
     if not current_user:

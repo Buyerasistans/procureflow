@@ -1,23 +1,27 @@
 """Raporlama ve Analiz API Endpoints"""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from datetime import datetime
-from decimal import Decimal
-from statistics import median
+import json
+from io import BytesIO
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
+from statistics import median
+import openpyxl
+from openpyxl.chart import BarChart, Reference
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+from api.core.authz import is_global_procurement_manager
 from api.database import get_db
 from api.models import (
     Quote,
+    QuoteItem,
     SupplierQuote,
     SupplierQuoteItem,
     Supplier,
-    SupplierUser,
     User,
-    QuoteApproval,
 )
-from api.models.report import QuoteComparison, SupplierRating, PriceAnalysis, Contract
+from api.models.report import SupplierRating, PriceAnalysis, Contract
 from api.schemas.report import (
     SupplierRatingCreate,
     SupplierRatingOut,
@@ -33,6 +37,171 @@ from api.core.time import utcnow
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
+def _can_access_quote(current_user: User, quote: Quote) -> bool:
+    if is_global_procurement_manager(current_user):
+        return True
+    if quote.created_by_id == current_user.id:
+        return True
+    return any(project.id == quote.project_id for project in current_user.projects)
+
+
+def _get_scoped_quote_or_404(
+    db: Session,
+    quote_id: int,
+    current_user: User,
+) -> Quote:
+    quote = db.query(Quote).filter(Quote.id == quote_id).first()
+    if quote is None:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    if not _can_access_quote(current_user, quote):
+        raise HTTPException(
+            status_code=403, detail="Bu raporu görüntüleme yetkiniz yok"
+        )
+    return quote
+
+
+def _parse_item_meta(notes: str | None) -> tuple[str, str]:
+    if not notes:
+        return "", ""
+    try:
+        parsed = json.loads(notes)
+        if isinstance(parsed, dict):
+            detail = str(parsed.get("detail") or "")
+            image_url = str(parsed.get("image_url") or "")
+            return detail, image_url
+    except Exception:
+        pass
+    return str(notes), ""
+
+
+def _pick_latest_quote_by_supplier(
+    supplier_quotes: list[SupplierQuote],
+) -> list[SupplierQuote]:
+    latest_by_supplier: dict[int, SupplierQuote] = {}
+
+    for sq in supplier_quotes:
+        current = latest_by_supplier.get(sq.supplier_id)
+        if current is None:
+            latest_by_supplier[sq.supplier_id] = sq
+            continue
+
+        sq_revision = int(sq.revision_number or 0)
+        cur_revision = int(current.revision_number or 0)
+
+        if sq_revision > cur_revision:
+            latest_by_supplier[sq.supplier_id] = sq
+            continue
+
+        if sq_revision == cur_revision:
+            sq_ts = sq.submitted_at or sq.updated_at or sq.created_at
+            cur_ts = current.submitted_at or current.updated_at or current.created_at
+            if sq_ts and cur_ts and sq_ts > cur_ts:
+                latest_by_supplier[sq.supplier_id] = sq
+
+    return sorted(
+        latest_by_supplier.values(),
+        key=lambda row: float(row.final_amount or 0),
+    )
+
+
+def _build_comparison_dataset(db: Session, quote_id: int) -> dict:
+    quote = db.query(Quote).filter(Quote.id == quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+
+    all_supplier_quotes = (
+        db.query(SupplierQuote).filter(SupplierQuote.quote_id == quote_id).all()
+    )
+    if not all_supplier_quotes:
+        raise HTTPException(
+            status_code=404, detail="Rapor için tedarikçi teklifi bulunamadı"
+        )
+
+    latest_quotes = _pick_latest_quote_by_supplier(all_supplier_quotes)
+    latest_ids = [row.id for row in latest_quotes]
+
+    supplier_item_rows = (
+        db.query(SupplierQuoteItem)
+        .filter(SupplierQuoteItem.supplier_quote_id.in_(latest_ids or [-1]))
+        .all()
+    )
+    supplier_item_map = {
+        (row.supplier_quote_id, row.quote_item_id): row for row in supplier_item_rows
+    }
+
+    quote_items = (
+        db.query(QuoteItem)
+        .filter(QuoteItem.quote_id == quote_id)
+        .order_by(QuoteItem.sequence.asc(), QuoteItem.id.asc())
+        .all()
+    )
+
+    approved_row = next(
+        (row for row in latest_quotes if row.status == "onaylandı"), None
+    )
+    approved_supplier_name = (
+        approved_row.supplier.company_name
+        if approved_row and approved_row.supplier
+        else ""
+    )
+
+    suppliers = []
+    for row in latest_quotes:
+        suppliers.append(
+            {
+                "supplier_quote_id": row.id,
+                "supplier_id": row.supplier_id,
+                "supplier_name": row.supplier.company_name
+                if row.supplier
+                else f"Supplier#{row.supplier_id}",
+                "revision_number": int(row.revision_number or 0),
+                "status": row.status,
+                "total_amount": float(row.total_amount or 0),
+                "discount_amount": float(row.discount_amount or 0),
+                "final_amount": float(row.final_amount or 0),
+                "delivery_time": int(row.delivery_time or 0),
+                "approved": row.status == "onaylandı",
+            }
+        )
+
+    items = []
+    for qi in quote_items:
+        detail, image_url = _parse_item_meta(qi.notes)
+        item_entry = {
+            "quote_item_id": qi.id,
+            "line_number": qi.line_number,
+            "description": qi.description,
+            "detail": detail,
+            "image_url": image_url,
+            "unit": qi.unit,
+            "quantity": float(qi.quantity or 0),
+            "base_unit_price": float(qi.unit_price or 0),
+            "is_group_header": bool(qi.is_group_header),
+            "supplier_prices": {},
+        }
+
+        for supplier in suppliers:
+            sqi = supplier_item_map.get((supplier["supplier_quote_id"], qi.id))
+            item_entry["supplier_prices"][str(supplier["supplier_quote_id"])] = {
+                "unit_price": float(sqi.unit_price or 0) if sqi else None,
+                "total_price": float(sqi.total_price or 0) if sqi else None,
+            }
+
+        items.append(item_entry)
+
+    return {
+        "quote": {
+            "id": quote.id,
+            "rfq_id": quote.id,
+            "title": quote.title,
+            "generated_at": utcnow().isoformat(),
+            "approved_supplier_name": approved_supplier_name,
+        },
+        "suppliers": suppliers,
+        "items": items,
+    }
+
+
 # ============ PRICE ANALYSIS ============
 
 
@@ -43,9 +212,7 @@ def get_price_analysis(
     current_user: User = Depends(get_current_user),
 ):
     """Quote için fiyat analiz raporu"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    quote = _get_scoped_quote_or_404(db, quote_id, current_user)
 
     # SupplierQuote'ların final_amount'larını al
     supplier_quotes = (
@@ -67,11 +234,13 @@ def get_price_analysis(
         raise HTTPException(status_code=400, detail="Fiyat verisi yok")
 
     # İstatistikler hesapla
-    min_price = Decimal(str(min(prices)))
-    max_price = Decimal(str(max(prices)))
-    avg_price = Decimal(str(sum(prices) / len(prices)))
-    median_price = Decimal(str(median(prices)))
-    price_variance = ((max_price - min_price) / min_price * 100) if min_price > 0 else 0
+    min_price = float(min(prices))
+    max_price = float(max(prices))
+    avg_price = float(sum(prices) / len(prices))
+    median_price = float(median(prices))
+    price_variance = (
+        ((max_price - min_price) / min_price * 100) if min_price > 0 else 0.0
+    )
 
     # En ucuz ve en pahalı tedarikçileri bul
     cheapest_sq = sorted(supplier_quotes, key=lambda x: float(x.final_amount))[0]
@@ -96,10 +265,10 @@ def get_price_analysis(
         )
         db.add(analysis)
     else:
-        analysis.min_price = min_price
-        analysis.max_price = max_price
-        analysis.avg_price = avg_price
-        analysis.median_price = median_price
+        analysis.min_price = min_price  # type: ignore[assignment]
+        analysis.max_price = max_price  # type: ignore[assignment]
+        analysis.avg_price = avg_price  # type: ignore[assignment]
+        analysis.median_price = median_price  # type: ignore[assignment]
         analysis.price_variance = float(price_variance)
         analysis.cheapest_supplier_id = cheapest_sq.supplier_id
         analysis.most_expensive_supplier_id = most_expensive_sq.supplier_id
@@ -120,13 +289,13 @@ def get_quote_comparison(
     current_user: User = Depends(get_current_user),
 ):
     """Quote'un farklı kriterlerine göre karşılaştırması"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    _get_scoped_quote_or_404(db, quote_id, current_user)
 
     supplier_quotes = (
         db.query(SupplierQuote)
-        .filter(SupplierQuote.quote_id == quote_id, SupplierQuote.submitted_at != None)
+        .filter(
+            SupplierQuote.quote_id == quote_id, SupplierQuote.submitted_at.is_not(None)
+        )
         .all()
     )
 
@@ -149,7 +318,7 @@ def get_quote_comparison(
                 metric_name="min_price",
                 metric_value=min_price,
                 supplier_id=prices_sorted[0][0].supplier_id,
-                supplier_name=prices_sorted[0][0].supplier.name,
+                supplier_name=prices_sorted[0][0].supplier.company_name,
             )
         )
         metrics.append(
@@ -157,7 +326,7 @@ def get_quote_comparison(
                 metric_name="max_price",
                 metric_value=max_price,
                 supplier_id=prices_sorted[-1][0].supplier_id,
-                supplier_name=prices_sorted[-1][0].supplier.name,
+                supplier_name=prices_sorted[-1][0].supplier.company_name,
             )
         )
         metrics.append(
@@ -178,7 +347,7 @@ def get_quote_comparison(
                     metric_name="fastest_delivery",
                     metric_value=deliveries_sorted[0][1],
                     supplier_id=deliveries_sorted[0][0].supplier_id,
-                    supplier_name=deliveries_sorted[0][0].supplier.name,
+                    supplier_name=deliveries_sorted[0][0].supplier.company_name,
                 )
             )
 
@@ -201,9 +370,7 @@ def rate_supplier(
     current_user: User = Depends(get_current_user),
 ):
     """Tedarikçiye puan ver"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    _get_scoped_quote_or_404(db, quote_id, current_user)
 
     # Tedarikçi kontrol et
     supplier = db.query(Supplier).filter(Supplier.id == rating_data.supplier_id).first()
@@ -279,9 +446,7 @@ def get_reporting_dashboard(
     current_user: User = Depends(get_current_user),
 ):
     """Raporlama dashboard'u - tüm veriler"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    quote = _get_scoped_quote_or_404(db, quote_id, current_user)
 
     # Tedarikçi sayısı
     supplier_quotes = (
@@ -295,7 +460,7 @@ def get_reporting_dashboard(
         price_analysis_obj = (
             db.query(PriceAnalysis).filter(PriceAnalysis.quote_id == quote_id).first()
         )
-    except:
+    except Exception:
         price_analysis_obj = None
 
     # Puanlar
@@ -318,3 +483,206 @@ def get_reporting_dashboard(
         average_rating=avg_rating,
         contracts=[ContractOut.from_orm(c) for c in contracts],
     )
+
+
+@router.get("/{quote_id}/comparison/export-xlsx")
+def export_quote_comparison_xlsx(
+    quote_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Karşılaştırma verisini ikinci görünüm formatına yakın detaylı Excel olarak dışa aktarır."""
+    _get_scoped_quote_or_404(db, quote_id, current_user)
+
+    dataset = _build_comparison_dataset(db, quote_id)
+
+    suppliers = dataset["suppliers"]
+    items = dataset["items"]
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Karsilastirma Raporu"
+
+    ws.append(["Teklif", dataset["quote"]["title"]])
+    ws.append(["Teklif ID", dataset["quote"]["id"]])
+    ws.append(["Rapor Tarihi", utcnow().strftime("%Y-%m-%d %H:%M")])
+    ws.append([])
+    ws.append(
+        [
+            "Tedarikci",
+            "Revizyon",
+            "Toplam Tutar",
+            "Indirim Tutar",
+            "Final Tutar",
+            "Teslimat (Gun)",
+            "Durum",
+            "Onay",
+        ]
+    )
+
+    for row in suppliers:
+        approved = bool(row["approved"])
+        ws.append(
+            [
+                row["supplier_name"],
+                row["revision_number"],
+                row["total_amount"],
+                row["discount_amount"],
+                row["final_amount"],
+                row["delivery_time"],
+                row["status"],
+                "EVET" if approved else "",
+            ]
+        )
+
+    ws.append([])
+    ws.append(
+        [
+            "Onaylanan Tedarikci",
+            dataset["quote"]["approved_supplier_name"] or "Henüz yok",
+        ]
+    )
+
+    for col in ("A", "B", "C", "D", "E", "F", "G", "H"):
+        ws.column_dimensions[col].width = 20
+
+    for row_idx in range(6, 6 + len(suppliers)):
+        ws[f"C{row_idx}"].number_format = "#,##0.00"
+        ws[f"D{row_idx}"].number_format = "#,##0.00"
+        ws[f"E{row_idx}"].number_format = "#,##0.00"
+
+    # Kalem bazli detayli karsilastirma bolumu
+    ws.append([])
+    detail_header_row = ws.max_row + 1
+    ws.cell(detail_header_row, 1, "Sira")
+    ws.cell(detail_header_row, 2, "Aciklama")
+    ws.cell(detail_header_row, 3, "Birim")
+    ws.cell(detail_header_row, 4, "Miktar")
+    ws.cell(detail_header_row, 5, "Tahmini Birim Fiyat")
+
+    col = 6
+    for supplier in suppliers:
+        ws.merge_cells(
+            start_row=detail_header_row,
+            start_column=col,
+            end_row=detail_header_row,
+            end_column=col + 1,
+        )
+        ws.cell(detail_header_row, col, supplier["supplier_name"])
+        ws.cell(detail_header_row + 1, col, "Birim Fiyat")
+        ws.cell(detail_header_row + 1, col + 1, "Birim Toplam")
+        col += 2
+
+    header_fill = PatternFill(fill_type="solid", fgColor="DCE6F1")
+    sub_header_fill = PatternFill(fill_type="solid", fgColor="EEF3FA")
+    group_fill = PatternFill(fill_type="solid", fgColor="FDE9A9")
+    thin = Side(style="thin", color="D1D5DB")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for c in range(1, col):
+        ws.cell(detail_header_row, c).fill = header_fill
+        ws.cell(detail_header_row, c).font = Font(bold=True)
+        ws.cell(detail_header_row, c).alignment = Alignment(
+            horizontal="center", vertical="center"
+        )
+        ws.cell(detail_header_row, c).border = border
+
+        ws.cell(detail_header_row + 1, c).fill = sub_header_fill
+        ws.cell(detail_header_row + 1, c).font = Font(bold=True)
+        ws.cell(detail_header_row + 1, c).alignment = Alignment(
+            horizontal="center", vertical="center"
+        )
+        ws.cell(detail_header_row + 1, c).border = border
+
+    current_row = detail_header_row + 2
+    for item in items:
+        ws.cell(current_row, 1, item["line_number"])
+        desc = item["description"]
+        if item["detail"]:
+            desc = f"{desc}\n{item['detail']}"
+        ws.cell(current_row, 2, desc)
+        ws.cell(current_row, 3, item["unit"])
+        ws.cell(current_row, 4, item["quantity"])
+        ws.cell(current_row, 5, item["base_unit_price"])
+
+        price_col = 6
+        for supplier in suppliers:
+            supplier_price = (
+                item["supplier_prices"].get(str(supplier["supplier_quote_id"])) or {}
+            )
+            ws.cell(current_row, price_col, supplier_price.get("unit_price"))
+            ws.cell(current_row, price_col + 1, supplier_price.get("total_price"))
+            price_col += 2
+
+        for c in range(1, col):
+            cell = ws.cell(current_row, c)
+            cell.border = border
+            if c in (2,):
+                cell.alignment = Alignment(wrap_text=True, vertical="top")
+            elif c in (1, 3):
+                cell.alignment = Alignment(horizontal="center")
+            else:
+                cell.alignment = Alignment(horizontal="right")
+
+            if c >= 5:
+                cell.number_format = "#,##0.00"
+
+            if item["is_group_header"]:
+                cell.fill = group_fill
+                cell.font = Font(bold=True)
+
+        if item["is_group_header"]:
+            for c in range(3, col):
+                ws.cell(current_row, c, None)
+
+        current_row += 1
+
+    ws.column_dimensions["A"].width = 8
+    ws.column_dimensions["B"].width = 48
+    ws.column_dimensions["C"].width = 9
+    ws.column_dimensions["D"].width = 10
+    ws.column_dimensions["E"].width = 16
+
+    dynamic_col = 6
+    for _ in suppliers:
+        ws.column_dimensions[openpyxl.utils.get_column_letter(dynamic_col)].width = 14
+        ws.column_dimensions[
+            openpyxl.utils.get_column_letter(dynamic_col + 1)
+        ].width = 14
+        dynamic_col += 2
+
+    chart = BarChart()
+    chart.title = "Tedarikci Final Tutar Karsilastirmasi"
+    chart.y_axis.title = "Final Tutar"
+    chart.x_axis.title = "Tedarikci"
+    data = Reference(ws, min_col=5, min_row=5, max_row=5 + len(suppliers))
+    cats = Reference(ws, min_col=1, min_row=6, max_row=5 + len(suppliers))
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(cats)
+    chart.height = 7
+    chart.width = 18
+    ws.add_chart(chart, "J5")
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"quote_{quote_id}_karsilastirma_raporu.xlsx"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
+
+
+@router.get("/{quote_id}/comparison/detailed")
+def get_quote_comparison_detailed(
+    quote_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Karşılaştırma ekranı ve Excel için son revizyon bazlı detaylı veri döner."""
+    _get_scoped_quote_or_404(db, quote_id, current_user)
+    dataset = _build_comparison_dataset(db, quote_id)
+    return dataset

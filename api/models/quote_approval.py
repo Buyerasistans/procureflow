@@ -1,11 +1,19 @@
 """Teklif Onay Workflow Modeli"""
 
+from __future__ import annotations
+
 from datetime import datetime, UTC
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.database import Base
+
+if TYPE_CHECKING:
+    from api.models.quote import Quote
+    from api.models.supplier import SupplierQuote
+    from api.models.user import User
 
 
 class QuoteApproval(Base):
@@ -14,6 +22,9 @@ class QuoteApproval(Base):
     __tablename__ = "quote_approvals"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id"), nullable=True, index=True
+    )
     quote_id: Mapped[int] = mapped_column(ForeignKey("quotes.id"), nullable=False)
     supplier_quote_id: Mapped[int | None] = mapped_column(
         ForeignKey("supplier_quotes.id"), nullable=True
@@ -21,7 +32,9 @@ class QuoteApproval(Base):
 
     # Onay Kademesi
     approval_level: Mapped[int] = mapped_column(Integer)  # 1: Yönetici, 2: Direktör
-    required_role: Mapped[str] = mapped_column(String(100))
+    required_business_role: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )
 
     # Onay Kişisi
     approved_by_id: Mapped[int | None] = mapped_column(

@@ -2,37 +2,38 @@
 import { Fragment, useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
-  getQuote,
-  updateQuote,
-  updateQuoteItems,
-  deleteQuote,
-  submitQuote,
-  approveQuote,
-  rejectQuote,
+  getRfq,
+  updateRfq,
+  updateRfqItems,
+  deleteRfq,
+  submitRfq,
+  approveRfqWorkflow,
+  rejectRfqWorkflow,
+  getRfqPendingApprovals,
   getQuoteHistory,
+  getQuoteAuditTrail,
   getSupplierQuotesGrouped,
+  getSupplierQuoteById,
   requestQuoteRevision,
   submitRevisionedQuote,
+  approveSupplierQuote,
+  downloadQuoteComparisonXlsx,
+  type QuoteAuditTrail,
+  type Rfq as Quote,
+  type RfqItemPayload as QuoteItemPayload,
+  type RfqPendingApproval as QuotePendingApproval,
   type SupplierQuotesGrouped,
+  type SupplierQuoteDetail,
   type SupplierQuoteRevision,
 } from "../services/quote.service";
-import type { Quote, StatusLog, QuoteItemPayload } from "../services/quote.service";
+import type { StatusLog } from "../services/quote.service";
 import { useAuth } from "../hooks/useAuth";
-import { QuoteStatusLabel, QuoteStatusColor, type QuoteStatus } from "../types/quote.types";
+import { canAccessAdminSurface, canManageQuoteWorkspace, isPlatformStaffUser, isProcurementUser, normalizedBusinessRole, resolveApprovalBusinessRole, resolveApprovalRoleLabel } from "../auth/permissions";
+import { QuoteStatusLabel, QuoteStatusColor, normalizeQuoteStatus } from "../types/quote.types";
 import { getSettings } from "../services/settings.service";
 import { SupplierQuotesGroupedView } from "../components/SupplierQuotesGroupedView";
 import { ReviseRequestModal } from "../components/ReviseRequestModal";
 import { ReviseSubmitModal } from "../components/ReviseSubmitModal";
-
-function normalizeQuoteStatus(status: Quote["status"]): QuoteStatus {
-  const normalized = String(status).toLowerCase();
-  if (normalized === "approved") return "approved";
-  if (normalized === "rejected") return "rejected";
-  if (normalized === "submitted" || normalized === "sent" || normalized === "pending" || normalized === "responded") {
-    return "submitted";
-  }
-  return "draft";
-}
 
 const IS = {
   inp: {
@@ -71,6 +72,14 @@ const composeItemMeta = (detail: string, imageUrl: string): string | undefined =
   const i = imageUrl.trim();
   if (!d && !i) return undefined;
   return JSON.stringify({ detail: d, image_url: i });
+};
+
+const normalizeCurrency = (value?: string | null): "TRY" | "USD" | "EUR" => {
+  const raw = String(value || "TRY").toUpperCase();
+  if (raw === "TL" || raw === "TRL") return "TRY";
+  if (raw === "USDT") return "USD";
+  if (raw === "USD" || raw === "EUR") return raw;
+  return "TRY";
 };
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
@@ -165,9 +174,12 @@ export default function QuoteDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { user } = useAuth();
+  const readOnly = isPlatformStaffUser(user);
 
   const [quote, setQuote] = useState<Quote | null>(null);
   const [history, setHistory] = useState<StatusLog[]>([]);
+  const [auditTrail, setAuditTrail] = useState<QuoteAuditTrail | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<QuotePendingApproval[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -183,11 +195,19 @@ export default function QuoteDetailPage() {
   // Revize sistemi state'leri
   const [supplierQuotes, setSupplierQuotes] = useState<SupplierQuotesGrouped[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+  const [supplierActionLoading, setSupplierActionLoading] = useState(false);
   const [selectedSupplierQuote, setSelectedSupplierQuote] = useState<SupplierQuoteRevision | null>(null);
-  const [reviseRequestModal, setReviseRequestModal] = useState<{ visible: boolean; supplierQuoteId: number; supplierName: string }>({
+  const [selectedSupplierQuoteDetail, setSelectedSupplierQuoteDetail] = useState<SupplierQuoteDetail | null>(null);
+  const [reviseRequestModal, setReviseRequestModal] = useState<{
+    visible: boolean;
+    supplierQuoteId: number;
+    supplierName: string;
+    supplierId: number;
+  }>({
     visible: false,
     supplierQuoteId: 0,
     supplierName: "",
+    supplierId: 0,
   });
   const [reviseSubmitModal, setReviseSubmitModal] = useState<{ visible: boolean; supplierQuoteId: number; supplierName: string }>({
     visible: false,
@@ -195,7 +215,25 @@ export default function QuoteDetailPage() {
     supplierName: "",
   });
   const detailsCardRef = useRef<HTMLDivElement | null>(null);
+  const historySectionRef = useRef<HTMLDivElement | null>(null);
+  const auditTrailSectionRef = useRef<HTMLDivElement | null>(null);
   const autoRevisionOpenedRef = useRef(false);
+  const focusedInsight = searchParams.get("insight");
+  const adminReturnTab = searchParams.get("adminTab");
+  const adminReturnTenantFocusId = searchParams.get("tenantFocusId");
+  const adminReturnTenantFocusName = searchParams.get("tenantFocusName");
+  const adminReturnProjectFocusName = searchParams.get("projectFocusName");
+  const adminReturnQuoteFocusId = searchParams.get("quoteFocusId");
+
+  const buildAdminReturnHref = useCallback(() => {
+    if (!adminReturnTab) return null;
+    const params = new URLSearchParams({ tab: adminReturnTab });
+    if (adminReturnTenantFocusId) params.set("tenantFocusId", adminReturnTenantFocusId);
+    if (adminReturnTenantFocusName) params.set("tenantFocusName", adminReturnTenantFocusName);
+    if (adminReturnProjectFocusName) params.set("projectFocusName", adminReturnProjectFocusName);
+    if (adminReturnQuoteFocusId) params.set("quoteFocusId", adminReturnQuoteFocusId);
+    return `/admin?${params.toString()}`;
+  }, [adminReturnProjectFocusName, adminReturnQuoteFocusId, adminReturnTab, adminReturnTenantFocusId, adminReturnTenantFocusName]);
 
   const clearRevisionActionParams = useCallback(() => {
     const next = new URLSearchParams(searchParams);
@@ -207,7 +245,7 @@ export default function QuoteDetailPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const q = await getQuote(Number(id));
+      const q = await getRfq(Number(id));
       setQuote(q);
       setEditData({
         title: q.title,
@@ -232,6 +270,10 @@ export default function QuoteDetailPage() {
       );
       const hist = await getQuoteHistory(Number(id));
       setHistory(hist);
+      const audit = await getQuoteAuditTrail(Number(id));
+      setAuditTrail(audit);
+      const approvals = await getRfqPendingApprovals(Number(id));
+      setPendingApprovals(Array.isArray(approvals) ? approvals : []);
       
       // Supplier quotes'ı fetch et
       try {
@@ -254,6 +296,16 @@ export default function QuoteDetailPage() {
   useEffect(() => {
     if (id) fetchData();
   }, [id, fetchData]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (focusedInsight === "status-history" && history.length > 0) {
+      historySectionRef.current?.scrollIntoView?.({ block: "start" });
+    }
+    if (focusedInsight === "full-audit-trail" && auditTrail?.timeline.length) {
+      auditTrailSectionRef.current?.scrollIntoView?.({ block: "start" });
+    }
+  }, [auditTrail, focusedInsight, history, loading, location.pathname]);
 
   useEffect(() => {
     getSettings()
@@ -293,10 +345,30 @@ export default function QuoteDetailPage() {
         visible: true,
         supplierQuoteId: found.id,
         supplierName: supplier.supplier_name,
+        supplierId: supplier.supplier_id,
       });
       break;
     }
   }, [searchParams, supplierQuotes]);
+
+  useEffect(() => {
+    const supplierQuoteId = Number(searchParams.get("supplierQuoteId") || 0);
+    if (!supplierQuoteId) {
+      setSelectedSupplierQuoteDetail(null);
+      return;
+    }
+
+    const loadSelectedSupplierQuote = async () => {
+      try {
+        const detail = await getSupplierQuoteById(supplierQuoteId);
+        setSelectedSupplierQuoteDetail(detail);
+      } catch {
+        setSelectedSupplierQuoteDetail(null);
+      }
+    };
+
+    void loadSelectedSupplierQuote();
+  }, [searchParams]);
 
   const updateEditItem = (idx: number, field: keyof QuoteItemPayload, val: string | number | undefined) => {
     setEditItems((prev) => {
@@ -361,7 +433,7 @@ export default function QuoteDetailPage() {
   const handleUpdate = async () => {
     if (!quote || !editData.title) return;
     try {
-      const updated = await updateQuote(quote.id, {
+      const updated = await updateRfq(quote.id, {
         title: editData.title,
         description: editData.description || undefined,
       });
@@ -386,7 +458,7 @@ export default function QuoteDetailPage() {
           };
         });
       if (validItems.length > 0 || (quote.items || []).length > 0) {
-        const withItems = await updateQuoteItems(quote.id, validItems);
+        const withItems = await updateRfqItems(quote.id, validItems);
         setQuote(withItems);
       } else {
         setQuote(updated);
@@ -400,7 +472,7 @@ export default function QuoteDetailPage() {
   const handleDelete = async () => {
     if (!quote || !window.confirm("Teklifi silmek istediğinizden emin misiniz?")) return;
     try {
-      await deleteQuote(quote.id);
+      await deleteRfq(quote.id);
       navigate("/quotes");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Silme başarısız");
@@ -410,7 +482,7 @@ export default function QuoteDetailPage() {
   const handleSubmit = async () => {
     if (!quote) return;
     try {
-      const updated = await submitQuote(quote.id, actionReason ? { reason: actionReason } : undefined);
+      const updated = await submitRfq(quote.id, actionReason ? { reason: actionReason } : undefined);
       setQuote(updated);
       setActionReason("");
       await fetchData();
@@ -421,9 +493,12 @@ export default function QuoteDetailPage() {
 
   const handleApprove = async () => {
     if (!quote) return;
+    if (!actionReason.trim()) {
+      setError("Tedarikçiye gönderme onayı için not yazmanız gerekir");
+      return;
+    }
     try {
-      const updated = await approveQuote(quote.id, actionReason ? { reason: actionReason } : undefined);
-      setQuote(updated);
+      await approveRfqWorkflow(quote.id, actionReason.trim());
       setActionReason("");
       await fetchData();
     } catch (err) {
@@ -432,10 +507,13 @@ export default function QuoteDetailPage() {
   };
 
   const handleReject = async () => {
-    if (!quote || !window.confirm("Teklifi geri çevirmek istediğinizden emin misiniz?")) return;
+    if (!quote || !window.confirm("Teklifi gözden geçirme için iade etmek istediğinize emin misiniz?")) return;
+    if (!actionReason.trim()) {
+      setError("Teklifi tekrar gözden geçirme notu yazmanız gerekir");
+      return;
+    }
     try {
-      const updated = await rejectQuote(quote.id, actionReason ? { reason: actionReason } : undefined);
-      setQuote(updated);
+      await rejectRfqWorkflow(quote.id, actionReason.trim());
       setActionReason("");
       await fetchData();
     } catch (err) {
@@ -447,26 +525,71 @@ export default function QuoteDetailPage() {
     if (!quote) return;
     const status = normalizeQuoteStatus(quote.status);
     const owner = user?.id === quote.created_by_id;
-    const admin = user?.role === "admin" || user?.role === "super_admin";
-    const editable = (owner || admin) && status === "draft";
+    const admin = canAccessAdminSurface(user) && !readOnly;
+    const editable = Boolean(user && (owner || admin || isProcurementUser(user)))
+      && (status === "draft" || status === "submitted");
     const editRequested = searchParams.get("edit") === "1" || location.pathname.endsWith("/edit");
     if (editable && editRequested) {
       setIsEditing(true);
     }
-  }, [quote, user, searchParams, location.pathname]);
+  }, [quote, user, searchParams, location.pathname, readOnly]);
 
   if (loading) return <div style={{ textAlign: "center", padding: 20 }}>Yükleniyor...</div>;
   if (!quote) return <div style={{ textAlign: "center", padding: 20 }}>Teklif bulunamadı</div>;
 
   const quoteStatus = normalizeQuoteStatus(quote.status);
+  const isReviewBackDraft = quoteStatus === "draft" && String(quote.transition_reason || "").toLowerCase().startsWith("hata ve eksikler var");
+  const displayStatusLabel = isReviewBackDraft ? "İade Edildi (Gözden Geçirme)" : QuoteStatusLabel[quoteStatus];
+  const displayStatusColor = isReviewBackDraft ? "#fee2e2" : QuoteStatusColor[quoteStatus];
+  const approvalsCompleted = String(quote.transition_reason || "").toLowerCase().includes("gönderim onayları tamamlandı");
+  const sentToSuppliers = Boolean(quote.sent_at);
   const isOwner = user?.id === quote.created_by_id;
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
-  const canEdit = (isOwner || isAdmin) && quoteStatus === "draft";
-  const canSubmit = (isOwner || isAdmin) && quoteStatus === "draft";
-  const canApprove = isAdmin && quoteStatus === "submitted";
-  const canReject = isAdmin && quoteStatus === "submitted";
+  const isAdmin = canAccessAdminSurface(user) && !readOnly;
+  const canEditByRole = Boolean(user && (isOwner || isAdmin || isProcurementUser(user)));
+  const canEdit = canEditByRole
+    && (quoteStatus === "draft" || quoteStatus === "submitted")
+    && !approvalsCompleted
+    && !sentToSuppliers;
+  const canSubmit = canEditByRole && quoteStatus === "draft";
+  const actorRole = normalizedBusinessRole(user);
+  const canActPendingApproval = pendingApprovals.some((approval) =>
+    approval.status === "beklemede"
+    && (
+      resolveApprovalBusinessRole(approval) === "*"
+      || resolveApprovalBusinessRole(approval) === actorRole
+      || isAdmin
+    )
+  );
+  const canApprove = quoteStatus === "submitted" && canActPendingApproval;
+  const canReject = quoteStatus === "submitted" && canActPendingApproval;
+  const canManageSupplierComparison = canManageQuoteWorkspace(user);
+  const rfqId = quote.rfq_id ?? quote.id;
+  const viewCurrency = normalizeCurrency(selectedSupplierQuoteDetail?.currency || quote.currency || "TRY");
+  const formatViewMoney = (value: number) =>
+    Number(value || 0).toLocaleString("tr-TR", {
+      style: "currency",
+      currency: viewCurrency,
+      minimumFractionDigits: 2,
+    });
 
-  const quoteItems = quote.items || [];
+  const quoteItems = selectedSupplierQuoteDetail
+    ? (selectedSupplierQuoteDetail.items || []).map((item) => ({
+        id: Number(item.quote_item_id),
+        quote_id: Number(selectedSupplierQuoteDetail.quote_id),
+        line_number: String(item.line_number || ""),
+        category_code: "",
+        category_name: "",
+        description: String(item.description || ""),
+        group_key: undefined,
+        is_group_header: Boolean(item.is_group_header),
+        unit: String(item.unit || ""),
+        quantity: Number(item.quantity || 0),
+        unit_price: Number(item.supplier_unit_price || 0),
+        vat_rate: Number(item.vat_rate || 20),
+        total_price: Number(item.supplier_total_price || 0),
+        notes: composeItemMeta(String(item.item_detail || ""), String(item.item_image_url || "")),
+      }))
+    : (quote.items || []);
   const quoteGroupTotals = buildGroupTotals(quoteItems);
   const editGroupTotals = buildGroupTotals(editItems);
   const netTotal = quoteItems.filter((it) => !isGroupHeaderRow(it)).reduce((s, it) => s + Number(it.total_price || 0), 0);
@@ -487,6 +610,80 @@ export default function QuoteDetailPage() {
       return s + net * (rate / 100);
     }, 0);
   const editGrossTotal = editNetTotal + editVatTotal;
+  const approvedSupplier = supplierQuotes
+    .flatMap((supplier) => {
+      const revisions = supplier.quotes.flatMap((q) => q.revisions || []);
+      return [...supplier.quotes, ...revisions].map((q) => ({
+        supplierName: supplier.supplier_name,
+        quoteId: q.id,
+        status: q.status,
+        total: q.total_amount,
+      }));
+    })
+    .find((q) => q.status === "onaylandı");
+
+  const toDetailText = (value: unknown): string => {
+    if (value === null || value === undefined) return "-";
+    if (typeof value === "number") return value.toLocaleString("tr-TR");
+    return String(value);
+  };
+
+  const renderTimelineDetails = (event: NonNullable<QuoteAuditTrail["timeline"]>[number]) => {
+    const details = (event.details || {}) as Record<string, unknown>;
+    const lines: string[] = [];
+
+    switch (event.type) {
+      case "APPROVAL_REQUESTED":
+        lines.push(`Seviye: ${toDetailText(details.level)}`);
+        lines.push(`Rol: ${toDetailText(details.role_label || details.role)}`);
+        lines.push(`Durum: ${toDetailText(details.status)}`);
+        break;
+      case "APPROVAL_GRANTED":
+        lines.push(`Seviye: ${toDetailText(details.level)}`);
+        lines.push(`Rol: ${toDetailText(details.role_label || details.role)}`);
+        if (details.comment) lines.push(`Not: ${toDetailText(details.comment)}`);
+        break;
+      case "APPROVAL_REJECTED":
+        lines.push(`Seviye: ${toDetailText(details.level)}`);
+        lines.push(`Rol: ${toDetailText(details.role_label || details.role)}`);
+        lines.push(`Açıklama: ${toDetailText(details.comment || details.reason)}`);
+        break;
+      case "SUPPLIER_REQUEST_SENT":
+        lines.push(`Tedarikçi: ${toDetailText(details.supplier)}`);
+        lines.push(`Revize No: ${toDetailText(details.revision)}`);
+        break;
+      case "SUPPLIER_SUBMITTED":
+        lines.push(`Tedarikçi: ${toDetailText(details.supplier)}`);
+        lines.push(`Tutar: ${toDetailText(details.price)}`);
+        lines.push(`Ödeme Şartı: ${toDetailText(details.terms)}`);
+        break;
+      case "REVISION_REQUESTED":
+        lines.push(`Tedarikçi: ${toDetailText(details.supplier)}`);
+        lines.push(`Revize Nedeni: ${toDetailText(details.reason)}`);
+        break;
+      case "APPROVAL_SUMMARY":
+        lines.push(`Toplam Onay Seviyesi: ${toDetailText(details.levels)}`);
+        lines.push(`Sonraki Adım: ${toDetailText(details.next)}`);
+        break;
+      case "CONTRACT_STAGE":
+        lines.push("Teklif sözleşme sürecine alınmıştır.");
+        break;
+      default:
+        if (details.from || details.to) {
+          lines.push(`Geçiş: ${toDetailText(details.from)} -> ${toDetailText(details.to)}`);
+        }
+        break;
+    }
+
+    if (lines.length === 0) return null;
+    return (
+      <ul style={{ margin: "6px 0 0 16px", padding: 0, color: "#475569", fontSize: "12px" }}>
+        {lines.map((line, i) => (
+          <li key={`${event.type}-${i}`} style={{ marginBottom: "2px" }}>{line}</li>
+        ))}
+      </ul>
+    );
+  };
 
   // ============================================================================
   // Revize Sistemi Handlers
@@ -495,9 +692,31 @@ export default function QuoteDetailPage() {
   const handleRequestRevision = async (reason: string) => {
     if (!quote) return;
     try {
-      await requestQuoteRevision(quote.id, reviseRequestModal.supplierQuoteId, reason);
+      const supplierGroup = supplierQuotes.find(
+        (s) => s.supplier_id === reviseRequestModal.supplierId
+      );
+      const targetQuoteInSupplier = supplierGroup?.quotes.find(
+        (q) => q.id === reviseRequestModal.supplierQuoteId
+      );
+      const fallbackQuoteInSupplier =
+        supplierGroup?.quotes.find((q) => q.revision_number === 0) ||
+        supplierGroup?.quotes[0];
+
+      const targetSupplierQuoteId =
+        targetQuoteInSupplier?.id || fallbackQuoteInSupplier?.id;
+
+      if (!targetSupplierQuoteId) {
+        throw new Error("Revize gönderilecek tedarikçi teklifi bulunamadı");
+      }
+
+      await requestQuoteRevision(quote.id, targetSupplierQuoteId, reason);
       alert("Revize talebi gönderildi");
-      setReviseRequestModal({ visible: false, supplierQuoteId: 0, supplierName: "" });
+      setReviseRequestModal({
+        visible: false,
+        supplierQuoteId: 0,
+        supplierName: "",
+        supplierId: 0,
+      });
       clearRevisionActionParams();
       autoRevisionOpenedRef.current = false;
       fetchData(); // Veriyi yenile
@@ -515,6 +734,41 @@ export default function QuoteDetailPage() {
       fetchData(); // Veriyi yenile
     } catch (err) {
       alert("Revize teklif gönderilemedi: " + (err instanceof Error ? err.message : "Bilinmeyen hata"));
+    }
+  };
+
+  const handleApproveSupplierQuote = async (supplierQuoteId: number, supplierName: string) => {
+    if (!quote) return;
+    if (!window.confirm(`${supplierName} teklifini onaylamak istediğinize emin misiniz?`)) return;
+    try {
+      setSupplierActionLoading(true);
+      const result = await approveSupplierQuote(quote.id, supplierQuoteId);
+      alert(`Onaylandı: ${result.supplier_name} (₺${result.approved_amount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })})`);
+      await fetchData();
+    } catch (err) {
+      alert("Tedarikçi onayı başarısız: " + (err instanceof Error ? err.message : "Bilinmeyen hata"));
+    } finally {
+      setSupplierActionLoading(false);
+    }
+  };
+
+  const handleDownloadComparisonReport = async () => {
+    if (!quote) return;
+    try {
+      setSupplierActionLoading(true);
+      const blob = await downloadQuoteComparisonXlsx(quote.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rfq_${rfqId}_karsilastirma_raporu.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Excel raporu indirilemedi: " + (err instanceof Error ? err.message : "Bilinmeyen hata"));
+    } finally {
+      setSupplierActionLoading(false);
     }
   };
 
@@ -539,18 +793,23 @@ export default function QuoteDetailPage() {
 
     if (found) {
       setSelectedSupplierQuote(found);
-      // Modal açmak istiyorsak açabiliriz, şu an sadece select et
+      const next = new URLSearchParams(searchParams);
+      next.set("supplierQuoteId", String(supplierQuoteId));
+      setSearchParams(next, { replace: true });
+
+      void (async () => {
+        try {
+          const detail = await getSupplierQuoteById(supplierQuoteId);
+          setSelectedSupplierQuoteDetail(detail);
+          detailsCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Tedarikçi teklif detayı alınamadı");
+        }
+      })();
     }
   };
 
-  void vatRates;
-  void collapsedEditGroups;
-  void addEditItem;
-  void addEditGroup;
-  void toggleEditGroup;
-  void handleEditItemImageSelect;
-  void editGroupTotals;
-  void editGrossTotal;
+  void selectedSupplierQuote;
 
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
@@ -574,27 +833,44 @@ export default function QuoteDetailPage() {
         </div>
       )}
 
+      {readOnly && (
+        <div style={{ marginBottom: "16px", padding: "12px 14px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a" }}>
+          Platform personeli bu teklifi inceleyebilir; duzenleme, onaya gonderme, onay, revize ve tedarikci secimi aksiyonlari salt okunur modda kapatildi.
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ background: "#f9fafb", padding: "20px", borderRadius: "8px", marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
             <h2 style={{ margin: "0 0 8px 0" }}>{quote.title}</h2>
             <p style={{ margin: "4px 0", color: "#666", fontSize: "14px" }}>
-              Teklif ID: {quote.id} • V{quote.version}
+              RFQ #{rfqId} • Teklif ID: {quote.id} • V{quote.version}
             </p>
+            {buildAdminReturnHref() ? (
+              <a href={buildAdminReturnHref() || "#"} style={{ display: "inline-block", marginTop: "8px", color: "#1d4ed8", fontSize: "13px", fontWeight: 700, textDecoration: "none" }}>
+                Admin odagina don
+              </a>
+            ) : null}
           </div>
           <span
             style={{
               padding: "8px 12px",
               borderRadius: "4px",
-              background: QuoteStatusColor[quoteStatus],
+              background: displayStatusColor,
               fontWeight: "bold",
               fontSize: "14px",
+              color: isReviewBackDraft ? "#991b1b" : "inherit",
             }}
           >
-            {QuoteStatusLabel[quoteStatus]}
+            {displayStatusLabel}
           </span>
         </div>
+        {isReviewBackDraft && (
+          <p style={{ margin: "10px 0 0 0", color: "#991b1b", fontSize: "13px" }}>
+            {quote.transition_reason}
+          </p>
+        )}
       </div>
 
       {/* Details */}
@@ -604,8 +880,53 @@ export default function QuoteDetailPage() {
       >
         <h3 style={{ margin: "0 0 16px 0" }}>Teklif Detayları</h3>
 
+        {selectedSupplierQuoteDetail && (
+          <div
+            style={{
+              marginBottom: "12px",
+              padding: "10px 12px",
+              borderRadius: "6px",
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              color: "#1e3a8a",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              Gösterilen detay: <strong>{selectedSupplierQuoteDetail.supplier_name || "Tedarikçi"}</strong>
+              {" "}teklifi (#{selectedSupplierQuoteDetail.id}) - Durum: {selectedSupplierQuoteDetail.status}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedSupplierQuoteDetail(null);
+                const next = new URLSearchParams(searchParams);
+                next.delete("supplierQuoteId");
+                setSearchParams(next, { replace: true });
+              }}
+              style={{
+                padding: "5px 9px",
+                borderRadius: "4px",
+                border: "1px solid #93c5fd",
+                background: "#fff",
+                color: "#1d4ed8",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: 600,
+              }}
+            >
+              Ana Teklife Dön
+            </button>
+          </div>
+        )}
+
         {isEditing ? (
           <div>
+            {/* Başlık / Açıklama */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
               <div>
                 <label style={IS.label}>Başlık *</label>
@@ -617,24 +938,204 @@ export default function QuoteDetailPage() {
               </div>
             </div>
 
-            <div style={{ padding: "12px", borderRadius: "8px", background: "#f9fafb", color: "#4b5563", marginBottom: "12px", fontSize: "13px" }}>
-              Kalem düzenleme görünümü sadeleştirildi. Mevcut kalemleri aşağıda önizleme olarak görebilir, başlık ve açıklamayı güncelleyebilirsiniz.
+            {/* Kalem Tablosu */}
+            <div style={{ overflowX: "auto", marginBottom: "8px" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: "860px" }}>
+                <thead>
+                  <tr style={{ background: "#f3f4f6" }}>
+                    <th style={{ padding: "8px 6px", textAlign: "left", width: "60px" }}>Sıra</th>
+                    <th style={{ padding: "8px 6px", textAlign: "left" }}>Açıklama</th>
+                    <th style={{ padding: "8px 6px", textAlign: "center", width: "70px" }}>Birim</th>
+                    <th style={{ padding: "8px 6px", textAlign: "right", width: "80px" }}>Miktar</th>
+                    <th style={{ padding: "8px 6px", textAlign: "right", width: "110px" }}>Birim Fiyat</th>
+                    <th style={{ padding: "8px 6px", textAlign: "right", width: "80px" }}>KDV %</th>
+                    <th style={{ padding: "8px 6px", textAlign: "right", width: "120px" }}>Toplam (KDVsiz)</th>
+                    <th style={{ padding: "8px 6px", textAlign: "center", width: "44px" }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {editItems.map((item, idx) => {
+                    const header = isGroupHeaderRow(item);
+                    const key = resolveGroupKey(item);
+                    const hiddenChild = !header && !!collapsedEditGroups[key];
+                    if (hiddenChild) return null;
+                    const rowNet = header
+                      ? (editGroupTotals[key]?.net ?? 0)
+                      : Number(item.quantity || 0) * Number(item.unit_price || 0);
+
+                    return (
+                      <Fragment key={idx}>
+                        <tr style={{ borderBottom: "1px solid #e5e7eb", background: header ? "#fef9c3" : "transparent" }}>
+                          <td style={{ padding: "6px" }}>
+                            {header ? (
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleEditGroup(key)}
+                                  style={{ border: "none", background: "transparent", cursor: "pointer", color: "#92400e", fontWeight: 700 }}
+                                >
+                                  {collapsedEditGroups[key] ? "▶" : "▼"}
+                                </button>
+                                <span style={{ fontSize: "11px", background: "#f59e0b", color: "#fff", borderRadius: "999px", padding: "1px 6px", fontWeight: 700 }}>G</span>
+                              </div>
+                            ) : (
+                              <span style={{ color: "#9ca3af", fontSize: "12px" }}>{item.line_number}</span>
+                            )}
+                          </td>
+                          <td style={{ padding: "6px" }}>
+                            <input
+                              style={{ ...IS.cellInp, fontWeight: header ? 700 : 400, background: header ? "#fef3c7" : undefined }}
+                              value={item.description}
+                              onChange={(e) => updateEditItem(idx, "description", e.target.value)}
+                              placeholder={header ? "Grup adı" : "Kalem açıklaması"}
+                            />
+                            {!header && (
+                              <div style={{ marginTop: "4px", display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                                <label style={{ fontSize: "11px", color: "#6b7280", cursor: "pointer" }}>
+                                  Görsel:
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleEditItemImageSelect(idx, f);
+                                    }}
+                                  />
+                                  <span style={{ marginLeft: "4px", color: "#3b82f6", textDecoration: "underline" }}>Seç</span>
+                                </label>
+                                {parseItemMeta(item.notes).imageUrl && (
+                                  <img src={parseItemMeta(item.notes).imageUrl} alt="" style={{ height: "28px", borderRadius: "3px", border: "1px solid #ddd" }} />
+                                )}
+                                <input
+                                  style={{ ...IS.cellInp, flex: 1 }}
+                                  value={parseItemMeta(item.notes).detail}
+                                  onChange={(e) => updateEditItem(idx, "notes", composeItemMeta(e.target.value, parseItemMeta(item.notes).imageUrl))}
+                                  placeholder="Detay notu (opsiyonel)"
+                                />
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: "6px" }}>
+                            {!header && (
+                              <input
+                                style={IS.cellInp}
+                                value={item.unit}
+                                onChange={(e) => updateEditItem(idx, "unit", e.target.value)}
+                                placeholder="adet"
+                              />
+                            )}
+                          </td>
+                          <td style={{ padding: "6px" }}>
+                            {!header && (
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                style={{ ...IS.cellInp, textAlign: "right" }}
+                                value={item.quantity ?? ""}
+                                onChange={(e) => updateEditItem(idx, "quantity", parseFloat(e.target.value) || 0)}
+                              />
+                            )}
+                          </td>
+                          <td style={{ padding: "6px" }}>
+                            {!header && (
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                style={{ ...IS.cellInp, textAlign: "right" }}
+                                value={item.unit_price ?? ""}
+                                onChange={(e) => updateEditItem(idx, "unit_price", parseFloat(e.target.value) || undefined)}
+                                placeholder="0.00"
+                              />
+                            )}
+                          </td>
+                          <td style={{ padding: "6px" }}>
+                            {!header && (
+                              <select
+                                style={{ ...IS.cellInp, textAlign: "right" }}
+                                value={item.vat_rate ?? 20}
+                                onChange={(e) => updateEditItem(idx, "vat_rate", Number(e.target.value))}
+                              >
+                                {[...vatRates].sort((a, b) => a - b).map((r) => (
+                                  <option key={r} value={r}>{r}%</option>
+                                ))}
+                              </select>
+                            )}
+                          </td>
+                          <td style={{ padding: "6px", textAlign: "right", fontWeight: header ? 700 : 400, color: header ? "#92400e" : undefined }}>
+                            {header
+                              ? `₺${rowNet.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                              : rowNet > 0
+                                ? `₺${rowNet.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                                : ""}
+                          </td>
+                          <td style={{ padding: "6px", textAlign: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => setEditItems((prev) => renumberItems(prev.filter((_, i) => i !== idx)))}
+                              style={{ border: "none", background: "transparent", color: "#ef4444", cursor: "pointer", fontSize: "16px", lineHeight: 1 }}
+                              title="Satırı sil"
+                            >
+                              ×
+                            </button>
+                          </td>
+                        </tr>
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={6} style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700, fontSize: "13px" }}>Toplam (KDVsiz):</td>
+                    <td style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700 }}>₺{editNetTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td colSpan={6} style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700 }}>KDV:</td>
+                    <td style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700 }}>₺{(editNetTotal + editVatTotal - editNetTotal).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td colSpan={6} style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>Genel Toplam (KDV Dahil):</td>
+                    <td style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>₺{editGrossTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
 
+            {/* Yeni satır / grup ekleme */}
+            <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={addEditItem}
+                style={{ padding: "6px 14px", background: "#e0f2fe", color: "#0369a1", border: "1px solid #7dd3fc", borderRadius: "5px", cursor: "pointer", fontSize: "13px" }}
+              >
+                + Kalem Ekle
+              </button>
+              <button
+                type="button"
+                onClick={addEditGroup}
+                style={{ padding: "6px 14px", background: "#fef3c7", color: "#92400e", border: "1px solid #fcd34d", borderRadius: "5px", cursor: "pointer", fontSize: "13px" }}
+              >
+                + Grup Ekle
+              </button>
+            </div>
+
+            {/* Kaydet / Vazgeç */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={handleUpdate}
-                style={{ padding: "8px 16px", background: "#2563eb", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}
+                style={{ padding: "8px 20px", background: "#2563eb", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
               >
                 Kaydet
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setIsEditing(false);
-                  void fetchData();
-                }}
+                onClick={() => { setIsEditing(false); void fetchData(); }}
                 style={{ padding: "8px 16px", background: "#e5e7eb", color: "#111827", border: "none", borderRadius: "6px", cursor: "pointer" }}
               >
                 Vazgeç
@@ -702,15 +1203,15 @@ export default function QuoteDetailPage() {
                           {header ? (
                             <span style={{ fontSize: "11px", color: "#92400e", fontWeight: 700 }}>Grup Toplamı</span>
                           ) : (
-                            <span>{net > 0 ? `₺${Number(item.unit_price || 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : ""}</span>
+                            <span>{net > 0 ? formatViewMoney(Number(item.unit_price || 0)) : ""}</span>
                           )}
                         </td>
                         <td style={{ padding: "10px", textAlign: "right", fontWeight: "bold" }}>
-                          <span>₺{net.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
+                          <span>{formatViewMoney(net)}</span>
                         </td>
                         <td style={{ padding: "10px", textAlign: "right" }}>{header ? "" : `%${vatRate}`}</td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>{`₺${vat.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}</td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>{`₺${gross.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>{formatViewMoney(vat)}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>{formatViewMoney(gross)}</td>
                       </tr>
                       {!header ? (
                         <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
@@ -742,15 +1243,15 @@ export default function QuoteDetailPage() {
               <tfoot>
                 <tr>
                   <td colSpan={8} style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>Teklif Toplamı:</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>₺{netTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>{formatViewMoney(netTotal)}</td>
                 </tr>
                 <tr>
                   <td colSpan={8} style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>KDV Toplamı:</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>₺{vatTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>{formatViewMoney(vatTotal)}</td>
                 </tr>
                 <tr>
                   <td colSpan={8} style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>Genel Toplam (KDV Dahil):</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>₺{grossTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>{formatViewMoney(grossTotal)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -818,7 +1319,7 @@ export default function QuoteDetailPage() {
           {canApprove && (
             <div style={{ marginBottom: "12px" }}>
               <textarea
-                placeholder="Onay notu (opsiyonel)"
+                placeholder="Onay veya tekrar gözden geçirme notu (zorunlu)"
                 value={actionReason}
                 onChange={(e) => setActionReason(e.target.value)}
                 style={{
@@ -842,7 +1343,7 @@ export default function QuoteDetailPage() {
                   cursor: "pointer",
                 }}
               >
-                Onayla
+                Tedarikçiye Gönder Onayı Ver
               </button>
               {canReject && (
                 <button
@@ -856,9 +1357,12 @@ export default function QuoteDetailPage() {
                     cursor: "pointer",
                   }}
                 >
-                  Reddet
+                  Teklifi Tekrar Gözden Geçirin
                 </button>
               )}
+              <div style={{ marginTop: "8px", fontSize: "12px", color: "#7f1d1d" }}>
+                Hata ve eksikler var ise açıklama yazarak teklifi düzenleme döngüsüne geri alın.
+              </div>
             </div>
           )}
 
@@ -884,23 +1388,89 @@ export default function QuoteDetailPage() {
       {/* Supplier Quotes / Responses */}
       {supplierQuotes.length > 0 && (
         <div style={{ background: "white", border: "1px solid #ddd", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-          <h3>Tedarikçi Teklifleri</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
+            <h3 style={{ margin: 0 }}>Tedarikçi Teklifleri</h3>
+            {canManageSupplierComparison && (
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/quotes/${quote.id}/comparison`)}
+                  disabled={supplierActionLoading}
+                  style={{
+                    padding: "8px 12px",
+                    border: "1px solid #93c5fd",
+                    borderRadius: "6px",
+                    background: "#eff6ff",
+                    color: "#1e3a8a",
+                    cursor: supplierActionLoading ? "wait" : "pointer",
+                    opacity: supplierActionLoading ? 0.7 : 1,
+                    fontWeight: 600,
+                  }}
+                >
+                  Karşılaştırma Sayfası
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadComparisonReport}
+                  disabled={supplierActionLoading}
+                  style={{
+                    padding: "8px 12px",
+                    border: "none",
+                    borderRadius: "6px",
+                    background: "#1d4ed8",
+                    color: "white",
+                    cursor: supplierActionLoading ? "wait" : "pointer",
+                    opacity: supplierActionLoading ? 0.7 : 1,
+                    fontWeight: 600,
+                  }}
+                >
+                  Karşılaştırma Excel Raporu
+                </button>
+              </div>
+            )}
+          </div>
+
+          {approvedSupplier && (
+            <div
+              style={{
+                marginBottom: "12px",
+                padding: "10px 12px",
+                background: "#ecfdf5",
+                border: "1px solid #86efac",
+                borderRadius: "6px",
+                color: "#166534",
+                fontWeight: 600,
+              }}
+            >
+              Onaylanan Tedarikçi: {approvedSupplier.supplierName} (Teklif #{approvedSupplier.quoteId} - ₺{approvedSupplier.total.toLocaleString("tr-TR", { maximumFractionDigits: 2 })})
+            </div>
+          )}
+
           <SupplierQuotesGroupedView
             suppliers={supplierQuotes}
-            onRequestRevision={async (sqId, sqName) => {
-              setReviseRequestModal({ visible: true, supplierQuoteId: sqId, supplierName: sqName });
+            onRequestRevision={async (sqId, sqName, supplierId) => {
+              clearRevisionActionParams();
+              autoRevisionOpenedRef.current = true;
+              setReviseRequestModal({
+                visible: true,
+                supplierQuoteId: sqId,
+                supplierName: sqName,
+                supplierId,
+              });
             }}
             onViewDetails={handleViewSupplierQuote}
-            loading={loadingSuppliers}
-            isAdmin={isAdmin}
+            onApproveSupplierQuote={handleApproveSupplierQuote}
+            loading={loadingSuppliers || supplierActionLoading}
+            canManage={canManageSupplierComparison}
           />
         </div>
       )}
 
       {/* History */}
       {history.length > 0 && (
-        <div style={{ background: "white", border: "1px solid #ddd", borderRadius: "8px", padding: "20px" }}>
+        <div ref={historySectionRef} style={{ background: "white", border: focusedInsight === "status-history" ? "2px solid #1d4ed8" : "1px solid #ddd", borderRadius: "8px", padding: "20px" }}>
           <h3>Durum Geçişi Geçmişi</h3>
+          {focusedInsight === "status-history" ? <div style={{ marginBottom: "10px", color: "#1d4ed8", fontSize: "12px", fontWeight: 700 }}>Deep-link odagi: Durum Gecisi Gecmisi</div> : null}
           <div style={{ fontSize: "14px" }}>
             {history.map((log, idx) => (
               <div
@@ -913,8 +1483,84 @@ export default function QuoteDetailPage() {
                 <strong>{log.from_status}</strong> → <strong>{log.to_status}</strong>
                 <br />
                 <small style={{ color: "#666" }}>
+                  {log.changed_by_name ? `${log.changed_by_name} • ` : ""}
                   {new Date(log.created_at || log.changed_at || "").toLocaleString("tr-TR")}
                 </small>
+                {Array.isArray(log.approval_details) && log.approval_details.length > 0 && (
+                  <div style={{ marginTop: "10px", display: "grid", gap: "8px" }}>
+                    {log.approval_details.map((approval) => (
+                      <div
+                        key={`${log.id}-${approval.level}`}
+                        style={{
+                          background: "#f8fafc",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "6px",
+                          padding: "10px 12px",
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, color: "#0f172a" }}>
+                          Seviye {approval.level}: {resolveApprovalRoleLabel(approval)}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
+                          Durum: {approval.status}
+                        </div>
+                        {approval.requested_at && (
+                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                            Talep: {new Date(approval.requested_at).toLocaleString("tr-TR")}
+                          </div>
+                        )}
+                        {approval.completed_at && (
+                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                            Tamamlandı: {new Date(approval.completed_at).toLocaleString("tr-TR")}
+                          </div>
+                        )}
+                        {approval.approved_by_name && (
+                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                            İşlem Yapan: {approval.approved_by_name}
+                          </div>
+                        )}
+                        {approval.comment && (
+                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                            Not: {approval.comment}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {auditTrail && auditTrail.timeline.length > 0 && (
+        <div ref={auditTrailSectionRef} style={{ background: "white", border: focusedInsight === "full-audit-trail" ? "2px solid #1d4ed8" : "1px solid #ddd", borderRadius: "8px", padding: "20px", marginTop: "16px" }}>
+          <h3>Tam İşlem Zaman Çizgisi</h3>
+          {focusedInsight === "full-audit-trail" ? <div style={{ marginBottom: "10px", color: "#1d4ed8", fontSize: "12px", fontWeight: 700 }}>Deep-link odagi: Tam Audit Trail</div> : null}
+          <div style={{ display: "grid", gap: "10px" }}>
+            {auditTrail.timeline.map((event, idx) => (
+              <div
+                key={`${event.type}-${event.timestamp || idx}-${idx}`}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  background: "#fcfcfd",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                  <strong>{event.icon ? `${event.icon} ${event.title}` : event.title}</strong>
+                  <small style={{ color: "#64748b" }}>
+                    {event.timestamp ? new Date(event.timestamp).toLocaleString("tr-TR") : "-"}
+                  </small>
+                </div>
+                {event.actor && (
+                  <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
+                    İşlem Yapan: {String(event.actor)}
+                  </div>
+                )}
+                {renderTimelineDetails(event)}
               </div>
             ))}
           </div>
@@ -926,7 +1572,12 @@ export default function QuoteDetailPage() {
         visible={reviseRequestModal.visible}
         supplierQuoteName={reviseRequestModal.supplierName}
         onClose={() => {
-          setReviseRequestModal({ visible: false, supplierQuoteId: 0, supplierName: "" });
+          setReviseRequestModal({
+            visible: false,
+            supplierQuoteId: 0,
+            supplierName: "",
+            supplierId: 0,
+          });
           clearRevisionActionParams();
           autoRevisionOpenedRef.current = false;
         }}

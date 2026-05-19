@@ -3,11 +3,6 @@
 from __future__ import annotations
 
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Float,
-    DateTime,
     Text,
     ForeignKey,
     Numeric,

@@ -6,32 +6,41 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from api.database import get_db
+from api.core.authz import (
+    can_access_procurement_settings,
+    can_manage_tenant_identity_settings,
+    normalized_system_role,
+)
 from api.core.deps import get_current_user
 from api.models import User
 from api.models.settings import SystemSettings
 from api.schemas.settings import SettingsOut, SettingsUpdate
+from api.services.system_settings_runtime import get_or_create_system_settings
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
 
 def _ensure_admin(current_user: User) -> None:
-    """Only super_admin can manage settings"""
-    if current_user.role not in ["super_admin", "admin"]:
+    """Only super_admin and tenant_owner can manage tenant identity settings"""
+    if not can_manage_tenant_identity_settings(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only administrators can manage settings",
+            detail="Only tenant owners or super admins can manage tenant identity settings",
+        )
+
+
+def _ensure_can_read_settings(current_user: User) -> None:
+    """Admin, super_admin, and procurement roles can read settings"""
+    if not can_access_procurement_settings(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to access settings",
         )
 
 
 def _get_or_create_settings(db: Session) -> SystemSettings:
     """Tek bir settings row var olmalı"""
-    settings = db.query(SystemSettings).first()
-    if not settings:
-        settings = SystemSettings(app_name="ProcureFlow")
-        db.add(settings)
-        db.commit()
-        db.refresh(settings)
-    return settings
+    return get_or_create_system_settings(db)
 
 
 @router.get("", response_model=SettingsOut)
@@ -40,7 +49,7 @@ def get_settings(
     current_user: User = Depends(get_current_user),
 ):
     """Sistem ayarlarını getir"""
-    _ensure_admin(current_user)
+    _ensure_can_read_settings(current_user)
     settings = _get_or_create_settings(db)
     payload = SettingsOut.model_validate(settings).model_dump()
     try:

@@ -6,7 +6,7 @@ export interface ProfileContextType {
   loading: boolean;
   error: string | null;
   refreshProfile: () => Promise<void>;
-  updateProfile: (data: { full_name?: string }) => Promise<void>;
+  updateProfile: (data: { full_name?: string; work_email?: string | null }) => Promise<void>;
   changePassword: (old_password: string, new_password: string) => Promise<void>;
 }
 

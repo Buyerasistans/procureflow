@@ -1,8 +1,8 @@
 // FILE: web/src/routes/SmartFallbackRedirect.tsx
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { getDefaultRouteForRole } from "../auth/routing";
-import { isSupplierLoggedIn } from "../lib/session";
+import { getDefaultRouteForUser } from "../auth/routing";
+import { shouldUseSupplierSession } from "../lib/session";
 
 export default function SmartFallbackRedirect() {
   const { user, loading } = useAuth();
@@ -10,7 +10,7 @@ export default function SmartFallbackRedirect() {
 
   if (loading) return null;
 
-  if (isSupplierLoggedIn()) {
+  if (shouldUseSupplierSession(location.pathname)) {
     return <Navigate to="/supplier/dashboard" replace />;
   }
 
@@ -19,6 +19,6 @@ export default function SmartFallbackRedirect() {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const nextPath = getDefaultRouteForRole(user.role);
+  const nextPath = getDefaultRouteForUser(user);
   return <Navigate to={nextPath} replace />;
 }

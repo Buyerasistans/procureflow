@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: starter
     autoDeploy: true
-    buildCommand: pip install -r api/requirements.txt
+    buildCommand: pip install -r api/requirements.txt && python api/seed_admin.py
     startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health
     envVars:
@@ -20,6 +20,10 @@ services:
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 60
+      - key: SEED_ADMIN_EMAIL
+        value: admin@procureflow.dev
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY

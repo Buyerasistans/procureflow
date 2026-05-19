@@ -1,47 +1,76 @@
 """Supplier Response - Tedarikçi Yanıtları API"""
 
 import json
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from datetime import datetime, UTC
-from pydantic import BaseModel
+import urllib.request
+import xml.etree.ElementTree as ET
+from datetime import UTC, datetime
 
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from api.core.authz import can_access_procurement_settings
+from api.core.deps import get_any_user, get_current_supplier_user, get_current_user
 from api.database import get_db
 from api.models import (
+    PremiumFeature,
+    Quote,
+    Supplier,
     SupplierQuote,
     SupplierQuoteItem,
     SupplierUser,
-    Quote,
-    Supplier,
+    TenantPremiumFeature,
     User,
 )
-from api.core.deps import get_current_user, get_current_supplier_user, get_any_user
+from api.routers.quotes import (
+    _build_plan_name_map,
+    _resolve_entitlement_summary,
+    _resolve_listing_scope,
+)
+from api.services.subscription_service import normalize_subscription_plan_code
 from api.services.email_service import get_email_service
 
 router = APIRouter(prefix="/supplier-quotes", tags=["supplier-quotes"])
 
 
+_CLOSED_SUPPLIER_STATUSES = {
+    "onaylandı",
+    "reddedildi",
+    "kapatildi",
+    "kapatıldı",
+    "kapatildi_yuksek_fiyat",
+    "kapatıldı_yüksek_fiyat",
+}
+
+
+def _ensure_supplier_quote_editable(
+    supplier_quote: SupplierQuote, quote: Quote
+) -> None:
+    quote_status = (
+        quote.status.value
+        if getattr(quote, "status", None) is not None and hasattr(quote.status, "value")
+        else str(getattr(quote, "status", "")).lower()
+    )
+    supplier_status = str(supplier_quote.status or "").lower()
+
+    if quote_status in {"approved", "rejected"}:
+        raise HTTPException(
+            status_code=409,
+            detail="Bu teklif kapanmış durumda. Düzenleme veya gönderim yapılamaz.",
+        )
+
+    if supplier_status in _CLOSED_SUPPLIER_STATUSES:
+        raise HTTPException(
+            status_code=409,
+            detail="Bu tedarikçi teklifi kapatılmış durumda. Düzenleme yapılamaz.",
+        )
+
+
 def _is_postgresql(db: Session) -> bool:
-    return getattr(getattr(db, "bind", None), "dialect", None).name == "postgresql"
-
-
-def _ensure_initial_final_amount_column(db: Session) -> None:
-    """supplier_quotes tablosunda initial_final_amount kolonu yoksa ekler."""
-    try:
-        if _is_postgresql(db):
-            db.execute(
-                text(
-                    "ALTER TABLE supplier_quotes ADD COLUMN initial_final_amount DOUBLE PRECISION"
-                )
-            )
-        else:
-            db.execute(
-                text("ALTER TABLE supplier_quotes ADD COLUMN initial_final_amount REAL")
-            )
-        db.commit()
-    except Exception:
-        db.rollback()
+    bind = getattr(db, "bind", None)
+    dialect = getattr(bind, "dialect", None)
+    return getattr(dialect, "name", None) == "postgresql"
 
 
 def _parse_quote_item_meta(notes: str | None) -> dict:
@@ -57,65 +86,44 @@ def _parse_quote_item_meta(notes: str | None) -> dict:
     except Exception:
         pass
     return {"detail": str(notes), "image_url": ""}
-
-
-def _ensure_supplier_quote_price_rules_table(db: Session) -> None:
-    if _is_postgresql(db):
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_quote_price_rules (
-                id BIGSERIAL PRIMARY KEY,
-                max_markup_percent DOUBLE PRECISION NOT NULL DEFAULT 25,
-                max_discount_percent DOUBLE PRECISION NOT NULL DEFAULT 35,
-                tolerance_amount DOUBLE PRECISION NOT NULL DEFAULT 0,
-                block_on_violation BOOLEAN NOT NULL DEFAULT TRUE,
-                updated_by INTEGER,
-                updated_at TIMESTAMPTZ DEFAULT NOW()
-            )
-        """)
-        )
-    else:
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_quote_price_rules (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                max_markup_percent REAL NOT NULL DEFAULT 25,
-                max_discount_percent REAL NOT NULL DEFAULT 35,
-                tolerance_amount REAL NOT NULL DEFAULT 0,
-                block_on_violation INTEGER NOT NULL DEFAULT 1,
-                updated_by INTEGER,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        )
-    row = db.execute(
-        text("SELECT id FROM supplier_quote_price_rules ORDER BY id DESC LIMIT 1")
-    ).first()
-    if not row:
-        db.execute(
-            text("""
-            INSERT INTO supplier_quote_price_rules (
-                max_markup_percent, max_discount_percent, tolerance_amount, block_on_violation
-            ) VALUES (25, 35, 0, 1)
-        """)
-        )
     db.commit()
 
 
+def _normalize_currency(value: str | None) -> str:
+    raw = str(value or "TRY").strip().upper()
+    if raw == "TL" or raw == "TRL":
+        return "TRY"
+    if raw == "USDT":
+        return "USD"
+    if raw not in {"TRY", "USD", "EUR"}:
+        return "TRY"
+    return raw
+
+
 def _get_supplier_quote_price_rules(db: Session) -> dict:
-    _ensure_supplier_quote_price_rules_table(db)
-    row = (
-        db.execute(
-            text("""
-        SELECT max_markup_percent, max_discount_percent, tolerance_amount, block_on_violation
-        FROM supplier_quote_price_rules
-        ORDER BY id DESC
-        LIMIT 1
-    """)
+    try:
+        row = (
+            db.execute(
+                text("""
+            SELECT max_markup_percent, max_discount_percent, tolerance_amount, block_on_violation
+            FROM supplier_quote_price_rules
+            ORDER BY id DESC
+            LIMIT 1
+        """)
+            )
+            .mappings()
+            .first()
         )
-        .mappings()
-        .first()
-    )
+    except Exception:
+        row = None
+
+    if row is None:
+        return {
+            "max_markup_percent": 25.0,
+            "max_discount_percent": 35.0,
+            "tolerance_amount": 0.0,
+            "block_on_violation": True,
+        }
     return {
         "max_markup_percent": float(row["max_markup_percent"]),
         "max_discount_percent": float(row["max_discount_percent"]),
@@ -172,6 +180,7 @@ class SupplierQuoteItemUpdate(BaseModel):
 class SupplierQuoteSubmit(BaseModel):
     """Tedarikçi teklif sunumu"""
 
+    currency: str = "TRY"
     total_amount: float
     discount_percent: float = 0
     discount_amount: float = 0
@@ -189,6 +198,7 @@ class SupplierResponseOut(BaseModel):
     quote_id: int
     supplier_id: int
     status: str
+    currency: str
     total_amount: float
     discount_percent: float
     discount_amount: float
@@ -215,17 +225,59 @@ def get_supplier_quote_price_rules(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    role = getattr(current_user, "role", None)
-    if role not in [
-        "super_admin",
-        "admin",
-        "satinalmaci",
-        "satinalma_uzmani",
-        "satinalma_yoneticisi",
-        "satinalma_direktoru",
-    ]:
+    if not can_access_procurement_settings(current_user):
         raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     return _get_supplier_quote_price_rules(db)
+
+
+@router.get("/exchange-rates/tcmb", response_model=dict)
+def get_tcmb_effective_sell_rates(
+    current_user=Depends(get_any_user),
+):
+    """TCMB günlük efektif satış kurlarını döner (USD/TRY ve EUR/TRY)."""
+    try:
+        with urllib.request.urlopen(
+            "https://www.tcmb.gov.tr/kurlar/today.xml", timeout=8
+        ) as response:
+            raw = response.read()
+        root = ET.fromstring(raw)
+
+        rates: dict[str, float] = {}
+        for cur in root.findall("Currency"):
+            code = (cur.attrib.get("CurrencyCode") or "").upper()
+            if code not in {"USD", "EUR"}:
+                continue
+
+            banknote_sell = (cur.findtext("BanknoteSelling") or "").strip()
+            forex_sell = (cur.findtext("ForexSelling") or "").strip()
+            chosen = banknote_sell or forex_sell
+            if not chosen:
+                continue
+
+            # TCMB XML virgül kullanır: 38,2456
+            normalized = chosen.replace(" ", "")
+            if "," in normalized:
+                normalized = normalized.replace(".", "").replace(",", ".")
+            rates[code] = float(normalized)
+
+        if "USD" not in rates or "EUR" not in rates:
+            raise HTTPException(
+                status_code=502,
+                detail="TCMB kur verisi alınamadı (USD/EUR eksik)",
+            )
+
+        return {
+            "source": "TCMB_EFEKTIF_SATIS",
+            "base": "TRY",
+            "usd_try": rates["USD"],
+            "eur_try": rates["EUR"],
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502, detail=f"TCMB kur servisine erişilemedi: {exc}"
+        )
 
 
 @router.put("/price-rules", response_model=dict)
@@ -234,15 +286,7 @@ def update_supplier_quote_price_rules(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    role = getattr(current_user, "role", None)
-    if role not in [
-        "super_admin",
-        "admin",
-        "satinalmaci",
-        "satinalma_uzmani",
-        "satinalma_yoneticisi",
-        "satinalma_direktoru",
-    ]:
+    if not can_access_procurement_settings(current_user):
         raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
 
     if (
@@ -254,7 +298,6 @@ def update_supplier_quote_price_rules(
             status_code=400, detail="Kural değerleri 0'dan küçük olamaz"
         )
 
-    _ensure_supplier_quote_price_rules_table(db)
     db.execute(
         text("""
         INSERT INTO supplier_quote_price_rules (
@@ -290,14 +333,78 @@ def get_my_quotes(
         .filter(SupplierQuote.supplier_id == current_user.supplier_id)
         .all()
     )
-
-    result = []
+    tenant_ids: set[int] = set()
+    quote_rows_by_id: dict[int, Quote] = {}
     for sq in supplier_quotes:
         quote = db.query(Quote).filter(Quote.id == sq.quote_id).first()
+        if quote is None:
+            continue
+        quote_rows_by_id[int(quote.id)] = quote
+        if quote.tenant_id is not None:
+            tenant_ids.add(int(quote.tenant_id))
+
+    premium_codes_by_tenant: dict[int, list[str]] = {}
+    if tenant_ids:
+        premium_rows = (
+            db.query(TenantPremiumFeature, PremiumFeature)
+            .join(
+                PremiumFeature,
+                PremiumFeature.id == TenantPremiumFeature.premium_feature_id,
+            )
+            .filter(
+                TenantPremiumFeature.tenant_id.in_(tenant_ids),
+                TenantPremiumFeature.billing_status == "active",
+                PremiumFeature.is_active.is_(True),
+            )
+            .all()
+        )
+        for activation, feature in premium_rows:
+            premium_codes_by_tenant.setdefault(int(activation.tenant_id), []).append(
+                str(feature.code)
+            )
+
+    plan_name_map = _build_plan_name_map()
+    result = []
+    for sq in supplier_quotes:
+        quote = (
+            quote_rows_by_id.get(int(sq.quote_id))
+            or db.query(Quote).filter(Quote.id == sq.quote_id).first()
+        )
         items = (
             db.query(SupplierQuoteItem)
             .filter(SupplierQuoteItem.supplier_quote_id == sq.id)
             .all()
+        )
+        normalized_plan_code = normalize_subscription_plan_code(
+            getattr(getattr(quote, "tenant", None), "subscription_plan_code", None)
+            if quote
+            else None
+        )
+        premium_feature_codes = (
+            premium_codes_by_tenant.get(int(quote.tenant_id), [])
+            if quote and quote.tenant_id is not None
+            else []
+        )
+        (
+            entitlement_status,
+            entitlement_summary,
+            platform_network_listing_enabled,
+            premium_listing_enabled,
+        ) = _resolve_entitlement_summary(
+            normalized_plan_code,
+            premium_feature_codes,
+        )
+        (
+            listing_scope,
+            listing_scope_label,
+            private_supplier_count,
+            platform_network_supplier_count,
+            invited_supplier_count,
+            responded_supplier_count,
+        ) = (
+            _resolve_listing_scope(quote)
+            if quote
+            else ("draft_unpublished", "Yayinlanmadi", 0, 0, 0, 0)
         )
 
         result.append(
@@ -307,6 +414,28 @@ def get_my_quotes(
                 "quote_id": sq.quote_id,
                 "quote_title": quote.title if quote else "Bilinmiyor",
                 "quote_company": quote.company_name if quote else None,
+                "published_by_tenant_name": (
+                    getattr(getattr(quote, "tenant", None), "brand_name", None)
+                    or getattr(getattr(quote, "tenant", None), "legal_name", None)
+                    or quote.company_name
+                )
+                if quote
+                else None,
+                "listing_scope": listing_scope,
+                "listing_scope_label": listing_scope_label,
+                "private_supplier_count": private_supplier_count,
+                "platform_network_supplier_count": platform_network_supplier_count,
+                "invited_supplier_count": invited_supplier_count,
+                "responded_supplier_count": responded_supplier_count,
+                "package_plan_code": normalized_plan_code,
+                "package_plan_name": plan_name_map.get(
+                    normalized_plan_code, normalized_plan_code
+                ),
+                "active_premium_feature_codes": premium_feature_codes,
+                "entitlement_status": entitlement_status,
+                "entitlement_summary": entitlement_summary,
+                "platform_network_listing_enabled": platform_network_listing_enabled,
+                "premium_listing_enabled": premium_listing_enabled,
                 "quote_status": (
                     quote.status.value
                     if quote
@@ -318,15 +447,9 @@ def get_my_quotes(
                     getattr(quote, "selected_supplier_id", None) if quote else None
                 ),
                 "status": sq.status,
+                "currency": _normalize_currency(getattr(sq, "currency", "TRY")),
                 "total_amount": float(sq.total_amount or 0),
                 "final_amount": float(sq.final_amount or 0),
-                "initial_final_amount": float(
-                    getattr(sq, "initial_final_amount", None) or 0
-                ),
-                "revision_number": int(sq.revision_number or 0),
-                "payment_terms": sq.payment_terms,
-                "delivery_time": sq.delivery_time,
-                "warranty": sq.warranty,
                 "created_at": sq.created_at,
                 "submitted_at": sq.submitted_at,
                 "items": [
@@ -381,7 +504,6 @@ def get_supplier_quote(
     supplier_quote = (
         db.query(SupplierQuote).filter(SupplierQuote.id == supplier_quote_id).first()
     )
-
     if not supplier_quote:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
 
@@ -407,6 +529,7 @@ def get_supplier_quote(
         if supplier_quote.supplier
         else None,
         "status": supplier_quote.status,
+        "currency": _normalize_currency(getattr(supplier_quote, "currency", "TRY")),
         "total_amount": float(supplier_quote.total_amount or 0),
         "discount_percent": float(supplier_quote.discount_percent or 0),
         "discount_amount": float(supplier_quote.discount_amount or 0),
@@ -475,6 +598,12 @@ def save_draft(
     if not quote:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
 
+    if not data.items:
+        raise HTTPException(
+            status_code=400, detail="Kaydetmek için en az bir kalem gereklidir"
+        )
+    _ensure_supplier_quote_editable(supplier_quote, quote)
+
     price_check = _validate_supplier_quote_price_rules(
         db, quote, float(data.final_amount or 0)
     )
@@ -494,6 +623,7 @@ def save_draft(
         supplier_quote.discount_percent = data.discount_percent
         supplier_quote.discount_amount = data.discount_amount
         supplier_quote.final_amount = data.final_amount
+        supplier_quote.currency = _normalize_currency(getattr(data, "currency", "TRY"))
         supplier_quote.payment_terms = data.payment_terms
         supplier_quote.delivery_time = data.delivery_time
         supplier_quote.warranty = data.warranty
@@ -554,6 +684,12 @@ def submit_response(
     if not quote:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
 
+    if not data.items:
+        raise HTTPException(
+            status_code=400, detail="Göndermek için en az bir kalem gereklidir"
+        )
+    _ensure_supplier_quote_editable(supplier_quote, quote)
+
     price_check = _validate_supplier_quote_price_rules(
         db, quote, float(data.final_amount or 0)
     )
@@ -573,9 +709,6 @@ def submit_response(
             1 if is_revision_submit else 0
         )
 
-        # Kolon migration (SQLite)
-        _ensure_initial_final_amount_column(db)
-
         # İlk gönderimde initial_final_amount'u sakla (revize sonra değiştirmez)
         if not is_revision_submit:
             supplier_quote.initial_final_amount = data.final_amount
@@ -585,6 +718,7 @@ def submit_response(
         supplier_quote.discount_percent = data.discount_percent
         supplier_quote.discount_amount = data.discount_amount
         supplier_quote.final_amount = data.final_amount
+        supplier_quote.currency = _normalize_currency(getattr(data, "currency", "TRY"))
         supplier_quote.payment_terms = data.payment_terms
         supplier_quote.delivery_time = data.delivery_time
         supplier_quote.warranty = data.warranty
@@ -660,13 +794,13 @@ def submit_response(
         if getattr(quote, "assigned_to_id", None):
             notify_user = (
                 db.query(User)
-                .filter(User.id == quote.assigned_to_id, User.is_active == True)
+                .filter(User.id == quote.assigned_to_id, User.is_active)
                 .first()
             )
         if not notify_user:
             notify_user = (
                 db.query(User)
-                .filter(User.id == quote.created_by_id, User.is_active == True)
+                .filter(User.id == quote.created_by_id, User.is_active)
                 .first()
             )
 
@@ -686,6 +820,7 @@ def submit_response(
                     delivery_time=data.delivery_time,
                     payment_terms=data.payment_terms,
                     warranty=data.warranty,
+                    owner_user_id=notify_user.id,
                 )
             except Exception:
                 pass  # Email hatası işlemi durdurmaz
@@ -700,6 +835,45 @@ def submit_response(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{supplier_quote_id}/decline")
+def decline_supplier_quote(
+    supplier_quote_id: int,
+    reason: str | None = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_any_user),
+):
+    """Tedarikçinin teklifi cevaplamayı reddetmesi."""
+    supplier_quote = (
+        db.query(SupplierQuote).filter(SupplierQuote.id == supplier_quote_id).first()
+    )
+
+    if not supplier_quote:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+
+    if isinstance(current_user, SupplierUser):
+        if supplier_quote.supplier_id != current_user.supplier_id:
+            raise HTTPException(status_code=403, detail="Yetkisiz erişim")
+
+    quote = db.query(Quote).filter(Quote.id == supplier_quote.quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+
+    _ensure_supplier_quote_editable(supplier_quote, quote)
+
+    supplier_quote.status = "reddedildi"
+    if reason:
+        existing = str(supplier_quote.notes or "").strip()
+        supplier_quote.notes = f"{existing}\nReddedilme nedeni: {reason}".strip()
+    supplier_quote.updated_at = datetime.now(UTC)
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": "Teklif cevaplamayı reddetme işlemi kaydedildi",
+        "supplier_quote_id": supplier_quote_id,
+    }
 
 
 @router.get("/quote/{quote_id}/responses")
@@ -720,14 +894,15 @@ def get_all_supplier_responses(
 
     result = []
     for response in responses:
-        supplier = response.supplier or {}
+        supplier = response.supplier
         result.append(
             {
                 "id": response.id,
                 "supplier_id": response.supplier_id,
-                "supplier_name": supplier.company_name if supplier else "Bilinmiyor",
-                "supplier_phone": supplier.phone if supplier else None,
-                "supplier_email": supplier.email if supplier else None,
+                "supplier_name": getattr(supplier, "company_name", None)
+                or "Bilinmiyor",
+                "supplier_phone": getattr(supplier, "phone", None),
+                "supplier_email": getattr(supplier, "email", None),
                 "status": response.status,
                 "total_amount": float(response.total_amount or 0),
                 "discount_percent": float(response.discount_percent or 0),

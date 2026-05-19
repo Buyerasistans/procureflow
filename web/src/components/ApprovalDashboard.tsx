@@ -58,6 +58,7 @@ const StatusBadge = styled.span<{ status: string }>`
     switch (props.status) {
       case "DRAFT":
         return "#f3f4f6";
+      case "SUBMITTED":
       case "SENT":
         return "#fef3c7";
       case "PENDING":
@@ -74,6 +75,7 @@ const StatusBadge = styled.span<{ status: string }>`
     switch (props.status) {
       case "DRAFT":
         return "#374151";
+      case "SUBMITTED":
       case "SENT":
         return "#92400e";
       case "PENDING":
@@ -230,6 +232,10 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
   }, [loadPendingApprovals]);
 
   const handleApprove = useCallback(async (quoteId: number) => {
+    if (!comment.trim()) {
+      setError("Tedarikçiye gönderme onayı için not yazmanız gerekir");
+      return;
+    }
     try {
       setProcessing(quoteId);
       const response = await fetch(`${apiUrl}/api/v1/approvals/${quoteId}/approve`, {
@@ -238,7 +244,7 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
           Authorization: `Bearer ${authToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ comment: comment || null }),
+        body: JSON.stringify({ comment: comment.trim() }),
       });
 
       if (!response.ok) {
@@ -246,7 +252,7 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
         throw new Error(error.detail || "Onaylama başarısız");
       }
 
-      setSuccess("✅ Teklif onaylandı");
+      setSuccess("✅ Tedarikçiye gönderme onayı verildi");
       setActiveApprovalId(null);
       setComment("");
       loadPendingApprovals();
@@ -359,7 +365,7 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
             {activeApprovalId === approval.approval_id ? (
               <>
                 <CommentBox
-                  placeholder="Onay veya red ile ilgili notu giriniz..."
+                  placeholder="Onay veya tekrar gözden geçirme notunu yazınız (zorunlu)..."
                   value={comment}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
                 />
@@ -369,14 +375,14 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
                     onClick={() => handleApprove(approval.quote_id)}
                     disabled={processing !== null}
                   >
-                    {processing === approval.quote_id ? "⏳ İşleniyor..." : "✅ Onayla"}
+                    {processing === approval.quote_id ? "⏳ İşleniyor..." : "✅ Tedarikçiye Gönder Onayı Ver"}
                   </Button>
                   <Button
                     variant="danger"
                     onClick={() => handleReject(approval.quote_id)}
                     disabled={processing !== null}
                   >
-                    {processing === approval.quote_id ? "⏳ İşleniyor..." : "❌ Reddet"}
+                    {processing === approval.quote_id ? "⏳ İşleniyor..." : "❌ Teklifi Tekrar Gözden Geçirin"}
                   </Button>
                   <Button
                     onClick={() => {

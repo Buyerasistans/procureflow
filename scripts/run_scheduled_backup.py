@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime, UTC
@@ -16,6 +17,7 @@ SCRIPT_PATH = PROJECT_ROOT / "scripts" / "auto_full_backup.ps1"
 SQL_BACKUP_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "backup_postgres_sql.ps1"
 DEFAULT_BACKUP_ROOT = PROJECT_ROOT.parent / "procureflow_full_backups" / "scheduled"
 API_ENV_PATH = PROJECT_ROOT / "api" / ".env"
+RETENTION_DAYS = 2
 
 
 def get_database_url() -> str | None:
@@ -77,6 +79,35 @@ def update_last_backup(engine: object | None) -> None:
         return
 
 
+def cleanup_old_backups(
+    backup_root: Path, retention_days: int = RETENTION_DAYS
+) -> None:
+    cutoff = datetime.now(UTC).timestamp() - (retention_days * 24 * 60 * 60)
+
+    # Remove old full backup directories (backup_YYYYMMDD_HHMMSS)
+    for backup_dir in backup_root.glob("backup_*"):
+        if not backup_dir.is_dir():
+            continue
+        try:
+            if backup_dir.stat().st_mtime < cutoff:
+                shutil.rmtree(backup_dir, ignore_errors=False)
+                print(f"CLEANUP_REMOVED_DIR={backup_dir}")
+        except Exception as exc:
+            print(f"CLEANUP_DIR_ERROR={backup_dir}::{exc}")
+
+    # Remove old SQL artifacts in backup_root/sql
+    sql_dir = backup_root / "sql"
+    if sql_dir.exists() and sql_dir.is_dir():
+        for pattern in ("*.sql", "*.rar"):
+            for sql_file in sql_dir.glob(pattern):
+                try:
+                    if sql_file.stat().st_mtime < cutoff:
+                        sql_file.unlink(missing_ok=True)
+                        print(f"CLEANUP_REMOVED_SQL={sql_file}")
+                except Exception as exc:
+                    print(f"CLEANUP_SQL_ERROR={sql_file}::{exc}")
+
+
 def main() -> int:
     if not SCRIPT_PATH.exists():
         print(
@@ -131,6 +162,8 @@ def main() -> int:
             print(sql_result.stdout.strip())
         if sql_result.returncode != 0 and sql_result.stderr:
             print(sql_result.stderr.strip(), file=sys.stderr)
+
+    cleanup_old_backups(backup_root)
 
     update_last_backup(engine)
     print(f"DATABASE_URL={database_url}" if database_url else "DATABASE_URL=")

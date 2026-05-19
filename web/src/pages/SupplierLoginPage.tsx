@@ -3,119 +3,119 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { supplierLoginRequest } from "../services/auth.service";
 import { isSupplierLoggedIn } from "../lib/session";
+import NavBar from "../components/NavBar";
+import PublicBrandLogo from "../components/PublicBrandLogo";
 
 const Container = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - 60px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 26%), linear-gradient(135deg, #eef2ff 0%, #e0e7ff 56%, #f5f3ff 100%);
+
+  @media (max-width: 980px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
-const LeftSection = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+const LeftSection = styled.section`
+  padding: 56px;
   color: white;
-  padding: 40px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top right, rgba(129, 140, 248, 0.3), transparent 24%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.18), transparent 26%), linear-gradient(135deg, #4338ca 0%, #5b21b6 55%, #7c3aed 100%);
 
   h1 {
-    font-size: 48px;
-    margin-bottom: 20px;
-    font-weight: 700;
+    font-size: 46px;
+    line-height: 1.04;
+    margin: 18px 0 10px;
+    font-weight: 900;
   }
 
   p {
-    font-size: 18px;
-    opacity: 0.9;
-    max-width: 400px;
-    line-height: 1.6;
+    margin: 0;
+    max-width: 520px;
+    line-height: 1.7;
+    color: #e0e7ff;
+    font-size: 15px;
   }
 `;
 
-const RightSection = styled.div`
-  flex: 1;
+const RightSection = styled.section`
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   padding: 40px;
 `;
 
 const FormContainer = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  padding: 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 430px;
+  background: white;
+  border-radius: 22px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 55px rgba(30, 41, 59, 0.16);
+  padding: 36px 32px;
 
   h2 {
-    font-size: 28px;
-    margin-bottom: 10px;
-    color: #1f2937;
-    font-weight: 600;
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.08;
+    color: #0f172a;
+    font-weight: 900;
   }
 
   p {
-    color: #6b7280;
-    margin-bottom: 30px;
+    margin: 10px 0 24px;
+    color: #64748b;
     font-size: 14px;
+    line-height: 1.6;
   }
 `;
 
 const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  gap: 14px;
 `;
 
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const Label = styled.label`
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+const FormGroup = styled.label`
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
 `;
 
 const Input = styled.input`
-  padding: 12px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid #dbe3ef;
+  background: #f8fafc;
   font-size: 14px;
-  transition: border-color 0.3s;
 
   &:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
   }
 
   &:disabled {
-    background-color: #f3f4f6;
     cursor: not-allowed;
+    opacity: 0.7;
   }
 `;
 
 const SubmitButton = styled.button`
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
   border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-  }
 
   &:disabled {
     opacity: 0.7;
@@ -124,23 +124,21 @@ const SubmitButton = styled.button`
 `;
 
 const ErrorMessage = styled.div`
-  padding: 12px;
-  background-color: #fee2e2;
-  color: #991b1b;
-  border-radius: 8px;
-  font-size: 14px;
-  border-left: 4px solid #dc2626;
-  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #be123c;
+  padding: 10px 12px;
+  font-size: 13px;
 `;
 
 const SuccessMessage = styled.div`
-  padding: 12px;
-  background-color: #dcfce7;
+  border-radius: 12px;
+  border: 1px solid #86efac;
+  background: #dcfce7;
   color: #166534;
-  border-radius: 8px;
-  font-size: 14px;
-  border-left: 4px solid #22c55e;
-  margin-bottom: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
 `;
 
 interface LoginError {
@@ -158,7 +156,6 @@ export default function SupplierLoginPage() {
   const [error, setError] = useState<LoginError | null>(null);
   const [success, setSuccess] = useState("");
 
-  // Eğer zaten supplier login'se dashboard'a yönlendir
   useEffect(() => {
     if (isSupplierLoggedIn()) {
       navigate("/supplier/dashboard", { replace: true });
@@ -167,10 +164,7 @@ export default function SupplierLoginPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
 
@@ -179,32 +173,27 @@ export default function SupplierLoginPage() {
     setError(null);
     setSuccess("");
 
-    // Validation
     if (!formData.email) {
       setError({ field: "email", message: "E-posta gerekli" });
       return;
     }
 
     if (!formData.password) {
-      setError({ field: "password", message: "Şifre gerekli" });
+      setError({ field: "password", message: "Sifre gerekli" });
       return;
     }
 
     setLoading(true);
 
     try {
-      // Supplier login service'i kullan
       await supplierLoginRequest(formData.email, formData.password);
-
-      setSuccess("Giriş başarılı! Yönlendiriliyorsunuz...");
-
-      // Direkt yönlendir (supplier token zaten set edildi)
+      setSuccess("Giris basarili! Yonlendiriliyorsunuz...");
       navigate("/supplier/dashboard", { replace: true });
     } catch (err: unknown) {
-      console.error("Login error:", err);
       const errorMessage =
-        (err as any)?.message ||
-        "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol ediniz.";
+        err instanceof Error
+          ? err.message
+          : "Giris basarisiz. Lutfen e-posta ve sifrenizi kontrol ediniz.";
       setError({ message: errorMessage });
     } finally {
       setLoading(false);
@@ -212,60 +201,64 @@ export default function SupplierLoginPage() {
   };
 
   return (
-    <Container>
-      <LeftSection>
-        <div>
-          <h1>Tedarikçi Portalı</h1>
-          <p>
-            Tekliflerinizi yönetin, proje detaylarını görün ve sözleşmelerinizi
-            takip edin.
-          </p>
-        </div>
-      </LeftSection>
+    <div style={{ minHeight: "100vh" }}>
+      <NavBar variant="supplier" activePath="/supplier/login" />
+      <Container>
+        <LeftSection>
+          <div>
+            <PublicBrandLogo height={44} maxWidth={220} marginBottom={24} invert />
+            <h1>Tedarikci Portali</h1>
+            <p>
+              Tekliflerinizi yonetin, proje detaylarini gorun ve sozlesme sureclerini
+              tek bir panelden takip edin.
+            </p>
+          </div>
+        </LeftSection>
 
-      <RightSection>
-        <FormContainer>
-          <h2>Giriş Yapın</h2>
-          <p>Tedarikçi hesabınızla giriş yaparak panele erişin</p>
+        <RightSection>
+          <FormContainer>
+            <h2>Tedarikci Girisi</h2>
+            <p>Tedarikci hesabinizla giris yaparak kendi tedarikci panelinize erisin.</p>
 
-          <Form onSubmit={handleSubmit}>
-            {error && <ErrorMessage>{error.message}</ErrorMessage>}
-            {success && <SuccessMessage>{success}</SuccessMessage>}
+            <Form onSubmit={handleSubmit}>
+              {error && <ErrorMessage>{error.message}</ErrorMessage>}
+              {success && <SuccessMessage>{success}</SuccessMessage>}
 
-            <FormGroup>
-              <Label htmlFor="email">E-posta Adresi</Label>
-              <Input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="ornek@tedarikci.com"
-                disabled={loading}
-                required
-              />
-            </FormGroup>
+              <FormGroup htmlFor="email">
+                E-posta Adresi
+                <Input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="ornek@tedarikci.com"
+                  disabled={loading}
+                  required
+                />
+              </FormGroup>
 
-            <FormGroup>
-              <Label htmlFor="password">Şifre</Label>
-              <Input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                disabled={loading}
-                required
-              />
-            </FormGroup>
+              <FormGroup htmlFor="password">
+                Sifre
+                <Input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  disabled={loading}
+                  required
+                />
+              </FormGroup>
 
-            <SubmitButton type="submit" disabled={loading}>
-              {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
-            </SubmitButton>
-          </Form>
-        </FormContainer>
-      </RightSection>
-    </Container>
+              <SubmitButton type="submit" disabled={loading}>
+                {loading ? "Giris yapiliyor..." : "Giris Yap"}
+              </SubmitButton>
+            </Form>
+          </FormContainer>
+        </RightSection>
+      </Container>
+    </div>
   );
 }

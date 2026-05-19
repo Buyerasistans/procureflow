@@ -6,6 +6,7 @@ interface SupplierQuote {
   id: number;
   revision_number: number;
   status: string;
+  currency?: string;
   total_amount: number;
   profitability_amount: number | null;
   profitability_percent: number | null;
@@ -21,19 +22,30 @@ interface SupplierGroup {
 
 interface SupplierQuotesGroupedViewProps {
   suppliers: SupplierGroup[];
-  onRequestRevision: (supplierQuoteId: number, supplierName: string) => Promise<void>;
+  onRequestRevision: (
+    supplierQuoteId: number,
+    supplierName: string,
+    supplierId: number
+  ) => Promise<void>;
   onViewDetails: (supplierQuoteId: number, supplierName: string) => void;
+  onApproveSupplierQuote?: (supplierQuoteId: number, supplierName: string) => Promise<void>;
   loading?: boolean;
-  isAdmin?: boolean;
+  canManage?: boolean;
 }
 
 export function SupplierQuotesGroupedView({
   suppliers,
   onRequestRevision,
   onViewDetails,
+  onApproveSupplierQuote,
   loading = false,
-  isAdmin = false,
+  canManage = false,
 }: SupplierQuotesGroupedViewProps) {
+  const hasApprovedQuote = suppliers.some((supplier) => {
+    const revisions = supplier.quotes.flatMap((q) => q.revisions || []);
+    return [...supplier.quotes, ...revisions].some((q) => q.status === "onaylandı");
+  });
+
   const [expandedSuppliers, setExpandedSuppliers] = useState<Set<number>>(
     new Set(suppliers.map((s) => s.supplier_id).slice(0, 1))
   );
@@ -61,11 +73,28 @@ export function SupplierQuotesGroupedView({
     });
   };
 
+  const normalizeCurrency = (value?: string | null): "TRY" | "USD" | "EUR" => {
+    const raw = String(value || "TRY").toUpperCase();
+    if (raw === "TL" || raw === "TRL") return "TRY";
+    if (raw === "USDT") return "USD";
+    if (raw === "USD" || raw === "EUR") return raw;
+    return "TRY";
+  };
+
+  const formatMoney = (amount: number, currency?: string) =>
+    Number(amount || 0).toLocaleString("tr-TR", {
+      style: "currency",
+      currency: normalizeCurrency(currency),
+      maximumFractionDigits: 2,
+    });
+
   const statusLabel = (status: string) => {
     const labels: Record<string, string> = {
       tasarı: "Taslak",
       gönderildi: "Gönderildi",
       revize_edildi: "Revize İstendi",
+      onaylandı: "Onaylandı",
+      kapatıldı_yüksek_fiyat: "Kapatıldı",
     };
     return labels[status] || status;
   };
@@ -120,11 +149,16 @@ export function SupplierQuotesGroupedView({
               <div>
                 <h3 style={{ margin: "0 0 8px 0", fontSize: "16px" }}>{supplier.supplier_name}</h3>
                 <div style={{ fontSize: "13px", color: "#666" }}>
-                  <div>En Son Teklif: ₺{latestQuote?.total_amount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}</div>
+                  <div>En Son Teklif: {formatMoney(Number(latestQuote?.total_amount || 0), latestQuote?.currency)}</div>
                   <div>Durum: {statusLabel(latestQuote?.status)}</div>
-                  {latestQuote?.profitability_amount && isAdmin && (
+                  {latestQuote?.profitability_amount && canManage && (
                     <div style={{ marginTop: "4px" }}>
                       Tasarruf: <ProfitabilityBadge amount={latestQuote.profitability_amount} percent={latestQuote.profitability_percent} />
+                    </div>
+                  )}
+                  {latestQuote?.status === "onaylandı" && (
+                    <div style={{ marginTop: "6px", color: "#166534", fontWeight: 700 }}>
+                      Onaylanan tedarikçi
                     </div>
                   )}
                 </div>
@@ -162,9 +196,9 @@ export function SupplierQuotesGroupedView({
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                         <span style={{ fontSize: "14px", fontWeight: 600 }}>
-                          Toplam: ₺{quote.total_amount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}
+                          Toplam: {formatMoney(Number(quote.total_amount || 0), quote.currency)}
                         </span>
-                        {quote.profitability_amount && isAdmin && (
+                        {quote.profitability_amount && canManage && (
                           <ProfitabilityBadge amount={quote.profitability_amount} percent={quote.profitability_percent} />
                         )}
                       </div>
@@ -185,9 +219,15 @@ export function SupplierQuotesGroupedView({
                           Göster
                         </button>
 
-                        {isAdmin && quote.revision_number === 0 && (
+                        {canManage && quote.revision_number === 0 && (
                           <button
-                            onClick={() => onRequestRevision(quote.id, supplier.supplier_name)}
+                            onClick={() =>
+                              onRequestRevision(
+                                quote.id,
+                                supplier.supplier_name,
+                                supplier.supplier_id
+                              )
+                            }
                             disabled={loading}
                             style={{
                               padding: "6px 12px",
@@ -202,6 +242,40 @@ export function SupplierQuotesGroupedView({
                           >
                             Revize İste
                           </button>
+                        )}
+
+                        {canManage && onApproveSupplierQuote && quote.status === "yanıtlandı" && (
+                          <button
+                            onClick={() => onApproveSupplierQuote(quote.id, supplier.supplier_name)}
+                            disabled={loading || hasApprovedQuote}
+                            style={{
+                              padding: "6px 12px",
+                              background: hasApprovedQuote ? "#e5e7eb" : "#16a34a",
+                              color: hasApprovedQuote ? "#6b7280" : "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: loading ? "wait" : hasApprovedQuote ? "not-allowed" : "pointer",
+                              fontSize: "13px",
+                              opacity: loading ? 0.6 : 1,
+                            }}
+                          >
+                            {hasApprovedQuote ? "Pasif" : "İş Onayı Ver"}
+                          </button>
+                        )}
+
+                        {quote.status === "onaylandı" && (
+                          <span
+                            style={{
+                              padding: "6px 12px",
+                              background: "#dcfce7",
+                              color: "#166534",
+                              borderRadius: "4px",
+                              fontSize: "13px",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Onaylandı
+                          </span>
                         )}
                       </div>
                     </div>
@@ -236,27 +310,63 @@ export function SupplierQuotesGroupedView({
 
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                               <span style={{ fontSize: "14px", fontWeight: 600 }}>
-                                Toplam: ₺{revision.total_amount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}
+                                Toplam: {formatMoney(Number(revision.total_amount || 0), revision.currency)}
                               </span>
-                              {revision.profitability_amount && isAdmin && (
+                              {revision.profitability_amount && canManage && (
                                 <ProfitabilityBadge amount={revision.profitability_amount} percent={revision.profitability_percent} />
                               )}
                             </div>
 
-                            <button
-                              onClick={() => onViewDetails(revision.id, supplier.supplier_name)}
-                              style={{
-                                padding: "6px 12px",
-                                background: "#3b82f6",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "13px",
-                              }}
-                            >
-                              Göster
-                            </button>
+                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                              <button
+                                onClick={() => onViewDetails(revision.id, supplier.supplier_name)}
+                                style={{
+                                  padding: "6px 12px",
+                                  background: "#3b82f6",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                  fontSize: "13px",
+                                }}
+                              >
+                                Göster
+                              </button>
+
+                              {canManage && onApproveSupplierQuote && revision.status === "yanıtlandı" && (
+                                <button
+                                  onClick={() => onApproveSupplierQuote(revision.id, supplier.supplier_name)}
+                                  disabled={loading || hasApprovedQuote}
+                                  style={{
+                                    padding: "6px 12px",
+                                    background: hasApprovedQuote ? "#e5e7eb" : "#16a34a",
+                                    color: hasApprovedQuote ? "#6b7280" : "white",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    cursor: loading ? "wait" : hasApprovedQuote ? "not-allowed" : "pointer",
+                                    fontSize: "13px",
+                                    opacity: loading ? 0.6 : 1,
+                                  }}
+                                >
+                                  {hasApprovedQuote ? "Pasif" : "İş Onayı Ver"}
+                                </button>
+                              )}
+
+                              {revision.status === "onaylandı" && (
+                                <span
+                                  style={{
+                                    padding: "6px 12px",
+                                    background: "#dcfce7",
+                                    color: "#166534",
+                                    borderRadius: "4px",
+                                    fontSize: "13px",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  Onaylandı
+                                </span>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>

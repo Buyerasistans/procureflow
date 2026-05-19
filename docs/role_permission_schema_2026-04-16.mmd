@@ -1,0 +1,59 @@
+flowchart TB
+    A[Kimlik Katmani] --> B[system_role]
+    A --> C[business_role]
+
+    subgraph SystemRole[System Role Katmani]
+      SR1[super_admin]
+      SR2[platform_support]
+      SR3[platform_operator]
+      SR4[tenant_owner]
+      SR5[tenant_admin]
+      SR6[tenant_member]
+    end
+
+    subgraph BusinessRole[Operasyonel Rol Katmani]
+      BR1[satinalma_direktoru]
+      BR2[satinalma_yoneticisi]
+      BR3[satinalma_uzmani]
+      BR4[satinalmaci]
+      BR5[admin]
+      BR6[super_admin]
+    end
+
+    B --> D[Governance Yetkileri]
+    C --> E[Satin Alma Akislari]
+
+    SR1 --> G1[Tenant governance write]
+    SR1 --> G2[Shared email profile yonetimi]
+    SR2 --> G3[Governance read]
+    SR3 --> G3
+    SR4 --> G4[Tenant identity ayarlari]
+    SR5 --> G5[Tenant ici admin islemleri]
+
+    BR1 --> P1[Global proje goruntuleme]
+    BR1 --> P2[Yuksek onay limiti]
+    BR2 --> P3[Onay review]
+    BR3 --> P4[Proje olusturma]
+    BR4 --> P5[Temel satin alma islemleri]
+
+    subgraph DepartmentRelation[Departman/Firma Iliskisi]
+      R1[users.department_id]
+      R2[company_roles.department_id]
+      R3[company_roles.role_id]
+      R4[company_roles.company_id]
+      R5[sub_items]
+    end
+
+    E --> R1
+    E --> R2
+    E --> R3
+    E --> R4
+    E --> R5
+
+    classDef high fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d
+    classDef med fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef low fill:#dcfce7,stroke:#15803d,color:#14532d
+
+    class SR1,G1,G2 high
+    class SR2,SR3,SR4,SR5,G3,G4,G5 med
+    class SR6,BR4,P5,R1,R2,R3,R4,R5 low

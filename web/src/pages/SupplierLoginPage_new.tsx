@@ -215,7 +215,7 @@ export default function SupplierLoginPage() {
     } catch (err: unknown) {
       console.error("Login error:", err);
       const errorMessage =
-        (err as any)?.response?.data?.detail ||
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
         "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol ediniz.";
       setError({ message: errorMessage });
     } finally {

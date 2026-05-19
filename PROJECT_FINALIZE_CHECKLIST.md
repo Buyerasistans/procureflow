@@ -2,10 +2,19 @@
 
 ## 📋 Genel Durum
 
-**Proje Aşaması:** Production-Ready (Canlı geçişe hazır)  
+**Proje Aşaması:** Release Calibration (Pre-Go-Live)  
 **Başlama Tarihi:** Ocak 2026  
-**Son Güncelleme:** Nisan 2026  
+**Son Güncelleme:** Mayis 2026 (2026-05-01 kalibrasyon)  
 **Teknik Stack:** React 19 + FastAPI + SQLAlchemy + PostgreSQL  
+
+Kalibrasyon notu (2026-05-01):
+
+- Runtime bootstrap zinciri: PASS
+- Quote mirror drop readiness: PASS
+- Quote mirror drop plan: PASS
+- Hedefli web regresyon paketi: PASS (59/59)
+- Fiziksel drop apply ve post-cut audit adimlari: release
+penceresinde ayri onayla ilerleyecek
 
 ---
 
@@ -13,20 +22,23 @@
 
 ### 1.1 TypeScript Build
 
-- [ ] `npm run build` başarıyla tamamlanıyor
+- [x] `npm run build` başarıyla tamamlanıyor
+
   ```bash
   cd web
   npm run build
   # Expected: ✓ built in 460ms (or faster)
   ```
 
-- [ ] TypeScript hataları YOK
+- [x] TypeScript hataları YOK
+
   ```bash
   npm run type-check
   # Expected: 0 errors
   ```
 
-- [ ] ESLint uyarıları göz önüne alındı
+- [x] ESLint uyarıları göz önüne alındı
+
   ```bash
   npm run lint
   # Expected: 0 critical errors (warnings ok)
@@ -34,7 +46,8 @@
 
 ### 1.2 Python Code Quality
 
-- [ ] `pytest` tüm testleri geçiyor
+- [x] `pytest` tüm testleri geçiyor
+
   ```bash
   cd api
   pytest tests/ -v
@@ -42,12 +55,14 @@
   ```
 
 - [ ] Linting pass
+
   ```bash
   ruff check .
   # Expected: 0 critical errors
   ```
 
 - [ ] Type hints cover (`mypy`)
+
   ```bash
   mypy api/
   # Expected: <5 errors
@@ -65,18 +80,89 @@
   - [ ] POST `/auth/logout` — Token revoke edilebiliyor
 
 - [ ] Supplier endpoints work
-  - [ ] GET `/api/quotes/supplier/{id}` — Teklif listesi döndürüyor
-  - [ ] POST `/api/quotes/supplier/{id}/response` — Yanıt kaydedilebiliyor
-  - [ ] PATCH `/api/quotes/supplier/revise` — Revize request gönderiliyor
+  - [ ] GET `/api/v1/supplier-quotes/me` — Tedarikçi teklif listesi dönüyor
+  - [ ] GET `/api/v1/supplier-quotes/{supplier_quote_id}`
+    — Tekil tedarikçi teklifi okunabiliyor
+  - [ ] POST `/api/v1/supplier-quotes/{supplier_quote_id}/submit` — Yanıt gönderilebiliyor
+  - [ ] POST `/api/v1/supplier-quotes/{supplier_quote_id}/save-draft` — Taslak kaydedilebiliyor
 
 - [ ] Admin endpoints work
-  - [ ] POST `/api/quotes/create` — Yeni teklif oluşturuluyor
-  - [ ] PATCH `/api/quotes/{id}/approve` — Teklif onaylanabiliyor
-  - [ ] GET `/api/quotes/admin` — Teklif listesi döndürüyor
+  - [ ] POST `/api/v1/quotes` — Yeni RFQ oluşturuluyor
+  - [ ] POST `/api/v1/quotes/{id}/submit` — RFQ onay akışına gönderilebiliyor
+  - [ ] POST `/api/v1/approvals/{quote_id}/approve` — Teklif onaylanabiliyor
+  - [ ] GET `/api/v1/quotes` — Canonical RFQ listesi dönüyor
 
 ### 2.2 Veritabanı
 
+Release gate sirasi:
+
+1. validate_runtime_bootstrap_chain.py
+2. audit_quote_mirror_drop_readiness.py
+3. drop_quote_legacy_mirror_columns.py plan modu
+4. Sadece release onayi varsa drop_quote_legacy_mirror_columns.py --apply
+5. Apply sonrasi audit ve hedefli regresyon tekrar kosusu
+
+- [x] Runtime bootstrap zinciri dogrulandi
+
+  ```bash
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe api/scripts/validate_runtime_bootstrap_chain.py
+  # Expected: VALIDATED_RUNTIME_BOOTSTRAP_CHAIN
+  # Last run: 2026-05-01 PASS
+  ```
+
+- [x] Quote legacy mirror drop-readiness dogrulandi
+
+  ```bash
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe \
+    api/scripts/audit_quote_mirror_drop_readiness.py \
+    --output-json audit-quote-mirror-drop-readiness.json \
+    --output-csv audit-quote-mirror-drop-readiness.csv
+  # Expected: QUOTE_LEGACY_MIRRORS_DROP_READY
+  # Last run: 2026-05-01 PASS (drop_ready=true)
+  ```
+
+- [x] Quote legacy mirror drop plan'i dogrulandi
+
+  ```bash
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe api/scripts/drop_quote_legacy_mirror_columns.py
+  # Expected: QUOTE_LEGACY_MIRRORS_DROP_PLAN_READY
+  # Last run: 2026-05-01 PASS
+  ```
+
+- [ ] Quote legacy mirror drop apply karari kayda baglandi
+
+  ```bash
+  # Sadece release penceresinde ve readiness yesilse:
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe \
+    api/scripts/drop_quote_legacy_mirror_columns.py --apply
+  # Expected: QUOTE_LEGACY_MIRRORS_DROPPED
+  # Re-run Expected: QUOTE_LEGACY_MIRRORS_ALREADY_DROPPED
+  ```
+
+- [ ] Post-cut audit ve hedefli regresyon tekrar kosuldu
+
+  ```bash
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe \
+    api/scripts/audit_role_system_role_consistency.py \
+    --output-json approval-transition-audit-2026-04-16.json \
+    --output-csv approval-transition-audit-2026-04-16.csv
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe \
+    api/scripts/audit_quote_rfq_legacy_cleanup.py \
+    --json-output audit-quote-rfq-legacy-cleanup.json \
+    --csv-output audit-quote-rfq-legacy-cleanup.csv
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe \
+    api/scripts/audit_billing_reconciliation.py \
+    --json-out audit-billing-reconciliation.json \
+    --csv-out audit-billing-reconciliation.csv
+  D:/Projects/procureflow/api/.venv/Scripts/python.exe -m pytest \
+    tests/test_tenant_governance_authz.py \
+    -k "billing_webhook_retry_requires_super_admin or super_admin_can_retry_failed_billing_webhook_event"
+  npm --prefix web run test:run -- src/test/admin-page-tenant-governance.test.tsx
+  # Expected: audit issue sayaci 0, hedefli testler yesil
+  ```
+
 - [ ] Aktif veritabani yolu dogrulandi
+
   ```bash
   type api\.env
   # DATABASE_URL PostgreSQL olmali
@@ -88,6 +174,7 @@
   ```
 
 - [ ] Migrations apply
+
   ```bash
   cd api
   alembic upgrade head
@@ -95,12 +182,14 @@
   ```
 
 - [ ] Tablolar düzgün
+
   ```bash
   python check_tables.py
   # Expected: All tables present and schema valid
   ```
 
 - [ ] Admin user exist
+
   ```bash
   python inspect_users_table.py | grep -i admin
   # Expected: 1 admin user found
@@ -109,14 +198,16 @@
 ### 2.3 Email Service
 
 - [ ] SMTP ayarları doğru
+
   ```bash
   python -c "from api.core.config import settings; print(settings.SMTP_HOST)"
   # Expected: olimposyapi.com
   ```
 
 - [ ] Test email gönderiliyor
+
   ```bash
-  curl -X POST http://localhost:8000/api/admin/settings/send-test-email \
+  curl -X POST http://localhost:8000/api/v1/advanced-settings/email/test \
     -H "Authorization: Bearer {TOKEN}"
   # Expected: 200 OK, mail-tester score >= 8.0/10
   ```
@@ -151,6 +242,7 @@
 ### 3.2 Build Artifacts
 
 - [ ] Web production build ready
+
   ```bash
   cd web
   npm run build
@@ -170,18 +262,21 @@
 ### 4.1 Server Setup
 
 - [ ] Node.js version correct
+
   ```bash
   node --version
   # Expected: v18.x or v20.x
   ```
 
 - [ ] Python version correct
+
   ```bash
   python --version
   # Expected: Python 3.9 or 3.10+
   ```
 
 - [ ] Environment variables set
+
   ```bash
   # Kontrol et:
   echo $DATABASE_URL
@@ -198,6 +293,7 @@
   - [ ] Retention: 30 days
 
 - [ ] Restore procedure tested
+
   ```bash
   python api/scripts/restore_backup.py --backup-id latest
   # Expected: Restored successfully
@@ -210,6 +306,7 @@
 ### 5.1 Authentication & Authorization
 
 - [ ] JWT token secret strong
+
   ```bash
   # In .env
   JWT_SECRET_KEY = "$(openssl rand -base64 32)"  # min 32 chars
@@ -218,12 +315,14 @@
   ```
 
 - [ ] CORS properly configured
+
   ```python
   # api/main.py check:
   origins = ["https://yourdomain.com"]  # NOT "*" in production
   ```
 
 - [ ] Password hash verified
+
   ```bash
   # Check: passwords use bcrypt (not plaintext)
   grep -r "bcrypt\|hash_password" api/
@@ -233,11 +332,13 @@
 ### 5.2 API Security
 
 - [ ] Rate limiting enabled
+
   ```python
   # Check: slowapi or similar in requirements.txt
   ```
 
 - [ ] HTTPS enforced
+
   ```bash
   # Nginx/Apache config check:
   grep -i "redirect\|ssl" /etc/nginx/sites-enabled/procureflow
@@ -245,6 +346,7 @@
   ```
 
 - [ ] SQL Injection protected
+
   ```python
   # Check: SQLAlchemy parameterized queries used (not f-strings)
   grep -r "query(\|execute(" api/services/ | head -5
@@ -266,14 +368,14 @@
   - [ ] Disk optimization tips included ✅
 
 - [ ] API Documentation
-  - [ ] Swagger/OpenAPI endpoint: `http://localhost:8000/docs`
+  - [x] Swagger/OpenAPI endpoint: `http://localhost:8000/docs`
   - [ ] All endpoints documented
   - [ ] Request/response schemas shown
 
 - [ ] README.md updated
-  - [ ] Setup instructions (backend + frontend)
-  - [ ] Running the app locally
-  - [ ] Database initialization
+  - [x] Setup instructions (backend + frontend)
+  - [x] Running the app locally
+  - [x] Database initialization
   - [ ] Troubleshooting section
 
 ---
@@ -281,6 +383,7 @@
 ## 7️⃣ Git & Source Control
 
 - [ ] .gitignore updated
+
   ```bash
   # Kontrol:
   git check-ignore -v *.db __pycache__ node_modules
@@ -288,18 +391,21 @@
   ```
 
 - [ ] Commit history clean
+
   ```bash
   git log --oneline | grep -i "temp\|debug\|wip" | wc -l
   # Expected: 0 (no WIP commits)
   ```
 
 - [ ] Branch strategy defined
+
   ```bash
   git branch -a
   # Expected: main (stable), maybe dev/staging, feature/* branches cleaned up
   ```
 
 - [ ] Staging area clean
+
   ```bash
   git status
   # Expected: "working tree clean" or only intentional changes
@@ -311,13 +417,25 @@
 
 ### 8.1 Unit Tests
 
+- [x] Hedefli web regresyon paketi geciyor (public + tenant governance)
+
+  ```bash
+  npm --prefix D:/Projects/procureflow/web run test:run -- \
+    src/test/public-pages.test.tsx \
+    src/test/admin-page-tenant-governance.test.tsx \
+    --reporter=verbose
+  # Last run: 2026-05-01 PASS (59/59)
+  ```
+
 - [ ] Backend unit tests pass
+
   ```bash
   cd api && pytest tests/unit/ -v
   # Expected: >=90% pass
   ```
 
 - [ ] Frontend component tests
+
   ```bash
   cd web && npm test
   # Expected: >=80% coverage
@@ -326,12 +444,14 @@
 ### 8.2 Integration Tests
 
 - [ ] E2E quote workflow
+
   ```bash
   cd tests && pytest test_quotes.py -v
   # Expected: Create → Submit → Revise → Approve → Close
   ```
 
 - [ ] Auth flow
+
   ```bash
   pytest test_auth.py -v
   # Expected: Login → Token → Refresh → Logout
@@ -342,6 +462,7 @@
 ## 9️⃣ Monitoring & Logging — İKİNCİL
 
 - [ ] Logging configured
+
   ```python
   # api/core/config.py check:
   LOG_LEVEL = "INFO"  # or DEBUG in dev
@@ -396,7 +517,7 @@ echo "🚀 Ready for deployment!"
 ## 📊 Proje İstatistikleri
 
 | Metrik | Değer | Durum |
-|---|---|---|
+| --- | --- | --- |
 | **TypeScript Errorleri** | 0 | ✅ |
 | **Python Errorleri** | 0 | ✅ |
 | **E-mail Score** | 8.7/10 | ✅ |

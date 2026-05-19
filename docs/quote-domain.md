@@ -111,6 +111,12 @@ Roller:
 - `satinalma_uzmani`
 - `satinalmaci`
 
+Not:
+
+- Gecis doneminde auth payload tarafinda `role` alani korunur,
+ancak quote approval ve procurement akislari icin operasyonel anlam tasiyan
+alan `business_role` / `required_business_role` olarak ayristirilmaya baslanmistir.
+
 Temel prensipler:
 
 - Yetki tanımları yalnızca `super_admin` tarafından yönetilir.

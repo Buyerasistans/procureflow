@@ -109,6 +109,27 @@ const LoadingBox = styled.div`
   color: #666;
 `;
 
+const InviteSummary = styled.div`
+  margin-bottom: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #bfdbfe;
+  color: #334155;
+  font-size: 13px;
+
+  strong {
+    color: #0f172a;
+  }
+
+  ul {
+    margin: 14px 0 0 18px;
+    padding: 0;
+    color: #475569;
+    line-height: 1.6;
+  }
+`;
+
 export default function SupplierRegisterPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -247,14 +268,25 @@ export default function SupplierRegisterPage() {
   return (
     <Container>
       <Card>
-        <h1>🎉 Hoş Geldiniz!</h1>
-        <div className="subtitle">ProcureFlow Tedarikçi Portalı</div>
+        <h1>Daveti Tamamlayın</h1>
+        <div className="subtitle">Stratejik partneriniz sizi ProcureFlow tedarikçi portalına hızlı davet ile ekledi.</div>
 
         {error && <ErrorBox>❌ {error}</ErrorBox>}
         {success && <SuccessBox>✅ {success}</SuccessBox>}
 
         {!success && (
           <>
+            <InviteSummary>
+              <div><strong>Firma:</strong> {companyInfo.company_name}</div>
+              <div style={{ marginTop: "6px" }}><strong>Davet edilen yetkili:</strong> {companyInfo.user_name || "İlk firma yetkilisi"}</div>
+              <div style={{ marginTop: "6px" }}><strong>E-posta:</strong> {companyInfo.email}</div>
+              <ul>
+                <li>Bu adımda hesabınızı aktive eder ve giriş şifrenizi belirlersiniz.</li>
+                <li>Vergi, adres, finans ve belge bilgilerini giriş yaptıktan sonra profil ekranınızdan siz tamamlarsınız.</li>
+                <li>Kayıt tamamlanınca doğrudan supplier paneline yönlendirilirsiniz.</li>
+              </ul>
+            </InviteSummary>
+
             <div style={{ marginBottom: "20px", fontSize: "13px", color: "#666" }}>
               <p style={{ margin: "0 0 8px 0" }}>
                 <strong>📦 Firma:</strong> {companyInfo.company_name}
@@ -277,7 +309,7 @@ export default function SupplierRegisterPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder="En az 8 karakter"
+                  placeholder="Portal girişiniz için en az 8 karakter"
                   required
                   disabled={registering}
                 />
@@ -292,14 +324,14 @@ export default function SupplierRegisterPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, password_confirm: e.target.value })
                   }
-                  placeholder="Şifreyi tekrar girin"
+                  placeholder="Aynı şifreyi tekrar girin"
                   required
                   disabled={registering}
                 />
               </FormGroup>
 
               <Button type="submit" disabled={registering}>
-                {registering ? "⏳ Kaydediliyor..." : "✅ Kaydı Tamamla"}
+                {registering ? "⏳ Davet tamamlanıyor..." : "✅ Davetimi Tamamla"}
               </Button>
             </form>
           </>
