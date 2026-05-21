@@ -3834,10 +3834,17 @@ def create_supplier_finance_payment_admin(
 @router.post("/{supplier_id:int}/finance/photos", response_model=dict)
 async def create_supplier_finance_photo_admin(
     supplier_id: int,
-    uploads_root = os.path.realpath(os.path.join(os.getcwd(), "uploads"))
+    uploads_base = os.path.abspath(os.path.join("uploads", "supplier_finance"))
+    folder = os.path.abspath(
+        os.path.join(uploads_base, str(supplier_id), "photos")
+    )
+    if os.path.commonpath([uploads_base, folder]) != uploads_base:
+        raise HTTPException(status_code=400, detail="Geçersiz yükleme yolu")
     folder = os.path.realpath(
         os.path.join(
-            uploads_root, "supplier_finance", str(supplier_id), "photos"
+    file_path = os.path.abspath(os.path.join(folder, stored))
+    if os.path.commonpath([uploads_base, file_path]) != uploads_base:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         )
     )
     if os.path.commonpath([uploads_root, folder]) != uploads_root:
