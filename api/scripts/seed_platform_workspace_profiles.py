@@ -250,7 +250,7 @@ def main() -> int:
             _ensure_company_assignment(db, user, company, admin_role)
 
         db.commit()
-        print(f"SEEDED_PLATFORM_WORKSPACE_PROFILES password={DEMO_DIRECT_PASSWORD}")
+        print("SEEDED_PLATFORM_WORKSPACE_PROFILES password_set_for_demo_users")
         return 0
     except Exception:
         db.rollback()
