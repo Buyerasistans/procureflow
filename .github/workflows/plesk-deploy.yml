@@ -3,6 +3,9 @@
 
 name: Plesk Deploy
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
