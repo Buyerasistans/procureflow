@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Any, Optional
+import logging
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -21,6 +22,7 @@ router = APIRouter(
     prefix="/admin/deployment",
     tags=["Admin - Deployment"],
 )
+logger = logging.getLogger(__name__)
 
 
 # ============================================================
@@ -103,8 +105,9 @@ def _make_sse_stream(svc: DeploymentService, coro):
         try:
             result = future.result()
             yield f"data: {json.dumps({'type': 'done', 'success': result.success, 'summary': result.summary, 'errors': result.errors}, ensure_ascii=False)}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+        except Exception:
+            logger.exception("Deployment stream failed while processing operation result")
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Internal error occurred during deployment.'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         event_generator(),
