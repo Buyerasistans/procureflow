@@ -2,8 +2,7 @@ import json
 import re
 import subprocess
 from pathlib import Path
-
-from tools.memory.git_base import detect_base_ref
+from git_base import detect_base_ref
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "tools" / "memory" / "config.json"
