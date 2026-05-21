@@ -3150,7 +3150,10 @@ def download_supplier_document_file_admin(
         detail="Bu dosyaya erişim izniniz yok",
     )
 
-    safe_name = os.path.basename(filename)
+    safe_name = os.path.basename((filename or "").strip())
+    if not safe_name or safe_name in {".", ".."}:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya adı")
+
     safe_category = (category or "").strip()
     if (
         not safe_category
@@ -3160,6 +3163,18 @@ def download_supplier_document_file_admin(
         or "\\" in safe_category
     ):
         raise HTTPException(status_code=400, detail="Geçersiz kategori")
+
+    file_record = (
+        db.query(ProjectFile)
+        .filter(
+            ProjectFile.supplier_id == supplier_id,
+            ProjectFile.category == safe_category,
+            ProjectFile.filename == safe_name,
+        )
+        .first()
+    )
+    if not file_record:
+        raise HTTPException(status_code=404, detail="Dosya kaydı bulunamadı")
 
     base_dir = os.path.realpath(
         os.path.join("uploads", "supplier_docs", str(supplier_id))
