@@ -5,6 +5,9 @@ on:
     branches: ["main", "master"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   wiki-memory:
     runs-on: ubuntu-latest
