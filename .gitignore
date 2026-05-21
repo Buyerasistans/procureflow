@@ -159,3 +159,7 @@ adminer.php.bak
 # local safety snapshots
 local_backups/
 
+
+# agent runtime files
+tools/agent/SESSION_CONTEXT.md
+
