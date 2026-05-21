@@ -917,6 +917,7 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
             {canManageProfiles ? (
               <select
+                aria-label="Profil Seçimi"
                 value={selectedEmailProfileOwnerId === null ? "default" : String(selectedEmailProfileOwnerId ?? "default")}
                 onChange={(e) => setSelectedEmailProfileOwnerId(e.target.value === "default" ? null : Number(e.target.value))}
                 style={{ marginTop: 8, width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
@@ -1177,8 +1178,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             <h4 style={{ margin: "0 0 12px" }}>Global Mail İmzası</h4>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
-                <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>İsim</label>
+                <label htmlFor="signature_name" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>İsim</label>
                 <input
+                  id="signature_name"
                   type="text"
                   value={emailForm.signature_name ?? ""}
                   onChange={(e) => setEmailForm({ ...emailForm, signature_name: e.target.value })}
@@ -1186,8 +1188,9 @@ export const AdvancedSettingsTab: React.FC = () => {
                 />
               </div>
               <div>
-                <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Unvan</label>
+                <label htmlFor="signature_title" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Unvan</label>
                 <input
+                  id="signature_title"
                   type="text"
                   value={emailForm.signature_title ?? ""}
                   onChange={(e) => setEmailForm({ ...emailForm, signature_title: e.target.value })}
@@ -1195,8 +1198,9 @@ export const AdvancedSettingsTab: React.FC = () => {
                 />
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
-                <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Not / İmza Metni</label>
+                <label htmlFor="signature_note" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Not / İmza Metni</label>
                 <textarea
+                  id="signature_note"
                   rows={3}
                   value={emailForm.signature_note ?? ""}
                   onChange={(e) => setEmailForm({ ...emailForm, signature_note: e.target.value })}
@@ -1204,8 +1208,8 @@ export const AdvancedSettingsTab: React.FC = () => {
                 />
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
-                <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>İmza Görseli / Logo</label>
-                <input type="file" accept="image/*" onChange={(e) => void handleSignatureImageUpload(e.target.files?.[0] || null)} />
+                <label htmlFor="signature_image" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>İmza Görseli / Logo</label>
+                <input id="signature_image" type="file" accept="image/*" onChange={(e) => void handleSignatureImageUpload(e.target.files?.[0] || null)} />
                 {emailForm.signature_image_url && (
                   <div style={{ marginTop: 10 }}>
                     <img src={emailForm.signature_image_url} alt="mail-imza" style={{ maxWidth: 240, maxHeight: 120, objectFit: "contain", borderRadius: 8, border: "1px solid #dbe3ee", background: "white" }} />
@@ -1244,11 +1248,13 @@ export const AdvancedSettingsTab: React.FC = () => {
                   .map((tpl) => (
                     <div key={tpl.key} style={{ display: "grid", gap: 8, marginTop: 10 }}>
                       <input
+                        aria-label={`${tpl.label} Başlığı`}
                         value={tpl.subject}
                         onChange={(e) => updateTemplateField(tpl.key, "subject", e.target.value)}
                         style={{ width: "100%", padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }}
                       />
                       <textarea
+                        aria-label={`${tpl.label} İçeriği`}
                         rows={4}
                         value={tpl.body}
                         onChange={(e) => updateTemplateField(tpl.key, "body", e.target.value)}
@@ -1323,8 +1329,8 @@ export const AdvancedSettingsTab: React.FC = () => {
               <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
                 <h4 style={{ margin: 0, color: "#1e3a8a" }}>3) Gönderim Limiti ve Kota</h4>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
-                  <input type="number" min={1} value={channelPrefs.send_rate_per_hour} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_rate_per_hour: Number(e.target.value || 1) }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <input type="number" min={1} value={channelPrefs.send_quota_per_day} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_quota_per_day: Number(e.target.value || 1) }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                  <input aria-label="Saatlik Gönderim Hızı" type="number" min={1} value={channelPrefs.send_rate_per_hour} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_rate_per_hour: Number(e.target.value || 1) }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                  <input aria-label="Günlük Gönderim Kotası" type="number" min={1} value={channelPrefs.send_quota_per_day} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_quota_per_day: Number(e.target.value || 1) }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
                 </div>
               </div>
 
@@ -1366,13 +1372,13 @@ export const AdvancedSettingsTab: React.FC = () => {
               <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
                 <h4 style={{ margin: 0, color: "#1e3a8a" }}>6) Mailbox Fallback Politikası</h4>
                 <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                  <select value={channelPrefs.fallback_policy} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, fallback_policy: e.target.value as ChannelEmailPreferences["fallback_policy"] }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }}>
+                  <select aria-label="Mailbox Fallback Politikası" value={channelPrefs.fallback_policy} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, fallback_policy: e.target.value as ChannelEmailPreferences["fallback_policy"] }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }}>
                     <option value="platform_default">Platform varsayılanına dön</option>
                     <option value="secondary_mailbox">İkinci mailbox kullan</option>
                     <option value="queue_only">Sadece kuyruğa al</option>
                   </select>
                   {channelPrefs.fallback_policy === "secondary_mailbox" && (
-                    <input type="email" value={channelPrefs.secondary_fallback_email} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, secondary_fallback_email: e.target.value }))} placeholder="yedek-mailbox@ornek.com" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                    <input aria-label="Yedek Mailbox E-posta Adresi" type="email" value={channelPrefs.secondary_fallback_email} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, secondary_fallback_email: e.target.value }))} placeholder="yedek-mailbox@ornek.com" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
                   )}
                 </div>
               </div>
@@ -1380,9 +1386,9 @@ export const AdvancedSettingsTab: React.FC = () => {
               <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
                 <h4 style={{ margin: 0, color: "#1e3a8a" }}>7) Kanal Markalama Ayarları</h4>
                 <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  <input value={channelPrefs.sender_alias} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, sender_alias: e.target.value }))} placeholder="Gonderici adı" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <input value={channelPrefs.branding_logo_url} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_logo_url: e.target.value }))} placeholder="Logo URL" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <input type="color" value={channelPrefs.branding_primary_color} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_primary_color: e.target.value }))} style={{ width: "100%", height: 38, border: "1px solid #cbd5e1", borderRadius: 6, background: "#fff" }} />
+                  <input aria-label="Gönderici Adı Takma Adı" value={channelPrefs.sender_alias} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, sender_alias: e.target.value }))} placeholder="Gonderici adı" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                  <input aria-label="Marka Logosu URL" value={channelPrefs.branding_logo_url} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_logo_url: e.target.value }))} placeholder="Logo URL" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                  <input aria-label="Birincil Marka Rengi" type="color" value={channelPrefs.branding_primary_color} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_primary_color: e.target.value }))} style={{ width: "100%", height: 38, border: "1px solid #cbd5e1", borderRadius: 6, background: "#fff" }} />
                 </div>
               </div>
             </div>
@@ -1558,8 +1564,9 @@ export const AdvancedSettingsTab: React.FC = () => {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Seviyesi</label>
+              <label htmlFor="log_level" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Seviyesi</label>
               <select
+                id="log_level"
                 value={String((loggingForm as Record<string, unknown>).log_level ?? "INFO")}
                 onChange={(e) => setLoggingForm({ ...loggingForm, log_level: e.target.value } as LoggingSettingsData)}
                 style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
@@ -1573,8 +1580,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Formatı</label>
+              <label htmlFor="log_format" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Formatı</label>
               <input
+                id="log_format"
                 type="text"
                 value={String((loggingForm as Record<string, unknown>).log_format ?? "")}
                 onChange={(e) => setLoggingForm({ ...loggingForm, log_format: e.target.value } as LoggingSettingsData)}
@@ -1584,8 +1592,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Dosyası</label>
+              <label htmlFor="log_file" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Dosyası</label>
               <input
+                id="log_file"
                 type="text"
                 value={String((loggingForm as Record<string, unknown>).log_file ?? "")}
                 onChange={(e) => setLoggingForm({ ...loggingForm, log_file: e.target.value } as LoggingSettingsData)}
@@ -1595,10 +1604,11 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
+              <label htmlFor="max_file_size_mb" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
                 Maksimum Dosya Boyutu (MB)
               </label>
               <input
+                id="max_file_size_mb"
                 type="number"
                 value={Number((loggingForm as Record<string, unknown>).max_file_size_mb ?? 10)}
                 onChange={(e) =>
@@ -1612,8 +1622,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Dosya Rotasyon Sayısı</label>
+              <label htmlFor="backup_count" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Dosya Rotasyon Sayısı</label>
               <input
+                id="backup_count"
                 type="number"
                 value={Number((loggingForm as Record<string, unknown>).backup_count ?? 5)}
                 onChange={(e) =>
@@ -1701,8 +1712,9 @@ export const AdvancedSettingsTab: React.FC = () => {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Sıklığı</label>
+              <label htmlFor="backup_frequency" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Sıklığı</label>
               <select
+                id="backup_frequency"
                 value={String((backupForm as Record<string, unknown>).backup_frequency ?? "daily")}
                 onChange={(e) =>
                   setBackupForm({ ...backupForm, backup_frequency: e.target.value } as BackupSettingsData)
@@ -1718,8 +1730,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Saati</label>
+              <label htmlFor="backup_time" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Saati</label>
               <input
+                id="backup_time"
                 type="time"
                 value={String((backupForm as Record<string, unknown>).backup_time ?? "02:00")}
                 onChange={(e) => setBackupForm({ ...backupForm, backup_time: e.target.value } as BackupSettingsData)}
@@ -1728,8 +1741,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Konumu</label>
+              <label htmlFor="backup_location" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Konumu</label>
               <input
+                id="backup_location"
                 type="text"
                 value={String((backupForm as Record<string, unknown>).backup_location ?? "")}
                 onChange={(e) =>
@@ -1741,8 +1755,9 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Son N Yedeklemeyi Sakla</label>
+              <label htmlFor="keep_last_n_backups" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Son N Yedeklemeyi Sakla</label>
               <input
+                id="keep_last_n_backups"
                 type="number"
                 value={Number((backupForm as Record<string, unknown>).keep_last_n_backups ?? 5)}
                 onChange={(e) =>
@@ -1917,8 +1932,9 @@ export const AdvancedSettingsTab: React.FC = () => {
 
           <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
             <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Özet Saati</label>
+              <label htmlFor="digest_time" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Özet Saati</label>
               <input
+                id="digest_time"
                 type="time"
                 value={String((notificationForm as Record<string, unknown>).digest_time ?? "09:00")}
                 onChange={(e) =>

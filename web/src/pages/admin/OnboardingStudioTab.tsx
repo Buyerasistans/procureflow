@@ -53,75 +53,74 @@ export function OnboardingStudioTab({
   handleRejectOnboardingMembership,
 }: OnboardingStudioTabProps) {
   return (
-    <section style={{ display: "grid", gap: 16 }}>
-      <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Kurulum Studyosu</div>
-        <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Yeni Stratejik Partner kurulum iskeleti</div>
-        <div style={{ color: "#64748b" }}>Plan secimi, Stratejik Partner kaydi, ilk admin aktivasyonu ve ilk kurulum sihirbazi icin operasyon akisini tek ekranda toplar.</div>
+    <section className="onboarding-studio">
+      <div className="onboarding-studio__hero">
+        <div className="onboarding-studio__eyebrow onboarding-studio__eyebrow--warm">Kurulum Studyosu</div>
+        <div className="onboarding-studio__title">Yeni Stratejik Partner kurulum iskeleti</div>
+        <div className="onboarding-studio__copy">Plan secimi, Stratejik Partner kaydi, ilk admin aktivasyonu ve ilk kurulum sihirbazi icin operasyon akisini tek ekranda toplar.</div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+      <div className="onboarding-studio__metric-grid">
         {[
-          { label: "Stratejik Partner", value: onboardingStudioSummary.tenant_count, note: "Toplam Stratejik Partner portfoyu", color: "#1d4ed8" },
-          { label: "Onboarding Kuyrugu", value: onboardingStudioSummary.onboarding_queue_count, note: "Aktif olmayan kurulum akislari", color: "#b45309" },
-          { label: "Owner Eksigi", value: onboardingStudioSummary.owner_pending_count, note: "Sahip atamasi bekleyen Stratejik Partner", color: "#dc2626" },
-          { label: "Branding Eksigi", value: onboardingStudioSummary.branding_pending_count, note: "Logo veya brand name eksigi", color: "#7c3aed" },
-          { label: "Yeni Uyelik", value: onboardingStudioSummary.new_membership_count, note: "Public onboarding ile gelen yeni basvurular", color: "#0f766e" },
-          { label: "Odeme Kontrol", value: onboardingStudioSummary.payment_review_count, note: "Odeme dogrulamasi bekleyen uyelikler", color: "#c2410c" },
-          { label: "Bilgi Istendi", value: onboardingStudioSummary.information_requested_count, note: "Ek bilgi veya yeni dekont bekleyen uyelikler", color: "#2563eb" },
-          { label: "Onay Bekliyor", value: onboardingStudioSummary.activation_approval_waiting_count, note: "Aktivasyon onayi bekleyen uyelikler", color: "#6d28d9" },
-          { label: "Onaylandi", value: onboardingStudioSummary.approved_membership_count, note: "Aktivasyonu tamamlanan yeni uyelikler", color: "#15803d" },
+          { label: "Stratejik Partner", value: onboardingStudioSummary.tenant_count, note: "Toplam Stratejik Partner portfoyu", tone: "blue" },
+          { label: "Onboarding Kuyrugu", value: onboardingStudioSummary.onboarding_queue_count, note: "Aktif olmayan kurulum akislari", tone: "amber" },
+          { label: "Owner Eksigi", value: onboardingStudioSummary.owner_pending_count, note: "Sahip atamasi bekleyen Stratejik Partner", tone: "red" },
+          { label: "Branding Eksigi", value: onboardingStudioSummary.branding_pending_count, note: "Logo veya brand name eksigi", tone: "violet" },
+          { label: "Yeni Uyelik", value: onboardingStudioSummary.new_membership_count, note: "Public onboarding ile gelen yeni basvurular", tone: "teal" },
+          { label: "Odeme Kontrol", value: onboardingStudioSummary.payment_review_count, note: "Odeme dogrulamasi bekleyen uyelikler", tone: "orange" },
+          { label: "Bilgi Istendi", value: onboardingStudioSummary.information_requested_count, note: "Ek bilgi veya yeni dekont bekleyen uyelikler", tone: "sky" },
+          { label: "Onay Bekliyor", value: onboardingStudioSummary.activation_approval_waiting_count, note: "Aktivasyon onayi bekleyen uyelikler", tone: "purple" },
+          { label: "Onaylandi", value: onboardingStudioSummary.approved_membership_count, note: "Aktivasyonu tamamlanan yeni uyelikler", tone: "green" },
         ].map((item) => (
-          <div key={item.label} style={{ borderRadius: 18, background: "white", border: "1px solid #e5e7eb", padding: 16, boxShadow: "0 12px 28px rgba(15, 23, 42, 0.05)", display: "grid", gap: 6 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: item.color }}>{item.label}</div>
-            <div style={{ fontSize: 30, fontWeight: 900, color: item.color }}>{item.value}</div>
-            <div style={{ color: "#64748b", fontSize: 12 }}>{item.note}</div>
+          <div key={item.label} className={`onboarding-studio__metric onboarding-studio__tone--${item.tone}`}>
+            <div className="onboarding-studio__metric-label">{item.label}</div>
+            <div className="onboarding-studio__metric-value">{item.value}</div>
+            <div className="onboarding-studio__small-muted">{item.note}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+      <div className="onboarding-studio__step-grid">
         {searchParams.get("onboardingPlanFocus") ? (
-          <div style={{ gridColumn: "1 / -1" }}>
+          <div className="onboarding-studio__full-width">
             {renderAdminFocusBanner({
               eyebrow: "Admin Focus",
               title: `Onboarding odagi: ${String(searchParams.get("onboardingPlanFocus") || "").toUpperCase()} plani`,
               detail: "Secilen onboarding planina ait kartlar oncelikli olarak vurgulaniyor.",
               tone: "blue",
               sourceLabel: "Onboarding deep-link",
-              timestamp: Date.now(),
               actions: [{ label: "Odagi Temizle", onClick: () => navigateAdminTab("onboarding_studio") }],
               testId: "admin-focus-banner-onboarding",
             })}
           </div>
         ) : null}
         {[
-          { title: "1. Plan Secimi", note: "Starter, Growth veya Enterprise paketi ile ticari cerceveyi sabitle.", status: "Hazir", color: "#2563eb", action: "starter" },
-          { title: "2. Stratejik Partner Kaydi", note: "Stratejik Partner slug, branding ve sahip kullanici adayi ile workspace kaydini ac.", status: "Hazir", color: "#0f766e", action: "growth" },
-          { title: "3. Ilk Admin Aktivasyonu", note: "Owner daveti ve ilk yonetici aktivasyonunu tamamla.", status: "Hazir", color: "#b45309", action: "enterprise" },
-          { title: "4. Kurulum Sihirbazi", note: "Sirket, departman, roller, proje ve tedarikci tohumlarini adim adim tamamlama akisini kur.", status: "Taslak", color: "#7c3aed", action: null },
+          { title: "1. Plan Secimi", note: "Starter, Growth veya Enterprise paketi ile ticari cerceveyi sabitle.", status: "Hazir", tone: "sky", action: "starter" },
+          { title: "2. Stratejik Partner Kaydi", note: "Stratejik Partner slug, branding ve sahip kullanici adayi ile workspace kaydini ac.", status: "Hazir", tone: "teal", action: "growth" },
+          { title: "3. Ilk Admin Aktivasyonu", note: "Owner daveti ve ilk yonetici aktivasyonunu tamamla.", status: "Hazir", tone: "amber", action: "enterprise" },
+          { title: "4. Kurulum Sihirbazi", note: "Sirket, departman, roller, proje ve tedarikci tohumlarini adim adim tamamlama akisini kur.", status: "Taslak", tone: "violet", action: null },
         ].filter((card) => {
           const focus = searchParams.get("onboardingPlanFocus");
           if (!focus) return true;
           return card.action === focus || card.action === null;
         }).map((card) => (
-          <div key={card.title} style={{ borderRadius: 20, background: "white", border: searchParams.get("onboardingPlanFocus") === card.action ? "2px solid #1d4ed8" : "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)", display: "grid", gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: card.color }}>{card.status}</div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{card.title}</div>
-            <div style={{ color: "#64748b", fontSize: 13, lineHeight: 1.6 }}>{card.note}</div>
+          <div key={card.title} className={`onboarding-studio__step-card onboarding-studio__tone--${card.tone} ${searchParams.get("onboardingPlanFocus") === card.action ? "onboarding-studio__step-card--focused" : ""}`}>
+            <div className="onboarding-studio__eyebrow">{card.status}</div>
+            <div className="onboarding-studio__step-title">{card.title}</div>
+            <div className="onboarding-studio__detail-copy">{card.note}</div>
             {card.action ? (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+              <div className="onboarding-studio__actions">
                 <button
                   type="button"
                   onClick={() => handleStartOnboardingTemplate(card.action)}
-                  style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 800, cursor: "pointer" }}
+                  className="onboarding-studio__action-button onboarding-studio__action-button--blue"
                 >
                   Stratejik Partner formuna tasla
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleCreateDraftTenant(card.action)}
-                  style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", fontWeight: 800, cursor: "pointer" }}
+                  className="onboarding-studio__action-button onboarding-studio__action-button--indigo"
                 >
                   Taslak Stratejik Partner olustur
                 </button>
@@ -131,25 +130,25 @@ export function OnboardingStudioTab({
         ))}
       </div>
 
-      <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#1d4ed8" }}>Yeni Uyelik Onay Masasi</div>
-        <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Odeme kontrolu ve aktivasyon onayi</div>
-        <div style={{ color: "#64748b" }}>Public ana sayfadan gelen stratejik partner ve tedarikci uyelik basvurulari burada takip edilir. Ucretli planlarda EFT dahil tum odemeler dogrulanmadan ve super admin onayi verilmeden aktivasyon tamamlanmaz.</div>
-        <div style={{ borderRadius: 16, background: "#eff6ff", border: "1px solid #bfdbfe", padding: "14px 16px", display: "grid", gap: 6 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#1d4ed8" }}>Kategori ve Eslesme Notu</div>
-          <div style={{ color: "#334155", fontSize: 13, lineHeight: 1.7 }}>
+      <div className="onboarding-studio__panel">
+        <div className="onboarding-studio__eyebrow onboarding-studio__tone--blue">Yeni Uyelik Onay Masasi</div>
+        <div className="onboarding-studio__title">Odeme kontrolu ve aktivasyon onayi</div>
+        <div className="onboarding-studio__copy">Public ana sayfadan gelen stratejik partner ve tedarikci uyelik basvurulari burada takip edilir. Ucretli planlarda EFT dahil tum odemeler dogrulanmadan ve super admin onayi verilmeden aktivasyon tamamlanmaz.</div>
+        <div className="onboarding-studio__info-box onboarding-studio__info-box--blue">
+          <div className="onboarding-studio__eyebrow onboarding-studio__tone--blue">Kategori ve Eslesme Notu</div>
+          <div className="onboarding-studio__body-copy">
             Onboarding sirasinda toplanan kategori bilgisi burada yalnizca bir profil alani olarak durmaz. Super admin ekibi bu veriyi stratejik partner kapsami, supplier uygunlugu ve kategori eksigi olan basvurulari hizlica ayiklamak icin kullanir.
           </div>
-          <div style={{ color: "#475569", fontSize: 12, lineHeight: 1.7 }}>
+          <div className="onboarding-studio__small-body">
             Ozellikle supplier ve stratejik partner basvurularinda kategori uyumu; aktivasyon karari sonrasi hangi havuzun once acilacagini, hangi tenantin ek supplier sourcing ihtiyaci tasidigini ve hangi kayitlarin operasyonel takip gerektirdigini gosterir.
           </div>
         </div>
         {onboardingStudioSummary.recent_memberships.length === 0 ? (
-          <div style={{ borderRadius: 14, background: "#f8fafc", border: "1px dashed #cbd5e1", padding: "12px 14px", color: "#64748b" }}>
+          <div className="onboarding-studio__empty">
             Gosterilecek yeni uyelik kaydi yok.
           </div>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="onboarding-studio__list">
             {onboardingStudioSummary.recent_memberships.map((tenant) => {
               const paymentStatus = String(tenant.onboarding_payment_status || "not_required").toLowerCase();
               const approvalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
@@ -177,93 +176,90 @@ export function OnboardingStudioTab({
                       : approvalStatus === "rejected"
                         ? "Bu kayit reddedilmis durumda. Yeniden ilerletilecekse once operasyon notu ve karar gerekcesi kontrol edilmeli."
                         : "Kayit ilk inceleme asamasinda. Kategori, plan, odeme ve aktivasyon notlari birlikte kontrol edilerek karar verilmelidir.";
-              const decisionTone = canApprove ? "#dcfce7" : canVerifyPayment ? "#fff7ed" : approvalStatus === "needs_info" ? "#eff6ff" : approvalStatus === "rejected" ? "#fef2f2" : "#f8fafc";
-              const decisionBorder = canApprove ? "#86efac" : canVerifyPayment ? "#fdba74" : approvalStatus === "needs_info" ? "#93c5fd" : approvalStatus === "rejected" ? "#fca5a5" : "#cbd5e1";
-              const decisionColor = canApprove ? "#166534" : canVerifyPayment ? "#9a3412" : approvalStatus === "needs_info" ? "#1d4ed8" : approvalStatus === "rejected" ? "#b91c1c" : "#475569";
+              const decisionTone = canApprove ? "green" : canVerifyPayment ? "orange" : approvalStatus === "needs_info" ? "blue" : approvalStatus === "rejected" ? "red" : "slate";
               return (
-                <div key={tenant.id} style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", padding: 14, display: "grid", gap: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <div key={tenant.id} className="onboarding-studio__membership-card">
+                  <div className="onboarding-studio__card-header">
                     <div>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a" }}>{tenant.brand_name || tenant.legal_name}</div>
-                      <div style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>{tenant.owner_email || "owner e-postasi yok"} • {tenant.subscription_plan_code || "starter"} • {String(tenant.subscription_plan_code || "").startsWith("supplier") ? "tedarikci uyeligi" : "stratejik partner uyeligi"}</div>
+                      <div className="onboarding-studio__membership-title">{tenant.brand_name || tenant.legal_name}</div>
+                      <div className="onboarding-studio__membership-meta">{tenant.owner_email || "owner e-postasi yok"} • {tenant.subscription_plan_code || "starter"} • {String(tenant.subscription_plan_code || "").startsWith("supplier") ? "tedarikci uyeligi" : "stratejik partner uyeligi"}</div>
                     </div>
-                    <span style={{ display: "inline-flex", padding: "5px 10px", borderRadius: 999, background: approvalStatus === "approved" ? "#dcfce7" : "#ede9fe", color: approvalStatus === "approved" ? "#166534" : "#6d28d9", fontSize: 12, fontWeight: 800 }}>
+                    <span className={`onboarding-studio__status-chip ${approvalStatus === "approved" ? "onboarding-studio__status-chip--approved" : "onboarding-studio__status-chip--pending"}`}>
                       {formatOnboardingApprovalStatus(tenant.onboarding_approval_status)}
                     </span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
-                    <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Odeme Durumu</div>
-                      <div style={{ marginTop: 6, fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{formatOnboardingPaymentStatus(tenant.onboarding_payment_status)}</div>
-                      <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>{tenant.onboarding_payment_method || "yontem yok"}</div>
+                  <div className="onboarding-studio__detail-grid">
+                    <div className="onboarding-studio__detail-card">
+                      <div className="onboarding-studio__mini-label">Odeme Durumu</div>
+                      <div className="onboarding-studio__mini-value">{formatOnboardingPaymentStatus(tenant.onboarding_payment_status)}</div>
+                      <div className="onboarding-studio__mini-note">{tenant.onboarding_payment_method || "yontem yok"}</div>
                     </div>
-                    <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Kurulum Durumu</div>
-                      <div style={{ marginTop: 6, fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{formatPartnerOnboardingStatus(tenant.onboarding_status)}</div>
-                      <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>{tenant.onboarding_approved_by_name || "super admin karari bekleniyor"}</div>
+                    <div className="onboarding-studio__detail-card">
+                      <div className="onboarding-studio__mini-label">Kurulum Durumu</div>
+                      <div className="onboarding-studio__mini-value">{formatPartnerOnboardingStatus(tenant.onboarding_status)}</div>
+                      <div className="onboarding-studio__mini-note">{tenant.onboarding_approved_by_name || "super admin karari bekleniyor"}</div>
                     </div>
-                    <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Aktivasyon</div>
-                      <div style={{ marginTop: 6, fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{formatActivationDeliveryStatus(tenant.activation_delivery_status)}</div>
-                      <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>
+                    <div className="onboarding-studio__detail-card">
+                      <div className="onboarding-studio__mini-label">Aktivasyon</div>
+                      <div className="onboarding-studio__mini-value">{formatActivationDeliveryStatus(tenant.activation_delivery_status)}</div>
+                      <div className="onboarding-studio__mini-note">
                         {tenant.initial_admin_invitation_accepted ? "Ilk admin hesabi aktive edildi" : "Aktivasyon bekleniyor"}
                       </div>
                     </div>
-                    <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Kategori ve Eslesme</div>
-                      <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <div className="onboarding-studio__detail-card">
+                      <div className="onboarding-studio__mini-label">Kategori ve Eslesme</div>
+                      <div className="onboarding-studio__tag-row">
                         {(categoryTags.length > 0 ? categoryTags : [normalizedTenantCategory || "Kategori eksik"]).map((item) => (
-                          <span key={`${tenant.id}-${item}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: item !== "Kategori eksik" ? "#ecfeff" : "#f8fafc", color: item !== "Kategori eksik" ? "#0f766e" : "#64748b", fontWeight: 700, fontSize: 11 }}>
+                          <span key={`${tenant.id}-${item}`} className={`onboarding-studio__tag ${item !== "Kategori eksik" ? "onboarding-studio__tag--teal" : "onboarding-studio__tag--slate"}`}>
                             {item}
                           </span>
                         ))}
                         {targetCategoryTags.map((item) => (
-                          <span key={`${tenant.id}-target-${item}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#eef2ff", color: "#4338ca", fontWeight: 700, fontSize: 11 }}>
+                          <span key={`${tenant.id}-target-${item}`} className="onboarding-studio__tag onboarding-studio__tag--indigo">
                             hedef: {item}
                           </span>
                         ))}
-                        <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: matchingSupplierCount > 0 ? "#ecfdf5" : "#fff7ed", color: matchingSupplierCount > 0 ? "#166534" : "#9a3412", fontWeight: 700, fontSize: 11 }}>
+                        <span className={`onboarding-studio__tag ${matchingSupplierCount > 0 ? "onboarding-studio__tag--green" : "onboarding-studio__tag--orange"}`}>
                           {matchingSupplierCount > 0 ? `${matchingSupplierCount} supplier eslesiyor` : "Eslesen supplier yok"}
                         </span>
                       </div>
-                      <div style={{ marginTop: 8, color: "#64748b", fontSize: 12 }}>
+                      <div className="onboarding-studio__mini-note onboarding-studio__mini-note--spaced">
                         {matchingCategoryPool.length > 0 ? "Aktivasyon sonrasi sourcing havuzu secilen ve hedef kategorilere gore acilabilir." : "Kategori netlesmeden aktivasyon verilirse supplier havuzu zayif acilir."}
                       </div>
                     </div>
                   </div>
                   {categoryRequests.length > 0 ? (
-                    <div style={{ borderRadius: 12, background: "white", border: "1px solid #dbe3ee", padding: "10px 12px", display: "grid", gap: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Kategori Talep Onayi</div>
+                    <div className="onboarding-studio__subpanel">
+                      <div className="onboarding-studio__mini-label">Kategori Talep Onayi</div>
                       {categoryRequests.map((item) => {
                         const requestStatus = String(item.status || "pending_support").toLowerCase();
-                        const statusColor = requestStatus === "final_approved" ? "#166534" : requestStatus === "rejected" ? "#b91c1c" : requestStatus === "support_approved" ? "#1d4ed8" : "#9a3412";
-                        const statusBg = requestStatus === "final_approved" ? "#ecfdf5" : requestStatus === "rejected" ? "#fef2f2" : requestStatus === "support_approved" ? "#eff6ff" : "#fff7ed";
+                        const statusTone = requestStatus === "final_approved" ? "green" : requestStatus === "rejected" ? "red" : requestStatus === "support_approved" ? "blue" : "orange";
                         const isBusy = onboardingMembershipActionTenantId === tenant.id;
                         return (
-                          <div key={`${tenant.id}-request-${item.name}-${item.applies_to}`} style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "10px 12px", display: "grid", gap: 8 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                              <div style={{ color: "#0f172a", fontWeight: 800 }}>{item.name}</div>
-                              <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: statusBg, color: statusColor, fontSize: 11, fontWeight: 800 }}>
+                          <div key={`${tenant.id}-request-${item.name}-${item.applies_to}`} className="onboarding-studio__request-card">
+                            <div className="onboarding-studio__card-header">
+                              <div className="onboarding-studio__strong-text">{item.name}</div>
+                              <span className={`onboarding-studio__tag onboarding-studio__tag--${statusTone}`}>
                                 {formatCategoryRequestStatus(item.status)}
                               </span>
                             </div>
-                            <div style={{ color: "#64748b", fontSize: 12 }}>
+                            <div className="onboarding-studio__small-muted">
                               {item.applies_to === "target" ? "Hedef kategori talebi" : "Faaliyet kategorisi talebi"}
                               {item.note ? ` • ${item.note}` : ""}
                             </div>
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            <div className="onboarding-studio__actions">
                               {requestStatus === "pending_support" ? (
-                                <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "support_approved")} style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid #fdba74", background: "#fff7ed", color: "#9a3412", fontWeight: 800, cursor: isBusy ? "not-allowed" : "pointer" }}>
+                                <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "support_approved")} className="onboarding-studio__action-button onboarding-studio__action-button--orange">
                                   Destek Onayi Ver
                                 </button>
                               ) : null}
                               {["pending_support", "support_approved"].includes(requestStatus) ? (
-                                <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "final_approved")} style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 800, cursor: isBusy ? "not-allowed" : "pointer" }}>
+                                <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "final_approved")} className="onboarding-studio__action-button onboarding-studio__action-button--blue">
                                   Final Onayla
                                 </button>
                               ) : null}
                               {!['final_approved', 'rejected'].includes(requestStatus) ? (
-                                <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "rejected")} style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", fontWeight: 800, cursor: isBusy ? "not-allowed" : "pointer" }}>
+                                <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "rejected")} className="onboarding-studio__action-button onboarding-studio__action-button--red">
                                   Reddet
                                 </button>
                               ) : null}
@@ -273,40 +269,40 @@ export function OnboardingStudioTab({
                       })}
                     </div>
                   ) : null}
-                  <div style={{ borderRadius: 12, background: decisionTone, border: `1px solid ${decisionBorder}`, padding: "10px 12px", color: decisionColor, fontSize: 12, lineHeight: 1.7 }}>
-                    <strong style={{ display: "block", marginBottom: 4 }}>Karar Rehberi</strong>
+                  <div className={`onboarding-studio__decision-guide onboarding-studio__decision-guide--${decisionTone}`}>
+                    <strong className="onboarding-studio__block-label">Karar Rehberi</strong>
                     {decisionGuidance}
                   </div>
                   {tenant.onboarding_payment_receipt_url || tenant.onboarding_payment_note || tenant.onboarding_activation_notes ? (
-                    <div style={{ borderRadius: 12, background: "white", border: "1px solid #dbe3ee", padding: "10px 12px", display: "grid", gap: 4 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Operasyon Notlari</div>
+                    <div className="onboarding-studio__subpanel onboarding-studio__subpanel--compact">
+                      <div className="onboarding-studio__mini-label">Operasyon Notlari</div>
                       {tenant.onboarding_payment_receipt_url ? (
-                        <a href={tenant.onboarding_payment_receipt_url} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 700 }}>
+                        <a href={tenant.onboarding_payment_receipt_url} target="_blank" rel="noreferrer" className="onboarding-studio__link">
                           {tenant.onboarding_payment_receipt_name || "Dekontu ac"}
                         </a>
                       ) : null}
-                      {tenant.onboarding_payment_note ? <div style={{ color: "#475569", fontSize: 12 }}>{tenant.onboarding_payment_note}</div> : null}
-                      {tenant.onboarding_activation_notes ? <div style={{ color: "#7c2d12", fontSize: 12 }}>{tenant.onboarding_activation_notes}</div> : null}
+                      {tenant.onboarding_payment_note ? <div className="onboarding-studio__small-body">{tenant.onboarding_payment_note}</div> : null}
+                      {tenant.onboarding_activation_notes ? <div className="onboarding-studio__small-body onboarding-studio__small-body--brown">{tenant.onboarding_activation_notes}</div> : null}
                     </div>
                   ) : null}
                   {tenant.onboarding_decision_timeline && tenant.onboarding_decision_timeline.length > 0 ? (
-                    <div style={{ borderRadius: 12, background: "white", border: "1px solid #dbe3ee", padding: "10px 12px", display: "grid", gap: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Karar Zaman Cizelgesi</div>
+                    <div className="onboarding-studio__subpanel">
+                      <div className="onboarding-studio__mini-label">Karar Zaman Cizelgesi</div>
                       {tenant.onboarding_decision_timeline.slice().reverse().map((item, index) => (
-                        <div key={`${item.at}-${index}`} style={{ paddingLeft: 12, borderLeft: "2px solid #cbd5e1", display: "grid", gap: 2 }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>{item.actor_name} • {item.action}</div>
-                          <div style={{ fontSize: 12, color: "#64748b" }}>{new Date(item.at).toLocaleString("tr-TR")} • {item.actor_type}</div>
-                          {item.note ? <div style={{ fontSize: 12, color: "#334155" }}>{item.note}</div> : null}
+                        <div key={`${item.at}-${index}`} className="onboarding-studio__timeline-item">
+                          <div className="onboarding-studio__timeline-title">{item.actor_name} • {item.action}</div>
+                          <div className="onboarding-studio__small-muted">{new Date(item.at).toLocaleString("tr-TR")} • {item.actor_type}</div>
+                          {item.note ? <div className="onboarding-studio__small-dark">{item.note}</div> : null}
                         </div>
                       ))}
                     </div>
                   ) : null}
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <div className="onboarding-studio__actions">
                     <button
                       type="button"
                       disabled={!canVerifyPayment || onboardingMembershipActionTenantId === tenant.id}
                       onClick={() => void handleVerifyOnboardingPayment(tenant.id)}
-                      style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #fed7aa", background: canVerifyPayment ? "#fff7ed" : "#f8fafc", color: canVerifyPayment ? "#c2410c" : "#94a3b8", fontWeight: 800, cursor: canVerifyPayment ? "pointer" : "not-allowed" }}
+                      className="onboarding-studio__action-button onboarding-studio__action-button--orange"
                     >
                       Odemeyi Dogrula
                     </button>
@@ -314,7 +310,7 @@ export function OnboardingStudioTab({
                       type="button"
                       disabled={!canApprove || onboardingMembershipActionTenantId === tenant.id}
                       onClick={() => void handleApproveOnboardingMembership(tenant.id)}
-                      style={{ padding: "8px 12px", borderRadius: 12, border: "none", background: canApprove ? "#1d4ed8" : "#cbd5e1", color: "white", fontWeight: 800, cursor: canApprove ? "pointer" : "not-allowed" }}
+                      className="onboarding-studio__action-button onboarding-studio__action-button--primary"
                     >
                       Uyelik Aktivasyonunu Onayla
                     </button>
@@ -322,7 +318,7 @@ export function OnboardingStudioTab({
                       type="button"
                       disabled={!canRequestInfo || onboardingMembershipActionTenantId === tenant.id}
                       onClick={() => void handleRequestOnboardingInfo(tenant.id)}
-                      style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: canRequestInfo ? "#eff6ff" : "#f8fafc", color: canRequestInfo ? "#1d4ed8" : "#94a3b8", fontWeight: 800, cursor: canRequestInfo ? "pointer" : "not-allowed" }}
+                      className="onboarding-studio__action-button onboarding-studio__action-button--blue"
                     >
                       Ek Bilgi / Yeni Dekont Iste
                     </button>
@@ -330,7 +326,7 @@ export function OnboardingStudioTab({
                       type="button"
                       disabled={!canReject || onboardingMembershipActionTenantId === tenant.id}
                       onClick={() => void handleRejectOnboardingMembership(tenant.id)}
-                      style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #fecaca", background: canReject ? "#fef2f2" : "#f8fafc", color: canReject ? "#b91c1c" : "#94a3b8", fontWeight: 800, cursor: canReject ? "pointer" : "not-allowed" }}
+                      className="onboarding-studio__action-button onboarding-studio__action-button--red"
                     >
                       Reddet ve Not Dus
                     </button>
@@ -342,22 +338,22 @@ export function OnboardingStudioTab({
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#0f766e" }}>Operasyon Akisi</div>
+      <div className="onboarding-studio__two-column-grid">
+        <div className="onboarding-studio__panel">
+          <div className="onboarding-studio__eyebrow onboarding-studio__tone--teal">Operasyon Akisi</div>
           {[
             "Stratejik Partner Yonetimi sekmesinden plan ve kurulum durumunu sec.",
             "Ilk admin e-postasini initial_admin alanlari ile ac ve owner atamasini tamamla.",
             "Kurulum durumunu taslak > onboarding > aktif seklinde ilerlet.",
             "Branding, destek kanali ve paket limitleri aktif olmadan canliya gecme.",
           ].map((item) => (
-            <div key={item} style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", color: "#334155" }}>{item}</div>
+            <div key={item} className="onboarding-studio__flow-item">{item}</div>
           ))}
         </div>
 
-        <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#7c3aed" }}>RFQ Gecis Hazirligi</div>
-          <div style={{ borderRadius: 16, background: onboardingStudioSummary.rfq_readiness.transition_ready ? "#ecfdf5" : "#fff7ed", border: onboardingStudioSummary.rfq_readiness.transition_ready ? "1px solid #bbf7d0" : "1px solid #fed7aa", padding: "12px 14px", color: onboardingStudioSummary.rfq_readiness.transition_ready ? "#166534" : "#9a3412", fontWeight: 800 }}>
+        <div className="onboarding-studio__panel">
+          <div className="onboarding-studio__eyebrow onboarding-studio__tone--violet">RFQ Gecis Hazirligi</div>
+          <div className={`onboarding-studio__readiness-banner ${onboardingStudioSummary.rfq_readiness.transition_ready ? "onboarding-studio__readiness-banner--ready" : "onboarding-studio__readiness-banner--blocked"}`}>
             {onboardingStudioSummary.rfq_readiness.transition_ready ? "Stratejik Partner RFQ gecisi icin kritik blokaj gorunmuyor" : "Stratejik Partner RFQ gecisi oncesi veri duzeltme gerekli"}
           </div>
           {[
@@ -365,33 +361,33 @@ export function OnboardingStudioTab({
             "Platform network supplier senaryosu Stratejik Partner-private supplier ayrimiyla birlikte korunur.",
             "Stratejik Partner RFQ modeline gecmeden once quote domaini readiness skoru uretir.",
           ].map((item) => (
-            <div key={item} style={{ borderRadius: 14, background: "#faf5ff", border: "1px solid #ede9fe", padding: "12px 14px", color: "#4c1d95" }}>{item}</div>
+            <div key={item} className="onboarding-studio__rfq-note">{item}</div>
           ))}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+          <div className="onboarding-studio__readiness-grid">
             {[
-              { label: "Stratejik Partner Eksik Quote", value: onboardingStudioSummary.rfq_readiness.quotes_missing_tenant, color: "#dc2626" },
-              { label: "Stratejik Partner Eksik Approval", value: onboardingStudioSummary.rfq_readiness.approvals_missing_tenant, color: "#ea580c" },
-              { label: "Approval-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.approvals_quote_tenant_mismatch, color: "#9a3412" },
-              { label: "Quote-Proje Uyumsuz", value: onboardingStudioSummary.rfq_readiness.quotes_project_tenant_mismatch, color: "#7c2d12" },
-              { label: "Supplier-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.supplier_quote_scope_mismatch, color: "#7c3aed" },
-              { label: "Platform Agi TedarikciTeklifi", value: onboardingStudioSummary.rfq_readiness.supplier_quotes_platform_network_count, color: "#0f766e" },
+              { label: "Stratejik Partner Eksik Quote", value: onboardingStudioSummary.rfq_readiness.quotes_missing_tenant, tone: "red" },
+              { label: "Stratejik Partner Eksik Approval", value: onboardingStudioSummary.rfq_readiness.approvals_missing_tenant, tone: "orange" },
+              { label: "Approval-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.approvals_quote_tenant_mismatch, tone: "brown" },
+              { label: "Quote-Proje Uyumsuz", value: onboardingStudioSummary.rfq_readiness.quotes_project_tenant_mismatch, tone: "dark-brown" },
+              { label: "Supplier-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.supplier_quote_scope_mismatch, tone: "violet" },
+              { label: "Platform Agi TedarikciTeklifi", value: onboardingStudioSummary.rfq_readiness.supplier_quotes_platform_network_count, tone: "teal" },
             ].map((item) => (
-              <div key={item.label} style={{ borderRadius: 14, background: "#fff", border: "1px solid #e9d5ff", padding: "12px 14px", display: "grid", gap: 4 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: item.color }}>{item.label}</div>
-                <div style={{ fontSize: 26, fontWeight: 900, color: item.color }}>{item.value}</div>
+              <div key={item.label} className={`onboarding-studio__readiness-card onboarding-studio__tone--${item.tone}`}>
+                <div className="onboarding-studio__readiness-label">{item.label}</div>
+                <div className="onboarding-studio__readiness-value">{item.value}</div>
               </div>
             ))}
           </div>
-          <div style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "14px 16px", display: "grid", gap: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#0f766e" }}>Tedarikci Kaynak Dengesi</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbeafe", padding: "12px 14px" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#1d4ed8", textTransform: "uppercase" }}>Ozel Tedarikci</div>
-                <div style={{ marginTop: 4, fontSize: 24, fontWeight: 900, color: "#1d4ed8" }}>{onboardingStudioSummary.supplier_mix.private_count}</div>
+          <div className="onboarding-studio__supplier-mix">
+            <div className="onboarding-studio__eyebrow onboarding-studio__tone--teal">Tedarikci Kaynak Dengesi</div>
+            <div className="onboarding-studio__supplier-grid">
+              <div className="onboarding-studio__supplier-card onboarding-studio__tone--blue">
+                <div className="onboarding-studio__supplier-label">Ozel Tedarikci</div>
+                <div className="onboarding-studio__supplier-value">{onboardingStudioSummary.supplier_mix.private_count}</div>
               </div>
-              <div style={{ borderRadius: 14, background: "white", border: "1px solid #ddd6fe", padding: "12px 14px" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase" }}>Platform Agi</div>
-                <div style={{ marginTop: 4, fontSize: 24, fontWeight: 900, color: "#7c3aed" }}>{onboardingStudioSummary.supplier_mix.platform_network_count}</div>
+              <div className="onboarding-studio__supplier-card onboarding-studio__tone--violet">
+                <div className="onboarding-studio__supplier-label">Platform Agi</div>
+                <div className="onboarding-studio__supplier-value">{onboardingStudioSummary.supplier_mix.platform_network_count}</div>
               </div>
             </div>
           </div>

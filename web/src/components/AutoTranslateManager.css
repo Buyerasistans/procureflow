@@ -1,0 +1,30 @@
+.auto-translate-manager__container {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auto-translate-manager__banner-frame,
+.auto-translate-manager__banner-frame.skiptranslate {
+  display: none !important;
+}
+
+.auto-translate-manager__banner-frame iframe,
+.skiptranslate iframe {
+  display: none !important;
+}
+
+.auto-translate-manager__balloon-frame {
+  display: none !important;
+}
+
+.auto-translate-manager__root {
+  top: 0 !important;
+}
+
+.auto-translate-manager__html {
+  margin-top: 0 !important;
+}

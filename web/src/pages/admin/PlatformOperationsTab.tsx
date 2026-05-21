@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
 import type { AdminFocusBannerTone, AdminTabKey } from "./adminPageMeta";
 import type { Tenant } from "../../services/admin.service";
+import "./PlatformOperationsTab.css";
 
 type PlatformOpsStatus = "new" | "in_progress" | "waiting_owner" | "resolved";
 type PlatformOpsStatusFilter = "all" | PlatformOpsStatus;
@@ -101,9 +102,11 @@ export function PlatformOperationsTab({
   const [emptyStateStatus, setEmptyStateStatus] = useState<PlatformOpsStatus>("new");
   const [emptyStateNote, setEmptyStateNote] = useState("");
   const [nowMs] = useState(() => Date.now());
+
   const hasAnyVisiblePartner = visiblePlatformOpsQueues
     .filter((queue) => queue.key !== "support_status")
     .some((queue) => queue.items.length > 0);
+
   const resolveSelfOwnerValue = () => {
     const ownerOptions = platformOpsOwnerOptions.filter((opt) => opt.value !== "all");
     const explicitSupport = ownerOptions.find(
@@ -115,16 +118,19 @@ export function PlatformOperationsTab({
   const prioritizedQueues = useMemo(() => {
     const hasActiveFilter = platformOpsStatusFilter !== "all" || platformOpsOwnerFilter !== "all";
     let queuesToProcess: PlatformOpsQueue[];
+
     if (hasActiveFilter) {
       const supportStatusItems = allTenants.filter((tenant) => {
         const status = platformOpsStatuses[tenant.id] || tenant.support_status || "new";
         const ownerName = String(platformOpsOwners[tenant.id] || tenant.support_owner_name || "").trim();
         const matchesStatus = platformOpsStatusFilter === "all" || status === platformOpsStatusFilter;
-        const matchesOwner = platformOpsOwnerFilter === "all"
-          || (platformOpsOwnerFilter === "__unassigned__" ? ownerName.length === 0 : ownerName === platformOpsOwnerFilter);
+        const matchesOwner =
+          platformOpsOwnerFilter === "all"
+            || (platformOpsOwnerFilter === "__unassigned__" ? ownerName.length === 0 : ownerName === platformOpsOwnerFilter);
         return matchesStatus && matchesOwner;
       });
-      const supportStatusIds = new Set(supportStatusItems.map((t) => t.id));
+
+      const supportStatusIds = new Set(supportStatusItems.map((tenant) => tenant.id));
       queuesToProcess = [
         ...visiblePlatformOpsQueues.map((queue) => ({
           ...queue,
@@ -158,13 +164,14 @@ export function PlatformOperationsTab({
             touchedAt: platformOpsTouchedAt[partner.id],
             nowMs,
           });
+
           return {
             partner,
             status,
             priority,
           };
         })
-        .sort((a, b) => a.partner.id - b.partner.id);
+        .sort((left, right) => left.partner.id - right.partner.id);
 
       const criticalCount = scoredItems.filter((item) => item.priority.severity === "critical").length;
       const itemsForView = focusModeEnabled
@@ -179,98 +186,117 @@ export function PlatformOperationsTab({
         itemsForView,
       };
     });
-  }, [visiblePlatformOpsQueues, allTenants, platformOpsStatusFilter, platformOpsOwnerFilter, platformOpsStatuses, platformOpsOwners, platformOpsNotes, platformOpsTouchedAt, focusModeEnabled, onlyCriticalVisible, nowMs]);
+  }, [
+    allTenants,
+    focusModeEnabled,
+    onlyCriticalVisible,
+    platformOpsNotes,
+    platformOpsOwnerFilter,
+    platformOpsOwners,
+    platformOpsStatusFilter,
+    platformOpsStatuses,
+    platformOpsTouchedAt,
+    visiblePlatformOpsQueues,
+    nowMs,
+  ]);
 
   return (
-    <section style={{ display: "grid", gap: 16 }}>
-      {activePlatformOpsFocusSummary.length > 0 ? renderAdminFocusBanner({
-        eyebrow: "Filtre Ozeti",
-        title: `Platform operasyon odagi: ${activePlatformOpsFocusSummary.join(" | ")}`,
-        detail: "Operasyon kuyruklari secili filtrelere gore daraltildi.",
-        tone: "amber",
-        sourceLabel: "Platform operasyonlari filtresi",
-        timestamp: nowMs,
-        actions: [
-          { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
-          { label: "Kuyruga Git", onClick: jumpToPlatformOpsFocusTarget },
-          {
-            label: "Filtreyi Temizle",
-            onClick: () => {
-              setPlatformOpsStatusFilter("all");
-              setPlatformOpsOwnerFilter("all");
-            },
-          },
-        ],
-        testId: "admin-focus-banner-platform-operations",
-      }) : null}
-      <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Platform Operasyon Masasi</div>
-        <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Stratejik Partner triage kuyruklari</div>
-        <div style={{ color: "#64748b" }}>Bu alan, onboarding takibi ve owner atama kuyrugu dahil olmak uzere platform ekibinin Stratejik Partner kayitlarini takip etmesi, onceliklendirmesi ve dogru aksiyona yonlenmesi icin hazirlandi.</div>
-        <div style={{ color: "#1d4ed8", fontSize: 13, fontWeight: 700 }}>Stratejik Partner Yonetimine Git</div>
-        <div style={{ color: "#475569", fontSize: 12, fontWeight: 700 }}>Operasyon Sahibi • Destek Durumu • Son Temas • Destek Notu</div>
+    <section className="platform-operations-tab">
+      {activePlatformOpsFocusSummary.length > 0
+        ? renderAdminFocusBanner({
+            eyebrow: "Filtre Ozeti",
+            title: `Platform operasyon odagi: ${activePlatformOpsFocusSummary.join(" | ")}`,
+            detail: "Operasyon kuyruklari secili filtrelere gore daraltildi.",
+            tone: "amber",
+            sourceLabel: "Platform operasyonlari filtresi",
+            timestamp: nowMs,
+            actions: [
+              { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
+              { label: "Kuyruga Git", onClick: jumpToPlatformOpsFocusTarget },
+              {
+                label: "Filtreyi Temizle",
+                onClick: () => {
+                  setPlatformOpsStatusFilter("all");
+                  setPlatformOpsOwnerFilter("all");
+                },
+              },
+            ],
+            testId: "admin-focus-banner-platform-operations",
+          })
+        : null}
+
+      <div className="platform-operations-tab__panel">
+        <div className="platform-operations-tab__eyebrow">Platform Operasyon Masasi</div>
+        <div className="platform-operations-tab__title">Stratejik Partner triage kuyruklari</div>
+        <div className="platform-operations-tab__description">
+          Bu alan, onboarding takibi ve owner atama kuyrugu dahil olmak uzere platform ekibinin Stratejik Partner kayitlarini takip
+          etmesi, onceliklendirmesi ve dogru aksiyona yonlenmesi icin hazirlandi.
+        </div>
+        <div className="platform-operations-tab__link-note">Stratejik Partner Yonetimine Git</div>
+        <div className="platform-operations-tab__meta">Operasyon Sahibi • Destek Durumu • Son Temas • Destek Notu</div>
+
         {!hasAnyVisiblePartner ? (
-          <div style={{ borderRadius: 14, border: "1px dashed #cbd5e1", background: "#f8fafc", padding: "12px 14px", display: "grid", gap: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <div style={{ fontWeight: 800, color: "#0f172a" }}>Ornek Stratejik Partner Workflow Karti</div>
-              <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#e0f2fe", color: "#0f172a", fontSize: 11, fontWeight: 800 }}>
-                {emptyStateStatus === "in_progress" ? "Islemde" : emptyStateStatus === "waiting_owner" ? "Yetkili Bekleniyor" : emptyStateStatus === "resolved" ? "Cozuldu" : "Yeni"}
+          <div className="platform-operations-tab__empty-card">
+            <div className="platform-operations-tab__empty-card-header">
+              <div className="platform-operations-tab__empty-card-title">Ornek Stratejik Partner Workflow Karti</div>
+              <span className="platform-operations-tab__chip">
+                {emptyStateStatus === "in_progress"
+                  ? "Islemde"
+                  : emptyStateStatus === "waiting_owner"
+                    ? "Yetkili Bekleniyor"
+                    : emptyStateStatus === "resolved"
+                      ? "Cozuldu"
+                      : "Yeni"}
               </span>
             </div>
-            <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+
+            <label className="platform-operations-tab__label">
               Operasyon Sahibi
               <select
                 aria-label="Operasyon Sahibi"
                 value={emptyStateOwner}
                 onChange={(event) => setEmptyStateOwner(event.target.value)}
-                style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}
+                className="platform-operations-tab__select"
               >
                 <option value="">- Sorumlu secin -</option>
                 {platformOpsOwnerOptions
-                  .filter((opt) => opt.value !== "all")
-                  .map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  .filter((option) => option.value !== "all")
+                  .map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
                   ))}
               </select>
             </label>
-            <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+
+            <label className="platform-operations-tab__label">
               Destek Notu
               <textarea
                 value={emptyStateNote}
                 onChange={(event) => setEmptyStateNote(event.target.value)}
                 placeholder="Bu Stratejik Partner icin son destek notunu girin"
                 rows={2}
-                style={{ resize: "vertical", padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", fontFamily: "inherit" }}
+                className="platform-operations-tab__textarea"
               />
             </label>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => setEmptyStateOwner(resolveSelfOwnerValue())}
-                style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, cursor: "pointer" }}
-              >
+
+            <div className="platform-operations-tab__button-row">
+              <button type="button" onClick={() => setEmptyStateOwner(resolveSelfOwnerValue())} className="platform-operations-tab__button platform-operations-tab__button--blue">
                 Beni Ata
               </button>
-              <button
-                type="button"
-                onClick={() => setEmptyStateOwner(resolveSelfOwnerValue())}
-                style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, cursor: "pointer" }}
-              >
+              <button type="button" onClick={() => setEmptyStateOwner(resolveSelfOwnerValue())} className="platform-operations-tab__button platform-operations-tab__button--blue">
                 Gorunenleri Bana Ata
               </button>
-              <button
-                type="button"
-                onClick={() => setEmptyStateStatus("in_progress")}
-                style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #fed7aa", background: "#fff7ed", color: "#c2410c", fontWeight: 700, cursor: "pointer" }}
-              >
+              <button type="button" onClick={() => setEmptyStateStatus("in_progress")} className="platform-operations-tab__button platform-operations-tab__button--amber">
                 Gorunenleri Isleme Al
               </button>
             </div>
           </div>
         ) : null}
-        <div style={{ borderRadius: 14, border: "1px solid #dbeafe", background: "#f8fbff", padding: "12px 14px", display: "grid", gap: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#1d4ed8" }}>Bu Sayfa Ne Ise Yarar?</div>
-          <div style={{ color: "#334155", fontSize: 13, lineHeight: 1.7 }}>
+
+        <div className="platform-operations-tab__support-note">
+          <div className="platform-operations-tab__inline-label platform-operations-tab__inline-label--blue">Bu Sayfa Ne Ise Yarar?</div>
+          <div className="platform-operations-tab__small-text platform-operations-tab__small-text--loose">
             1) Kurulum, sorumlu atama ve marka gorunurluk listelerini tek panelde toplar.
             2) Her Stratejik Partner icin destek durumu, operasyon sahibi ve notlar kaydedilir.
             3) Cozulen kayitlar kapanis nedeni ile kalici izlenir.
@@ -278,7 +304,7 @@ export function PlatformOperationsTab({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+      <div className="platform-operations-tab__stats-grid">
         {[
           { key: "all", label: "Tum Kayitlar", value: platformOpsStatusSummary.all, color: "#0f172a" },
           { key: "new", label: "Yeni", value: platformOpsStatusSummary.new, color: "#1d4ed8" },
@@ -290,86 +316,92 @@ export function PlatformOperationsTab({
             key={item.key}
             type="button"
             onClick={() => setPlatformOpsStatusFilter(item.key as PlatformOpsStatusFilter)}
-            style={{ borderRadius: 18, border: platformOpsStatusFilter === item.key ? `2px solid ${item.color}` : "1px solid #e5e7eb", background: "white", padding: 16, boxShadow: "0 12px 28px rgba(15, 23, 42, 0.04)", display: "grid", gap: 6, textAlign: "left", cursor: "pointer" }}
+            className={`platform-operations-tab__stat-card ${platformOpsStatusFilter === item.key ? "platform-operations-tab__stat-card--active" : ""}`}
           >
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: item.color }}>{item.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: item.color }}>{item.value}</div>
+            <div className={`platform-operations-tab__stat-label platform-operations-tab__stat-label--${item.key}`}>
+              {item.label}
+            </div>
+            <div className={`platform-operations-tab__stat-value platform-operations-tab__stat-value--${item.key}`}>
+              {item.value}
+            </div>
           </button>
         ))}
       </div>
 
-      <div style={{ display: "grid", gap: 10, borderRadius: 18, border: "1px solid #e2e8f0", background: "#ffffff", padding: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#334155" }}>Odak ve Filtre Ayarlari</div>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ marginRight: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={() => {
-              setFocusModeEnabled((current) => !current);
-              if (focusModeEnabled) {
-                setOnlyCriticalVisible(false);
-              }
-            }}
-            style={{
-              padding: "10px 12px",
-              borderRadius: 12,
-              border: focusModeEnabled ? "1px solid #b45309" : "1px solid #dbe3ee",
-              background: focusModeEnabled ? "#fffbeb" : "#ffffff",
-              color: focusModeEnabled ? "#92400e" : "#334155",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            Odak Modu: {focusModeEnabled ? "Acik" : "Kapali"}
-          </button>
-          {focusModeEnabled ? (
+      <div className="platform-operations-tab__filters">
+        <div className="platform-operations-tab__filters-title">Odak ve Filtre Ayarlari</div>
+
+        <div className="platform-operations-tab__filters-row">
+          <div className="platform-operations-tab__filters-row--start">
             <button
               type="button"
-              onClick={() => setOnlyCriticalVisible((current) => !current)}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: onlyCriticalVisible ? "1px solid #dc2626" : "1px solid #dbe3ee",
-                background: onlyCriticalVisible ? "#fef2f2" : "#ffffff",
-                color: onlyCriticalVisible ? "#b91c1c" : "#334155",
-                fontWeight: 800,
-                cursor: "pointer",
+              onClick={() => {
+                setFocusModeEnabled((current) => !current);
+                if (focusModeEnabled) {
+                  setOnlyCriticalVisible(false);
+                }
               }}
+              className="platform-operations-tab__button"
             >
-              Sadece Kritikleri Goster: {onlyCriticalVisible ? "Acik" : "Kapali"}
+              Odak Modu: {focusModeEnabled ? "Acik" : "Kapali"}
             </button>
-          ) : null}
-        </div>
-        <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700, minWidth: 220 }}>
-          Owner Filtresi
-          <select
-            aria-label="Owner Filtresi"
-            value={platformOpsOwnerFilter}
-            onChange={(event) => setPlatformOpsOwnerFilter(event.target.value)}
-            style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}
-          >
-            {platformOpsOwnerOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
+
+            {focusModeEnabled ? (
+              <button
+                type="button"
+                onClick={() => setOnlyCriticalVisible((current) => !current)}
+                className="platform-operations-tab__button"
+              >
+                Sadece Kritikleri Goster: {onlyCriticalVisible ? "Acik" : "Kapali"}
+              </button>
+            ) : null}
+          </div>
+
+          <label className="platform-operations-tab__label platform-operations-tab__label--owner-filter">
+            Owner Filtresi
+            <select
+              aria-label="Owner Filtresi"
+              value={platformOpsOwnerFilter}
+              onChange={(event) => setPlatformOpsOwnerFilter(event.target.value)}
+              className="platform-operations-tab__select"
+            >
+              {platformOpsOwnerOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+      <div className="platform-operations-tab__queues-grid">
         {prioritizedQueues.map((queue) => (
-          <div key={queue.key} ref={(node) => { platformOpsQueueRefs.current[queue.key] = node; }} data-testid={`platform-ops-queue-${queue.key}`} style={{ borderRadius: 20, background: "white", border: "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)", display: "grid", gap: 12 }}>
+          <div
+            key={queue.key}
+            ref={(node) => {
+              platformOpsQueueRefs.current[queue.key] = node;
+            }}
+            data-testid={`platform-ops-queue-${queue.key}`}
+            className="platform-operations-tab__queue-card"
+          >
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: queue.color }}>{localizeQueueTitle(queue.title, queue.key)}</div>
-              <div style={{ marginTop: 8, fontSize: 30, fontWeight: 900, color: queue.color }}>{queue.itemsForView.length}</div>
-              <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{queue.note}</div>
+              <div className="platform-operations-tab__inline-label platform-operations-tab__inline-label--blue">
+                {localizeQueueTitle(queue.title, queue.key)}
+              </div>
+              <div className={`platform-operations-tab__queue-count platform-operations-tab__queue-count--${queue.key}`}>
+                {queue.itemsForView.length}
+              </div>
+              <div className="platform-operations-tab__queue-note">{queue.note}</div>
+
               {focusModeEnabled ? (
-                <div style={{ marginTop: 8, borderRadius: 10, border: "1px solid #fde68a", background: "#fffbeb", padding: "8px 10px", fontSize: 12, color: "#92400e", fontWeight: 700 }}>
+                <div className="platform-operations-tab__priority-box">
                   Kritik odak: {queue.criticalCount} / {queue.totalCount} Stratejik Partner
                 </div>
               ) : null}
             </div>
-            {queue.itemsForView.some((item) => !(platformOpsOwners[item.partner.id] || "").trim()) && (
+
+            {queue.itemsForView.some((item) => !(platformOpsOwners[item.partner.id] || "").trim()) ? (
               <button
                 type="button"
                 onClick={() => {
@@ -392,12 +424,13 @@ export function PlatformOperationsTab({
                     return next;
                   });
                 }}
-                style={{ justifySelf: "start", padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, cursor: "pointer" }}
+                className="platform-operations-tab__button platform-operations-tab__button--blue"
               >
                 Gorunenleri Bana Ata
               </button>
-            )}
-            {queue.itemsForView.some((item) => (platformOpsStatuses[item.partner.id] || item.partner.support_status || "new") !== "in_progress") && (
+            ) : null}
+
+            {queue.itemsForView.some((item) => (platformOpsStatuses[item.partner.id] || item.partner.support_status || "new") !== "in_progress") ? (
               <button
                 type="button"
                 onClick={() => {
@@ -418,18 +451,19 @@ export function PlatformOperationsTab({
                     return next;
                   });
                 }}
-                style={{ justifySelf: "start", padding: "8px 12px", borderRadius: 12, border: "1px solid #fed7aa", background: "#fff7ed", color: "#c2410c", fontWeight: 700, cursor: "pointer" }}
+                className="platform-operations-tab__button platform-operations-tab__button--amber"
               >
                 Gorunenleri Isleme Al
               </button>
-            )}
-            <div style={{ display: "grid", gap: 8 }}>
+            ) : null}
+
+            <div className="platform-operations-tab__queue-actions">
               {(queue.itemsForView.length === 0 ? [null] : queue.itemsForView.slice(0, 4)).map((item, index) =>
                 item ? (
-                  <div key={`${queue.key}-${item.partner.id}`} style={{ borderRadius: 14, background: "#ffffff", border: `1px solid ${severityBorderColor(item.priority.severity)}`, padding: "10px 12px", display: "grid", gap: 8 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <div style={{ fontWeight: 800, color: "#0f172a" }}>{item.partner.brand_name || item.partner.legal_name}</div>
-                      <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#e0f2fe", color: "#0f172a", fontSize: 11, fontWeight: 800 }}>
+                  <div key={`${queue.key}-${item.partner.id}`} className="platform-operations-tab__queue-item">
+                    <div className="platform-operations-tab__card-header">
+                      <div className="platform-operations-tab__card-title">{item.partner.brand_name || item.partner.legal_name}</div>
+                      <span className={`platform-operations-tab__owner-badge platform-operations-tab__badge--${item.priority.severity === "critical" ? "resolved" : item.priority.severity === "high" ? "in-progress" : item.priority.severity === "normal" ? "waiting-owner" : "new"}`}>
                         {platformOpsStatuses[item.partner.id] === "resolved"
                           ? "Cozuldu"
                           : platformOpsStatuses[item.partner.id] === "in_progress"
@@ -439,15 +473,30 @@ export function PlatformOperationsTab({
                               : "Yeni"}
                       </span>
                     </div>
-                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>{item.partner.slug} | {formatPartnerLifecycleStatus(item.partner.status)} | {formatPartnerOnboardingStatus(item.partner.onboarding_status)}</div>
-                    <div style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "8px 10px", display: "grid", gap: 4 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>Oncelik Puani: {item.priority.score}/100 ({priorityLabel(item.priority.severity)})</div>
-                      <div style={{ fontSize: 12, color: "#475569" }}><strong>Son temas:</strong> {item.priority.daysSinceTouchLabel}</div>
-                      <div style={{ fontSize: 12, color: "#475569" }}><strong>Ne yapiyor:</strong> Bu kart Stratejik Partner operasyon kaydini takip eder.</div>
-                      <div style={{ fontSize: 12, color: "#475569" }}><strong>Neden burada:</strong> {item.priority.reason}</div>
-                      <div style={{ fontSize: 12, color: "#475569" }}><strong>Ne yapmali:</strong> {item.priority.nextAction}</div>
+
+                    <div className="platform-operations-tab__queue-item-body">
+                      {item.partner.slug} | {formatPartnerLifecycleStatus(item.partner.status)} | {formatPartnerOnboardingStatus(item.partner.onboarding_status)}
                     </div>
-                    <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+
+                    <div className={`platform-operations-tab__priority-card platform-operations-tab__priority-card--${item.priority.severity}`}>
+                      <div className="platform-operations-tab__priority-title">
+                        Oncelik Puani: {item.priority.score}/100 ({priorityLabel(item.priority.severity)})
+                      </div>
+                      <div className="platform-operations-tab__priority-line">
+                        <strong>Son temas:</strong> {item.priority.daysSinceTouchLabel}
+                      </div>
+                      <div className="platform-operations-tab__priority-line">
+                        <strong>Ne yapiyor:</strong> Bu kart Stratejik Partner operasyon kaydini takip eder.
+                      </div>
+                      <div className="platform-operations-tab__priority-line">
+                        <strong>Neden burada:</strong> {item.priority.reason}
+                      </div>
+                      <div className="platform-operations-tab__priority-line">
+                        <strong>Ne yapmali:</strong> {item.priority.nextAction}
+                      </div>
+                    </div>
+
+                    <label className="platform-operations-tab__label">
                       Destek Durumu
                       <select
                         aria-label="Destek Durumu"
@@ -456,7 +505,7 @@ export function PlatformOperationsTab({
                           const value = event.target.value;
                           setPlatformOpsStatuses((current) => ({ ...current, [item.partner.id]: value }));
                         }}
-                        style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}
+                        className="platform-operations-tab__select"
                       >
                         <option value="new">Yeni</option>
                         <option value="in_progress">Islemde</option>
@@ -464,43 +513,50 @@ export function PlatformOperationsTab({
                         <option value="resolved">Cozuldu</option>
                       </select>
                     </label>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                      <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+
+                    <div className="platform-operations-tab__grid-two">
+                      <label className="platform-operations-tab__label">
                         Operasyon Sahibi
                         <input
                           type="text"
                           aria-label="Operasyon Sahibi"
-                          value={platformOpsOwners[item.partner.id] !== undefined ? platformOpsOwners[item.partner.id] : (item.partner.support_owner_name || "")}
+                          value={
+                            platformOpsOwners[item.partner.id] !== undefined
+                              ? platformOpsOwners[item.partner.id]
+                              : item.partner.support_owner_name || ""
+                          }
                           onChange={(event) => {
                             const value = event.target.value;
                             setPlatformOpsOwners((current) => ({ ...current, [item.partner.id]: value }));
                           }}
-                          style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}
+                          className="platform-operations-tab__input"
                         />
-                        {!(platformOpsOwners[item.partner.id] !== undefined ? platformOpsOwners[item.partner.id] : (item.partner.support_owner_name || "")).trim() && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPlatformOpsOwners((current) => ({ ...current, [item.partner.id]: resolveSelfOwnerValue() }));
-                            setPlatformOpsTouchedAt((current) => ({ ...current, [item.partner.id]: new Date().toISOString().slice(0, 10) }));
-                          }}
-                          style={{ justifySelf: "start", padding: "6px 10px", borderRadius: 10, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
-                        >
-                          Beni Ata
-                        </button>
-                        )}
+                        {!(platformOpsOwners[item.partner.id] !== undefined ? platformOpsOwners[item.partner.id] : item.partner.support_owner_name || "").trim() ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPlatformOpsOwners((current) => ({ ...current, [item.partner.id]: resolveSelfOwnerValue() }));
+                              setPlatformOpsTouchedAt((current) => ({ ...current, [item.partner.id]: new Date().toISOString().slice(0, 10) }));
+                            }}
+                            className="platform-operations-tab__button platform-operations-tab__button--blue"
+                          >
+                            Beni Ata
+                          </button>
+                        ) : null}
                       </label>
-                      <div style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
-                        Son Temas
-                        <div style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", fontWeight: 600 }}>
+
+                      <div className="platform-operations-tab__grid-auto">
+                        <div className="platform-operations-tab__label">Son Temas</div>
+                        <div className="platform-operations-tab__priority-card">
                           {platformOpsTouchedAt[item.partner.id] || "—"}
                         </div>
                       </div>
                     </div>
-                    <details style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "#ffffff", padding: "8px 10px" }}>
-                      <summary style={{ cursor: "pointer", fontSize: 12, fontWeight: 800, color: "#334155" }}>Ek Bilgi ve Notlar</summary>
-                      <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                        <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+
+                    <details className="platform-operations-tab__details">
+                      <summary className="platform-operations-tab__details-summary">Ek Bilgi ve Notlar</summary>
+                      <div className="platform-operations-tab__grid-auto platform-operations-tab__grid-auto--spaced">
+                        <label className="platform-operations-tab__label">
                           Destek Notu
                           <textarea
                             value={platformOpsNotes[item.partner.id] || ""}
@@ -510,11 +566,12 @@ export function PlatformOperationsTab({
                             }}
                             placeholder="Bu Stratejik Partner icin son destek notunu girin"
                             rows={2}
-                            style={{ resize: "vertical", padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", fontFamily: "inherit" }}
+                            className="platform-operations-tab__textarea"
                           />
                         </label>
-                        {platformOpsStatuses[item.partner.id] === "resolved" && (
-                          <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+
+                        {platformOpsStatuses[item.partner.id] === "resolved" ? (
+                          <label className="platform-operations-tab__label">
                             Kapanis Nedeni
                             <textarea
                               aria-label="Kapanis Nedeni"
@@ -526,36 +583,36 @@ export function PlatformOperationsTab({
                               }}
                               placeholder="Destek kaydinin nasil cozuldugunu yazin"
                               rows={2}
-                              style={{ resize: "vertical", padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", fontFamily: "inherit" }}
+                              className="platform-operations-tab__textarea"
                             />
                           </label>
-                        )}
+                        ) : null}
                       </div>
                     </details>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <div style={{ color: "#64748b", fontSize: 12 }}>
-                        Bu bilgi Stratejik Partner destek gecmisi olarak saklanir.
-                      </div>
+
+                    <div className="platform-operations-tab__save-row">
+                      <div className="platform-operations-tab__helper">Bu bilgi Stratejik Partner destek gecmisi olarak saklanir.</div>
                       <button
                         type="button"
                         onClick={() => void handleSavePlatformOpsNote(item.partner.id)}
                         disabled={platformOpsSavingTenantId === item.partner.id}
-                        style={{ padding: "8px 12px", borderRadius: 12, border: "none", background: "#1d4ed8", color: "white", fontWeight: 700, cursor: "pointer", opacity: platformOpsSavingTenantId === item.partner.id ? 0.7 : 1 }}
+                        className="platform-operations-tab__button platform-operations-tab__button--primary"
                       >
                         {platformOpsSavingTenantId === item.partner.id ? "Kaydediliyor..." : "Destek Notunu Kaydet"}
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div key={`${queue.key}-empty-${index}`} style={{ borderRadius: 14, background: "#f8fafc", border: "1px dashed #cbd5e1", padding: "10px 12px", color: "#94a3b8", fontSize: 13 }}>
+                  <div key={`${queue.key}-empty-${index}`} className="platform-operations-tab__queue-item platform-operations-tab__queue-item--empty">
                     {focusModeEnabled && onlyCriticalVisible
                       ? "Bu kuyrukta kritik seviyede Stratejik Partner yok."
                       : "Bu kuyrukta aktif Stratejik Partner yok."}
                   </div>
-                )
+                ),
               )}
             </div>
-            <div style={{ borderRadius: 14, background: "#eff6ff", border: "1px solid #bfdbfe", padding: "10px 12px", color: "#1e3a8a", fontSize: 13 }}>
+
+            <div className="platform-operations-tab__queue-footer">
               Sonraki adim onerisi: {queue.nextStep}
             </div>
           </div>
@@ -641,15 +698,16 @@ function buildPlatformPriorityInfo(options: {
     severity = "normal";
   }
 
-  const nextAction = !hasOwner
-    ? "Once operasyon sahibi ata, sonra destek durumunu guncelle."
-    : status === "waiting_owner"
-      ? "Owner ile teyit al ve kaydi in_progress durumuna cek."
-      : status === "new"
-        ? "Ilk aksiyon notunu gir ve sureci baslat."
-        : status === "resolved"
-          ? "Kapanis nedenini kontrol et, eksikse tamamla."
-          : "Mevcut adimi notlayarak sureci tamamla.";
+  const nextAction =
+    !hasOwner
+      ? "Once operasyon sahibi ata, sonra destek durumunu guncelle."
+      : status === "waiting_owner"
+        ? "Owner ile teyit al ve kaydi in_progress durumuna cek."
+        : status === "new"
+          ? "Ilk aksiyon notunu gir ve sureci baslat."
+          : status === "resolved"
+            ? "Kapanis nedenini kontrol et, eksikse tamamla."
+            : "Mevcut adimi notlayarak sureci tamamla.";
 
   return {
     score: clampedScore,
@@ -665,13 +723,6 @@ function priorityLabel(severity: PlatformPriorityInfo["severity"]): string {
   if (severity === "high") return "Yuksek";
   if (severity === "normal") return "Normal";
   return "Dusuk";
-}
-
-function severityBorderColor(severity: PlatformPriorityInfo["severity"]): string {
-  if (severity === "critical") return "#fecaca";
-  if (severity === "high") return "#fed7aa";
-  if (severity === "normal") return "#bfdbfe";
-  return "#e2e8f0";
 }
 
 function parseDateToMs(value?: string): number | null {
@@ -694,4 +745,3 @@ function localizeQueueTitle(title: string, key: string): string {
   if (key.includes("triage")) return "Oncelikli Is Listesi";
   return title.replace(/owner/gi, "sorumlu").replace(/triage/gi, "oncelik");
 }
-

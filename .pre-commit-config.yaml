@@ -12,3 +12,11 @@ repos:
         exclude: ^(api/scripts/debug/fix_users_is_active\.py|api/legacy_models\.py)$
         additional_dependencies: []
         args: ["--ignore-missing-imports"]
+  - repo: local
+    hooks:
+      - id: wiki-lint
+        name: wiki-lint
+        entry: python tools/memory/lint_wiki.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]

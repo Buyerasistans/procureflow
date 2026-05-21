@@ -1,4 +1,5 @@
 import { BarChart3, Blocks, Building, Building2, Compass, FlaskConical, FolderKanban, Globe2, Handshake, KeyRound, LayoutPanelTop, LifeBuoy, Mail, Megaphone, Package, Settings2, Shield, Wrench } from "lucide-react";
+import "./adminPageMeta.css";
 
 export type AdminTabKey =
   | "panel_home"
@@ -97,17 +98,7 @@ function renderTabIcon(icon: string, active = false) {
 export function renderTabIconBadge(icon: string, active = false) {
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 28,
-        height: 28,
-        borderRadius: 999,
-        border: active ? "1px solid rgba(255,255,255,0.24)" : "1px solid #dbe3ee",
-        background: active ? "rgba(255,255,255,0.18)" : "#ffffff",
-        flexShrink: 0,
-      }}
+      className={`admin-tab-icon-badge ${active ? "admin-tab-icon-badge--active" : "admin-tab-icon-badge--inactive"}`}
     >
       {renderTabIcon(icon, active)}
     </span>

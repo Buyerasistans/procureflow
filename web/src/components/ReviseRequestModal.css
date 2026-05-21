@@ -1,0 +1,101 @@
+.revise-request-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.revise-request-modal__dialog {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.revise-request-modal__title {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.revise-request-modal__supplier {
+  margin-bottom: 16px;
+}
+
+.revise-request-modal__supplier-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.revise-request-modal__field {
+  margin-bottom: 16px;
+}
+
+.revise-request-modal__label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.revise-request-modal__textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  box-sizing: border-box;
+  min-height: 100px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.revise-request-modal__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.revise-request-modal__button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.revise-request-modal__button--cancel {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.revise-request-modal__button--submit {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.revise-request-modal__button--submit:disabled,
+.revise-request-modal__button--cancel:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+  .revise-request-modal__dialog {
+    width: calc(100% - 24px);
+    padding: 20px;
+  }
+
+  .revise-request-modal__actions {
+    flex-direction: column;
+  }
+
+  .revise-request-modal__button {
+    width: 100%;
+  }
+}

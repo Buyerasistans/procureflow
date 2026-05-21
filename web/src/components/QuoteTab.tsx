@@ -1,164 +1,10 @@
-// web/src/components/QuoteTab.tsx
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import { normalizeQuotes } from "../types/quote";
 import type { Quote } from "../types/quote";
 import { http } from "../lib/http";
 import SendQuoteModal from "./SendQuoteModal";
-
-const Container = styled.div`
-  padding: 20px;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-
-  h2 {
-    margin: 0;
-  }
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-
-  &:hover {
-    background-color: #2563eb;
-  }
-
-  &:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-  }
-`;
-
-const DangerButton = styled(Button)`
-  background-color: #ef4444;
-
-  &:hover {
-    background-color: #dc2626;
-  }
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-
-  th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  th {
-    background-color: #f3f4f6;
-    font-weight: 600;
-  }
-
-  tr:hover {
-    background-color: #f9fafb;
-  }
-`;
-
-const ActionButton = styled.button<{ variant?: "danger" | "success" | "info" }>`
-  padding: 6px 12px;
-  font-size: 12px;
-  background-color: ${(props) => {
-    if (props.variant === "danger") return "#ef4444";
-    if (props.variant === "info") return "#3b82f6";
-    return "#10b981";
-  }};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-    opacity: 0.8;
-  }
-`;
-
-const StatusBadge = styled.span<{ status: string }>`
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  background-color: ${(props) => {
-    switch (props.status) {
-      case "REWORK":
-        return "#fee2e2";
-      case "DRAFT":
-        return "#f3f4f6";
-      case "SUBMITTED":
-      case "SENT":
-        return "#fef3c7";
-      case "PENDING":
-        return "#dbeafe";
-      case "RESPONDED":
-        return "#d1fae5";
-      case "APPROVED":
-        return "#86efac";
-      case "REJECTED":
-        return "#fecaca";
-      default:
-        return "#f3f4f6";
-    }
-  }};
-  color: ${(props) => {
-    switch (props.status) {
-      case "REWORK":
-        return "#991b1b";
-      case "DRAFT":
-        return "#374151";
-      case "SUBMITTED":
-      case "SENT":
-        return "#92400e";
-      case "PENDING":
-        return "#1e40af";
-      case "RESPONDED":
-        return "#065f46";
-      case "APPROVED":
-        return "#166534";
-      case "REJECTED":
-        return "#991b1b";
-      default:
-        return "#374151";
-    }
-  }};
-`;
-
-const ErrorMessage = styled.div`
-  background-color: #fee2e2;
-  color: #991b1b;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-`;
-
-const SuccessMessage = styled.div`
-  background-color: #d1fae5;
-  color: #065f46;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-`;
+import "./QuoteTab.css";
 
 interface QuoteTabProps {
   projectId: number;
@@ -264,12 +110,12 @@ export function QuoteTab({ projectId, apiUrl, authToken, readOnly = false }: Quo
     loadQuotes();
   }, [loadQuotes]);
 
-  if (loading) return <Container>Yükleniyor...</Container>;
+  if (loading) return <div className="quote-tab__loading">Yükleniyor...</div>;
 
   return (
-    <Container>
-      {error && <ErrorMessage>❌ {error}</ErrorMessage>}
-      {success && <SuccessMessage>{success}</SuccessMessage>}
+    <div className="quote-tab">
+      {error && <div className="quote-tab__message quote-tab__message--error">❌ {error}</div>}
+      {success && <div className="quote-tab__message quote-tab__message--success">{success}</div>}
 
       {showSendForQuote && (
         <SendQuoteModal
@@ -285,21 +131,25 @@ export function QuoteTab({ projectId, apiUrl, authToken, readOnly = false }: Quo
         />
       )}
 
-      <Header>
-        <h2>Teklifler ({quotes.length})</h2>
+      <div className="quote-tab__header">
+        <h2 className="quote-tab__header-title">Teklifler ({quotes.length})</h2>
         {!readOnly && (
-          <Button onClick={() => navigate(`/quotes/create?projectId=${projectId}`)}>
+          <button
+            type="button"
+            className="quote-tab__button quote-tab__button--primary"
+            onClick={() => navigate(`/quotes/create?projectId=${projectId}`)}
+          >
             + Yeni Teklif
-          </Button>
+          </button>
         )}
-      </Header>
+      </div>
 
       {quotes.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
+        <div className="quote-tab__empty-state">
           <p>Henüz teklif oluşturulmamış</p>
         </div>
       ) : (
-        <Table>
+        <table className="quote-tab__table">
           <thead>
             <tr>
               <th>Başlık</th>
@@ -312,13 +162,11 @@ export function QuoteTab({ projectId, apiUrl, authToken, readOnly = false }: Quo
             {quotes.map((quote) => (
               <tr key={quote.id}>
                 <td>
-                  <div style={{ fontWeight: 600 }}>{quote.title}</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: "#6b7280" }}>
-                    RFQ #{quote.rfq_id ?? quote.id}
-                  </div>
+                  <div className="quote-tab__quote-title">{quote.title}</div>
+                  <div className="quote-tab__quote-meta">RFQ #{quote.rfq_id ?? quote.id}</div>
                 </td>
                 <td>
-                  <StatusBadge status={isReviewBackDraft(quote) ? "REWORK" : String(quote.status || "draft").toUpperCase()}>
+                  <span className="quote-tab__status-badge">
                     {(() => {
                       if (isReviewBackDraft(quote)) return "İade Edildi (Gözden Geçirme)";
                       const raw = String(quote.status || "").toLowerCase();
@@ -329,11 +177,9 @@ export function QuoteTab({ projectId, apiUrl, authToken, readOnly = false }: Quo
                       if (raw === "submitted" && approvalsCompleted) return "Onaylandı (Gönderime Hazır)";
                       return statusLabelTr(quote.status);
                     })()}
-                  </StatusBadge>
+                  </span>
                   {isReviewBackDraft(quote) && (
-                    <div style={{ marginTop: 6, fontSize: 12, color: "#991b1b" }}>
-                      {quote.transition_reason}
-                    </div>
+                    <div className="quote-tab__quote-warning">{quote.transition_reason}</div>
                   )}
                 </td>
                 <td>
@@ -349,45 +195,52 @@ export function QuoteTab({ projectId, apiUrl, authToken, readOnly = false }: Quo
                       && !approvalsCompleted
                       && !quote.sent_at;
                     return (
-                      <>
-                  <ActionButton variant="info" onClick={() => handleViewClick(quote.id)}>
-                    Görüntüle
-                  </ActionButton>
-                  {" "}
-                  {!readOnly && (
-                    <>
-                      <ActionButton
-                        variant="success"
-                        onClick={() => handleEditClick(quote.id)}
-                        disabled={!canEditQuote}
-                        title={canEditQuote ? "Teklifi düzenle" : "Onaylanan teklif düzenlenemez"}
-                      >
-                        Düzenle
-                      </ActionButton>
-                      {" "}
-                      <ActionButton
-                        variant="info"
-                        onClick={() => openSendModal(quote)}
-                        disabled={!canSendToSuppliers(quote.status)}
-                        title={canSendToSuppliers(quote.status) ? "Teklifi tedarikçilere gönder" : "Bu durumda teklif tekrar gönderilemez"}
-                      >
-                        Gönder
-                      </ActionButton>
-                      {" "}
-                      <DangerButton onClick={() => handleDeleteClick(quote.id)}>
-                        Sil
-                      </DangerButton>
-                    </>
-                  )}
-                      </>
+                      <div className="quote-tab__actions">
+                        <button
+                          type="button"
+                          className="quote-tab__button quote-tab__button--info"
+                          onClick={() => handleViewClick(quote.id)}
+                        >
+                          Görüntüle
+                        </button>
+                        {!readOnly && (
+                          <>
+                            <button
+                              type="button"
+                              className="quote-tab__button quote-tab__button--success"
+                              onClick={() => handleEditClick(quote.id)}
+                              disabled={!canEditQuote}
+                              title={canEditQuote ? "Teklifi düzenle" : "Onaylanan teklif düzenlenemez"}
+                            >
+                              Düzenle
+                            </button>
+                            <button
+                              type="button"
+                              className="quote-tab__button quote-tab__button--info"
+                              onClick={() => openSendModal(quote)}
+                              disabled={!canSendToSuppliers(quote.status)}
+                              title={canSendToSuppliers(quote.status) ? "Teklifi tedarikçilere gönder" : "Bu durumda teklif tekrar gönderilemez"}
+                            >
+                              Gönder
+                            </button>
+                            <button
+                              type="button"
+                              className="quote-tab__button quote-tab__button--danger"
+                              onClick={() => handleDeleteClick(quote.id)}
+                            >
+                              Sil
+                            </button>
+                          </>
+                        )}
+                      </div>
                     );
                   })()}
                 </td>
               </tr>
             ))}
           </tbody>
-        </Table>
+        </table>
       )}
-    </Container>
+    </div>
   );
 }

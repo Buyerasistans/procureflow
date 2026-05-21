@@ -1,8 +1,9 @@
-// FILE: web\src\components\PageLoader.tsx
+import "./PageLoader.css";
+
 export default function PageLoader({ text = "Yükleniyor..." }: { text?: string }) {
   return (
-    <div style={{ padding: 24, fontFamily: "Arial" }}>
-      <p>{text}</p>
+    <div className="page-loader">
+      <p className="page-loader__text">{text}</p>
     </div>
   );
 }

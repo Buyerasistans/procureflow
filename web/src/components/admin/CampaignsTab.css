@@ -1,0 +1,363 @@
+.campaigns-admin-tab {
+  display: grid;
+  gap: 18px;
+  padding: 24px 0;
+}
+
+.campaigns-admin-tab__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.campaigns-admin-tab__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.campaigns-admin-tab__description {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+
+.campaigns-admin-tab__error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.campaigns-admin-tab__section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.campaigns-admin-tab__section-title {
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.campaigns-admin-tab__layout {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 14px;
+}
+
+.campaigns-admin-tab__provider-list {
+  display: grid;
+  gap: 10px;
+  max-height: 560px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.campaigns-admin-tab__provider-card {
+  text-align: left;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fcfcfd;
+  cursor: pointer;
+}
+
+.campaigns-admin-tab__provider-card--selected {
+  border-color: #0f766e;
+  background: #f0fdfa;
+}
+
+.campaigns-admin-tab__provider-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.campaigns-admin-tab__provider-name {
+  font-weight: 700;
+}
+
+.campaigns-admin-tab__badge-row {
+  display: flex;
+  gap: 6px;
+}
+
+.campaigns-admin-tab__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.campaigns-admin-tab__badge--ready {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.campaigns-admin-tab__badge--pending {
+  background: #fff7ed;
+  color: #b45309;
+  border-color: #fed7aa;
+}
+
+.campaigns-admin-tab__provider-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.campaigns-admin-tab__provider-supports {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.campaigns-admin-tab__chip {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.campaigns-admin-tab__settings-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+}
+
+.campaigns-admin-tab__settings-empty {
+  color: #6b7280;
+}
+
+.campaigns-admin-tab__settings-content {
+  display: grid;
+  gap: 10px;
+}
+
+.campaigns-admin-tab__settings-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.campaigns-admin-tab__settings-name {
+  font-weight: 700;
+}
+
+.campaigns-admin-tab__settings-code {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.campaigns-admin-tab__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.campaigns-admin-tab__note {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.campaigns-admin-tab__credentials-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.campaigns-admin-tab__field {
+  display: grid;
+  gap: 6px;
+}
+
+.campaigns-admin-tab__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.campaigns-admin-tab__input,
+.campaigns-admin-tab__select,
+.campaigns-admin-tab__textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.campaigns-admin-tab__textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+.campaigns-admin-tab__button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.campaigns-admin-tab__button--primary {
+  background: #0f766e;
+  color: #fff;
+}
+
+.campaigns-admin-tab__button--secondary {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.campaigns-admin-tab__campaign-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+}
+
+.campaigns-admin-tab__campaign-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.campaigns-admin-tab__campaign-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.campaigns-admin-tab__campaign-meta {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.campaigns-admin-tab__campaign-description {
+  margin-top: 8px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.campaigns-admin-tab__campaign-status {
+  display: inline-flex;
+}
+
+.campaigns-admin-tab__campaign-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.campaigns-admin-tab__column-title {
+  font-weight: 700;
+  font-size: 12px;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.campaigns-admin-tab__mini-list {
+  display: grid;
+  gap: 8px;
+}
+
+.campaigns-admin-tab__mini-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  background: #fcfcfd;
+}
+
+.campaigns-admin-tab__empty {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.campaigns-admin-tab__grant-row {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.campaigns-admin-tab__spaced {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.campaigns-admin-tab__spaced--top {
+  align-items: flex-start;
+}
+
+.campaigns-admin-tab__button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.campaigns-admin-tab__button-row--between {
+  justify-content: space-between;
+}
+
+.campaigns-admin-tab__stack {
+  display: grid;
+  gap: 10px;
+}
+
+.campaigns-admin-tab__summary {
+  display: grid;
+  gap: 10px;
+}
+
+.campaigns-admin-tab__summary-title {
+  font-weight: 700;
+  margin: 0;
+}
+
+.campaigns-admin-tab__summary-text {
+  color: #6b7280;
+  font-size: 12px;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .campaigns-admin-tab__layout,
+  .campaigns-admin-tab__campaign-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaigns-admin-tab__credentials-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaigns-admin-tab__campaign-columns {
+    grid-template-columns: 1fr;
+  }
+}

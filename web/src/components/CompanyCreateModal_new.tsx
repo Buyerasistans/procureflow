@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createCompany } from "../services/admin.service";
-import { modalStyles } from "../styles/modalStyles";
+import "./CompanyCreateModal_new.css";
 
 interface CompanyCreateModalProps {
   isOpen: boolean;
@@ -27,8 +27,8 @@ export function CompanyCreateModal({
   const [shareOnWhatsapp, setShareOnWhatsapp] = useState(true);
   const [isActive, setIsActive] = useState(true);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setError("");
     setLoading(true);
 
@@ -78,178 +78,181 @@ export function CompanyCreateModal({
   if (!isOpen) return null;
 
   return (
-    <div style={modalStyles.backdrop}>
-      <div style={{ ...modalStyles.container, maxHeight: "90vh", overflowY: "auto" }}>
-        {/* Header */}
-        <div style={modalStyles.header}>
-          <h2 style={modalStyles.title}>🏢 Yeni Firma Oluştur</h2>
-          <button onClick={onClose} style={modalStyles.closeButton}>
+    <div className="company-create-modal__backdrop">
+      <div className="company-create-modal__container">
+        <div className="company-create-modal__header">
+          <h2 className="company-create-modal__title">🏢 Yeni Firma Oluştur</h2>
+          <button type="button" onClick={onClose} className="company-create-modal__close-button">
             ✕
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={modalStyles.content}>
-          {/* Error */}
-          {error && <div style={modalStyles.errorMessage}>{error}</div>}
+        <form onSubmit={handleSubmit} className="company-create-modal__form">
+          {error ? <div className="company-create-modal__error">{error}</div> : null}
 
-          {/* Firma Adı & Renk - 2 Column */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <div>
-              <label style={modalStyles.label}>Firma Adı *</label>
+          <div className="company-create-modal__two-column">
+            <label className="company-create-modal__field">
+              <span className="company-create-modal__label">Firma Adı *</span>
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(event) => setName(event.target.value)}
                 placeholder="örn: Pizza Max şti."
-                style={modalStyles.input}
+                className="company-create-modal__input"
+                aria-label="Firma Adı"
+                title="Firma Adı"
               />
-            </div>
-            <div>
-              <label style={modalStyles.label}>Renk</label>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            </label>
+
+            <label className="company-create-modal__field">
+              <span className="company-create-modal__label">Renk</span>
+              <div className="company-create-modal__color-row">
                 <input
                   type="color"
                   value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  style={{ width: 50, height: 40, cursor: "pointer", borderRadius: 4 }}
+                  onChange={(event) => setColor(event.target.value)}
+                  className="company-create-modal__color-input"
+                  aria-label="Renk seç"
+                  title="Renk seç"
                 />
                 <input
                   type="text"
                   value={color}
-                  onChange={(e) => setColor(e.target.value)}
+                  onChange={(event) => setColor(event.target.value)}
                   maxLength={7}
-                  style={modalStyles.input}
+                  className="company-create-modal__input"
+                  aria-label="Renk kodu"
+                  title="Renk kodu"
                 />
               </div>
-            </div>
+            </label>
           </div>
 
-          {/* Açıklama */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Açıklama</label>
+          <label className="company-create-modal__field company-create-modal__field--full">
+            <span className="company-create-modal__label">Açıklama</span>
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Firma hakkında bilgi..."
               rows={2}
-              style={modalStyles.textarea}
+              className="company-create-modal__textarea"
+              aria-label="Açıklama"
+              title="Açıklama"
             />
-          </div>
+          </label>
 
-          {/* Logo URL */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Firma Logo URL</label>
+          <label className="company-create-modal__field company-create-modal__field--full">
+            <span className="company-create-modal__label">Firma Logo URL</span>
             <input
               type="url"
               value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
+              onChange={(event) => setLogoUrl(event.target.value)}
               placeholder="https://ornek.com/logo.png"
-              style={modalStyles.input}
+              className="company-create-modal__input"
+              aria-label="Firma Logo URL"
+              title="Firma Logo URL"
             />
-          </div>
+          </label>
 
-          {/* Vergi Dairesi & Telefon - 2 Column */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <div>
-              <label style={modalStyles.label}>Vergi Dairesi</label>
+          <div className="company-create-modal__two-column">
+            <label className="company-create-modal__field">
+              <span className="company-create-modal__label">Vergi Dairesi</span>
               <input
                 type="text"
                 value={taxOffice}
-                onChange={(e) => setTaxOffice(e.target.value)}
+                onChange={(event) => setTaxOffice(event.target.value)}
                 placeholder="örn: İstanbul Vergi Dairesi"
-                style={modalStyles.input}
+                className="company-create-modal__input"
+                aria-label="Vergi Dairesi"
+                title="Vergi Dairesi"
               />
-            </div>
-            <div>
-              <label style={modalStyles.label}>Telefon</label>
+            </label>
+
+            <label className="company-create-modal__field">
+              <span className="company-create-modal__label">Telefon</span>
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(event) => setPhone(event.target.value)}
                 placeholder="örn: +90 212 xxx xxxx"
-                style={modalStyles.input}
+                className="company-create-modal__input"
+                aria-label="Telefon"
+                title="Telefon"
               />
-            </div>
+            </label>
           </div>
 
-          {/* Adres */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Adres</label>
+          <label className="company-create-modal__field company-create-modal__field--full">
+            <span className="company-create-modal__label">Adres</span>
             <textarea
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(event) => setAddress(event.target.value)}
               placeholder="Firma adresi..."
               rows={2}
-              style={modalStyles.textarea}
+              className="company-create-modal__textarea"
+              aria-label="Adres"
+              title="Adres"
             />
-          </div>
+          </label>
 
-          {/* İletişim Bilgileri */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>İletişim Bilgileri</label>
+          <label className="company-create-modal__field company-create-modal__field--full">
+            <span className="company-create-modal__label">İletişim Bilgileri</span>
             <textarea
               value={contactInfo}
-              onChange={(e) => setContactInfo(e.target.value)}
+              onChange={(event) => setContactInfo(event.target.value)}
               placeholder="Ek iletişim bilgileri, yetkili adları, web sitesi vb..."
               rows={2}
-              style={modalStyles.textarea}
+              className="company-create-modal__textarea"
+              aria-label="İletişim Bilgileri"
+              title="İletişim Bilgileri"
             />
-          </div>
+          </label>
 
-          {/* Checkboxes */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <label style={modalStyles.checkboxLabel}>
+          <div className="company-create-modal__checkbox-grid">
+            <label className="company-create-modal__checkbox">
               <input
                 type="checkbox"
                 checked={hideLocation}
-                onChange={(e) => setHideLocation(e.target.checked)}
-                style={modalStyles.checkbox}
+                onChange={(event) => setHideLocation(event.target.checked)}
+                className="company-create-modal__checkbox-input"
               />
               <span>Şirket konumunu gizle</span>
             </label>
-            <label style={modalStyles.checkboxLabel}>
+
+            <label className="company-create-modal__checkbox">
               <input
                 type="checkbox"
                 checked={shareOnWhatsapp}
-                onChange={(e) => setShareOnWhatsapp(e.target.checked)}
-                style={modalStyles.checkbox}
+                onChange={(event) => setShareOnWhatsapp(event.target.checked)}
+                className="company-create-modal__checkbox-input"
               />
               <span>WhatsApp'da paylaşılabilir</span>
             </label>
           </div>
 
-          {/* Aktif Checkbox */}
-          <div style={{ ...modalStyles.fullWidth, marginBottom: "16px" }}>
-            <label style={modalStyles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                style={modalStyles.checkbox}
-              />
-              <span>Firmayı aktif olarak oluştur</span>
-            </label>
-          </div>
+          <label className="company-create-modal__checkbox company-create-modal__checkbox--full">
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(event) => setIsActive(event.target.checked)}
+              className="company-create-modal__checkbox-input"
+            />
+            <span>Firmayı aktif olarak oluştur</span>
+          </label>
 
-          {/* Buttons */}
-          <div style={modalStyles.footer}>
+          <div className="company-create-modal__footer">
             <button
               type="submit"
               disabled={loading}
-              style={
+              className={
                 loading
-                  ? modalStyles.primaryButtonDisabled
-                  : modalStyles.primaryButton
+                  ? "company-create-modal__primary-button company-create-modal__primary-button--disabled"
+                  : "company-create-modal__primary-button"
               }
             >
               {loading ? "⏳ Kaydediliyor..." : "✅ Firma Oluştur"}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              style={modalStyles.secondaryButton}
-            >
+            <button type="button" onClick={onClose} className="company-create-modal__secondary-button">
               ❌ İptal
             </button>
           </div>

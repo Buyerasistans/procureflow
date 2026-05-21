@@ -15,7 +15,6 @@ import {
   type UserPermissionOverrideItem,
   type Tenant,
 } from "../services/admin.service";
-import { modalStyles } from "../styles/modalStyles";
 import { useAuth } from "../hooks/useAuth";
 import {
   canAssignPrivilegedBusinessRole,
@@ -29,6 +28,7 @@ import {
   type PermissionOverrideMap,
 } from "../auth/permissions";
 import { SUBSCRIPTION_ADDON_CTA_LABEL, SUBSCRIPTION_UPGRADE_CTA_LABEL, getSubscriptionAddonHref, getSubscriptionLimitGuidanceMessage, getSubscriptionUpgradeHref, hasSubscriptionUpgradeGuidance } from "../utils/subscriptionLimitErrors";
+import "./PersonnelCreateModal.css";
 
 
 import type { TenantUser } from "../services/admin.service";
@@ -657,454 +657,51 @@ export function PersonnelCreateModal({
   if (!isOpen) return null;
 
   return (
-    <div style={modalStyles.backdrop}>
-      <div style={{ ...modalStyles.container, maxWidth: 980, maxHeight: "92vh", overflowY: "auto", padding: 0, borderRadius: 24 }}>
-        <div style={{ ...modalStyles.header, padding: 24, borderBottom: "1px solid #e5e7eb", background: "linear-gradient(135deg, #fff7ed 0%, #eff6ff 100%)" }}>
+    <div className="personnel-create-modal__backdrop">
+      <div className="personnel-create-modal__container">
+        <div className="personnel-create-modal__header">
           <div>
-            <h2 style={{ ...modalStyles.title, marginBottom: 6 }}>{editData ? "Ekip Uyesini Duzenle" : "Yeni Ekip Uyesi Ekle"}</h2>
-            <div style={{ color: '#64748b', fontSize: 14 }}>Kimlik, iletişim ve firma atamalarını tek ekrandan yönetin.</div>
+            <h2 className="personnel-create-modal__title">{editData ? "Ekip Uyesini Duzenle" : "Yeni Ekip Uyesi Ekle"}</h2>
+            <div className="personnel-create-modal__subtitle">Kimlik, iletisim ve firma atamalarini tek ekrandan yonetin.</div>
           </div>
-          <button onClick={onClose} style={modalStyles.closeButton}>X</button>
+          <button type="button" onClick={onClose} className="personnel-create-modal__close-button" aria-label="Kapat">X</button>
         </div>
-        <form onSubmit={handleSubmit} style={{ padding: 24, display: 'grid', gap: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20, padding: 24, borderRadius: 24, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            <label htmlFor="personnel-photo" style={{ cursor: "pointer" }}>
-              {photoPreview ? (
-                <img src={photoPreview} alt="Vesikalık" style={{ width: 112, height: 112, borderRadius: "50%", objectFit: "cover", border: "4px solid #fff", boxShadow: '0 12px 24px rgba(37, 99, 235, 0.16)' }} />
-              ) : (
-                <div style={{ width: 112, height: 112, borderRadius: "50%", background: "linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: "#94a3b8", border: "2px dashed #cbd5e1" }}>
-                  +
-                </div>
-              )}
-              <input id="personnel-photo" type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
-            </label>
-            <div style={{ fontSize: 12, color: "#888", marginTop: 6 }}>Vesikalık fotoğraf yükle</div>
-            <div style={{ width: '100%', marginTop: 24, display: 'grid', gap: 12 }}>
-              <div style={{ padding: 14, borderRadius: 16, background: '#fff', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Harita</div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                  <input type="checkbox" checked={!hideLocation} onChange={(e) => setHideLocation(!e.target.checked)} />
-                  <span>Detay ekranında harita gösterilsin</span>
-                </label>
-              </div>
-              <div style={{ padding: 14, borderRadius: 16, background: '#fff', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>WhatsApp</div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                  <input type="checkbox" checked={shareOnWhatsApp} onChange={(e) => setShareOnWhatsApp(e.target.checked)} />
-                  <span>WhatsApp paylaşımı açık olsun</span>
-                </label>
-              </div>
-              {editData && (
-                <div style={{ padding: 14, borderRadius: 16, background: '#fff', border: '1px solid #e2e8f0' }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
-                    <span style={{ color: isActive ? '#10b981' : '#ef4444', fontWeight: 700 }}>{isActive ? 'Aktif' : 'Pasif'}</span>
-                  </label>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gap: 18 }}>
-          {editData && (
-            <div style={{ marginBottom: 0, display: "flex", alignItems: "center", gap: 8 }}>
-              <label style={modalStyles.label}>Durum:</label>
-              <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
-              <span style={{ color: isActive ? '#10b981' : '#ef4444', fontWeight: 600 }}>{isActive ? 'Aktif' : 'Pasif'}</span>
-            </div>
-          )}
-          {error ? (
-            <div style={{ ...modalStyles.errorMessage, display: "grid", gap: 10 }}>
-              <div>{error}</div>
-              {hasSubscriptionUpgradeGuidance(error) ? (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <a href={getSubscriptionUpgradeHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
-                    {SUBSCRIPTION_UPGRADE_CTA_LABEL}
-                  </a>
-                  <a href={getSubscriptionAddonHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
-                    {SUBSCRIPTION_ADDON_CTA_LABEL}
-                  </a>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-            <div>
-              <label style={modalStyles.label}>Ad Soyad *</label>
-              <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Ad Soyad" style={modalStyles.input} />
-            </div>
-            <div>
-              <label style={modalStyles.label}>Email *</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={modalStyles.input} />
-            </div>
-            <div>
-              <label style={modalStyles.label}>İş Maili</label>
-              <input type="email" value={workEmail} onChange={e => setWorkEmail(e.target.value)} placeholder="Kurumsal mail eşleştirmesi" style={modalStyles.input} />
-            </div>
-            {contextScope === "partner" ? (
-              <div>
-                <label style={modalStyles.label}>Stratejik Partner (Tenant) {requireTenantSelection && !editData ? "*" : ""}</label>
-                <select
-                  value={selectedTenantId ?? ""}
-                  onChange={(e) => setSelectedTenantId(e.target.value ? Number(e.target.value) : null)}
-                  disabled={Boolean(editData)}
-                  style={modalStyles.input}
-                >
-                  <option value="">Tenant Seçiniz...</option>
-                  {tenantOptions.map((tenant) => (
-                    <option key={tenant.id} value={tenant.id}>
-                      {tenant.brand_name || tenant.legal_name || `Tenant #${tenant.id}`}
-                    </option>
-                  ))}
-                </select>
-                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                  Rol listesi secilen tenant kataloguna gore otomatik filtrelenir.
-                </div>
-              </div>
-            ) : null}
-            <div>
-              <label style={modalStyles.label}>Operasyonel Rol *</label>
-              {isLockedAdminProfile ? (
-                <input
-                  type="text"
-                  value={getRoleLabel(role || editData?.role || "admin")}
-                  disabled
-                  style={{ ...modalStyles.input, background: '#f8fafc', color: '#334155', fontWeight: 700, cursor: 'not-allowed' }}
-                />
-              ) : (
-                <select value={role} onChange={e => setRole(e.target.value)} style={modalStyles.input}>
-                  <option value="">Rol Seçiniz...</option>
-                  {operationalRoleOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              )}
-              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                {isLockedAdminProfile
-                  ? 'Admin profillerinde operasyonel rol sabittir; bu ekrandan degistirilemez.'
-                  : 'Satın alma süreçlerindeki görev ve onay yetkisini belirler.'}
+        <form onSubmit={handleSubmit} className="personnel-create-modal__form">
+          <div className="personnel-create-modal__layout">
+            <div className="personnel-create-modal__profile-panel">
+              <label htmlFor="personnel-photo" className="personnel-create-modal__photo-label">
+                {photoPreview ? <img src={photoPreview} alt="Vesikalik" className="personnel-create-modal__photo-preview" /> : <div className="personnel-create-modal__photo-placeholder" aria-hidden="true">+</div>}
+                <input id="personnel-photo" type="file" accept="image/*" className="personnel-create-modal__file-input" onChange={handlePhotoChange} aria-label="Vesikalik fotograf y?kle" />
+              </label>
+              <div className="personnel-create-modal__photo-help">Vesikalik fotograf y?kle</div>
+              <div className="personnel-create-modal__side-options">
+                <div className="personnel-create-modal__side-card"><div className="personnel-create-modal__side-card-title">Harita</div><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={!hideLocation} onChange={(e) => setHideLocation(!e.target.checked)} /><span>Detay ekraninda harita gosterilsin</span></label></div>
+                <div className="personnel-create-modal__side-card"><div className="personnel-create-modal__side-card-title">WhatsApp</div><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={shareOnWhatsApp} onChange={(e) => setShareOnWhatsApp(e.target.checked)} /><span>WhatsApp paylasimi acik olsun</span></label></div>
+                {editData && <div className="personnel-create-modal__side-card"><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /><span className={isActive ? "personnel-create-modal__status-text personnel-create-modal__status-text--active" : "personnel-create-modal__status-text personnel-create-modal__status-text--passive"}>{isActive ? 'Aktif' : 'Pasif'}</span></label></div>}
               </div>
             </div>
-            {canAssignPrivilegedBusinessRole(authUser) && isPrivilegedBusinessRole(role) ? (
-              <div>
-                <label style={modalStyles.label}>Sistem Rolü</label>
-                <select value={systemRole} onChange={e => setSystemRole(e.target.value as typeof systemRole)} style={modalStyles.input}>
-                  {isSuperAdminBusinessRole(role) ? (
-                    <option value="super_admin">Süper Admin</option>
-                  ) : (
-                    ADMIN_SYSTEM_ROLE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))
-                  )}
-                </select>
-                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Platform erişim kapsamını belirler (yönetim paneli yetkisi).</div>
-              </div>
-            ) : null}
-            <div style={{ gridColumn: '1 / 3', padding: 20, borderRadius: 20, background: '#fff7ed', border: '1px solid #fed7aa' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div style={{ display: 'grid', gap: 6 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#9a3412' }}>Canli Yetki Onizlemesi</div>
-                  <div style={{ fontSize: 13, color: '#7c2d12' }}>Rol seciminize gore menulerin acik/kapali durumu anlik guncellenir.</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPermissionPreview((prev) => !prev)}
-                  style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid #fdba74', background: '#fff7ed', color: '#9a3412', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  {showPermissionPreview ? 'Onizlemeyi Gizle' : 'Onizlemeyi Ac'}
-                </button>
-              </div>
-              {showPermissionPreview ? (
-                <>
-                  {permissionOverridesLoading && editData ? (
-                    <div style={{ padding: 12, borderRadius: 12, border: '1px solid #fcd34d', background: '#fffbeb', color: '#92400e', marginTop: 12, marginBottom: 10 }}>
-                      Kayitli kisiye ozel izinler yukleniyor...
-                    </div>
-                  ) : null}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, marginTop: 12 }}>
-                    {menuAccessPreview.map((item) => (
-                      <div key={item.key} style={{
-                        border: `1px solid ${item.enabled ? '#86efac' : '#fecaca'}`,
-                        background: item.enabled ? '#f0fdf4' : '#fef2f2',
-                        borderRadius: 14,
-                        padding: 12,
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 13 }}>{item.label}</div>
-                          <button
-                            type="button"
-                            onClick={() => setPermissionOverrides((prev) => ({ ...prev, [item.key]: !item.enabled }))}
-                            style={{
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: 11,
-                              fontWeight: 800,
-                              color: item.enabled ? '#166534' : '#991b1b',
-                              background: item.enabled ? '#dcfce7' : '#fee2e2',
-                              borderRadius: 999,
-                              padding: '3px 9px',
-                            }}
-                          >
-                            {item.enabled ? 'Acik' : 'Kapali'}
-                          </button>
-                        </div>
-                        <div style={{ marginTop: 6, color: '#64748b', fontSize: 12 }}>{item.description}</div>
-                        {item.children && item.children.length > 0 ? (
-                          <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
-                            {item.children.map((child) => (
-                              <div key={child.key} style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: 8,
-                                borderRadius: 10,
-                                border: '1px solid #e2e8f0',
-                                background: '#ffffffcc',
-                                padding: '8px 10px',
-                              }}>
-                                <div>
-                                  <div style={{ fontWeight: 700, color: '#334155', fontSize: 12 }}>{child.label}</div>
-                                  <div style={{ color: '#64748b', fontSize: 11 }}>{child.description}</div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setPermissionOverrides((prev) => ({ ...prev, [child.key]: !child.enabled }))}
-                                  style={{
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontSize: 11,
-                                    fontWeight: 800,
-                                    color: child.enabled ? '#166534' : '#991b1b',
-                                    background: child.enabled ? '#dcfce7' : '#fee2e2',
-                                    borderRadius: 999,
-                                    padding: '3px 9px',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {child.enabled ? 'Acik' : 'Kapali'}
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-            </div>
-            <div style={{ gridColumn: '1 / 3', padding: 20, borderRadius: 20, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>Firma / Departman / Alt Açılım Atamaları</div>
-                  <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Birden fazla firma ekleyebilir, her firma için departman ve alt açılım seçebilirsiniz.</div>
-                </div>
-                <button type="button" onClick={() => openAssignmentModal()} style={{ padding: '10px 14px', borderRadius: 12, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Firmalar</button>
-              </div>
-              {pendingAssignments.length === 0 ? (
-                <div style={{ padding: 16, borderRadius: 16, background: '#fff', border: '1px dashed #cbd5e1', color: '#64748b' }}>Henüz firma ataması eklenmedi.</div>
-              ) : (
-                <div style={{ display: 'grid', gap: 12 }}>
-                  {pendingAssignments.map((assignment, index) => (
-                    <div key={`${assignment.company_id}-${assignment.department_id}-${index}`} style={{ padding: 16, borderRadius: 16, background: '#fff', border: '1px solid #e2e8f0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                        <div>
-                          <div style={{ fontWeight: 800, color: '#111827' }}>{assignment.company_name}</div>
-                          <div style={{ marginTop: 4, color: '#475569' }}>{assignment.department_name || 'Departman seçilmedi'}</div>
-                        </div>
-                        <div style={{ color: '#2563eb', fontWeight: 700 }}>{assignment.role_name}</div>
-                      </div>
-                      {assignment.sub_items.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                          {assignment.sub_items.map((item) => (
-                            <span key={item} style={{ padding: '6px 10px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontWeight: 700, fontSize: 12 }}>{item}</span>
-                          ))}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                        <button type="button" onClick={() => openAssignmentModal(assignment)} style={{ padding: '8px 10px', borderRadius: 10, border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontWeight: 700, cursor: 'pointer' }}>Düzenle</button>
-                        <button type="button" onClick={() => setPendingAssignments((prev) => prev.filter((item) => item !== assignment))} style={{ padding: '8px 10px', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#b91c1c', fontWeight: 700, cursor: 'pointer' }}>Kaldır</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div style={{ gridColumn: "1/3" }}>
-              <label style={modalStyles.label}>Adres</label>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <select value={selectedCity} onChange={e => { setSelectedCity(e.target.value); setSelectedDistrict(""); }} style={{ ...modalStyles.input, width: '40%' }}>
-                  <option value="">İl seçiniz</option>
-                  {cityOptions.map((city) => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
-                <select value={selectedDistrict} onChange={e => setSelectedDistrict(e.target.value)} style={{ ...modalStyles.input, width: '40%' }} disabled={!selectedCity}>
-                  <option value="">İlçe seçiniz</option>
-                  {districtOptions.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </div>
-              <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Detaylı adres" style={modalStyles.input} />
-              {(selectedCity && selectedDistrict && address) && (
-                <div style={{ marginTop: 6 }}>
-                  <button type="button" onClick={() => setShowMap((v: boolean) => !v)} style={{ padding: '4px 12px', borderRadius: 4, border: '1px solid #ddd', background: '#f3f4f6', cursor: 'pointer', marginBottom: 4 }}>
-                    {showMap ? 'Haritayı Gizle' : 'Haritada Göster'}
-                  </button>
-                  {showMap && (
-                    <iframe
-                      width="100%"
-                      height="220"
-                      style={{ border: 0, borderRadius: 8, marginTop: 4 }}
-                      loading="lazy"
-                      allowFullScreen
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(address + ', ' + selectedDistrict + ', ' + selectedCity + ', Türkiye')}&output=embed`}
-                    ></iframe>
-                  )}
-                </div>
-              )}
-            </div>
-            <div>
-              <label style={modalStyles.label}>Şahsi Telefon</label>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input type="text" value={personalPhone} onChange={e => setPersonalPhone(e.target.value)} placeholder="05xx..." style={modalStyles.input} />
-                <a
-                  href={personalPhone ? `https://wa.me/${personalPhone.replace(/\D/g, '')}` : undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="WhatsApp"
-                  style={{ background: "none", border: "none", cursor: personalPhone ? "pointer" : "not-allowed", color: personalPhone ? '#25D366' : '#bbb', fontSize: 18, textDecoration: 'none' }}
-                >🟢</a>
-                <a
-                  href={personalPhone ? `tel:${personalPhone.replace(/\s+/g, '')}` : undefined}
-                  title="Ara"
-                  style={{ background: "none", border: "none", cursor: personalPhone ? "pointer" : "not-allowed", color: personalPhone ? '#10b981' : '#bbb', fontSize: 18, textDecoration: 'none' }}
-                >📞</a>
-              </div>
-            </div>
-            <div>
-              <label style={modalStyles.label}>Firma Telefon</label>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input type="text" value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} placeholder="0xxx..." style={modalStyles.input} />
-                <input type="text" value={companyPhoneShort} onChange={e => setCompanyPhoneShort(e.target.value)} placeholder="Kısa Kod" style={{ ...modalStyles.input, width: 60 }} />
-                <a
-                  href={companyPhone ? `https://wa.me/${companyPhone.replace(/\D/g, '')}` : undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="WhatsApp"
-                  style={{ background: "none", border: "none", cursor: companyPhone ? "pointer" : "not-allowed", color: companyPhone ? '#25D366' : '#bbb', fontSize: 18, textDecoration: 'none' }}
-                >🟢</a>
-                <a
-                  href={companyPhone ? `tel:${companyPhone.replace(/\s+/g, '')}` : undefined}
-                  title="Ara"
-                  style={{ background: "none", border: "none", cursor: companyPhone ? "pointer" : "not-allowed", color: companyPhone ? '#10b981' : '#bbb', fontSize: 18, textDecoration: 'none' }}
-                >📞</a>
+            <div className="personnel-create-modal__content">
+              {editData && <div className="personnel-create-modal__status-row"><label htmlFor="personnel-active-status" className="personnel-create-modal__label">Durum:</label><input id="personnel-active-status" type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /><span className={isActive ? "personnel-create-modal__status-text personnel-create-modal__status-text--compact personnel-create-modal__status-text--active" : "personnel-create-modal__status-text personnel-create-modal__status-text--compact personnel-create-modal__status-text--passive"}>{isActive ? 'Aktif' : 'Pasif'}</span></div>}
+              {error ? <div className="personnel-create-modal__error"><div>{error}</div>{hasSubscriptionUpgradeGuidance(error) ? <div className="personnel-create-modal__error-actions"><a href={getSubscriptionUpgradeHref(error)} className="personnel-create-modal__error-link personnel-create-modal__error-link--upgrade">{SUBSCRIPTION_UPGRADE_CTA_LABEL}</a><a href={getSubscriptionAddonHref(error)} className="personnel-create-modal__error-link personnel-create-modal__error-link--addon">{SUBSCRIPTION_ADDON_CTA_LABEL}</a></div> : null}</div> : null}
+              <div className="personnel-create-modal__field-grid">
+                <div><label htmlFor="personnel-full-name" className="personnel-create-modal__label">Ad Soyad *</label><input id="personnel-full-name" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Ad Soyad" className="personnel-create-modal__input" /></div>
+                <div><label htmlFor="personnel-email" className="personnel-create-modal__label">Email *</label><input id="personnel-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="personnel-create-modal__input" /></div>
+                <div><label htmlFor="personnel-work-email" className="personnel-create-modal__label">Is Maili</label><input id="personnel-work-email" type="email" value={workEmail} onChange={e => setWorkEmail(e.target.value)} placeholder="Kurumsal mail eslestirmesi" className="personnel-create-modal__input" /></div>
+                {contextScope === "partner" ? <div><label htmlFor="personnel-tenant" className="personnel-create-modal__label">Stratejik Partner (Tenant) {requireTenantSelection && !editData ? "*" : ""}</label><select id="personnel-tenant" value={selectedTenantId ?? ""} onChange={(e) => setSelectedTenantId(e.target.value ? Number(e.target.value) : null)} disabled={Boolean(editData)} className="personnel-create-modal__input"><option value="">Tenant Seciniz...</option>{tenantOptions.map((tenant) => <option key={tenant.id} value={tenant.id}>{tenant.brand_name || tenant.legal_name || ('Tenant #' + tenant.id)}</option>)}</select><div className="personnel-create-modal__hint">Rol listesi secilen tenant kataloguna gore otomatik filtrelenir.</div></div> : null}
+                <div><label htmlFor="personnel-role" className="personnel-create-modal__label">Operasyonel Rol *</label>{isLockedAdminProfile ? <input id="personnel-role" type="text" value={getRoleLabel(role || editData?.role || "admin")} disabled className="personnel-create-modal__input personnel-create-modal__input--locked" /> : <select id="personnel-role" value={role} onChange={e => setRole(e.target.value)} className="personnel-create-modal__input"><option value="">Rol Seciniz...</option>{operationalRoleOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select>}<div className="personnel-create-modal__hint">{isLockedAdminProfile ? 'Admin profillerinde operasyonel rol sabittir; bu ekrandan degistirilemez.' : 'Satin alma sureclerindeki gorev ve onay yetkisini belirler.'}</div></div>
+                {canAssignPrivilegedBusinessRole(authUser) && isPrivilegedBusinessRole(role) ? <div><label htmlFor="personnel-system-role" className="personnel-create-modal__label">Sistem Rolu</label><select id="personnel-system-role" value={systemRole} onChange={e => setSystemRole(e.target.value as typeof systemRole)} className="personnel-create-modal__input">{isSuperAdminBusinessRole(role) ? <option value="super_admin">Super Admin</option> : ADMIN_SYSTEM_ROLE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select><div className="personnel-create-modal__hint">Platform erisim kapsamini belirler (yonetim paneli yetkisi).</div></div> : null}
+                <div className="personnel-create-modal__permission-panel"><div className="personnel-create-modal__panel-head"><div className="personnel-create-modal__panel-copy"><div className="personnel-create-modal__permission-title">Canli Yetki Onizlemesi</div><div className="personnel-create-modal__permission-description">Rol seciminize gore menulerin acik/kapali durumu anlik guncellenir.</div></div><button type="button" onClick={() => setShowPermissionPreview((prev) => !prev)} className="personnel-create-modal__permission-toggle">{showPermissionPreview ? 'Onizlemeyi Gizle' : 'Onizlemeyi Ac'}</button></div>{showPermissionPreview ? <>{permissionOverridesLoading && editData ? <div className="personnel-create-modal__permission-loading">Kayitli kisiye ozel izinler yukleniyor...</div> : null}<div className="personnel-create-modal__permission-grid">{menuAccessPreview.map((item) => <div key={item.key} className={item.enabled ? "personnel-create-modal__permission-card personnel-create-modal__permission-card--enabled" : "personnel-create-modal__permission-card personnel-create-modal__permission-card--disabled"}><div className="personnel-create-modal__permission-card-head"><div className="personnel-create-modal__permission-card-title">{item.label}</div><button type="button" onClick={() => setPermissionOverrides((prev) => ({ ...prev, [item.key]: !item.enabled }))} className={item.enabled ? "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--enabled" : "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--disabled"}>{item.enabled ? 'Acik' : 'Kapali'}</button></div><div className="personnel-create-modal__permission-card-description">{item.description}</div>{item.children && item.children.length > 0 ? <div className="personnel-create-modal__permission-children">{item.children.map((child) => <div key={child.key} className="personnel-create-modal__permission-child"><div><div className="personnel-create-modal__permission-child-title">{child.label}</div><div className="personnel-create-modal__permission-child-description">{child.description}</div></div><button type="button" onClick={() => setPermissionOverrides((prev) => ({ ...prev, [child.key]: !child.enabled }))} className={child.enabled ? "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--nowrap personnel-create-modal__permission-badge--enabled" : "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--nowrap personnel-create-modal__permission-badge--disabled"}>{child.enabled ? 'Acik' : 'Kapali'}</button></div>)}</div> : null}</div>)}</div></> : null}</div>
+                <div className="personnel-create-modal__assignment-panel"><div className="personnel-create-modal__assignment-head"><div><div className="personnel-create-modal__assignment-title">Firma / Departman / Alt Acilim Atamalari</div><div className="personnel-create-modal__assignment-description">Birden fazla firma ekleyebilir, her firma icin departman ve alt acilim secebilirsiniz.</div></div><button type="button" onClick={() => openAssignmentModal()} className="personnel-create-modal__primary-action">Firmalar</button></div>{pendingAssignments.length === 0 ? <div className="personnel-create-modal__empty-state">Henuz firma atamasi eklenmedi.</div> : <div className="personnel-create-modal__assignment-list">{pendingAssignments.map((assignment, index) => <div key={String(assignment.company_id) + '-' + String(assignment.department_id) + '-' + String(index)} className="personnel-create-modal__assignment-card"><div className="personnel-create-modal__assignment-card-head"><div><div className="personnel-create-modal__assignment-company">{assignment.company_name}</div><div className="personnel-create-modal__assignment-department">{assignment.department_name || 'Departman secilmedi'}</div></div><div className="personnel-create-modal__assignment-role">{assignment.role_name}</div></div>{assignment.sub_items.length > 0 && <div className="personnel-create-modal__chip-list">{assignment.sub_items.map((item) => <span key={item} className="personnel-create-modal__chip">{item}</span>)}</div>}<div className="personnel-create-modal__assignment-actions"><button type="button" onClick={() => openAssignmentModal(assignment)} className="personnel-create-modal__soft-button personnel-create-modal__soft-button--blue">Duzenle</button><button type="button" onClick={() => setPendingAssignments((prev) => prev.filter((item) => item !== assignment))} className="personnel-create-modal__soft-button personnel-create-modal__soft-button--red">Kaldir</button></div></div>)}</div>}</div>
+                <div className="personnel-create-modal__field personnel-create-modal__field--full"><label htmlFor="personnel-address" className="personnel-create-modal__label">Adres</label><div className="personnel-create-modal__address-row"><select value={selectedCity} onChange={e => { setSelectedCity(e.target.value); setSelectedDistrict(""); }} className="personnel-create-modal__input personnel-create-modal__input--address-select" aria-label="Il seciniz"><option value="">Il seciniz</option>{cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}</select><select value={selectedDistrict} onChange={e => setSelectedDistrict(e.target.value)} className="personnel-create-modal__input personnel-create-modal__input--address-select" disabled={!selectedCity} aria-label="Ilce seciniz"><option value="">Ilce seciniz</option>{districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}</select></div><input id="personnel-address" type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Detayli adres" className="personnel-create-modal__input" />{(selectedCity && selectedDistrict && address) && <div className="personnel-create-modal__map-panel"><button type="button" onClick={() => setShowMap((v: boolean) => !v)} className="personnel-create-modal__map-toggle">{showMap ? 'Haritayi Gizle' : 'Haritada Goster'}</button>{showMap && <iframe title="Personel adres haritasi" width="100%" height="220" className="personnel-create-modal__map-frame" loading="lazy" allowFullScreen src={'https://www.google.com/maps?q=' + encodeURIComponent(address + ', ' + selectedDistrict + ', ' + selectedCity + ', Turkiye') + '&output=embed'}></iframe>}</div>}</div>
+                <div><label htmlFor="personnel-personal-phone" className="personnel-create-modal__label">Sahsi Telefon</label><div className="personnel-create-modal__phone-row"><input id="personnel-personal-phone" type="text" value={personalPhone} onChange={e => setPersonalPhone(e.target.value)} placeholder="05xx..." className="personnel-create-modal__input" /><a href={personalPhone ? 'https://wa.me/' + personalPhone.replace(/\D/g, '') : undefined} target="_blank" rel="noopener noreferrer" title="WhatsApp" className={personalPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--whatsapp" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>WA</a><a href={personalPhone ? 'tel:' + personalPhone.replace(/\s+/g, '') : undefined} title="Ara" className={personalPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--call" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>Tel</a></div></div>
+                <div><label htmlFor="personnel-company-phone" className="personnel-create-modal__label">Firma Telefon</label><div className="personnel-create-modal__phone-row"><input id="personnel-company-phone" type="text" value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} placeholder="0xxx..." className="personnel-create-modal__input" /><input type="text" value={companyPhoneShort} onChange={e => setCompanyPhoneShort(e.target.value)} placeholder="Kisa Kod" className="personnel-create-modal__input personnel-create-modal__input--short-code" aria-label="Firma telefon kisa kodu" /><a href={companyPhone ? 'https://wa.me/' + companyPhone.replace(/\D/g, '') : undefined} target="_blank" rel="noopener noreferrer" title="WhatsApp" className={companyPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--whatsapp" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>WA</a><a href={companyPhone ? 'tel:' + companyPhone.replace(/\s+/g, '') : undefined} title="Ara" className={companyPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--call" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>Tel</a></div></div>
               </div>
             </div>
           </div>
-          </div>
-          </div>
-          <div style={{ ...modalStyles.footer, paddingTop: 8 }}>
-            <button type="submit" disabled={loading} style={loading ? modalStyles.primaryButtonDisabled : modalStyles.primaryButton}>
-              {loading ? "Kaydediliyor..." : editData ? "Ekip Uyesini Guncelle" : "Ekip Uyesi Olustur"}
-            </button>
-            <button type="button" onClick={onClose} style={modalStyles.secondaryButton}>İptal</button>
-          </div>
+          <div className="personnel-create-modal__footer"><button type="submit" disabled={loading} className={loading ? "personnel-create-modal__submit-button personnel-create-modal__submit-button--disabled" : "personnel-create-modal__submit-button"}>{loading ? "Kaydediliyor..." : editData ? "Ekip Uyesini Guncelle" : "Ekip Uyesi Olustur"}</button><button type="button" onClick={onClose} className="personnel-create-modal__secondary-button">Iptal</button></div>
         </form>
-
-        {showAssignmentModal && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200 }}>
-            <div style={{ width: 'min(560px, calc(100vw - 32px))', borderRadius: 24, background: '#fff', padding: 24, boxShadow: '0 24px 80px rgba(15,23,42,0.28)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', color: '#0f766e' }}>Atama Penceresi</div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: '#111827', marginTop: 6 }}>Firma seçimi</div>
-                </div>
-                <button type="button" onClick={() => setShowAssignmentModal(false)} style={{ border: 'none', background: '#f1f5f9', width: 38, height: 38, borderRadius: 999, cursor: 'pointer' }}>×</button>
-              </div>
-
-              <div style={{ display: 'grid', gap: 14 }}>
-                <div>
-                  <label style={modalStyles.label}>Firma</label>
-                  <select value={assignmentDraft.company_id ?? ''} onChange={(e) => setAssignmentDraft({ company_id: Number(e.target.value) || null, department_id: null, role_id: assignmentDraft.role_id, sub_items: [] })} style={modalStyles.input}>
-                    <option value="">Firma seçin</option>
-                    {companies.filter((company) => company.is_active).map((company) => (
-                      <option key={company.id} value={company.id}>{company.name}{company.is_platform_primary ? ' • Platform Ana Firmasi' : ''}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={modalStyles.label}>Firma Atamasındaki Rol</label>
-                  <input value={resolvedAssignmentRole?.name || (ROLE_LABELS[role] || 'Önce ana rolü seçin')} readOnly style={{ ...modalStyles.input, background: '#f8fafc', color: '#475569' }} />
-                </div>
-                <div>
-                  <label style={modalStyles.label}>Departman</label>
-                  <select
-                    value={assignmentCoversAllDepartments({ department_id: assignmentDraft.department_id, sub_items: assignmentDraft.sub_items }) ? ALL_DEPARTMENTS_OPTION : (assignmentDraft.department_id ?? '')}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === ALL_DEPARTMENTS_OPTION) {
-                        setAssignmentDraft((prev) => ({ ...prev, department_id: null, sub_items: [ALL_DEPARTMENTS_MARKER] }));
-                        return;
-                      }
-                      setAssignmentDraft((prev) => ({ ...prev, department_id: Number(value) || null, sub_items: [] }));
-                    }}
-                    style={modalStyles.input}
-                  >
-                    <option value="">Departman seçin</option>
-                    <option value={ALL_DEPARTMENTS_OPTION}>Tum Departmanlar</option>
-                    {getCompanyDepartments(assignmentDraft.company_id).filter((department) => department.is_active).map((department) => (
-                      <option key={department.id} value={department.id}>{department.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {assignmentDraft.department_id && (
-                  <div>
-                    <label style={modalStyles.label}>Alt Açılımlar</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: 14, borderRadius: 14, border: '1px solid #dbeafe', background: '#f8fbff' }}>
-                      {(departments.find((department) => department.id === assignmentDraft.department_id)?.sub_items || []).map((subItem) => {
-                        const selected = assignmentDraft.sub_items.includes(subItem.name);
-                        return (
-                          <button
-                            key={subItem.id}
-                            type="button"
-                            onClick={() => setAssignmentDraft((prev) => ({
-                              ...prev,
-                              sub_items: selected ? prev.sub_items.filter((item) => item !== subItem.name) : [...prev.sub_items, subItem.name],
-                            }))}
-                            style={{
-                              padding: '8px 10px',
-                              borderRadius: 999,
-                              border: selected ? '1px solid #2563eb' : '1px solid #cbd5e1',
-                              background: selected ? '#dbeafe' : '#fff',
-                              color: selected ? '#1d4ed8' : '#334155',
-                              cursor: 'pointer',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {subItem.name}
-                          </button>
-                        );
-                      })}
-                      {(departments.find((department) => department.id === assignmentDraft.department_id)?.sub_items || []).length === 0 && (
-                        <div style={{ color: '#64748b' }}>Bu departman için kayıtlı alt açılım bulunamadı.</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
-                <button type="button" onClick={() => setShowAssignmentModal(false)} style={modalStyles.secondaryButton}>Vazgeç</button>
-                <button type="button" onClick={saveAssignmentDraft} style={modalStyles.primaryButton}>Atamayı Kaydet</button>
-              </div>
-            </div>
-          </div>
-        )}
+        {showAssignmentModal && <div className="personnel-create-modal__assignment-backdrop"><div className="personnel-create-modal__assignment-dialog"><div className="personnel-create-modal__assignment-dialog-head"><div><div className="personnel-create-modal__dialog-eyebrow">Atama Penceresi</div><div className="personnel-create-modal__dialog-title">Firma secimi</div></div><button type="button" onClick={() => setShowAssignmentModal(false)} className="personnel-create-modal__dialog-close" aria-label="Atama penceresini kapat">x</button></div><div className="personnel-create-modal__dialog-fields"><div><label htmlFor="personnel-assignment-company" className="personnel-create-modal__label">Firma</label><select id="personnel-assignment-company" value={assignmentDraft.company_id ?? ''} onChange={(e) => setAssignmentDraft({ company_id: Number(e.target.value) || null, department_id: null, role_id: assignmentDraft.role_id, sub_items: [] })} className="personnel-create-modal__input"><option value="">Firma secin</option>{companies.filter((company) => company.is_active).map((company) => <option key={company.id} value={company.id}>{company.name}{company.is_platform_primary ? ' - Platform Ana Firmasi' : ''}</option>)}</select></div><div><label htmlFor="personnel-assignment-role" className="personnel-create-modal__label">Firma Atamasindaki Rol</label><input id="personnel-assignment-role" value={resolvedAssignmentRole?.name || (ROLE_LABELS[role] || 'Once ana rolu secin')} readOnly className="personnel-create-modal__input personnel-create-modal__input--readonly" /></div><div><label htmlFor="personnel-assignment-department" className="personnel-create-modal__label">Departman</label><select id="personnel-assignment-department" value={assignmentCoversAllDepartments({ department_id: assignmentDraft.department_id, sub_items: assignmentDraft.sub_items }) ? ALL_DEPARTMENTS_OPTION : (assignmentDraft.department_id ?? '')} onChange={(e) => { const value = e.target.value; if (value === ALL_DEPARTMENTS_OPTION) { setAssignmentDraft((prev) => ({ ...prev, department_id: null, sub_items: [ALL_DEPARTMENTS_MARKER] })); return; } setAssignmentDraft((prev) => ({ ...prev, department_id: Number(value) || null, sub_items: [] })); }} className="personnel-create-modal__input"><option value="">Departman secin</option><option value={ALL_DEPARTMENTS_OPTION}>Tum Departmanlar</option>{getCompanyDepartments(assignmentDraft.company_id).filter((department) => department.is_active).map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}</select></div>{assignmentDraft.department_id && <div><div className="personnel-create-modal__label">Alt Acilimlar</div><div className="personnel-create-modal__sub-item-list">{(departments.find((department) => department.id === assignmentDraft.department_id)?.sub_items || []).map((subItem) => { const selected = assignmentDraft.sub_items.includes(subItem.name); return <button key={subItem.id} type="button" onClick={() => setAssignmentDraft((prev) => ({ ...prev, sub_items: selected ? prev.sub_items.filter((item) => item !== subItem.name) : [...prev.sub_items, subItem.name] }))} className={selected ? "personnel-create-modal__sub-item-button personnel-create-modal__sub-item-button--selected" : "personnel-create-modal__sub-item-button"}>{subItem.name}</button>; })}{(departments.find((department) => department.id === assignmentDraft.department_id)?.sub_items || []).length === 0 && <div className="personnel-create-modal__empty-sub-items">Bu departman icin kayitli alt acilim bulunamadi.</div>}</div></div>}</div><div className="personnel-create-modal__dialog-footer"><button type="button" onClick={() => setShowAssignmentModal(false)} className="personnel-create-modal__secondary-button">Vazgec</button><button type="button" onClick={saveAssignmentDraft} className="personnel-create-modal__submit-button">Atamayi Kaydet</button></div></div></div>}
       </div>
     </div>
   );
 }
-

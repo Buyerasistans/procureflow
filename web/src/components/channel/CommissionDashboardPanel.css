@@ -1,0 +1,144 @@
+.commission-dashboard-panel__refresh-button {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  cursor: pointer;
+}
+
+.commission-dashboard-panel__refresh-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.commission-dashboard-panel__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.commission-dashboard-panel__amount {
+  font-size: 18px;
+}
+
+.commission-dashboard-panel__amount--pending {
+  color: #d97706;
+}
+
+.commission-dashboard-panel__amount--approved {
+  color: #16a34a;
+}
+
+.commission-dashboard-panel__amount--paid {
+  color: #2563eb;
+}
+
+.commission-dashboard-panel__amount--cancelled {
+  color: #dc2626;
+}
+
+.commission-dashboard-panel__section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #14532d;
+  margin-bottom: 8px;
+}
+
+.commission-dashboard-panel__section-title--referral {
+  font-weight: 700;
+}
+
+.commission-dashboard-panel__table-wrap {
+  overflow-x: auto;
+}
+
+.commission-dashboard-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.commission-dashboard-panel__table-head-row--org {
+  background: #dcfce7;
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.commission-dashboard-panel__table-head-row--referral {
+  background: #f0fdf4;
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.commission-dashboard-panel__th {
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.commission-dashboard-panel__th--right {
+  text-align: right;
+}
+
+.commission-dashboard-panel__row {
+  border-bottom: 1px solid #f0fdf4;
+}
+
+.commission-dashboard-panel__row--referral {
+  border-bottom: 1px solid #ecfeff;
+}
+
+.commission-dashboard-panel__cell {
+  padding: 6px 8px;
+}
+
+.commission-dashboard-panel__cell--bold {
+  font-weight: 600;
+}
+
+.commission-dashboard-panel__cell--pending {
+  text-align: right;
+  color: #d97706;
+}
+
+.commission-dashboard-panel__cell--approved {
+  text-align: right;
+  color: #16a34a;
+}
+
+.commission-dashboard-panel__cell--paid {
+  text-align: right;
+  color: #2563eb;
+}
+
+.commission-dashboard-panel__cell--cancelled {
+  text-align: right;
+  color: #dc2626;
+}
+
+.commission-dashboard-panel__empty {
+  color: #94a3b8;
+  font-size: 13px;
+  margin: 0;
+}
+
+.commission-dashboard-panel__referral-section {
+  margin-top: 16px;
+}
+
+.commission-dashboard-panel__referral-headline {
+  font-size: 12px;
+  font-weight: 700;
+  color: #14532d;
+  margin-bottom: 8px;
+}
+
+.commission-dashboard-panel__referral-cell--link {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.commission-dashboard-panel__referral-cell--commission {
+  text-align: right;
+  color: #166534;
+  font-weight: 700;
+}

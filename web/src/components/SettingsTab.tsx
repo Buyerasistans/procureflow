@@ -421,6 +421,9 @@ export const SettingsTab: React.FC = () => {
                     value={priceRules.max_markup_percent}
                     onChange={(e) => setPriceRules({ ...priceRules, max_markup_percent: parseFloat(e.target.value) || 0 })}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label="Maksimum artış yüzdesi"
+                    title="Maksimum artış yüzdesi"
+                    placeholder="Örn: 25"
                   />
                   <p className="text-xs text-gray-500 mt-1">Baz fiyatın en fazla bu kadar üzerinde teklif verilebilir.</p>
                 </div>
@@ -434,6 +437,9 @@ export const SettingsTab: React.FC = () => {
                     value={priceRules.max_discount_percent}
                     onChange={(e) => setPriceRules({ ...priceRules, max_discount_percent: parseFloat(e.target.value) || 0 })}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label="Maksimum indirim yüzdesi"
+                    title="Maksimum indirim yüzdesi"
+                    placeholder="Örn: 10"
                   />
                   <p className="text-xs text-gray-500 mt-1">Baz fiyatın en fazla bu kadar altında teklif verilebilir.</p>
                 </div>
@@ -446,6 +452,9 @@ export const SettingsTab: React.FC = () => {
                     value={priceRules.tolerance_amount}
                     onChange={(e) => setPriceRules({ ...priceRules, tolerance_amount: parseFloat(e.target.value) || 0 })}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label="Tolerans tutarı"
+                    title="Tolerans tutarı"
+                    placeholder="Örn: 1000"
                   />
                   <p className="text-xs text-gray-500 mt-1">Yüzde sınırına ek olarak sabit para birimi toleransı.</p>
                 </div>

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { AdminTabKey } from "./adminPageMeta";
+import "./PlatformOverviewSummarySection.css";
 
 const PLATFORM_OVERVIEW_BANNER_TIMESTAMP = Date.parse("2026-05-05T00:00:00Z");
 
@@ -42,6 +43,28 @@ type PlatformOverviewSummarySectionProps = {
   };
 };
 
+type SummaryCard = {
+  label: string;
+  value: number | string;
+  note: string;
+  color: string;
+  large?: boolean;
+};
+
+function renderSummaryCards(cards: SummaryCard[]) {
+  return cards.map((card) => (
+    <div key={card.label} className="platform-overview-summary-section__card">
+      <div className="platform-overview-summary-section__label">{card.label}</div>
+      <div
+        className={`platform-overview-summary-section__value${card.large ? " platform-overview-summary-section__value--large" : ""} platform-overview-summary-section__value--${card.color}`}
+      >
+        {card.value}
+      </div>
+      <div className="platform-overview-summary-section__note">{card.note}</div>
+    </div>
+  ));
+}
+
 export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySectionProps) {
   const {
     searchParams,
@@ -61,7 +84,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
   } = props;
 
   return (
-    <>
+    <section className="platform-overview-summary-section">
       {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
         eyebrow: "Yonetici Odagi",
         title: searchParams.get("tenantFocusName")
@@ -87,52 +110,34 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
         testId: "admin-focus-banner-platform-overview",
       }) : null}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-        {[
-          { label: "Aktif Stratejik Partner / Firma", value: tenants.filter((item) => item.is_active).length || totalActiveCompanies, note: `${tenants.filter((item) => !item.is_active).length || totalPassiveCompanies} pasif kayit`, color: "#2563eb" },
+      <div className="platform-overview-summary-section__grid">
+        {renderSummaryCards([
+          { label: "Aktif Stratejik Partner / Firma", value: tenants.filter((item) => item.is_active).length || totalActiveCompanies, note: `${tenants.filter((item) => !item.is_active).length || totalPassiveCompanies} pasif kayit`, color: "#2563eb", large: true },
           { label: "Aktif Kullanici", value: totalActivePersonnel, note: `${totalPassivePersonnel} pasif kayit`, color: "#059669" },
           { label: "Aktif Departman", value: totalActiveDepartments, note: `${departments.length} toplam departman`, color: "#b45309" },
           { label: "Aktif Rol", value: totalActiveRoles, note: `${roles.length} toplam rol`, color: "#7c3aed" },
-        ].map((card) => (
-          <div key={card.label} style={{ borderRadius: 20, background: "white", border: "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#64748b" }}>{card.label}</div>
-            <div style={{ marginTop: 10, fontSize: 34, fontWeight: 900, color: card.color }}>{card.value}</div>
-            <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{card.note}</div>
-          </div>
-        ))}
+        ])}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-        {[
+      <div className="platform-overview-summary-section__grid">
+        {renderSummaryCards([
           { label: "Onboarding Kuyrugu", value: platformOpsSummary.onboardingQueue.length, note: "Aktif olmayan onboarding durumundaki tenant", color: "#b45309" },
           { label: "Owner Aksiyonu", value: platformOpsSummary.ownerAttention.length, note: "Owner atamasi veya owner e-postasi eksik", color: "#dc2626" },
           { label: "Branding Eksigi", value: platformOpsSummary.brandingAttention.length, note: "Logo veya gorunen ad eksigi olan tenant", color: "#7c3aed" },
           { label: "Pasif Stratejik Partner", value: platformOpsSummary.pausedTenants.length, note: "Duraklatilmis veya pasif Stratejik Partner", color: "#475569" },
-        ].map((card) => (
-          <div key={card.label} style={{ borderRadius: 20, background: "white", border: "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#64748b" }}>{card.label}</div>
-            <div style={{ marginTop: 10, fontSize: 28, fontWeight: 900, color: card.color }}>{card.value}</div>
-            <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{card.note}</div>
-          </div>
-        ))}
+        ])}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-        {[
+      <div className="platform-overview-summary-section__grid">
+        {renderSummaryCards([
           { label: "Acik Destek Kaydi", value: platformOpsOverviewSummary.activeWork, note: "Yeni, islemde veya owner bekleyen support kayitlari", color: "#1d4ed8" },
           { label: "Owner Bekleyen Destek", value: platformOpsOverviewSummary.ownerWaiting, note: "Platform ekibinin owner geri donusu bekledigi kayitlar", color: "#7c3aed" },
           { label: "Kapanisi Tamamlanan", value: platformOpsOverviewSummary.resolvedWithReason, note: "Cozuldu durumuna alinip kapanis nedeni girilen kayitlar", color: "#15803d" },
           { label: "Temasi Geciken Kayit", value: platformOpsOverviewSummary.staleContact, note: "Uc gun ve uzeri temas edilmeyen aktif destek kayitlari", color: "#b45309" },
           { label: "Ownersiz Destek Kaydi", value: platformOpsOverviewSummary.unassignedOwner, note: "Aktif kayitlarda operasyon sahibi atanmamis Stratejik Partner sayisi", color: "#dc2626" },
           { label: "En Yogun Destek Owner", value: platformOpsOverviewSummary.busiestOwnerName, note: `${platformOpsOverviewSummary.busiestOwnerLoad} aktif kayit`, color: "#0f766e" },
-        ].map((card) => (
-          <div key={card.label} style={{ borderRadius: 20, background: "white", border: "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#64748b" }}>{card.label}</div>
-            <div style={{ marginTop: 10, fontSize: 28, fontWeight: 900, color: card.color }}>{card.value}</div>
-            <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{card.note}</div>
-          </div>
-        ))}
+        ])}
       </div>
-    </>
+    </section>
   );
 }

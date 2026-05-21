@@ -1,0 +1,5 @@
+.discovery-lab-operations-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

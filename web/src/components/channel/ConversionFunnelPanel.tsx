@@ -1,49 +1,55 @@
 import React from "react";
 import type { ChannelConversionMetrics } from "../../services/profile.service";
+import { SectionCard } from "./ChannelPrimitives";
+import "./ConversionFunnelPanel.css";
 
 interface ConversionFunnelPanelProps {
   data: ChannelConversionMetrics | null;
 }
 
-function rateBox(label: string, value: number, color: string) {
+function rateBox(label: string, value: number, valueClass: string) {
   return (
-    <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: 10, backgroundColor: "#fff" }}>
-      <div style={{ fontSize: 11, color: "#64748b" }}>{label}</div>
-      <div style={{ fontSize: 16, fontWeight: 700, color }}>{value.toLocaleString("tr-TR")}%</div>
+    <div className="conversion-funnel-panel__rate-card">
+      <div className="conversion-funnel-panel__rate-label">{label}</div>
+      <div className={`conversion-funnel-panel__rate-value ${valueClass}`}>
+        {value.toLocaleString("tr-TR")}%
+      </div>
     </div>
   );
 }
 
 export function ConversionFunnelPanel({ data }: ConversionFunnelPanelProps) {
   if (!data) {
-    return <p style={{ margin: 0, color: "#9ca3af", fontSize: 13 }}>Funnel verisi bulunmuyor.</p>;
+    return <p className="conversion-funnel-panel__empty">Funnel verisi bulunmuyor.</p>;
   }
 
   const trend = data.daily_trend?.slice(-7) ?? [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-        {rateBox("Tiklama > Kayit", data.funnel_ratio_click_to_signup ?? 0, "#1d4ed8")}
-        {rateBox("Kayit > Aktivasyon", data.funnel_ratio_signup_to_activation ?? 0, "#047857")}
-        {rateBox("Aktivasyon > Partner", data.funnel_ratio_activation_to_partner ?? 0, "#7c3aed")}
-      </div>
+    <SectionCard>
+      <div className="conversion-funnel-panel">
+        <div className="conversion-funnel-panel__grid">
+          {rateBox("Tiklama > Kayit", data.funnel_ratio_click_to_signup ?? 0, "conversion-funnel-panel__rate-value--clicks")}
+          {rateBox("Kayit > Aktivasyon", data.funnel_ratio_signup_to_activation ?? 0, "conversion-funnel-panel__rate-value--signup")}
+          {rateBox("Aktivasyon > Partner", data.funnel_ratio_activation_to_partner ?? 0, "conversion-funnel-panel__rate-value--partner")}
+        </div>
 
-      <div style={{ border: "1px dashed #bfdbfe", borderRadius: 8, padding: 10, backgroundColor: "#f8fbff" }}>
-        <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>Son 7 Gun Trend</div>
-        {trend.length === 0 ? (
-          <div style={{ fontSize: 12, color: "#94a3b8" }}>Trend verisi yok.</div>
-        ) : (
-          <div style={{ display: "grid", gap: 4 }}>
-            {trend.map((d) => (
-              <div key={d.day} style={{ fontSize: 12, color: "#334155" }}>
-                {d.day}: {d.clicks} tiklama / {d.signups} kayit / {d.activations} aktivasyon
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="conversion-funnel-panel__trend-shell">
+          <div className="conversion-funnel-panel__trend-title">Son 7 Gun Trend</div>
+          {trend.length === 0 ? (
+            <div className="conversion-funnel-panel__trend-empty">Trend verisi yok.</div>
+          ) : (
+            <div className="conversion-funnel-panel__trend-list">
+              {trend.map((day) => (
+                <div key={day.day} className="conversion-funnel-panel__trend-item">
+                  {day.day}: {day.clicks} tiklama / {day.signups} kayit / {day.activations} aktivasyon
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }
 

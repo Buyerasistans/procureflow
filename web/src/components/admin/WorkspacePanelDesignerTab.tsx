@@ -13,6 +13,7 @@ import {
 } from "../../admin/workspace-panels";
 import type { AuthUser } from "../../context/auth-types";
 import type { TenantUser, WorkspacePanelConfig, WorkspacePanelProfile } from "../../services/admin.service";
+import "./WorkspacePanelDesignerTab.css";
 
 type Props = {
   config: WorkspacePanelConfig;
@@ -49,17 +50,37 @@ function emptyProfile(): WorkspacePanelProfile {
   };
 }
 
-export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, personnel = [], mode = "full", lockedProfile = null, saving, onSave }: Props) {
-  const [draft, setDraft] = useState<WorkspacePanelConfig>(() => buildInitialDraft(config, mode, currentUser, lockedProfile));
-  const [selectedIndex, setSelectedIndex] = useState(0);
+export function WorkspacePanelDesignerTab(props: Props) {
+  const { config, currentUser, mode = "full", lockedProfile = null } = props;
+  const initialDraft = buildInitialDraft(config, mode, currentUser, lockedProfile);
+  const initialSelectedIndex = getInitialSelectedProfileIndex(initialDraft, mode, currentUser, lockedProfile);
+  const resetKey = buildDesignerResetKey(config, mode, currentUser, lockedProfile);
+
+  return (
+    <WorkspacePanelDesignerTabBody
+      key={resetKey}
+      {...props}
+      initialDraft={initialDraft}
+      initialSelectedIndex={initialSelectedIndex}
+    />
+  );
+}
+
+type WorkspacePanelDesignerTabBodyProps = Props & {
+  initialDraft: WorkspacePanelConfig;
+  initialSelectedIndex: number;
+};
+
+function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, personnel = [], mode = "full", saving, onSave, initialDraft, initialSelectedIndex }: WorkspacePanelDesignerTabBodyProps) {
+  const [draft, setDraft] = useState<WorkspacePanelConfig>(() => initialDraft);
+  const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [importError, setImportError] = useState<string | null>(null);
   const [inlineEditField, setInlineEditField] = useState<null | "hero_title" | "hero_description">(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
-  const [selectedMenuStyle, setSelectedMenuStyle] = useState<"pill" | "accordion" | "drawer" | "tabs">("pill");
   const [applyMessage, setApplyMessage] = useState<string | null>(null);
   const [previewPulse, setPreviewPulse] = useState(false);
-  const [selectedOverrideUserIds, setSelectedOverrideUserIds] = useState<string[]>([]);
+  const [selectedOverrideUserIdsDraft, setSelectedOverrideUserIds] = useState<string[]>([]);
   const [overrideUserSearchQuery, setOverrideUserSearchQuery] = useState("");
   const [overrideUserFilter, setOverrideUserFilter] = useState<"all" | "selected" | "assigned" | "unassigned">("all");
   const dragTabIndexRef = useRef<number | null>(null);
@@ -67,6 +88,7 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
   const isSelfMode = mode === "self";
 
   const selectedProfile = draft.profiles[selectedIndex] || null;
+  const selectedMenuStyle = normalizeMenuStyle(selectedProfile?.menu_style);
   const selectedProfileKey = useMemo(() => {
     if (!selectedProfile) return "";
     return `${selectedProfile.business_role || "rol"}:${selectedProfile.system_role || "*"}`;
@@ -94,6 +116,37 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
       selectedProfile?.glow_intensity,
     ]
   );
+  const previewScopeClass = useMemo(() => `wpd-preview-scope-${sanitizeCssClass(selectedProfileKey || "empty")}`, [selectedProfileKey]);
+  const previewDynamicCss = useMemo(() => {
+    if (!selectedProfile) return "";
+    return `
+.${previewScopeClass} {
+  --wpd-preview-border: ${safeCssValue(previewPalette.border)};
+  --wpd-preview-canvas: ${safeCssValue(previewPalette.canvas)};
+  --wpd-preview-hero: ${safeCssValue(previewPalette.hero)};
+  --wpd-preview-glow: ${safeCssValue(previewPalette.glowShadow)};
+  --wpd-preview-pill-bg: ${safeCssValue(previewPalette.pillBackground)};
+  --wpd-preview-pill-text: ${safeCssValue(previewPalette.pillText)};
+  --wpd-preview-link: ${safeCssValue(previewPalette.link)};
+  --wpd-header-bg: ${safeCssValue(selectedProfile.header_bg_color || "#0f172acc")};
+  --wpd-header-text: ${safeCssValue(selectedProfile.header_text_color || "#f8fafc")};
+  --wpd-footer-bg: ${safeCssValue(selectedProfile.footer_bg_color || "#0f172a99")};
+  --wpd-footer-text: ${safeCssValue(selectedProfile.footer_text_color || "#e2e8f0")};
+  --wpd-hero-text: ${safeCssValue(selectedProfile.hero_text_color || "#ffffff")};
+  --wpd-hero-muted-text: ${safeCssValue(selectedProfile.hero_muted_text_color || selectedProfile.hero_text_color || "rgba(255,255,255,0.86)")};
+}`;
+  }, [
+    previewPalette.border,
+    previewPalette.canvas,
+    previewPalette.glowShadow,
+    previewPalette.hero,
+    previewPalette.link,
+    previewPalette.pillBackground,
+    previewPalette.pillText,
+    previewScopeClass,
+    selectedProfile,
+  ]);
+  useWorkspaceDesignerDynamicStyles(previewDynamicCss);
   const profileLinkedUsers = useMemo(() => {
     if (!selectedProfile) return [];
     const roleKey = String(selectedProfile.business_role || "").trim().toLowerCase();
@@ -106,6 +159,14 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
       return itemSystemRole === systemRoleKey;
     });
   }, [personnel, selectedProfile]);
+  const selectedOverrideUserIds = useMemo(() => {
+    if (profileLinkedUsers.length === 0) return [];
+    const allowedSet = new Set(profileLinkedUsers.map((item) => String(item.id)));
+    const filteredSelection = selectedOverrideUserIdsDraft.filter((item) => allowedSet.has(item));
+    if (filteredSelection.length > 0) return filteredSelection;
+    const currentUserOption = profileLinkedUsers.find((item) => item.id === currentUser?.id);
+    return [String((currentUserOption || profileLinkedUsers[0]).id)];
+  }, [currentUser?.id, profileLinkedUsers, selectedOverrideUserIdsDraft]);
   const selectedOverrideUsers = useMemo(() => {
     const selectedSet = new Set(selectedOverrideUserIds);
     return profileLinkedUsers.filter((item) => selectedSet.has(String(item.id)));
@@ -172,41 +233,11 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
     return DEFAULT_WORKSPACE_PANEL_CONFIG.profiles.filter((item) => !dbProfileKeySet.has(profileKey(item.business_role, item.system_role || null)));
   }, [dbProfileKeySet]);
 
-  useEffect(() => {
-    setSelectedMenuStyle((selectedProfile?.menu_style as "pill" | "accordion" | "drawer" | "tabs") || "pill");
-  }, [selectedProfile?.menu_style, selectedIndex]);
-
-  useEffect(() => {
-    const nextDraft = buildInitialDraft(config, mode, currentUser, lockedProfile);
-    setDraft(nextDraft);
-    if (mode === "self" && currentUser && lockedProfile) {
-      const targetKey = resolveSelfCustomizationProfileKey(nextDraft, currentUser, lockedProfile);
-      const nextIndex = nextDraft.profiles.findIndex((item) => profileKey(item.business_role, item.system_role || null) === targetKey);
-      setSelectedIndex(nextIndex >= 0 ? nextIndex : 0);
-      return;
-    }
-    setSelectedIndex(0);
-  }, [config, mode, currentUser, lockedProfile]);
-
-  useEffect(() => {
-    if (profileLinkedUsers.length === 0) {
-      setSelectedOverrideUserIds([]);
-      return;
-    }
-    if (selectedOverrideUserIds.length === 0) {
-      const currentUserOption = profileLinkedUsers.find((item) => item.id === currentUser?.id);
-      setSelectedOverrideUserIds([String((currentUserOption || profileLinkedUsers[0]).id)]);
-      return;
-    }
-    const allowedSet = new Set(profileLinkedUsers.map((item) => String(item.id)));
-    const filteredSelection = selectedOverrideUserIds.filter((item) => allowedSet.has(item));
-    if (filteredSelection.length !== selectedOverrideUserIds.length) {
-      setSelectedOverrideUserIds(filteredSelection.length > 0 ? filteredSelection : [String(profileLinkedUsers[0].id)]);
-    }
-  }, [currentUser?.id, profileLinkedUsers, selectedOverrideUserIds]);
-
   function toggleOverrideUser(userId: string) {
-    setSelectedOverrideUserIds((current) => (current.includes(userId) ? current.filter((item) => item !== userId) : [...current, userId]));
+    setSelectedOverrideUserIds((current) => {
+      const baseSelection = current.length > 0 ? current : selectedOverrideUserIds;
+      return baseSelection.includes(userId) ? baseSelection.filter((item) => item !== userId) : [...baseSelection, userId];
+    });
   }
 
   function toggleAllOverrideUsers() {
@@ -560,38 +591,38 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
   }
 
   return (
-    <section style={{ display: "grid", gap: 16 }}>
-      <div style={{ borderRadius: 20, border: "1px solid #dbe3ee", background: "white", padding: 20, display: "grid", gap: 8 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#8a5b2b" }}>Panel Tasarimi</div>
-        <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a" }}>{isSelfMode ? "Kisisel Template Ayarlari" : "Rol bazli panelleri ayir ve yonet"}</div>
-        <div style={{ color: "#64748b", maxWidth: 920 }}>
+    <section className="wpd-root">
+      <div className="wpd-card">
+        <div className="wpd-eyebrow">Panel Tasarimi</div>
+        <div className="wpd-page-title">{isSelfMode ? "Kisisel Template Ayarlari" : "Rol bazli panelleri ayir ve yonet"}</div>
+        <div className="wpd-page-copy">
           {isSelfMode
             ? "Bu alan sadece kendi panel temani duzenlemek icin aciktir. Rol, sekme ve kapsam degistiremezsin; sadece metin ve renk template'ini guncellersin."
             : "Super admin bu alandan her rol profili icin ayri panel adi, aciklama ve gorulecek sekmeleri duzenleyebilir. Yeni bir is rolu eklendiginde burada yeni profil acilarak panel kapsami tanimlanabilir."}
         </div>
-        <div style={{ color: "#475569", fontSize: 13, maxWidth: 920 }}>
+        <div className="wpd-page-note">
           Renk uygulama notu: Birinci renk ana vurgu icindir. Ikinci renk opsiyoneldir (Yok secilebilir). 1. renk kapsami ve 2. renk baslangic yuzdesiyle soldan saga dagilim ayarlanir.
         </div>
         {!isSelfMode ? (
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 420px)", gap: 8, alignItems: "start" }}>
-          <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#334155" }}>Bu Profile Bagli Kullanicilar (Coklu Secim)</span>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 8 }}>
+        <div className="wpd-user-picker">
+          <label className="wpd-field">
+            <span className="wpd-field-label">Bu Profile Bagli Kullanicilar (Coklu Secim)</span>
+            <div className="wpd-user-search-row">
               <input
                 value={overrideUserSearchQuery}
                 onChange={(event) => setOverrideUserSearchQuery(event.target.value)}
                 placeholder="Kullanici adi, e-posta veya role gore ara"
-                style={inputStyle}
+                className="wpd-input"
               />
-              <select value={overrideUserFilter} onChange={(event) => setOverrideUserFilter(event.target.value as "all" | "selected" | "assigned" | "unassigned")} style={{ ...inputStyle, width: 150 }}>
+              <select value={overrideUserFilter} onChange={(event) => setOverrideUserFilter(event.target.value as "all" | "selected" | "assigned" | "unassigned")} className="wpd-select wpd-select--filter" aria-label="Kullanici override filtresi">
                 <option value="all">Tumu</option>
                 <option value="selected">Secili</option>
                 <option value="assigned">Override var</option>
                 <option value="unassigned">Override yok</option>
               </select>
             </div>
-            <div style={{ border: "1px solid #dbe3ee", borderRadius: 12, background: "#f8fafc", padding: 10, display: "grid", gap: 8, maxHeight: 230, overflow: "auto" }}>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, color: "#1f2937" }}>
+            <div className="wpd-user-list">
+              <label className="wpd-checkbox-row">
                 <input
                   type="checkbox"
                   checked={filteredOverrideUsers.length > 0 && filteredOverrideUsers.every((item) => selectedOverrideUserIds.includes(String(item.id)))}
@@ -600,19 +631,19 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                 Tumunu Sec / Kaldir
               </label>
               {profileLinkedUsers.length === 0 ? (
-                <div style={{ fontSize: 12, color: "#64748b" }}>Bu profile bagli kullanici bulunamadi.</div>
+                <div className="wpd-empty">Bu profile bagli kullanici bulunamadi.</div>
               ) : filteredOverrideUsers.length === 0 ? (
-                <div style={{ fontSize: 12, color: "#64748b" }}>Arama / filtre sonucunda kullanici bulunamadi.</div>
+                <div className="wpd-empty">Arama / filtre sonucunda kullanici bulunamadi.</div>
               ) : groupedFilteredOverrideUsers.map((group) => (
-                <div key={group.key} style={{ display: "grid", gap: 6, borderRadius: 10, border: "1px solid #e2e8f0", background: "#ffffff", padding: 8 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: "#475569" }}>{group.title}</div>
+                <div key={group.key} className="wpd-user-group">
+                  <div className="wpd-user-group-title">{group.title}</div>
                   {group.users.map((item) => {
                     const checked = selectedOverrideUserIds.includes(String(item.id));
                     return (
-                      <label key={item.id} style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr) auto", alignItems: "center", gap: 8, fontSize: 12, color: "#0f172a" }}>
+                      <label key={item.id} className="wpd-user-option">
                         <input type="checkbox" checked={checked} onChange={() => toggleOverrideUser(String(item.id))} />
-                        <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.full_name} - {item.email}</span>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: item.hasOverride ? "#1d4ed8" : "#94a3b8" }}>{item.hasOverride ? "Override var" : "Varsayilan"}</span>
+                        <span className="wpd-truncate">{item.full_name} - {item.email}</span>
+                        <span className={cx("wpd-user-status", item.hasOverride && "wpd-user-status--active")}>{item.hasOverride ? "Override var" : "Varsayilan"}</span>
                       </label>
                     );
                   })}
@@ -620,74 +651,74 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
               ))}
             </div>
           </label>
-          <div style={{ fontSize: 12, color: "#64748b" }}>
+          <div className="wpd-user-help">
             Liste sadece secili profilin rol ve sistem rolune bagli personelleri gosterir. Tiklenen kullanicilara toplu override uygulanir. Oturum kullanicisi: {currentUser?.email || "-"}
           </div>
         </div>
         ) : null}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="wpd-actions">
           {!isSelfMode ? (
-            <button type="button" onClick={addProfile} style={{ borderRadius: 999, border: "none", background: "#0f766e", color: "white", padding: "10px 16px", fontWeight: 800, cursor: "pointer" }}>
+            <button type="button" onClick={addProfile} className="wpd-button wpd-button--create">
               + Yeni Rol Profili
             </button>
           ) : null}
-          <button type="button" onClick={applyDesignerEditsToSelected} disabled={!selectedProfile} style={{ borderRadius: 999, border: "1px solid #1d4ed8", background: !selectedProfile ? "#cbd5e1" : "#eff6ff", color: !selectedProfile ? "#64748b" : "#1d4ed8", padding: "10px 16px", fontWeight: 800, cursor: !selectedProfile ? "not-allowed" : "pointer" }}>
+          <button type="button" onClick={applyDesignerEditsToSelected} disabled={!selectedProfile} className="wpd-button wpd-button--apply">
             {isSelfMode ? "Onizlemeye Uygula" : "Uygula (Secili Profil)"}
           </button>
           {!isSelfMode ? (
             <>
-              <button type="button" onClick={() => void assignSelectedProfileToCurrentUser()} disabled={!selectedProfile || (profileLinkedUsers.length === 0 && !currentUser?.email)} style={{ borderRadius: 999, border: "1px solid #0f766e", background: !selectedProfile || (profileLinkedUsers.length === 0 && !currentUser?.email) ? "#cbd5e1" : "#ecfdf5", color: !selectedProfile || (profileLinkedUsers.length === 0 && !currentUser?.email) ? "#64748b" : "#047857", padding: "10px 16px", fontWeight: 800, cursor: !selectedProfile || (profileLinkedUsers.length === 0 && !currentUser?.email) ? "not-allowed" : "pointer" }}>
+              <button type="button" onClick={() => void assignSelectedProfileToCurrentUser()} disabled={!selectedProfile || (profileLinkedUsers.length === 0 && !currentUser?.email)} className="wpd-button wpd-button--assign">
                 Bu Profili Hedef Kullaniciya Ata
               </button>
-              <button type="button" onClick={() => void persistOverridesForUsers(profileLinkedUsers, "assign")} disabled={!selectedProfile || profileLinkedUsers.length === 0} style={{ borderRadius: 999, border: "1px solid #7c3aed", background: !selectedProfile || profileLinkedUsers.length === 0 ? "#e2e8f0" : "#f5f3ff", color: !selectedProfile || profileLinkedUsers.length === 0 ? "#64748b" : "#6d28d9", padding: "10px 16px", fontWeight: 800, cursor: !selectedProfile || profileLinkedUsers.length === 0 ? "not-allowed" : "pointer" }}>
+              <button type="button" onClick={() => void persistOverridesForUsers(profileLinkedUsers, "assign")} disabled={!selectedProfile || profileLinkedUsers.length === 0} className="wpd-button wpd-button--bulk">
                 Profili Tum Bagli Kullanicilara Uygula
               </button>
-              <button type="button" onClick={() => void persistOverridesForUsers(unassignedLinkedUsers, "assign")} disabled={!selectedProfile || unassignedLinkedUsers.length === 0} style={{ borderRadius: 999, border: "1px solid #0f766e", background: !selectedProfile || unassignedLinkedUsers.length === 0 ? "#e2e8f0" : "#ecfeff", color: !selectedProfile || unassignedLinkedUsers.length === 0 ? "#64748b" : "#0f766e", padding: "10px 16px", fontWeight: 800, cursor: !selectedProfile || unassignedLinkedUsers.length === 0 ? "not-allowed" : "pointer" }}>
+              <button type="button" onClick={() => void persistOverridesForUsers(unassignedLinkedUsers, "assign")} disabled={!selectedProfile || unassignedLinkedUsers.length === 0} className="wpd-button wpd-button--cyan">
                 Sadece Override Almamislara Uygula ({unassignedLinkedUsers.length})
               </button>
-              <button type="button" onClick={() => void clearCurrentUserOverride()} disabled={selectedOverrideMatchCount === 0} style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: selectedOverrideMatchCount > 0 ? "#fff7ed" : "#f8fafc", color: selectedOverrideMatchCount > 0 ? "#9a3412" : "#94a3b8", padding: "10px 16px", fontWeight: 800, cursor: selectedOverrideMatchCount > 0 ? "pointer" : "not-allowed" }}>
+              <button type="button" onClick={() => void clearCurrentUserOverride()} disabled={selectedOverrideMatchCount === 0} className="wpd-button wpd-button--warning">
                 Mevcut Kullanici Override Kaldir
               </button>
             </>
           ) : null}
-          <button type="button" onClick={handleSave} disabled={saving} style={{ borderRadius: 999, border: "none", background: saving ? "#94a3b8" : "#2563eb", color: "white", padding: "10px 16px", fontWeight: 800, cursor: saving ? "not-allowed" : "pointer" }}>
+          <button type="button" onClick={handleSave} disabled={saving} className="wpd-button wpd-button--primary">
             {saving ? "Kaydediliyor..." : isSelfMode ? "Kendi Temami Kaydet" : "Panel Ayarlarini Kaydet"}
           </button>
           {!isSelfMode ? (
             <>
-              <button type="button" onClick={handleExport} style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#334155", padding: "10px 16px", fontWeight: 800, cursor: "pointer" }}>
+              <button type="button" onClick={handleExport} className="wpd-button">
                 ↓ JSON Export
               </button>
-              <button type="button" onClick={restoreMainSettings} style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: "#ffffff", color: "#0f172a", padding: "10px 16px", fontWeight: 800, cursor: "pointer" }}>
+              <button type="button" onClick={restoreMainSettings} className="wpd-button">
                 Ana Ayarlari Geri Yukle
               </button>
               <button
                 type="button"
                 onClick={addMissingProfilesFromDefaults}
                 disabled={missingDefaultProfiles.length === 0}
-                style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: missingDefaultProfiles.length > 0 ? "#ecfeff" : "#f8fafc", color: missingDefaultProfiles.length > 0 ? "#0e7490" : "#94a3b8", padding: "10px 16px", fontWeight: 800, cursor: missingDefaultProfiles.length > 0 ? "pointer" : "not-allowed" }}
+                className="wpd-button wpd-button--cyan"
               >
                 Eksik Profilleri Ekle ({missingDefaultProfiles.length})
               </button>
               <label
                 aria-label="JSON dosyasindan profilleri iceri aktar"
-                style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#334155", padding: "10px 16px", fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+                className="wpd-upload-button"
               >
                 ↑ JSON Import
-                <input type="file" accept=".json,application/json" onChange={handleImport} style={{ display: "none" }} aria-hidden="true" />
+                <input type="file" accept=".json,application/json" onChange={handleImport} className="wpd-hidden-input" aria-hidden="true" aria-label="JSON import dosyasi" title="JSON import dosyasi" />
               </label>
               {importError ? (
-                <div role="alert" style={{ borderRadius: 10, background: "#fff1f2", border: "1px solid #fecaca", color: "#be123c", padding: "8px 14px", fontWeight: 700, fontSize: 13 }}>
+                <div role="alert" className="wpd-alert-error">
                   {importError}
                 </div>
               ) : null}
               {selectedProfile ? (
-                <button type="button" onClick={removeSelected} style={{ borderRadius: 999, border: "1px solid #fecaca", background: "#fff1f2", color: "#be123c", padding: "10px 16px", fontWeight: 800, cursor: "pointer" }}>
+                <button type="button" onClick={removeSelected} className="wpd-button wpd-button--danger">
                   Secili Profili Kaldir
                 </button>
               ) : null}
               {selectedProfile ? (
-                <button type="button" onClick={duplicateSelected} style={{ borderRadius: 999, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", padding: "10px 16px", fontWeight: 800, cursor: "pointer" }}>
+                <button type="button" onClick={duplicateSelected} className="wpd-button wpd-button--copy">
                   ⧉ Profili Kopyala
                 </button>
               ) : null}
@@ -695,23 +726,23 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
           ) : null}
         </div>
         {applyMessage ? (
-          <div style={{ borderRadius: 10, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1e40af", padding: "8px 12px", fontWeight: 700, width: "fit-content" }}>
+          <div className="wpd-apply-message">
             {applyMessage}
           </div>
         ) : null}
         {!isSelfMode && (currentUser || selectedOverrideUserIds.length > 0) ? (
-          <div style={{ fontSize: 12, color: "#475569" }}>
+          <div className="wpd-override-summary">
             <span>Kullanici override:</span>{" "}
-            <span style={{ fontWeight: 700 }}>{selectedOverrideUserIds.length} secili kullanici</span>{" "}
+            <span className="wpd-strong">{selectedOverrideUserIds.length} secili kullanici</span>{" "}
             <span>{"->"}</span>{" "}
-            <span style={{ fontWeight: 700 }}>{selectedOverrideMatchCount} atama bulundu</span>
+            <span className="wpd-strong">{selectedOverrideMatchCount} atama bulundu</span>
           </div>
         ) : null}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: isSelfMode ? "minmax(0, 1fr)" : "minmax(260px, 320px) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
+      <div className={cx("wpd-layout", isSelfMode && "wpd-layout--self")}>
         {!isSelfMode ? (
-        <aside style={{ borderRadius: 20, border: "1px solid #e5e7eb", background: "white", padding: 14, display: "grid", gap: 10 }}>
+        <aside className="wpd-sidebar">
           {draft.profiles.map((profile, index) => {
             const active = index === selectedIndex;
             const cardAccent = resolvedAccentColor(profile);
@@ -721,28 +752,19 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                 key={`${profile.business_role}-${profile.system_role || "default"}-${index}`}
                 type="button"
                 onClick={() => setSelectedIndex(index)}
-                style={{
-                  textAlign: "left",
-                  borderRadius: 16,
-                  border: active ? "1px solid #93c5fd" : "1px solid #e5e7eb",
-                  background: active ? "#eff6ff" : "#fcfcfd",
-                  padding: 14,
-                  cursor: "pointer",
-                  display: "grid",
-                  gap: 4,
-                }}
+                className={cx("wpd-profile-card", active && "wpd-profile-card--active")}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                    <span style={{ fontSize: 18, lineHeight: 1 }}>{cardIcon}</span>
-                    <div style={{ fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.title || "Yeni Panel"}</div>
+                <div className="wpd-profile-head">
+                  <div className="wpd-profile-title-row">
+                    <span className="wpd-profile-icon">{cardIcon}</span>
+                    <div className="wpd-profile-title wpd-truncate">{profile.title || "Yeni Panel"}</div>
                   </div>
-                  <span title={cardAccent} style={{ width: 12, height: 12, borderRadius: 999, background: cardAccent, border: "1px solid rgba(15,23,42,0.15)", flexShrink: 0 }} />
+                  <span title={cardAccent} className="wpd-profile-accent" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.5" fill={cardAccent} stroke="rgba(15,23,42,0.15)" /></svg></span>
                 </div>
-                <div style={{ fontSize: 12, color: "#475569" }}>{profile.business_role || "rol"}:{profile.system_role || "*"}</div>
-                <div style={{ fontSize: 12, color: "#64748b", display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <div className="wpd-override-summary">{profile.business_role || "rol"}:{profile.system_role || "*"}</div>
+                <div className="wpd-profile-stats">
                   <span>{profile.allowed_tabs.length} sekme</span>
-                  <span style={{ color: "#334155" }}>{profile.nav_label || "Menu etiketi yok"}</span>
+                  <span>{profile.nav_label || "Menu etiketi yok"}</span>
                 </div>
               </button>
             );
@@ -750,170 +772,125 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
         </aside>
         ) : null}
 
-        <div style={{ borderRadius: 20, border: "1px solid #e5e7eb", background: "white", padding: 18, display: "grid", gap: 14 }}>
+        <div className="wpd-editor-card">
           {!selectedProfile ? (
-            <div style={{ color: "#64748b" }}>Duzenlemek icin bir rol profili secin.</div>
+            <div className="wpd-editor-empty">Duzenlemek icin bir rol profili secin.</div>
           ) : (
             <>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#8a5b2b" }}>Secili Profil</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>{selectedProfile.title || "Yeni Panel"}</div>
-              <div style={{ color: "#64748b", fontSize: 13 }}>Profil anahtari: {selectedProfileKey}</div>
+              <div className="wpd-section-kicker wpd-section-kicker--warm">Secili Profil</div>
+              <div className="wpd-editor-title">{selectedProfile.title || "Yeni Panel"}</div>
+              <div className="wpd-profile-key">Profil anahtari: {selectedProfileKey}</div>
 
               <section
                 aria-label="Canli Panel Onizleme"
-                style={{
-                  borderRadius: 22,
-                  overflow: "hidden",
-                  border: `1px solid ${previewPalette.border}`,
-                  background: previewPalette.canvas,
-                  boxShadow: previewPulse ? "0 0 0 3px rgba(37, 99, 235, 0.28), 0 20px 46px rgba(15, 23, 42, 0.14)" : "0 18px 40px rgba(15, 23, 42, 0.08)",
-                  transition: "box-shadow 0.22s ease",
-                }}
+                className={cx("wpd-preview", previewScopeClass, previewPulse && "wpd-preview--pulse")}
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "10px 16px",
-                    borderBottom: `1px solid ${previewPalette.border}`,
-                    background: "rgba(255,255,255,0.6)",
-                  }}
+                  className="wpd-preview-toolbar"
                 >
-                  <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Canli Onizleme</span>
-                  <div role="group" aria-label="Onizleme modu" style={{ display: "flex", gap: 4 }}>
+                  <span className="wpd-preview-kicker">Canli Onizleme</span>
+                  <div role="group" aria-label="Onizleme modu" className="wpd-segmented">
                     <button
                       type="button"
-                      aria-pressed={previewMode === "desktop"}
+                      aria-pressed={previewMode === "desktop" ? "true" : "false"}
                       onClick={() => setPreviewMode("desktop")}
-                      style={{
-                        borderRadius: 8,
-                        border: "none",
-                        cursor: "pointer",
-                        padding: "5px 12px",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        background: previewMode === "desktop" ? previewPalette.pillBackground : "transparent",
-                        color: previewMode === "desktop" ? previewPalette.pillText : "#94a3b8",
-                        transition: "background 0.15s",
-                      }}
+                      className={cx("wpd-segment-button", previewMode === "desktop" && "wpd-segment-button--active")}
                     >
                       Masaustu
                     </button>
                     <button
                       type="button"
-                      aria-pressed={previewMode === "mobile"}
+                      aria-pressed={previewMode === "mobile" ? "true" : "false"}
                       onClick={() => setPreviewMode("mobile")}
-                      style={{
-                        borderRadius: 8,
-                        border: "none",
-                        cursor: "pointer",
-                        padding: "5px 12px",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        background: previewMode === "mobile" ? previewPalette.pillBackground : "transparent",
-                        color: previewMode === "mobile" ? previewPalette.pillText : "#94a3b8",
-                        transition: "background 0.15s",
-                      }}
+                      className={cx("wpd-segment-button", previewMode === "mobile" && "wpd-segment-button--active")}
                     >
                       Mobil
                     </button>
                   </div>
                 </div>
-                <div style={previewMode === "mobile" ? { maxWidth: 375, margin: "0 auto" } : {}}>
+                <div className={cx(previewMode === "mobile" && "wpd-preview-device--mobile")}>
                 {(selectedProfile.header_info || selectedProfile.top_notice || selectedProfile.header_bg_color || selectedProfile.header_text_color) ? (
                   <div
-                    style={{
-                      padding: "8px 12px",
-                      background: selectedProfile.header_bg_color || "#0f172acc",
-                      color: selectedProfile.header_text_color || "#f8fafc",
-                      fontSize: 12,
-                      fontWeight: 700,
-                    }}
+                    className="wpd-preview-notice"
                   >
                     {selectedProfile.header_info || selectedProfile.top_notice || "Header bilgi alani"}
                   </div>
                 ) : null}
                 <div
-                  style={{
-                    padding: previewMode === "mobile" ? 14 : 20,
-                    color: selectedProfile.hero_text_color || "white",
-                    background: previewPalette.hero,
-                    boxShadow: `inset 0 -1px 0 rgba(255,255,255,0.12), ${previewPalette.glowShadow}`,
-                    display: "grid",
-                    gap: 10,
-                  }}
+                  className={cx("wpd-preview-hero", previewMode === "mobile" && "wpd-preview-hero--mobile")}
                 >
                   {selectedProfile.top_notice ? (
-                    <div style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.12)", padding: "6px 10px", fontSize: 12, fontWeight: 700, color: selectedProfile.hero_text_color || undefined }}>
+                    <div className="wpd-preview-top-notice">
                       {selectedProfile.top_notice}
                     </div>
                   ) : null}
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", opacity: 0.82, display: "flex", alignItems: "center", gap: 8, color: selectedProfile.hero_muted_text_color || selectedProfile.hero_text_color || undefined }}>
-                    <span style={{ fontSize: 20 }} aria-label="Panel ikonu">{previewIcon}</span>
+                  <div className="wpd-preview-workspace">
+                    <span className="wpd-preview-workspace-icon" aria-label="Panel ikonu">{previewIcon}</span>
                     {selectedProfile.workspace_label || "Workspace Etiketi"}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap", flexDirection: previewMode === "mobile" ? "column" : "row" }}>
-                    <div style={{ display: "grid", gap: 6, maxWidth: previewMode === "mobile" ? "100%" : 680 }}>
-                      <div style={{ fontSize: previewMode === "mobile" ? 20 : 30, fontWeight: 900, lineHeight: 1.1 }}>
+                  <div className={cx("wpd-preview-hero-row", previewMode === "mobile" && "wpd-preview-hero-row--mobile")}>
+                    <div className={cx("wpd-preview-copy", previewMode === "mobile" && "wpd-preview-copy--mobile")}>
+                      <div className={cx("wpd-preview-title", previewMode === "mobile" && "wpd-preview-title--mobile")}>
                         {inlineEditField === "hero_title" ? (
                           <input
                             autoFocus
+                            aria-label="Hero basligini duzenle"
                             value={inlineEditValue}
                             onChange={(e) => setInlineEditValue(e.target.value)}
                             onBlur={commitInlineEdit}
                             onKeyDown={(e) => { if (e.key === "Enter") commitInlineEdit(); if (e.key === "Escape") setInlineEditField(null); }}
-                            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 8, color: "white", fontSize: "inherit", fontWeight: "inherit", width: "100%", padding: "2px 6px" }}
+                            className="wpd-inline-input"
                           />
                         ) : (
                           <span
                             title="Düzenlemek için çift tıkla"
                             onDoubleClick={() => startInlineEdit("hero_title")}
-                            style={{ cursor: "text", borderBottom: "1px dashed rgba(255,255,255,0.4)" }}
+                            className="wpd-inline-edit"
                           >
                             {selectedProfile.hero_title || selectedProfile.title || "Panel Basligi"}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: 13, lineHeight: 1.6, color: selectedProfile.hero_muted_text_color || "rgba(255,255,255,0.86)" }}>
+                      <div className="wpd-preview-description">
                         {inlineEditField === "hero_description" ? (
                           <textarea
                             autoFocus
+                            aria-label="Hero aciklamasini duzenle"
                             value={inlineEditValue}
                             onChange={(e) => setInlineEditValue(e.target.value)}
                             onBlur={commitInlineEdit}
                             onKeyDown={(e) => { if (e.key === "Escape") setInlineEditField(null); }}
                             rows={3}
-                            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 8, color: "white", fontSize: "inherit", width: "100%", padding: "4px 6px", resize: "vertical" }}
+                            className="wpd-inline-textarea"
                           />
                         ) : (
                           <span
                             title="Düzenlemek için çift tıkla"
                             onDoubleClick={() => startInlineEdit("hero_description")}
-                            style={{ cursor: "text", borderBottom: "1px dashed rgba(255,255,255,0.3)" }}
+                            className="wpd-inline-edit wpd-inline-edit--muted"
                           >
                             {selectedProfile.hero_description || selectedProfile.description || "Bu panel icin hero aciklamasi burada gorunur."}
                           </span>
                         )}
                       </div>
                     </div>
-                    <div style={{ borderRadius: 999, background: "rgba(255,255,255,0.14)", padding: "6px 10px", fontWeight: 800, fontSize: 12, alignSelf: previewMode === "mobile" ? "flex-start" : undefined, color: selectedProfile.hero_text_color || undefined }}>
+                    <div className={cx("wpd-preview-badge", previewMode === "mobile" && "wpd-preview-badge--mobile")}>
                       {selectedProfile.nav_label || "Menu Etiketi"}
                     </div>
                   </div>
-                  <div style={{ display: "inline-flex", width: "fit-content", borderRadius: 999, border: "1px solid rgba(255,255,255,0.35)", padding: "4px 10px", fontSize: 11, fontWeight: 700, opacity: 0.92, color: selectedProfile.hero_text_color || undefined }}>
+                  <div className="wpd-preview-menu-style">
                     Menu stili: {selectedProfile.menu_style || "pill"}
                   </div>
                 </div>
 
-<div style={{ padding: previewMode === "mobile" ? "12px" : 18, display: "grid", gap: 16 }}>
-                    <div style={{ display: "grid", gap: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Menu Sirasi</div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexDirection: previewMode === "mobile" ? "column" : "row" }}>
+<div className={cx("wpd-preview-body", previewMode === "mobile" && "wpd-preview-body--mobile")}>
+                    <div className="wpd-option-stack">
+                      <div className="wpd-control-kicker">Menu Sirasi</div>
+                      <div className={cx("wpd-preview-tabs", previewMode === "mobile" && "wpd-preview-tabs--mobile")}>
                         {selectedProfile.allowed_tabs.map((tabKey) => {
                           const option = WORKSPACE_PANEL_TAB_OPTIONS.find((item) => item.key === tabKey);
                           return (
-                            <span key={`preview-${tabKey}`} style={{ borderRadius: 999, background: previewPalette.pillBackground, color: previewPalette.pillText, padding: "8px 12px", fontWeight: 700, fontSize: 12, textAlign: previewMode === "mobile" ? "center" : undefined }}>
+                            <span key={`preview-${tabKey}`} className={cx("wpd-preview-pill", previewMode === "mobile" && "wpd-preview-pill--mobile")}>
                               {option?.label || tabKey}
                             </span>
                           );
@@ -921,14 +898,14 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                       </div>
                     </div>
 
-                    <div style={{ display: "grid", gap: 10 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Hizli Link Onizlemesi</div>
-                      <div style={{ display: "grid", gridTemplateColumns: previewMode === "mobile" ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+                    <div className="wpd-control-section">
+                      <div className="wpd-control-kicker">Hizli Link Onizlemesi</div>
+                      <div className={cx("wpd-preview-link-grid", previewMode === "mobile" && "wpd-preview-link-grid--mobile")}>
                         {previewQuickLinks.map((link) => (
-                          <div key={`preview-link-${link.label}-${link.href}`} style={{ borderRadius: 16, border: `1px solid ${previewPalette.border}`, background: "white", padding: 14, display: "grid", gap: 6 }}>
-                            <div style={{ fontWeight: 800, color: "#0f172a" }}>{link.label}</div>
-                            <div style={{ fontSize: 13, color: "#64748b" }}>{link.description}</div>
-                            <div style={{ fontSize: 12, fontWeight: 800, color: previewPalette.link }}>{link.href}</div>
+                          <div key={`preview-link-${link.label}-${link.href}`} className="wpd-preview-link">
+                            <div className="wpd-preview-link-title">{link.label}</div>
+                            <div className="wpd-preview-link-description">{link.description}</div>
+                            <div className="wpd-preview-link-href">{link.href}</div>
                           </div>
                         ))}
                       </div>
@@ -937,13 +914,7 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                 </div>
                 {(selectedProfile.footer_info || selectedProfile.footer_bg_color || selectedProfile.footer_text_color) ? (
                   <div
-                    style={{
-                      padding: "8px 12px",
-                      background: selectedProfile.footer_bg_color || "#0f172a99",
-                      color: selectedProfile.footer_text_color || "#e2e8f0",
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
+                    className="wpd-preview-footer"
                   >
                     {selectedProfile.footer_info || "Footer bilgi alani"}
                   </div>
@@ -951,11 +922,11 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
               </section>
 
               {/* Ikon ve Vurgu Rengi Secici */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, borderRadius: 16, border: "1px solid #e5e7eb", background: "#f8fafc", padding: 16 }}>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Renk Efekti</div>
-                  <label style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>1. Vurgu Siddeti</span>
+              <div className="wpd-control-panel">
+                <div className="wpd-control-section">
+                  <div className="wpd-control-kicker">Renk Efekti</div>
+                  <label className="wpd-field">
+                    <span className="wpd-field-label">1. Vurgu Siddeti</span>
                     <input
                       type="range"
                       min={0.2}
@@ -965,8 +936,8 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                       onChange={(event) => updateSelected({ accent_opacity: Number(event.target.value) })}
                     />
                   </label>
-                  <label style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>2. Vurgu Siddeti</span>
+                  <label className="wpd-field">
+                    <span className="wpd-field-label">2. Vurgu Siddeti</span>
                     <input
                       type="range"
                       min={0.2}
@@ -976,8 +947,8 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                       onChange={(event) => updateSelected({ secondary_accent_opacity: Number(event.target.value) })}
                     />
                   </label>
-                  <label style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>1. Renk Kapsam %</span>
+                  <label className="wpd-field">
+                    <span className="wpd-field-label">1. Renk Kapsam %</span>
                     <input
                       type="range"
                       min={20}
@@ -987,8 +958,8 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                       onChange={(event) => updateSelected({ primary_accent_stop: Number(event.target.value) })}
                     />
                   </label>
-                  <label style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>2. Renk Baslangic %</span>
+                  <label className="wpd-field">
+                    <span className="wpd-field-label">2. Renk Baslangic %</span>
                     <input
                       type="range"
                       min={40}
@@ -998,8 +969,8 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                       onChange={(event) => updateSelected({ secondary_accent_start: Number(event.target.value) })}
                     />
                   </label>
-                  <label style={{ display: "grid", gap: 6 }}>
-                    <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Isik Siddeti</span>
+                  <label className="wpd-field">
+                    <span className="wpd-field-label">Isik Siddeti</span>
                     <input
                       type="range"
                       min={0}
@@ -1010,9 +981,9 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                     />
                   </label>
                 </div>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Vurgu Rengi (1. Renk)</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <div className="wpd-control-section">
+                  <div className="wpd-control-kicker">Vurgu Rengi (1. Renk)</div>
+                  <div className="wpd-swatch-row">
                     {ACCENT_COLOR_PRESETS.map((preset) => {
                       const current = resolvedAccentColor(selectedProfile);
                       const isSelected = (selectedProfile.accent_color || "") === preset.color || (!selectedProfile.accent_color && current === preset.color);
@@ -1021,50 +992,38 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                           key={preset.color}
                           type="button"
                           aria-label={`Renk sec: ${preset.label}`}
-                          aria-pressed={isSelected}
+                          aria-pressed={isSelected ? "true" : "false"}
                           onClick={() => updateSelected({ accent_color: preset.color })}
-                          style={{
-                            width: 32, height: 32, borderRadius: 8, border: isSelected ? "3px solid #0f172a" : "2px solid #e5e7eb",
-                            background: preset.color, cursor: "pointer",
-                            boxShadow: isSelected ? `0 0 0 2px white, 0 0 0 4px ${preset.color}` : "none",
-                          }}
+                          className={cx("wpd-swatch-button", isSelected && "wpd-swatch-button--selected")}
                           title={preset.label}
-                        />
+                        >
+                          <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect x="0" y="0" width="32" height="32" rx="6" fill={preset.color} /></svg>
+                        </button>
                       );
                     })}
                     <label
                       aria-label="Ozel renk gir"
-                      style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 8, border: "1px solid #e5e7eb", background: "white", padding: "0 8px", cursor: "pointer" }}
+                      className="wpd-color-label"
                     >
                       <input
                         type="color"
                         value={selectedProfile.accent_color || resolvedAccentColor(selectedProfile)}
                         onChange={(event) => updateSelected({ accent_color: event.target.value })}
-                        style={{ width: 24, height: 24, border: "none", padding: 0, background: "none", cursor: "pointer" }}
+                        className="wpd-color-input"
                       />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>Özel</span>
+                      <span className="wpd-color-label-text">Özel</span>
                     </label>
                   </div>
                 </div>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Vurgu Rengi (2. Renk)</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <div className="wpd-control-section">
+                  <div className="wpd-control-kicker">Vurgu Rengi (2. Renk)</div>
+                  <div className="wpd-swatch-row">
                     <button
                       type="button"
                       aria-label="2. renk yok"
-                      aria-pressed={!selectedProfile.secondary_accent_color}
+                      aria-pressed={!selectedProfile.secondary_accent_color ? "true" : "false"}
                       onClick={() => updateSelected({ secondary_accent_color: null })}
-                      style={{
-                        minWidth: 54,
-                        height: 32,
-                        borderRadius: 8,
-                        border: !selectedProfile.secondary_accent_color ? "2px solid #0f172a" : "1px solid #cbd5e1",
-                        background: !selectedProfile.secondary_accent_color ? "#f1f5f9" : "#ffffff",
-                        color: "#334155",
-                        cursor: "pointer",
-                        fontWeight: 800,
-                        fontSize: 11,
-                      }}
+                      className={cx("wpd-swatch-none", !selectedProfile.secondary_accent_color && "wpd-swatch-none--selected")}
                       title="Ikinci renk kullanma"
                     >
                       Yok
@@ -1077,40 +1036,34 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                           key={`secondary-${preset.color}`}
                           type="button"
                           aria-label={`2. renk sec: ${preset.label}`}
-                          aria-pressed={isSelected}
+                          aria-pressed={isSelected ? "true" : "false"}
                           onClick={() => updateSelected({ secondary_accent_color: preset.color })}
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 8,
-                            border: isSelected ? "3px solid #0f172a" : "2px solid #e5e7eb",
-                            background: preset.color,
-                            cursor: "pointer",
-                            boxShadow: isSelected ? `0 0 0 2px white, 0 0 0 4px ${preset.color}` : "none",
-                          }}
+                          className={cx("wpd-swatch-button", isSelected && "wpd-swatch-button--selected")}
                           title={preset.label}
-                        />
+                        >
+                          <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect x="0" y="0" width="32" height="32" rx="6" fill={preset.color} /></svg>
+                        </button>
                       );
                     })}
                     <label
                       aria-label="Ikinci ozel renk gir"
-                      style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 8, border: "1px solid #e5e7eb", background: "white", padding: "0 8px", cursor: "pointer" }}
+                      className="wpd-color-label"
                     >
                       <input
                         type="color"
                         value={selectedProfile.secondary_accent_color || "#9ca3af"}
                         onChange={(event) => updateSelected({ secondary_accent_color: event.target.value })}
-                        style={{ width: 24, height: 24, border: "none", padding: 0, background: "none", cursor: "pointer" }}
+                        className="wpd-color-input"
                       />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>Özel 2</span>
+                      <span className="wpd-color-label-text">Özel 2</span>
                     </label>
                   </div>
                 </div>
                 {!isSelfMode ? (
                   <>
-                    <div style={{ display: "grid", gap: 10 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Panel Ikonu</div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    <div className="wpd-control-section">
+                      <div className="wpd-control-kicker">Panel Ikonu</div>
+                      <div className="wpd-swatch-row">
                         {ROLE_ICON_PRESETS.map((preset) => {
                           const current = resolvedIcon(selectedProfile);
                           const isSelected = (selectedProfile.icon || "") === preset.icon || (!selectedProfile.icon && current === preset.icon);
@@ -1119,14 +1072,9 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                               key={preset.icon}
                               type="button"
                               aria-label={`Ikon sec: ${preset.label}`}
-                              aria-pressed={isSelected}
+                              aria-pressed={isSelected ? "true" : "false"}
                               onClick={() => updateSelected({ icon: preset.icon })}
-                              style={{
-                                width: 40, height: 40, borderRadius: 10, border: isSelected ? "2px solid #0f172a" : "1px solid #e5e7eb",
-                                background: isSelected ? "#0f172a08" : "white", fontSize: 20, cursor: "pointer",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                boxShadow: isSelected ? "0 0 0 2px #0f172a40" : "none",
-                              }}
+                              className={cx("wpd-icon-button", isSelected && "wpd-icon-button--selected")}
                             >
                               {preset.icon}
                             </button>
@@ -1134,30 +1082,20 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                         })}
                       </div>
                     </div>
-                    <div style={{ display: "grid", gap: 10 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Menu Stili</div>
-                      <div style={{ display: "grid", gap: 8 }}>
+                    <div className="wpd-control-section">
+                      <div className="wpd-control-kicker">Menu Stili</div>
+                      <div className="wpd-option-stack">
                         {WORKSPACE_PANEL_MENU_STYLE_OPTIONS.map((item) => {
                           const selected = selectedMenuStyle === item.key;
                           return (
                             <button
                               key={item.key}
                               type="button"
-                              onClick={() => setSelectedMenuStyle(item.key)}
-                              style={{
-                                borderRadius: 12,
-                                border: selected ? "1px solid #93c5fd" : "1px solid #dbe3ee",
-                                background: selected ? "#eff6ff" : "white",
-                                color: "#0f172a",
-                                padding: "10px 12px",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                display: "grid",
-                                gap: 4,
-                              }}
+                              onClick={() => updateSelected({ menu_style: item.key })}
+                              className={cx("wpd-menu-option", selected && "wpd-menu-option--selected")}
                             >
-                              <span style={{ fontWeight: 800 }}>{item.label}</span>
-                              <span style={{ fontSize: 12, color: "#64748b" }}>{item.description}</span>
+                              <span className="wpd-strong">{item.label}</span>
+                              <span className="wpd-menu-option-description">{item.description}</span>
                             </button>
                           );
                         })}
@@ -1168,152 +1106,152 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
               </div>
 
               {isSelfMode ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Basligi</span>
-                  <input value={selectedProfile.hero_title} onChange={(event) => updateSelected({ hero_title: event.target.value })} placeholder="Panel hero basligi" style={inputStyle} />
+              <div className="wpd-form-grid">
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Hero Basligi</span>
+                  <input value={selectedProfile.hero_title} onChange={(event) => updateSelected({ hero_title: event.target.value })} placeholder="Panel hero basligi" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Ust Bilgi (Top Notice)</span>
-                  <input value={selectedProfile.top_notice || ""} onChange={(event) => updateSelected({ top_notice: event.target.value })} placeholder="Ornek: Surum 2026.Q2 yayinda" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Ust Bilgi (Top Notice)</span>
+                  <input value={selectedProfile.top_notice || ""} onChange={(event) => updateSelected({ top_notice: event.target.value })} placeholder="Ornek: Surum 2026.Q2 yayinda" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Header Bilgisi</span>
-                  <input value={selectedProfile.header_info || ""} onChange={(event) => updateSelected({ header_info: event.target.value })} placeholder="Ornek: SLA: %99.9" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Header Bilgisi</span>
+                  <input value={selectedProfile.header_info || ""} onChange={(event) => updateSelected({ header_info: event.target.value })} placeholder="Ornek: SLA: %99.9" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Alt Bilgi (Footer)</span>
-                  <input value={selectedProfile.footer_info || ""} onChange={(event) => updateSelected({ footer_info: event.target.value })} placeholder="Ornek: Son guncelleme: Bugun" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Alt Bilgi (Footer)</span>
+                  <input value={selectedProfile.footer_info || ""} onChange={(event) => updateSelected({ footer_info: event.target.value })} placeholder="Ornek: Son guncelleme: Bugun" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Header Arkaplan Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.header_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.header_bg_color || "#0f172acc"} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} placeholder="#0f172acc" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Header Arkaplan Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.header_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.header_bg_color || "#0f172acc"} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} placeholder="#0f172acc" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Header Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.header_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ header_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.header_text_color || "#f8fafc"} onChange={(event) => updateSelected({ header_text_color: event.target.value })} placeholder="#f8fafc" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Header Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.header_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ header_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.header_text_color || "#f8fafc"} onChange={(event) => updateSelected({ header_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Footer Arkaplan Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.footer_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.footer_bg_color || "#0f172a99"} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} placeholder="#0f172a99" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Footer Arkaplan Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.footer_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.footer_bg_color || "#0f172a99"} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} placeholder="#0f172a99" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Footer Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.footer_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.footer_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} placeholder="#e2e8f0" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Footer Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.footer_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.footer_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.hero_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.hero_text_color || "#f8fafc"} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} placeholder="#f8fafc" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Hero Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.hero_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.hero_text_color || "#f8fafc"} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Yardimci Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.hero_muted_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.hero_muted_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} placeholder="#e2e8f0" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Hero Yardimci Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.hero_muted_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.hero_muted_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
                   </div>
                 </label>
               </div>
               ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Business Role</span>
-                  <input value={selectedProfile.business_role} onChange={(event) => updateSelected({ business_role: event.target.value })} placeholder="or: manager" style={inputStyle} />
+              <div className="wpd-form-grid">
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Business Role</span>
+                  <input value={selectedProfile.business_role} onChange={(event) => updateSelected({ business_role: event.target.value })} placeholder="or: manager" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>System Role</span>
-                  <input value={selectedProfile.system_role || ""} onChange={(event) => updateSelected({ system_role: event.target.value })} placeholder="or: tenant_member" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">System Role</span>
+                  <input value={selectedProfile.system_role || ""} onChange={(event) => updateSelected({ system_role: event.target.value })} placeholder="or: tenant_member" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Panel Basligi</span>
-                  <input value={selectedProfile.title} onChange={(event) => updateSelected({ title: event.target.value })} placeholder="or: Yonetici Paneli" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Panel Basligi</span>
+                  <input value={selectedProfile.title} onChange={(event) => updateSelected({ title: event.target.value })} placeholder="or: Yonetici Paneli" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Menu Etiketi</span>
-                  <input value={selectedProfile.nav_label} onChange={(event) => updateSelected({ nav_label: event.target.value })} placeholder="or: Yonetici" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Menu Etiketi</span>
+                  <input value={selectedProfile.nav_label} onChange={(event) => updateSelected({ nav_label: event.target.value })} placeholder="or: Yonetici" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Workspace Etiketi</span>
-                  <input value={selectedProfile.workspace_label} onChange={(event) => updateSelected({ workspace_label: event.target.value })} placeholder="or: Yonetici Calisma Alani" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Workspace Etiketi</span>
+                  <input value={selectedProfile.workspace_label} onChange={(event) => updateSelected({ workspace_label: event.target.value })} placeholder="or: Yonetici Calisma Alani" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Basligi</span>
-                  <input value={selectedProfile.hero_title} onChange={(event) => updateSelected({ hero_title: event.target.value })} placeholder="Panel hero basligi" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Hero Basligi</span>
+                  <input value={selectedProfile.hero_title} onChange={(event) => updateSelected({ hero_title: event.target.value })} placeholder="Panel hero basligi" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Ust Bilgi (Top Notice)</span>
-                  <input value={selectedProfile.top_notice || ""} onChange={(event) => updateSelected({ top_notice: event.target.value })} placeholder="Ornek: Surum 2026.Q2 yayinda" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Ust Bilgi (Top Notice)</span>
+                  <input value={selectedProfile.top_notice || ""} onChange={(event) => updateSelected({ top_notice: event.target.value })} placeholder="Ornek: Surum 2026.Q2 yayinda" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Header Bilgisi</span>
-                  <input value={selectedProfile.header_info || ""} onChange={(event) => updateSelected({ header_info: event.target.value })} placeholder="Ornek: SLA: %99.9" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Header Bilgisi</span>
+                  <input value={selectedProfile.header_info || ""} onChange={(event) => updateSelected({ header_info: event.target.value })} placeholder="Ornek: SLA: %99.9" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Header Arkaplan Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.header_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.header_bg_color || "#0f172acc"} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} placeholder="#0f172acc" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Header Arkaplan Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.header_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.header_bg_color || "#0f172acc"} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} placeholder="#0f172acc" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Header Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.header_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ header_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.header_text_color || "#f8fafc"} onChange={(event) => updateSelected({ header_text_color: event.target.value })} placeholder="#f8fafc" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Header Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.header_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ header_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.header_text_color || "#f8fafc"} onChange={(event) => updateSelected({ header_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Alt Bilgi (Footer)</span>
-                  <input value={selectedProfile.footer_info || ""} onChange={(event) => updateSelected({ footer_info: event.target.value })} placeholder="Ornek: Son guncelleme: Bugun" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Alt Bilgi (Footer)</span>
+                  <input value={selectedProfile.footer_info || ""} onChange={(event) => updateSelected({ footer_info: event.target.value })} placeholder="Ornek: Son guncelleme: Bugun" className="wpd-input" />
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Footer Arkaplan Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.footer_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.footer_bg_color || "#0f172a99"} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} placeholder="#0f172a99" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Footer Arkaplan Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.footer_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.footer_bg_color || "#0f172a99"} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} placeholder="#0f172a99" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Footer Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.footer_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.footer_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} placeholder="#e2e8f0" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Footer Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.footer_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.footer_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.hero_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.hero_text_color || "#f8fafc"} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} placeholder="#f8fafc" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Hero Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.hero_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.hero_text_color || "#f8fafc"} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Yardimci Yazi Rengi</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="color" value={(selectedProfile.hero_muted_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} style={{ width: 52, height: 40, border: "1px solid #dbe3ee", borderRadius: 10, background: "white", cursor: "pointer" }} />
-                    <input value={selectedProfile.hero_muted_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} placeholder="#e2e8f0" style={inputStyle} />
+                <label className="wpd-field">
+                  <span className="wpd-field-label">Hero Yardimci Yazi Rengi</span>
+                  <div className="wpd-color-field-row">
+                    <input type="color" value={(selectedProfile.hero_muted_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                    <input value={selectedProfile.hero_muted_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
                   </div>
                 </label>
-                <label style={{ display: "grid", gap: 8, alignContent: "center" }}>
-                  <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Kullanici Kendi Template'ini Duzenleyebilsin</span>
+                <label className="wpd-field wpd-field--toggle">
+                  <span className="wpd-field-label">Kullanici Kendi Template'ini Duzenleyebilsin</span>
                   <button
                     type="button"
                     onClick={() => updateSelected({ allow_user_self_customization: !selectedProfile.allow_user_self_customization })}
-                    style={{ borderRadius: 999, border: selectedProfile.allow_user_self_customization ? "1px solid #16a34a" : "1px solid #cbd5e1", background: selectedProfile.allow_user_self_customization ? "#f0fdf4" : "#ffffff", color: selectedProfile.allow_user_self_customization ? "#166534" : "#475569", padding: "10px 14px", fontWeight: 800, cursor: "pointer", width: "fit-content" }}
+                    className={cx("wpd-toggle-button", selectedProfile.allow_user_self_customization && "wpd-toggle-button--on")}
                   >
                     {selectedProfile.allow_user_self_customization ? "Acik" : "Kapali"}
                   </button>
@@ -1322,21 +1260,21 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
               )}
 
               {!isSelfMode ? (
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Kisa Aciklama</span>
-                <textarea value={selectedProfile.description} onChange={(event) => updateSelected({ description: event.target.value })} rows={3} style={{ ...inputStyle, minHeight: 92 }} />
+              <label className="wpd-field">
+                <span className="wpd-field-label">Kisa Aciklama</span>
+                <textarea value={selectedProfile.description} onChange={(event) => updateSelected({ description: event.target.value })} rows={3} className="wpd-textarea wpd-textarea--medium" />
               </label>
               ) : null}
 
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Hero Aciklama</span>
-                <textarea value={selectedProfile.hero_description} onChange={(event) => updateSelected({ hero_description: event.target.value })} rows={4} style={{ ...inputStyle, minHeight: 112 }} />
+              <label className="wpd-field">
+                <span className="wpd-field-label">Hero Aciklama</span>
+                <textarea value={selectedProfile.hero_description} onChange={(event) => updateSelected({ hero_description: event.target.value })} rows={4} className="wpd-textarea wpd-textarea--tall" />
               </label>
 
               {!isSelfMode ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ fontWeight: 800, color: "#0f172a" }}>Gorulecek Sekmeler</div>
-                <div style={{ display: "grid", gap: 8 }}>
+              <div className="wpd-control-section">
+                <div className="wpd-section-title">Gorulecek Sekmeler</div>
+                <div className="wpd-option-stack">
                   {WORKSPACE_PANEL_TAB_OPTIONS.map((tab) => {
                     const enabled = selectedProfile.allowed_tabs.includes(tab.key);
                     const tabIndex = selectedProfile.allowed_tabs.indexOf(tab.key);
@@ -1351,52 +1289,29 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                           if (enabled && tabIndex >= 0) handleTabDragOver(e, tabIndex);
                         }}
                         onDragEnd={handleTabDragEnd}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 12,
-                          borderRadius: 14,
-                          border: enabled ? "1px solid #86efac" : "1px solid #dbe3ee",
-                          background: enabled ? "#f0fdf4" : "white",
-                          padding: "10px 12px",
-                          cursor: enabled ? "grab" : "default",
-                        }}
+                        className={cx("wpd-tab-row", enabled && "wpd-tab-row--enabled")}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div className="wpd-tab-main">
                           <button
                             type="button"
                             aria-label={`${tab.label} durumunu degistir`}
                             onClick={() => toggleTab(tab.key)}
-                            style={{
-                              width: 26,
-                              height: 26,
-                              borderRadius: 6,
-                              border: enabled ? "1px solid #16a34a" : "1px solid #94a3b8",
-                              background: enabled ? "#16a34a" : "#ffffff",
-                              color: "white",
-                              fontSize: 15,
-                              fontWeight: 900,
-                              display: "grid",
-                              placeItems: "center",
-                              cursor: "pointer",
-                              flexShrink: 0,
-                            }}
+                            className={cx("wpd-check-button", enabled && "wpd-check-button--enabled")}
                           >
                             {enabled ? "✓" : ""}
                           </button>
-                          <span style={{ minWidth: 58, fontSize: 12, fontWeight: 800, color: enabled ? "#166534" : "#64748b" }}>{enabled ? "Acik" : "Kapali"}</span>
-                          <span style={{ color: enabled ? "#16a34a" : "#94a3b8", fontSize: 16, userSelect: "none" }}>{enabled ? "⠿" : "□"}</span>
-                          <div style={{ fontWeight: 700, color: enabled ? "#166534" : "#334155" }}>
+                          <span className={cx("wpd-tab-status", enabled && "wpd-tab-status--enabled")}>{enabled ? "Acik" : "Kapali"}</span>
+                          <span className={cx("wpd-drag-glyph", enabled && "wpd-drag-glyph--enabled")}>{enabled ? "⠿" : "□"}</span>
+                          <div className={cx("wpd-tab-title", enabled && "wpd-tab-title--enabled")}>
                             {enabled && tabIndex >= 0 ? `${tabIndex + 1}. ` : ""}
                             {tab.label}
                           </div>
                         </div>
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <button type="button" aria-label={`${tab.label} sekmesini yukari tasi`} onClick={() => moveAllowedTab(tab.key, -1)} disabled={!enabled || tabIndex <= 0} style={miniButtonStyle}>
+                        <div className="wpd-color-field-row">
+                          <button type="button" aria-label={`${tab.label} sekmesini yukari tasi`} onClick={() => moveAllowedTab(tab.key, -1)} disabled={!enabled || tabIndex <= 0} className="wpd-mini-button">
                             ↑
                           </button>
-                          <button type="button" aria-label={`${tab.label} sekmesini asagi tasi`} onClick={() => moveAllowedTab(tab.key, 1)} disabled={!enabled || tabIndex === selectedProfile.allowed_tabs.length - 1} style={miniButtonStyle}>
+                          <button type="button" aria-label={`${tab.label} sekmesini asagi tasi`} onClick={() => moveAllowedTab(tab.key, 1)} disabled={!enabled || tabIndex === selectedProfile.allowed_tabs.length - 1} className="wpd-mini-button">
                             ↓
                           </button>
                         </div>
@@ -1408,19 +1323,19 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
               ) : null}
 
               {!isSelfMode ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <div style={{ fontWeight: 800, color: "#0f172a" }}>Hizli Linkler</div>
-                  <button type="button" onClick={addQuickLink} style={{ ...miniButtonStyle, border: "1px solid #86efac", background: "#f0fdf4", color: "#166534" }}>
+              <div className="wpd-control-section">
+                <div className="wpd-section-head">
+                  <div className="wpd-section-title">Hizli Linkler</div>
+                  <button type="button" onClick={addQuickLink} className="wpd-mini-button wpd-mini-button--success">
                     + Hizli Link Ekle
                   </button>
                 </div>
                 {(selectedProfile.quick_links || []).length === 0 ? (
-                  <div style={{ borderRadius: 14, border: "1px dashed #cbd5e1", color: "#64748b", padding: "12px 14px" }}>
+                  <div className="wpd-empty-box">
                     Bu profil icin ozel hizli link tanimlanmadi. Varsayilan linkler kullanilir.
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gap: 12 }}>
+                  <div className="wpd-link-list">
                     {(selectedProfile.quick_links || []).map((link, index) => (
                       <div
                         key={`quick-link-${index}`}
@@ -1428,32 +1343,32 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
                         onDragStart={() => handleLinkDragStart(index)}
                         onDragOver={(e) => handleLinkDragOver(e, index)}
                         onDragEnd={handleLinkDragEnd}
-                        style={{ borderRadius: 16, border: "1px solid #dbe3ee", background: "#f8fafc", padding: 14, display: "grid", gap: 10, cursor: "grab" }}
+                        className="wpd-quick-link-card"
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                          <div style={{ fontWeight: 800, color: "#0f172a", display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ color: "#94a3b8", fontSize: 16, userSelect: "none" }}>⠿</span>
+                        <div className="wpd-link-card-head">
+                          <div className="wpd-link-card-title">
+                            <span className="wpd-drag-glyph">⠿</span>
                             Hizli Link {index + 1}
                           </div>
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <button type="button" aria-label={`Hizli link ${index + 1} yukari tasi`} onClick={() => moveQuickLink(index, -1)} disabled={index === 0} style={miniButtonStyle}>Yukari</button>
-                            <button type="button" aria-label={`Hizli link ${index + 1} asagi tasi`} onClick={() => moveQuickLink(index, 1)} disabled={index === (selectedProfile.quick_links || []).length - 1} style={miniButtonStyle}>Asagi</button>
-                            <button type="button" aria-label={`Hizli link ${index + 1} kaldir`} onClick={() => removeQuickLink(index)} style={{ ...miniButtonStyle, border: "1px solid #fecaca", background: "#fff1f2", color: "#be123c" }}>Kaldir</button>
+                          <div className="wpd-color-field-row">
+                            <button type="button" aria-label={`Hizli link ${index + 1} yukari tasi`} onClick={() => moveQuickLink(index, -1)} disabled={index === 0} className="wpd-mini-button">Yukari</button>
+                            <button type="button" aria-label={`Hizli link ${index + 1} asagi tasi`} onClick={() => moveQuickLink(index, 1)} disabled={index === (selectedProfile.quick_links || []).length - 1} className="wpd-mini-button">Asagi</button>
+                            <button type="button" aria-label={`Hizli link ${index + 1} kaldir`} onClick={() => removeQuickLink(index)} className="wpd-mini-button wpd-mini-button--danger">Kaldir</button>
                           </div>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
-                          <label style={{ display: "grid", gap: 6 }}>
-                            <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Link Etiketi</span>
-                            <input value={link.label} onChange={(event) => updateQuickLink(index, { label: event.target.value })} placeholder="or: Dashboard" style={inputStyle} />
+                        <div className="wpd-form-grid">
+                          <label className="wpd-field">
+                            <span className="wpd-field-label">Link Etiketi</span>
+                            <input value={link.label} onChange={(event) => updateQuickLink(index, { label: event.target.value })} placeholder="or: Dashboard" className="wpd-input" />
                           </label>
-                          <label style={{ display: "grid", gap: 6 }}>
-                            <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Href</span>
-                            <input value={link.href} onChange={(event) => updateQuickLink(index, { href: event.target.value })} placeholder="or: /dashboard" style={inputStyle} />
+                          <label className="wpd-field">
+                            <span className="wpd-field-label">Href</span>
+                            <input value={link.href} onChange={(event) => updateQuickLink(index, { href: event.target.value })} placeholder="or: /dashboard" className="wpd-input" />
                           </label>
                         </div>
-                        <label style={{ display: "grid", gap: 6 }}>
-                          <span style={{ fontWeight: 700, color: "#334155", fontSize: 12 }}>Link Aciklamasi</span>
-                          <textarea value={link.description} onChange={(event) => updateQuickLink(index, { description: event.target.value })} rows={3} style={{ ...inputStyle, minHeight: 88 }} />
+                        <label className="wpd-field">
+                          <span className="wpd-field-label">Link Aciklamasi</span>
+                          <textarea value={link.description} onChange={(event) => updateQuickLink(index, { description: event.target.value })} rows={3} className="wpd-textarea wpd-textarea--short" />
                         </label>
                       </div>
                     ))}
@@ -1469,23 +1384,57 @@ export function WorkspacePanelDesignerTab({ config, sourceConfig, currentUser, p
   );
 }
 
-const inputStyle = {
-  width: "100%",
-  borderRadius: 12,
-  border: "1px solid #dbe3ee",
-  padding: "10px 12px",
-  fontSize: 13,
-  color: "#0f172a",
-  background: "white",
-} as const;
+function buildDesignerResetKey(
+  config: WorkspacePanelConfig,
+  mode: "full" | "self",
+  currentUser?: AuthUser | null,
+  lockedProfile?: WorkspacePanelProfile | null,
+) {
+  const lockedKey = lockedProfile ? profileKey(lockedProfile.business_role, lockedProfile.system_role || null) : "";
+  return `${mode}:${currentUser?.id || ""}:${lockedKey}:${JSON.stringify(config)}`;
+}
 
-const miniButtonStyle = {
-  borderRadius: 999,
-  border: "1px solid #cbd5e1",
-  background: "white",
-  color: "#334155",
-  cursor: "pointer",
-} as const;
+function getInitialSelectedProfileIndex(
+  draft: WorkspacePanelConfig,
+  mode: "full" | "self",
+  currentUser?: AuthUser | null,
+  lockedProfile?: WorkspacePanelProfile | null,
+) {
+  if (mode !== "self" || !currentUser || !lockedProfile) return 0;
+  const targetKey = resolveSelfCustomizationProfileKey(draft, currentUser, lockedProfile);
+  const nextIndex = draft.profiles.findIndex((item) => profileKey(item.business_role, item.system_role || null) === targetKey);
+  return nextIndex >= 0 ? nextIndex : 0;
+}
+
+function normalizeMenuStyle(value: WorkspacePanelProfile["menu_style"]): "pill" | "accordion" | "drawer" | "tabs" {
+  if (value === "accordion" || value === "drawer" || value === "tabs") return value;
+  return "pill";
+}
+
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function sanitizeCssClass(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "default";
+}
+
+function safeCssValue(value: string) {
+  return String(value).replace(/[{};<>]/g, "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function useWorkspaceDesignerDynamicStyles(cssText: string) {
+  useEffect(() => {
+    if (!cssText || typeof document === "undefined" || !("adoptedStyleSheets" in document)) return undefined;
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(cssText);
+    const currentSheets = document.adoptedStyleSheets;
+    document.adoptedStyleSheets = [...currentSheets, sheet];
+    return () => {
+      document.adoptedStyleSheets = document.adoptedStyleSheets.filter((item) => item !== sheet);
+    };
+  }, [cssText]);
+}
 
 function buildInitialDraft(
   config: WorkspacePanelConfig,

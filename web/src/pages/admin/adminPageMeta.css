@@ -1,0 +1,19 @@
+.admin-tab-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.admin-tab-icon-badge--inactive {
+  border: 1px solid #dbe3ee;
+  background: #ffffff;
+}
+
+.admin-tab-icon-badge--active {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.18);
+}

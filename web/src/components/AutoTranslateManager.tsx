@@ -1,10 +1,24 @@
 import { useEffect } from "react";
 import { useLocale } from "../context/LocaleContext";
 import type { SupportedLocale } from "../lib/locale";
+import "./AutoTranslateManager.css";
+
+type GoogleTranslateApi = {
+  translate?: {
+    TranslateElement: new (
+      options: {
+        pageLanguage: string;
+        autoDisplay: boolean;
+        includedLanguages: string;
+      },
+      containerId: string,
+    ) => void;
+  };
+};
 
 declare global {
   interface Window {
-    google?: any;
+    google?: GoogleTranslateApi;
     googleTranslateElementInit?: () => void;
   }
 }
@@ -114,7 +128,7 @@ export default function AutoTranslateManager() {
         body { top: 0 !important; }
         html { margin-top: 0 !important; }
       `}</style>
-      <div id="google_translate_element" style={{ position: "fixed", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }} aria-hidden />
+      <div id="google_translate_element" className="auto-translate-manager__container" aria-hidden />
     </>
   );
 }

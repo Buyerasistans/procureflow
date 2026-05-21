@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { Loader, Download, Eye, FileText } from 'lucide-react';
 import { getAccessToken } from '../lib/token';
+import './ContractPortal.css';
 
 const Container = styled.div`
   padding: 20px;
@@ -344,7 +345,7 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
   return (
     <Container>
       <Header>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="contract-portal__header-row">
           <div>
             <h2>📄 Sözleşme Yönetimi</h2>
             <p>{supplierName} ile yapılan satın alma sözleşmeleri</p>
@@ -369,13 +370,13 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
       </Header>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <Loader size={32} className="animate-spin" style={{ margin: '0 auto' }} />
+        <div className="contract-portal__loading-state">
+          <Loader size={32} className="animate-spin contract-portal__loading-icon" />
           <p>Sözleşmeler yükleniyor...</p>
         </div>
       ) : contracts.length === 0 ? (
         <EmptyState>
-          <FileText size={48} style={{ margin: '0 auto 20px', opacity: 0.5 }} />
+          <FileText size={48} className="contract-portal__empty-icon" />
           <p>Henüz sözleşme oluşturulmamıştır</p>
         </EmptyState>
       ) : (
@@ -451,13 +452,7 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
               </ActionButtons>
 
               {contract.signed_at && (
-                <div style={{ 
-                  marginTop: '12px', 
-                  paddingTop: '12px', 
-                  borderTop: '1px solid #e0e0e0',
-                  fontSize: '12px',
-                  color: '#666'
-                }}>
+                <div className="contract-portal__signed-note">
                   ✓ Imzalama Tarihi: {new Date(contract.signed_at).toLocaleString('tr-TR')}
                 </div>
               )}

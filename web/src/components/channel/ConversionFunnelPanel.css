@@ -1,0 +1,74 @@
+.conversion-funnel-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.conversion-funnel-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.conversion-funnel-panel__rate-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+
+.conversion-funnel-panel__rate-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.conversion-funnel-panel__rate-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.conversion-funnel-panel__rate-value--clicks {
+  color: #1d4ed8;
+}
+
+.conversion-funnel-panel__rate-value--signup {
+  color: #047857;
+}
+
+.conversion-funnel-panel__rate-value--partner {
+  color: #7c3aed;
+}
+
+.conversion-funnel-panel__trend-shell {
+  border: 1px dashed #bfdbfe;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8fbff;
+}
+
+.conversion-funnel-panel__trend-title {
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.conversion-funnel-panel__trend-empty {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.conversion-funnel-panel__trend-list {
+  display: grid;
+  gap: 4px;
+}
+
+.conversion-funnel-panel__trend-item {
+  font-size: 12px;
+  color: #334155;
+}
+
+.conversion-funnel-panel__empty {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 13px;
+}

@@ -1,0 +1,152 @@
+.channel-section-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.channel-section-card--mb-14 {
+  margin-bottom: 14px;
+}
+
+.channel-section-card--mb-20 {
+  margin-bottom: 20px;
+}
+
+.channel-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.channel-section-header__title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.channel-stat-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: transparent;
+  padding: 12px;
+}
+
+.channel-stat-card__label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.channel-stat-card__value {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+}
+
+.channel-border--green {
+  border-color: #bbf7d0;
+}
+
+.channel-border--soft-green {
+  border-color: #dcfce7;
+}
+
+.channel-border--slate {
+  border-color: #e2e8f0;
+}
+
+.channel-border--blue {
+  border-color: #dbeafe;
+}
+
+.channel-border--amber {
+  border-color: #fde68a;
+}
+
+.channel-border--red {
+  border-color: #fecaca;
+}
+
+.channel-border--sky {
+  border-color: #bfdbfe;
+}
+
+.channel-border--orange {
+  border-color: #fed7aa;
+}
+
+.channel-border--gray {
+  border-color: #e5e7eb;
+}
+
+.channel-bg--white {
+  background: #ffffff;
+}
+
+.channel-bg--green {
+  background: #f0fdf4;
+}
+
+.channel-bg--slate {
+  background: #f8fafc;
+}
+
+.channel-bg--blue {
+  background: #eff6ff;
+}
+
+.channel-bg--amber {
+  background: #fffbeb;
+}
+
+.channel-bg--red {
+  background: #fef2f2;
+}
+
+.channel-bg--orange {
+  background: #fff7ed;
+}
+
+.channel-bg--yellow {
+  background: #fefce8;
+}
+
+.channel-bg--warm-white {
+  background: #fffbfb;
+}
+
+.channel-bg--transparent {
+  background: transparent;
+}
+
+.channel-text--slate {
+  color: #64748b;
+}
+
+.channel-text--dark-slate {
+  color: #334155;
+}
+
+.channel-text--amber {
+  color: #78350f;
+}
+
+.channel-text--green {
+  color: #14532d;
+}
+
+.channel-text--blue {
+  color: #1e3a8a;
+}
+
+.channel-text--red {
+  color: #7f1d1d;
+}
+
+.channel-text--orange {
+  color: #9a3412;
+}

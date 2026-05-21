@@ -1,5 +1,6 @@
 import React from "react";
 import type { CampaignChannel } from "../../services/profile.service";
+import "./CampaignPanel.css";
 
 interface CampaignPanelProps {
   campaigns: CampaignChannel[];
@@ -32,24 +33,10 @@ const REWARD_LABELS: Record<string, string> = {
 function ProgressBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   return (
-    <div
-      style={{
-        width: "100%",
-        height: 6,
-        backgroundColor: "#e5e7eb",
-        borderRadius: 3,
-        overflow: "hidden",
-        marginTop: 4,
-      }}
-    >
+    <div className="campaign-card__progress-bar">
       <div
-        style={{
-          height: "100%",
-          width: `${pct}%`,
-          backgroundColor: pct >= 100 ? "#047857" : "#3b82f6",
-          borderRadius: 3,
-          transition: "width 0.3s ease",
-        }}
+        className={`campaign-card__progress-bar-fill ${pct >= 100 ? "campaign-card__progress-bar-fill--complete" : "campaign-card__progress-bar-fill--incomplete"}`}
+        style={{ width: `${pct}%` }}
       />
     </div>
   );
@@ -68,45 +55,21 @@ function CampaignCard({ campaign }: { campaign: CampaignChannel }) {
   return (
     <div
       data-testid="campaign-card"
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 8,
-        padding: 16,
-        backgroundColor: isJoined ? "#f0fdf4" : "#fff",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
+      className={`campaign-card ${isJoined ? "campaign-card--joined" : "campaign-card--default"}`}
     >
       {/* Başlık satırı */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+      <div className="campaign-card__header">
         <div>
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#111827",
-            }}
-          >
-            {campaign.name}
-          </span>
+          <span className="campaign-card__name">{campaign.name}</span>
           {campaign.description && (
-            <p style={{ margin: "2px 0 0 0", fontSize: 12, color: "#6b7280" }}>
+            <p className="campaign-card__description">
               {campaign.description}
             </p>
           )}
         </div>
         <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: "#fff",
-            backgroundColor: statusColor,
-            borderRadius: 4,
-            padding: "2px 7px",
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
+          className="campaign-card__status"
+          style={{ backgroundColor: statusColor }}
         >
           {statusLabel}
         </span>
@@ -115,38 +78,31 @@ function CampaignCard({ campaign }: { campaign: CampaignChannel }) {
       {/* İlerleme */}
       {nextRule ? (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#374151" }}>
+          <div className="campaign-card__progress-header">
             <span>İlerleme</span>
             <span>
               {campaign.my_progress_count} / {nextRule.threshold_count}
             </span>
           </div>
           <ProgressBar value={campaign.my_progress_count} max={nextRule.threshold_count} />
-          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>
+          <div className="campaign-card__next-reward">
             Sonraki ödül:{" "}
             <strong>{REWARD_LABELS[nextRule.reward_type] ?? nextRule.reward_type}</strong>
           </div>
         </div>
       ) : sortedRules.length > 0 ? (
-        <div style={{ fontSize: 12, color: "#047857", fontWeight: 600 }}>
+        <div className="campaign-card__completed">
           ✓ Tüm basamaklar tamamlandı
         </div>
       ) : null}
 
       {/* Kazanılan ödüller */}
       {earnedCount > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 2 }}>
+        <div className="campaign-card__grants">
           {campaign.my_grants.map((gt, i) => (
             <span
               key={i}
-              style={{
-                fontSize: 10,
-                backgroundColor: "#d1fae5",
-                color: "#065f46",
-                borderRadius: 4,
-                padding: "2px 7px",
-                fontWeight: 600,
-              }}
+              className="campaign-card__grant"
             >
               {REWARD_LABELS[gt] ?? gt}
             </span>
@@ -156,7 +112,7 @@ function CampaignCard({ campaign }: { campaign: CampaignChannel }) {
 
       {/* Bitiş tarihi */}
       {campaign.ends_at && (
-        <div style={{ fontSize: 11, color: "#9ca3af" }}>
+        <div className="campaign-card__end-date">
           Bitiş: {new Date(campaign.ends_at).toLocaleDateString("tr-TR")}
         </div>
       )}
@@ -167,14 +123,14 @@ function CampaignCard({ campaign }: { campaign: CampaignChannel }) {
 export function CampaignPanel({ campaigns }: CampaignPanelProps) {
   if (campaigns.length === 0) {
     return (
-      <p style={{ color: "#9ca3af", fontSize: 13 }}>
+      <p className="campaign-panel__empty">
         Şu an aktif kampanya bulunmuyor.
       </p>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div className="campaign-panel">
       {campaigns.map((c) => (
         <CampaignCard key={c.id} campaign={c} />
       ))}

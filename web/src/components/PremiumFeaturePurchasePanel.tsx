@@ -11,6 +11,7 @@ import {
   type PremiumFeatureCatalogItem,
   type SubscriptionAddonCatalogItem,
 } from "../services/payment.service";
+import "./PremiumFeaturePurchasePanel.css";
 
 type TenantOption = {
   id: number;
@@ -28,7 +29,7 @@ interface PremiumFeaturePurchasePanelProps {
 }
 
 function formatPrice(value?: number | null): string {
-  if (!value || value <= 0) return "Fiyatlandirma tanimsiz";
+  if (!value || value <= 0) return "Fiyatlandırma tanımsız";
   return `${Number(value).toLocaleString("tr-TR")} TRY / ay`;
 }
 
@@ -44,7 +45,9 @@ export default function PremiumFeaturePurchasePanel({
   const [features, setFeatures] = useState<PremiumFeatureCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedTenantId, setSelectedTenantId] = useState<number>(defaultTenantId && tenants.some((item) => item.id === defaultTenantId) ? defaultTenantId : tenants[0]?.id || 0);
+  const [selectedTenantId, setSelectedTenantId] = useState<number>(
+    defaultTenantId && tenants.some((item) => item.id === defaultTenantId) ? defaultTenantId : tenants[0]?.id || 0,
+  );
   const [selectedFeatureId, setSelectedFeatureId] = useState<number>(0);
   const [purchaseMode, setPurchaseMode] = useState<"premium_feature" | "subscription_addon">("premium_feature");
   const [selectedAddonCode, setSelectedAddonCode] = useState<string>(addonCatalog[0]?.code || "");
@@ -89,11 +92,12 @@ export default function PremiumFeaturePurchasePanel({
       })
       .catch(() => {
         if (!mounted) return;
-        setError("Premium feature katalogu veya odeme saglayicilari yuklenemedi.");
+        setError("Premium feature katalogu veya ödeme sağlayıcıları yüklenemedi.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
       });
+
     return () => {
       mounted = false;
     };
@@ -128,44 +132,52 @@ export default function PremiumFeaturePurchasePanel({
 
   async function handleStartPayment() {
     if (!selectedTenant) {
-      setError("Lutfen stratejik partner secin.");
+      setError("Lütfen stratejik partner seçin.");
       return;
     }
-    const amount = purchaseMode === "premium_feature"
-      ? Number(selectedFeature?.monthly_price || 0)
-      : Number(selectedAddon?.price_monthly || 0) * Math.max(selectedAddonQuantity, 1);
+
+    const amount =
+      purchaseMode === "premium_feature"
+        ? Number(selectedFeature?.monthly_price || 0)
+        : Number(selectedAddon?.price_monthly || 0) * Math.max(selectedAddonQuantity, 1);
+
     if (amount <= 0) {
-      setError(purchaseMode === "premium_feature"
-        ? "Secilen premium feature icin gecerli bir aylik fiyat tanimli degil."
-        : "Secilen add-on icin gecerli bir fiyat tanimli degil.");
+      setError(
+        purchaseMode === "premium_feature"
+          ? "Seçilen premium feature için geçerli bir aylık fiyat tanımlı değil."
+          : "Seçilen add-on için geçerli bir fiyat tanımlı değil.",
+      );
       return;
     }
 
     setSubmitting(true);
     setError(null);
     setMessage(null);
+
     try {
-      const result = purchaseMode === "premium_feature" && selectedFeature
-        ? await initiatePremiumFeaturePayment({
-          tenant_id: selectedTenant.id,
-          premium_feature_id: selectedFeature.id,
-          provider: selectedProvider,
-          amount,
-          buyer_email: selectedTenant.contactEmail || buyerEmail,
-          buyer_name: buyerName,
-          description: `${selectedTenant.name} icin ${selectedFeature.name} premium ozelligi`,
-        })
-        : await initiateSubscriptionAddonPayment({
-          tenant_id: selectedTenant.id,
-          addon_code: selectedAddon?.code || "",
-          addon_name: selectedAddon?.name || "",
-          provider: selectedProvider,
-          amount,
-          quantity: Math.max(selectedAddonQuantity, 1),
-          buyer_email: selectedTenant.contactEmail || buyerEmail,
-          buyer_name: buyerName,
-          description: `${selectedTenant.name} icin ${selectedAddon?.name || "add-on"} kapasite alimi`,
-        });
+      const result =
+        purchaseMode === "premium_feature" && selectedFeature
+          ? await initiatePremiumFeaturePayment({
+              tenant_id: selectedTenant.id,
+              premium_feature_id: selectedFeature.id,
+              provider: selectedProvider,
+              amount,
+              buyer_email: selectedTenant.contactEmail || buyerEmail,
+              buyer_name: buyerName,
+              description: `${selectedTenant.name} için ${selectedFeature.name} premium özelliği`,
+            })
+          : await initiateSubscriptionAddonPayment({
+              tenant_id: selectedTenant.id,
+              addon_code: selectedAddon?.code || "",
+              addon_name: selectedAddon?.name || "",
+              provider: selectedProvider,
+              amount,
+              quantity: Math.max(selectedAddonQuantity, 1),
+              buyer_email: selectedTenant.contactEmail || buyerEmail,
+              buyer_name: buyerName,
+              description: `${selectedTenant.name} için ${selectedAddon?.name || "add-on"} kapasite alımı`,
+            });
+
       setLastTransaction({
         id: Number(result.transaction_id),
         provider: result.provider,
@@ -174,14 +186,15 @@ export default function PremiumFeaturePurchasePanel({
       });
       setReceiptFile(null);
       setReceiptNote("");
+
       if (result.redirect_url) {
         window.open(String(result.redirect_url), "_blank", "noopener,noreferrer");
-        setMessage("Odeme oturumu yeni sekmede acildi. Saglayici sonucu webhook ile islenecek.");
+        setMessage("Ödeme oturumu yeni sekmede açıldı. Sağlayıcı sonucu webhook ile işlenecek.");
       } else {
-        setMessage("Odeme islemi olusturuldu. Banka referansi ile manuel tahsilat baslatilabilir.");
+        setMessage("Ödeme işlemi oluşturuldu. Banka referansı ile manuel tahsilat başlatılabilir.");
       }
     } catch (requestError) {
-      const detail = requestError instanceof Error ? requestError.message : "Odeme baslatilamadi.";
+      const detail = requestError instanceof Error ? requestError.message : "Ödeme başlatılamadı.";
       setError(detail);
     } finally {
       setSubmitting(false);
@@ -190,22 +203,20 @@ export default function PremiumFeaturePurchasePanel({
 
   async function handleUploadReceipt() {
     if (!lastTransaction?.id || !receiptFile) {
-      setError("Once islem olusturun ve dekont dosyasi secin.");
+      setError("Önce işlem oluşturun ve dekont dosyası seçin.");
       return;
     }
+
     setReceiptBusy(true);
     setError(null);
     setMessage(null);
+
     try {
       await uploadPaymentReceipt(lastTransaction.id, receiptFile, receiptNote);
       const refreshed = await getPaymentTransaction(lastTransaction.id);
-      setLastTransaction((prev) => prev ? {
-        ...prev,
-        instructions: prev.instructions,
-      } : prev);
-      setMessage(`Dekont yuklendi. Islem durumu: ${refreshed.status}`);
+      setMessage(`Dekont yüklendi. İşlem durumu: ${refreshed.status}`);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Dekont yuklenemedi.");
+      setError(requestError instanceof Error ? requestError.message : "Dekont yüklenemedi.");
     } finally {
       setReceiptBusy(false);
     }
@@ -213,41 +224,43 @@ export default function PremiumFeaturePurchasePanel({
 
   async function handleVerifyPayment() {
     if (!lastTransaction?.id) {
-      setError("Dogrulanacak odeme islemi bulunamadi.");
+      setError("Doğrulanacak ödeme işlemi bulunamadı.");
       return;
     }
+
     setVerifyBusy(true);
     setError(null);
     setMessage(null);
+
     try {
       const result = await verifyPaymentTransaction(lastTransaction.id);
       setMessage(
         purchaseMode === "premium_feature"
-          ? `Odeme dogrulandi. Aktiflestirilen premium feature sayisi: ${result.activated_feature_count}`
-          : `Odeme dogrulandi. Aktiflestirilen add-on sayisi: ${result.activated_addon_count}`,
+          ? `Ödeme doğrulandı. Aktifleştirilen premium feature sayısı: ${result.activated_feature_count}`
+          : `Ödeme doğrulandı. Aktifleştirilen add-on sayısı: ${result.activated_addon_count}`,
       );
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Odeme dogrulanamadi.");
+      setError(requestError instanceof Error ? requestError.message : "Ödeme doğrulanamadı.");
     } finally {
       setVerifyBusy(false);
     }
   }
 
   return (
-    <div style={{ borderRadius: 20, border: "1px solid #e2e8f0", background: "linear-gradient(135deg, #faf5ff 0%, #ffffff 48%, #f8fafc 100%)", padding: 18, display: "grid", gap: 14 }}>
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase", color: "#7c3aed" }}>Premium Satin Alma</div>
-        <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>Gercek odeme baslatma paneli</div>
-        <div style={{ marginTop: 6, color: "#475569", fontSize: 13, lineHeight: 1.7 }}>
-          Secilen stratejik partner icin premium feature veya kapasite add-on odemesini baslatir. Basarili webhook sonrasinda hak otomatik aktiflesir.
+    <div className="premium-feature-purchase-panel">
+      <div className="premium-feature-purchase-panel__header">
+        <div className="premium-feature-purchase-panel__eyebrow">Premium Satın Alma</div>
+        <div className="premium-feature-purchase-panel__title">Gerçek ödeme başlatma paneli</div>
+        <div className="premium-feature-purchase-panel__description">
+          Seçilen stratejik partner için premium feature veya kapasite add-on ödemesini başlatır. Başarılı webhook sonrasında hak otomatik aktifleşir.
         </div>
       </div>
 
       {loading ? (
-        <div style={{ color: "#64748b" }}>Premium katalog yukleniyor...</div>
+        <div className="premium-feature-purchase-panel__status">Premium katalog yükleniyor...</div>
       ) : (
         <>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="premium-feature-purchase-panel__mode-switch">
             {[
               { key: "premium_feature", label: "Premium Feature" },
               { key: "subscription_addon", label: "Kapasite Add-on" },
@@ -256,134 +269,228 @@ export default function PremiumFeaturePurchasePanel({
                 key={item.key}
                 type="button"
                 onClick={() => setPurchaseMode(item.key as "premium_feature" | "subscription_addon")}
-                style={{ borderRadius: 999, border: purchaseMode === item.key ? "1px solid #7c3aed" : "1px solid #cbd5e1", background: purchaseMode === item.key ? "#f3e8ff" : "#fff", color: purchaseMode === item.key ? "#6d28d9" : "#334155", fontWeight: 800, padding: "8px 12px", cursor: "pointer" }}
+                className={
+                  purchaseMode === item.key
+                    ? "premium-feature-purchase-panel__pill premium-feature-purchase-panel__pill--active"
+                    : "premium-feature-purchase-panel__pill"
+                }
               >
                 {item.label}
               </button>
             ))}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-            <label style={{ display: "grid", gap: 6, color: "#334155", fontWeight: 700, fontSize: 13 }}>
+
+          <div className="premium-feature-purchase-panel__grid">
+            <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-tenant">
               Stratejik Partner
-              <select value={selectedTenantId || ""} onChange={(event) => setSelectedTenantId(Number(event.target.value))} style={{ borderRadius: 12, border: "1px solid #cbd5e1", padding: "10px 12px", background: "#fff" }}>
+              <select
+                id="premium-feature-purchase-panel-tenant"
+                value={selectedTenantId || ""}
+                onChange={(event) => setSelectedTenantId(Number(event.target.value))}
+                className="premium-feature-purchase-panel__select"
+                title="Stratejik Partner seçimi"
+              >
                 {tenants.map((tenant) => (
-                  <option key={tenant.id} value={tenant.id} aria-label={tenant.name}>#{tenant.id}</option>
+                  <option key={tenant.id} value={tenant.id} aria-label={tenant.name}>
+                    #{tenant.id}
+                  </option>
                 ))}
               </select>
             </label>
 
             {purchaseMode === "premium_feature" ? (
-              <label style={{ display: "grid", gap: 6, color: "#334155", fontWeight: 700, fontSize: 13 }}>
+              <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-feature">
                 Premium Feature
-                <select value={selectedFeatureId || ""} onChange={(event) => setSelectedFeatureId(Number(event.target.value))} style={{ borderRadius: 12, border: "1px solid #cbd5e1", padding: "10px 12px", background: "#fff" }}>
+                <select
+                  id="premium-feature-purchase-panel-feature"
+                  value={selectedFeatureId || ""}
+                  onChange={(event) => setSelectedFeatureId(Number(event.target.value))}
+                  className="premium-feature-purchase-panel__select"
+                  title="Premium feature seçimi"
+                >
                   {features.map((feature) => (
-                    <option key={feature.id} value={feature.id}>{feature.name}</option>
+                    <option key={feature.id} value={feature.id}>
+                      {feature.name}
+                    </option>
                   ))}
                 </select>
               </label>
             ) : (
               <>
-                <label style={{ display: "grid", gap: 6, color: "#334155", fontWeight: 700, fontSize: 13 }}>
+                <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-addon">
                   Kapasite Add-on
-                  <select value={selectedAddonCode} onChange={(event) => setSelectedAddonCode(event.target.value)} style={{ borderRadius: 12, border: "1px solid #cbd5e1", padding: "10px 12px", background: "#fff" }}>
+                  <select
+                    id="premium-feature-purchase-panel-addon"
+                    value={selectedAddonCode}
+                    onChange={(event) => setSelectedAddonCode(event.target.value)}
+                    className="premium-feature-purchase-panel__select"
+                    title="Add-on seçimi"
+                  >
                     {addonCatalog.map((addon) => (
-                      <option key={addon.code} value={addon.code}>{addon.name}</option>
+                      <option key={addon.code} value={addon.code}>
+                        {addon.name}
+                      </option>
                     ))}
                   </select>
                 </label>
-                <label style={{ display: "grid", gap: 6, color: "#334155", fontWeight: 700, fontSize: 13 }}>
+
+                <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-quantity">
                   Adet
-                  <input type="number" min={1} value={selectedAddonQuantity} onChange={(event) => setSelectedAddonQuantity(Math.max(Number(event.target.value) || 1, 1))} style={{ borderRadius: 12, border: "1px solid #cbd5e1", padding: "10px 12px", background: "#fff" }} />
+                  <input
+                    id="premium-feature-purchase-panel-quantity"
+                    type="number"
+                    min={1}
+                    value={selectedAddonQuantity}
+                    onChange={(event) =>
+                      setSelectedAddonQuantity(Math.max(Number(event.target.value) || 1, 1))
+                    }
+                    className="premium-feature-purchase-panel__input"
+                    title="Add-on adet seçimi"
+                  />
                 </label>
               </>
             )}
 
-            <label style={{ display: "grid", gap: 6, color: "#334155", fontWeight: 700, fontSize: 13 }}>
-              Odeme Saglayicisi
-              <select value={selectedProvider} onChange={(event) => setSelectedProvider(event.target.value)} style={{ borderRadius: 12, border: "1px solid #cbd5e1", padding: "10px 12px", background: "#fff" }}>
+            <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-provider">
+              Ödeme Sağlayıcısı
+              <select
+                id="premium-feature-purchase-panel-provider"
+                value={selectedProvider}
+                onChange={(event) => setSelectedProvider(event.target.value)}
+                className="premium-feature-purchase-panel__select"
+                title="Ödeme sağlayıcısı seçimi"
+              >
                 {providers.map((provider) => (
-                  <option key={provider.code} value={provider.code}>{provider.name}</option>
+                  <option key={provider.code} value={provider.code}>
+                    {provider.name}
+                  </option>
                 ))}
               </select>
             </label>
           </div>
 
           {purchaseMode === "premium_feature" && selectedFeature ? (
-            <div style={{ borderRadius: 16, border: "1px solid #ddd6fe", background: "#faf5ff", padding: 14, display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ fontWeight: 800, color: "#0f172a" }}>{selectedFeature.name}</div>
-                <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", background: "#ede9fe", color: "#6d28d9", fontWeight: 700, fontSize: 12 }}>
+            <div className="premium-feature-purchase-panel__card premium-feature-purchase-panel__card--premium">
+              <div className="premium-feature-purchase-panel__card-head">
+                <div className="premium-feature-purchase-panel__card-title">{selectedFeature.name}</div>
+                <span className="premium-feature-purchase-panel__badge">
                   {formatPrice(selectedFeature.monthly_price)}
                 </span>
               </div>
-              <div style={{ color: "#475569", fontSize: 13, lineHeight: 1.7 }}>{selectedFeature.description || "Aciklama bulunmuyor."}</div>
-              <div style={{ color: "#64748b", fontSize: 12 }}>
-                Hedef tenant: #{selectedTenant?.id || "-"} • Alici e-posta: {selectedTenant?.contactEmail || buyerEmail}
+              <div className="premium-feature-purchase-panel__card-text">
+                {selectedFeature.description || "Açıklama bulunmuyor."}
+              </div>
+              <div className="premium-feature-purchase-panel__meta">
+                Hedef tenant: #{selectedTenant?.id || "-"} • Alıcı e-posta: {selectedTenant?.contactEmail || buyerEmail}
               </div>
             </div>
           ) : null}
 
           {purchaseMode === "subscription_addon" && selectedAddon ? (
-            <div style={{ borderRadius: 16, border: "1px solid #fed7aa", background: "#fff7ed", padding: 14, display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ fontWeight: 800, color: "#0f172a" }}>{selectedAddon.name}</div>
-                <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", background: "#ffedd5", color: "#9a3412", fontWeight: 700, fontSize: 12 }}>
+            <div className="premium-feature-purchase-panel__card premium-feature-purchase-panel__card--addon">
+              <div className="premium-feature-purchase-panel__card-head">
+                <div className="premium-feature-purchase-panel__card-title">{selectedAddon.name}</div>
+                <span className="premium-feature-purchase-panel__badge premium-feature-purchase-panel__badge--addon">
                   {formatPrice((Number(selectedAddon.price_monthly || 0) || 0) * Math.max(selectedAddonQuantity, 1))}
                 </span>
               </div>
-              <div style={{ color: "#475569", fontSize: 13, lineHeight: 1.7 }}>{selectedAddon.description || "Aciklama bulunmuyor."}</div>
-              <div style={{ color: "#7c2d12", fontSize: 12 }}>
-                Her alim: {selectedAddon.increment || 1} {selectedAddon.unit || "adet"} ek kapasite • Secilen adet: {selectedAddonQuantity}
+              <div className="premium-feature-purchase-panel__card-text">
+                {selectedAddon.description || "Açıklama bulunmuyor."}
               </div>
-              <div style={{ color: "#64748b", fontSize: 12 }}>
-                Hedef tenant: #{selectedTenant?.id || "-"} • Alici e-posta: {selectedTenant?.contactEmail || buyerEmail}
+              <div className="premium-feature-purchase-panel__meta premium-feature-purchase-panel__meta--addon">
+                Her alım: {selectedAddon.increment || 1} {selectedAddon.unit || "adet"} ek kapasite • Seçilen adet: {selectedAddonQuantity}
+              </div>
+              <div className="premium-feature-purchase-panel__meta">
+                Hedef tenant: #{selectedTenant?.id || "-"} • Alıcı e-posta: {selectedTenant?.contactEmail || buyerEmail}
               </div>
             </div>
           ) : null}
 
-          {error ? <div style={{ borderRadius: 12, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", padding: 12 }}>{error}</div> : null}
-          {message ? <div style={{ borderRadius: 12, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", padding: 12 }}>{message}</div> : null}
+          {error ? <div className="premium-feature-purchase-panel__alert premium-feature-purchase-panel__alert--error">{error}</div> : null}
+          {message ? <div className="premium-feature-purchase-panel__alert premium-feature-purchase-panel__alert--info">{message}</div> : null}
 
           {lastTransaction?.instructions ? (
-            <div style={{ borderRadius: 16, border: "1px solid #fed7aa", background: "#fff7ed", padding: 14, display: "grid", gap: 6 }}>
-              <div style={{ fontWeight: 800, color: "#9a3412" }}>Banka Havalesi Talimati</div>
-              <div style={{ color: "#7c2d12", fontSize: 13 }}>Islem No: {lastTransaction.id}</div>
-              <div style={{ color: "#7c2d12", fontSize: 13 }}>Banka: {lastTransaction.instructions.bank_name || "-"}</div>
-              <div style={{ color: "#7c2d12", fontSize: 13 }}>IBAN: {lastTransaction.instructions.iban || "-"}</div>
-              <div style={{ color: "#7c2d12", fontSize: 13 }}>Referans: {lastTransaction.instructions.reference || "-"}</div>
+            <div className="premium-feature-purchase-panel__card premium-feature-purchase-panel__card--bank">
+              <div className="premium-feature-purchase-panel__card-title premium-feature-purchase-panel__card-title--bank">
+                Banka Havalesi Talimatı
+              </div>
+              <div className="premium-feature-purchase-panel__meta">İşlem No: {lastTransaction.id}</div>
+              <div className="premium-feature-purchase-panel__meta">Banka: {lastTransaction.instructions.bank_name || "-"}</div>
+              <div className="premium-feature-purchase-panel__meta">IBAN: {lastTransaction.instructions.iban || "-"}</div>
+              <div className="premium-feature-purchase-panel__meta">Referans: {lastTransaction.instructions.reference || "-"}</div>
             </div>
           ) : null}
 
           {lastTransaction?.id ? (
-            <div style={{ borderRadius: 16, border: "1px solid #dbeafe", background: "#f8fbff", padding: 14, display: "grid", gap: 10 }}>
-              <div style={{ fontWeight: 800, color: "#1d4ed8" }}>Dekont ve Manuel Dogrulama</div>
-              <div style={{ color: "#475569", fontSize: 13 }}>Islem No: {lastTransaction.id}</div>
-              <input type="file" accept="application/pdf,image/*" onChange={(event) => setReceiptFile(event.target.files?.[0] || null)} />
-              <textarea value={receiptNote} onChange={(event) => setReceiptNote(event.target.value)} rows={3} style={{ borderRadius: 12, border: "1px solid #cbd5e1", padding: 10, resize: "vertical" }} placeholder="Dekont notu veya banka referansi" />
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button type="button" onClick={handleUploadReceipt} disabled={receiptBusy || !receiptFile} style={{ borderRadius: 10, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, padding: "9px 14px", cursor: receiptBusy || !receiptFile ? "not-allowed" : "pointer" }}>
-                  {receiptBusy ? "Dekont Yukleniyor..." : "Dekont Yukle"}
+            <div className="premium-feature-purchase-panel__card premium-feature-purchase-panel__card--receipt">
+              <div className="premium-feature-purchase-panel__card-title premium-feature-purchase-panel__card-title--receipt">
+                Dekont ve Manuel Doğrulama
+              </div>
+              <div className="premium-feature-purchase-panel__meta">İşlem No: {lastTransaction.id}</div>
+
+              <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-receipt">
+                Dekont dosyası
+                <input
+                  id="premium-feature-purchase-panel-receipt"
+                  type="file"
+                  accept="application/pdf,image/*"
+                  onChange={(event) => setReceiptFile(event.target.files?.[0] || null)}
+                  className="premium-feature-purchase-panel__file-input"
+                  title="Dekont dosyası seçimi"
+                />
+              </label>
+
+              <label className="premium-feature-purchase-panel__field" htmlFor="premium-feature-purchase-panel-note">
+                Dekont notu
+                <textarea
+                  id="premium-feature-purchase-panel-note"
+                  value={receiptNote}
+                  onChange={(event) => setReceiptNote(event.target.value)}
+                  rows={3}
+                  className="premium-feature-purchase-panel__textarea"
+                  placeholder="Dekont notu veya banka referansı"
+                  title="Dekont notu"
+                />
+              </label>
+
+              <div className="premium-feature-purchase-panel__action-row">
+                <button
+                  type="button"
+                  onClick={handleUploadReceipt}
+                  disabled={receiptBusy || !receiptFile}
+                  className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--secondary"
+                >
+                  {receiptBusy ? "Dekont Yükleniyor..." : "Dekont Yükle"}
                 </button>
                 {allowAdminVerification ? (
-                  <button type="button" onClick={handleVerifyPayment} disabled={verifyBusy} style={{ borderRadius: 10, border: "none", background: "#0f766e", color: "#fff", fontWeight: 700, padding: "9px 14px", cursor: verifyBusy ? "wait" : "pointer" }}>
-                    {verifyBusy ? "Dogrulaniyor..." : "Odemeyi Dogrula ve Aktiflestir"}
+                  <button
+                    type="button"
+                    onClick={handleVerifyPayment}
+                    disabled={verifyBusy}
+                    className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--success"
+                  >
+                    {verifyBusy ? "Doğrulanıyor..." : "Ödemeyi Doğrula ve Aktifleştir"}
                   </button>
                 ) : null}
               </div>
             </div>
           ) : null}
 
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ color: "#64748b", fontSize: 12 }}>
-              Webhook basarisinda aktivasyon otomatik islenir. Manuel saglayicilarda banka referansi transaction kaydina baglidir.
+          <div className="premium-feature-purchase-panel__footer">
+            <div className="premium-feature-purchase-panel__footer-note">
+              Webhook başarısında aktivasyon otomatik işlenir. Manuel sağlayıcılarda banka referansı transaction kaydına bağlıdır.
             </div>
             <button
               type="button"
               onClick={handleStartPayment}
               disabled={submitting || !selectedTenant || (purchaseMode === "premium_feature" ? !selectedFeature : !selectedAddon)}
-              style={{ borderRadius: 12, border: "none", background: submitting ? "#a78bfa" : "#7c3aed", color: "#fff", fontWeight: 800, padding: "10px 16px", cursor: submitting ? "wait" : "pointer" }}
+              className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--primary"
             >
-              {submitting ? "Odeme Baslatiliyor..." : purchaseMode === "premium_feature" ? "Premium Satin Alimini Baslat" : "Add-on Satin Alimini Baslat"}
+              {submitting
+                ? "Ödeme Başlatılıyor..."
+                : purchaseMode === "premium_feature"
+                  ? "Premium Satın Alımını Başlat"
+                  : "Add-on Satın Alımını Başlat"}
             </button>
           </div>
         </>

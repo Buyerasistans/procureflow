@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import "./commission-admin-tab.css";
 import {
   getAdminCommissionLedger,
   getAdminCommissionDashboard,
@@ -49,7 +50,7 @@ export function CommissionAdminTab() {
   }
 
   return (
-    <div style={{ padding: "20px 0" }}>
+    <div className="commission-admin-tab">
       <CommissionDashboardPanel
         data={dashboard}
         loading={dashboardLoading}

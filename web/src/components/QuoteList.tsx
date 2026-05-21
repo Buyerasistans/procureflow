@@ -5,16 +5,31 @@ import type { Rfq as Quote } from "../services/quote.service";
 import { Link, useNavigate } from "react-router-dom";
 import {
   QuoteStatusLabel,
-  QuoteStatusColor,
   normalizeQuoteStatus,
 } from "../types/quote.types";
 import { http } from "../lib/http";
 import SendQuoteModal from "./SendQuoteModal";
 import { useAuth } from "../hooks/useAuth";
-import { canAccessAdminSurface, canManageQuoteWorkspace, canReviewApprovals, getRoleIcon, getUserDisplayRoleLabel, isPlatformStaffUser, normalizedBusinessRole } from "../auth/permissions";
+import {
+  canAccessAdminSurface,
+  canManageQuoteWorkspace,
+  canReviewApprovals,
+  getRoleIcon,
+  getUserDisplayRoleLabel,
+  isPlatformStaffUser,
+  normalizedBusinessRole,
+} from "../auth/permissions";
 import WorkspaceHeroCard from "./WorkspaceHeroCard";
-import { buildWorkspacePanelTheme, mergeWorkspacePanelConfig, resolveWorkspacePanelProfile } from "../admin/workspace-panels";
-import { getWorkspacePanelConfig, type WorkspacePanelConfig } from "../services/admin.service";
+import {
+  buildWorkspacePanelTheme,
+  mergeWorkspacePanelConfig,
+  resolveWorkspacePanelProfile,
+} from "../admin/workspace-panels";
+import {
+  getWorkspacePanelConfig,
+  type WorkspacePanelConfig,
+} from "../services/admin.service";
+import "./QuoteList.css";
 
 interface QuoteListProps {
   showHero?: boolean;
@@ -34,7 +49,17 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [listingFilter, setListingFilter] = useState<string>("all");
   const [sendTarget, setSendTarget] = useState<Quote | null>(null);
-  const [projectSuppliers, setProjectSuppliers] = useState<Array<{ id: number; supplier_id: number; supplier_name: string; supplier_email: string; source_type?: "private" | "platform_network"; category?: string; is_active: boolean }>>([]);
+  const [projectSuppliers, setProjectSuppliers] = useState<
+    Array<{
+      id: number;
+      supplier_id: number;
+      supplier_name: string;
+      supplier_email: string;
+      source_type?: "private" | "platform_network";
+      category?: string;
+      is_active: boolean;
+    }>
+  >([]);
   const [pendingApprovalQuoteIds, setPendingApprovalQuoteIds] = useState<Set<number>>(new Set());
   const [workspacePanelConfig, setWorkspacePanelConfig] = useState<WorkspacePanelConfig | null>(null);
 
@@ -45,8 +70,8 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
       const isReworkFilter = statusFilter === "rework";
       if (isReworkFilter) {
         const bulk = await getRfqs(1, 500, undefined);
-        const reworkItems = (bulk.items || []).filter(
-          (item) => String(item.transition_reason || "").toLowerCase().startsWith("hata ve eksikler var")
+        const reworkItems = (bulk.items || []).filter((item) =>
+          String(item.transition_reason || "").toLowerCase().startsWith("hata ve eksikler var"),
         );
         const offset = (page - 1) * 10;
         setQuotes(reworkItems.slice(offset, offset + 10));
@@ -56,6 +81,7 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
         setQuotes(data.items);
         setTotal(data.total);
       }
+
       if (canReviewApprovals(user)) {
         const pending = await http.get<Array<{ quote_id: number }>>("/approvals/user/pending");
         const quoteIdSet = new Set((pending.data || []).map((row) => Number(row.quote_id)));
@@ -63,8 +89,8 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
       } else {
         setPendingApprovalQuoteIds(new Set());
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Teklif yüklenemedi");
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : "Teklif yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -108,11 +134,15 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
     mixed: quotes.filter((quote) => quote.listing_scope === "private_and_platform_network").length,
     premium: quotes.filter((quote) => quote.listing_scope === "premium_featured_listing").length,
   };
+
   const roleLabel = user ? getUserDisplayRoleLabel(user) : "";
   const roleIcon = getRoleIcon(normalizedBusinessRole(user));
   const userName = user?.full_name || "Buyera Asistans";
   const userEmail = user?.email || "";
-  const activeWorkspacePanelProfile = resolveWorkspacePanelProfile(user, mergeWorkspacePanelConfig(workspacePanelConfig));
+  const activeWorkspacePanelProfile = resolveWorkspacePanelProfile(
+    user,
+    mergeWorkspacePanelConfig(workspacePanelConfig),
+  );
   const workspaceTheme = buildWorkspacePanelTheme(activeWorkspacePanelProfile);
 
   const handleDelete = async (quoteId: number) => {
@@ -120,26 +150,28 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
     try {
       await deleteRfq(quoteId);
       await fetchQuotes();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Teklif silinemedi");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Teklif silinemedi");
     }
   };
 
   const openSendModal = async (quote: Quote) => {
     try {
-      const res = await http.get(`/suppliers/projects/${quote.project_id}/suppliers`);
-      setProjectSuppliers(Array.isArray(res.data) ? res.data : []);
+      const response = await http.get(`/suppliers/projects/${quote.project_id}/suppliers`);
+      setProjectSuppliers(Array.isArray(response.data) ? response.data : []);
       setSendTarget(quote);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Projeye ekli tedarikçiler yüklenemedi");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Projeye ekli tedarikçiler yüklenemedi");
     }
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: 20 }}>Yükleniyor...</div>;
+  if (loading) {
+    return <div className="quote-list__loading">Yükleniyor...</div>;
+  }
 
   return (
-    <div style={{ padding: "16px" }}>
-      {sendTarget && (
+    <div className="quote-list">
+      {sendTarget ? (
         <SendQuoteModal
           quote={sendTarget}
           quoteId={sendTarget.id}
@@ -151,7 +183,8 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
             await fetchQuotes();
           }}
         />
-      )}
+      ) : null}
+
       {showHero ? (
         <WorkspaceHeroCard
           title={activeWorkspacePanelProfile?.hero_title || "Teklif Yönetim Paneli"}
@@ -171,24 +204,25 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
         />
       ) : null}
 
-      <div style={{ marginBottom: "20px" }}>
-        <h3>Teklifler ({total})</h3>
+      <div className="quote-list__section">
+        <h3 className="quote-list__heading">Teklifler ({total})</h3>
 
-        {readOnly && (
-          <div style={{ marginBottom: "12px", padding: "10px 12px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a" }}>
-            Platform personeli teklif portfoyunu inceleyebilir; yeni teklif, duzenleme, silme ve gonderim aksiyonlari salt okunur modda kapatildi.
+        {readOnly ? (
+          <div className="quote-list__notice">
+            Platform personeli teklif portföyünü inceleyebilir; yeni teklif, düzenleme, silme ve gönderim aksiyonları salt okunur modda kapatıldı.
           </div>
-        )}
+        ) : null}
 
-        {/* Filter Bar */}
-        <div style={{ marginBottom: "16px", display: "flex", gap: "8px" }}>
+        <div className="quote-list__filters">
           <select
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
               setPage(1);
             }}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+            className="quote-list__select"
+            aria-label="Teklif durum filtresi"
+            title="Teklif durum filtresi"
           >
             <option value="">Tüm Durumlar</option>
             <option value="draft">Taslak</option>
@@ -198,119 +232,148 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
             <option value="rejected">Reddedildi</option>
           </select>
 
-          {isPlatformPortfolioView && (
+          {isPlatformPortfolioView ? (
             <select
               value={listingFilter}
-              onChange={(e) => setListingFilter(e.target.value)}
-              style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+              onChange={(event) => setListingFilter(event.target.value)}
+              className="quote-list__select"
+              aria-label="Listeleme tipi filtresi"
+              title="Listeleme tipi filtresi"
             >
-              <option value="all">Tum Listeleme Tipleri</option>
-              <option value="private_suppliers_only">Sadece kendi tedarikcileri</option>
-              <option value="platform_network_only">Platform agina acik</option>
+              <option value="all">Tüm Listeleme Tipleri</option>
+              <option value="private_suppliers_only">Sadece kendi tedarikçileri</option>
+              <option value="platform_network_only">Platform ağına açık</option>
               <option value="private_and_platform_network">Karma havuz</option>
-              <option value="premium_featured_listing">Premium / ozel listeleme</option>
-              <option value="draft_unpublished">Yayinlanmamis</option>
+              <option value="premium_featured_listing">Premium / özel listeleme</option>
+              <option value="draft_unpublished">Yayınlanmamış</option>
             </select>
-          )}
+          ) : null}
 
-          {canManageQuotes && (
-            <Link to="/quotes/create" style={{ textDecoration: "none" }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  background: "#3b82f6",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
+          {canManageQuotes ? (
+            <Link to="/quotes/create" className="quote-list__button-link">
+              <button type="button" className="quote-list__button quote-list__button--primary">
                 + Yeni Teklif
               </button>
             </Link>
-          )}
+          ) : null}
         </div>
 
-        {error && (
-          <div style={{ color: "red", padding: "8px", background: "#fee2e2", borderRadius: "4px" }}>
-            {error}
-          </div>
-        )}
+        {error ? <div className="quote-list__error">{error}</div> : null}
 
-        {isPlatformPortfolioView && (
-          <div style={{ marginBottom: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+        {isPlatformPortfolioView ? (
+          <div className="quote-list__summary-grid">
             {[
-              { label: "Kendi Tedarikcileri", value: listingSummary.private_only, color: "#1d4ed8", bg: "#eff6ff" },
-              { label: "Platform Agi", value: listingSummary.platform, color: "#0f766e", bg: "#ecfdf5" },
-              { label: "Karma Havuz", value: listingSummary.mixed, color: "#7c3aed", bg: "#f5f3ff" },
-              { label: "Premium Listeleme", value: listingSummary.premium, color: "#b45309", bg: "#fff7ed" },
+              {
+                label: "Kendi Tedarikçileri",
+                value: listingSummary.private_only,
+                variant: "blue",
+              },
+              {
+                label: "Platform Ağı",
+                value: listingSummary.platform,
+                variant: "teal",
+              },
+              {
+                label: "Karma Havuz",
+                value: listingSummary.mixed,
+                variant: "purple",
+              },
+              {
+                label: "Premium Listeleme",
+                value: listingSummary.premium,
+                variant: "amber",
+              },
             ].map((card) => (
-              <div key={card.label} style={{ borderRadius: 14, background: card.bg, border: "1px solid #dbe3ee", padding: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.1, color: card.color }}>{card.label}</div>
-                <div style={{ marginTop: 8, fontSize: 26, fontWeight: 900, color: card.color }}>{card.value}</div>
+              <div key={card.label} className={`quote-list__summary-card quote-list__summary-card--${card.variant}`}>
+                <div className={`quote-list__summary-label quote-list__summary-label--${card.variant}`}>
+                  {card.label}
+                </div>
+                <div className={`quote-list__summary-value quote-list__summary-value--${card.variant}`}>
+                  {card.value}
+                </div>
               </div>
             ))}
           </div>
-        )}
+        ) : null}
 
-        {/* Quote List */}
         {visibleQuotes.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#999" }}>Teklif bulunamadı</p>
+          <p className="quote-list__empty">Teklif bulunamadı</p>
         ) : isPlatformPortfolioView ? (
-          <div style={{ display: "grid", gap: 14 }}>
+          <div className="quote-list__group-list">
             {Object.entries(groupedQuotes).map(([tenantName, tenantQuotes]) => (
-              <section key={tenantName} style={{ borderRadius: 18, border: "1px solid #dbe3ee", background: "#f8fafc", padding: 16, display: "grid", gap: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <section key={tenantName} className="quote-list__group">
+                <div className="quote-list__group-header">
                   <div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a" }}>{tenantName}</div>
-                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>{tenantQuotes.length} teklif kaydi</div>
+                    <div className="quote-list__group-title">{tenantName}</div>
+                    <div className="quote-list__group-subtitle">{tenantQuotes.length} teklif kaydı</div>
                   </div>
                 </div>
-                <div style={{ display: "grid", gap: 10 }}>
+
+                <div className="quote-list__cards">
                   {tenantQuotes.map((quote) => {
                     const premiumCodes = quote.active_premium_feature_codes || [];
                     return (
-                      <article key={quote.id} style={{ borderRadius: 16, background: "white", border: "1px solid #e2e8f0", padding: 14, display: "grid", gap: 10 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
+                      <article key={quote.id} className="quote-list__card">
+                        <div className="quote-list__card-header">
                           <div>
-                            <div style={{ fontWeight: 900, color: "#0f172a", fontSize: 16 }}>{quote.title}</div>
-                            <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>RFQ #{quote.rfq_id ?? quote.id} • {quote.company_name}</div>
+                            <div className="quote-list__card-title">{quote.title}</div>
+                            <div className="quote-list__card-meta">
+                              RFQ #{quote.rfq_id ?? quote.id} • {quote.company_name}
+                            </div>
                           </div>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>
-                            {(quote.total_amount || quote.amount || 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                          <span style={{ padding: "5px 10px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontSize: 12, fontWeight: 800 }}>{quote.listing_scope_label || "Listeleme tipi yok"}</span>
-                          <span style={{ padding: "5px 10px", borderRadius: 999, background: "#f8fafc", color: "#475569", fontSize: 12, fontWeight: 800 }}>{quote.package_plan_name || quote.package_plan_code || "Plan yok"}</span>
-                          {premiumCodes.length > 0 ? <span style={{ padding: "5px 10px", borderRadius: 999, background: "#fff7ed", color: "#b45309", fontSize: 12, fontWeight: 800 }}>Premium: {premiumCodes.join(", ")}</span> : null}
-                        </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
-                          <div style={{ borderRadius: 12, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 12px" }}>
-                            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.1, color: "#64748b", fontWeight: 800 }}>Davet Kapsami</div>
-                            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{quote.invited_supplier_count || 0}</div>
-                            <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>Toplam davet edilen supplier</div>
-                          </div>
-                          <div style={{ borderRadius: 12, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 12px" }}>
-                            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.1, color: "#64748b", fontWeight: 800 }}>Kendi Supplier'i</div>
-                            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{quote.private_supplier_count || 0}</div>
-                            <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>Private supplier havuzu</div>
-                          </div>
-                          <div style={{ borderRadius: 12, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 12px" }}>
-                            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.1, color: "#64748b", fontWeight: 800 }}>Platform Supplier</div>
-                            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{quote.platform_network_supplier_count || 0}</div>
-                            <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>Platform agindan eslesen supplier</div>
-                          </div>
-                          <div style={{ borderRadius: 12, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 12px" }}>
-                            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.1, color: "#64748b", fontWeight: 800 }}>Gelen Yanit</div>
-                            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{quote.responded_supplier_count || 0}</div>
-                            <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>Teklif veren supplier sayisi</div>
+                          <div className="quote-list__card-amount">
+                            {(quote.total_amount || quote.amount || 0).toLocaleString("tr-TR", {
+                              style: "currency",
+                              currency: "TRY",
+                            })}
                           </div>
                         </div>
-                        <div style={{ display: "inline-flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          <Link to={`/quotes/${quote.id}`} style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: "bold" }}>Goruntule</Link>
-                          <Link to={`/quotes/${quote.id}/comparison`} style={{ color: "#7c3aed", textDecoration: "none", fontWeight: "bold" }}>Karsilastirma</Link>
-                          <span style={{ color: "#64748b", fontSize: 12 }}>{new Date(quote.created_at).toLocaleDateString("tr-TR")}</span>
+
+                        <div className="quote-list__badges">
+                          <span className="quote-list__badge quote-list__badge--blue">
+                            {quote.listing_scope_label || "Listeleme tipi yok"}
+                          </span>
+                          <span className="quote-list__badge quote-list__badge--gray">
+                            {quote.package_plan_name || quote.package_plan_code || "Plan yok"}
+                          </span>
+                          {premiumCodes.length > 0 ? (
+                            <span className="quote-list__badge quote-list__badge--amber">
+                              Premium: {premiumCodes.join(", ")}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="quote-list__stats-grid">
+                          <div className="quote-list__stats-card">
+                            <div className="quote-list__stats-label">Davet Kapsamı</div>
+                            <div className="quote-list__stats-value">{quote.invited_supplier_count || 0}</div>
+                            <div className="quote-list__stats-note">Toplam davet edilen supplier</div>
+                          </div>
+                          <div className="quote-list__stats-card">
+                            <div className="quote-list__stats-label">Kendi Supplier'i</div>
+                            <div className="quote-list__stats-value">{quote.private_supplier_count || 0}</div>
+                            <div className="quote-list__stats-note">Private supplier havuzu</div>
+                          </div>
+                          <div className="quote-list__stats-card">
+                            <div className="quote-list__stats-label">Platform Supplier</div>
+                            <div className="quote-list__stats-value">{quote.platform_network_supplier_count || 0}</div>
+                            <div className="quote-list__stats-note">Platform ağından eşleşen supplier</div>
+                          </div>
+                          <div className="quote-list__stats-card">
+                            <div className="quote-list__stats-label">Gelen Yanıt</div>
+                            <div className="quote-list__stats-value">{quote.responded_supplier_count || 0}</div>
+                            <div className="quote-list__stats-note">Teklif veren supplier sayısı</div>
+                          </div>
+                        </div>
+
+                        <div className="quote-list__card-footer">
+                          <Link to={`/quotes/${quote.id}`} className="quote-list__link">
+                            Görüntüle
+                          </Link>
+                          <Link to={`/quotes/${quote.id}/comparison`} className="quote-list__link quote-list__link--secondary">
+                            Karşılaştırma
+                          </Link>
+                          <span className="quote-list__date">{new Date(quote.created_at).toLocaleDateString("tr-TR")}</span>
                         </div>
                       </article>
                     );
@@ -320,36 +383,35 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
             ))}
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "14px",
-              }}
-            >
-              <thead>
-                <tr style={{ background: "#f3f4f6", borderBottom: "2px solid #ddd" }}>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Başlık</th>
-                  <th style={{ padding: "12px", textAlign: "right" }}>Tutar</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Ver</th>
-                  <th style={{ padding: "12px", textAlign: "center" }}>İşlem</th>
+          <div className="quote-list__table-wrap">
+            <table className="quote-list__table">
+              <thead className="quote-list__table-head">
+                <tr>
+                  <th className="quote-list__table-th">Başlık</th>
+                  <th className="quote-list__table-th quote-list__table-th--right">Tutar</th>
+                  <th className="quote-list__table-th">Durum</th>
+                  <th className="quote-list__table-th">Ver</th>
+                  <th className="quote-list__table-th quote-list__table-th--center">İşlem</th>
                 </tr>
               </thead>
               <tbody>
                 {visibleQuotes.map((quote) => {
                   const quoteStatus = normalizeQuoteStatus(quote.status);
                   const rawStatus = String(quote.status || "").toLowerCase();
-                  const approvalsCompleted = String(quote.transition_reason || "").toLowerCase().includes("gönderim onayları tamamlandı");
+                  const approvalsCompleted = String(quote.transition_reason || "")
+                    .toLowerCase()
+                    .includes("gönderim onayları tamamlandı");
                   const sentToSuppliers = Boolean(quote.sent_at);
                   const canSendToSuppliers = quoteStatus === "submitted";
-                  const canEditQuote = canManageQuotes
-                    && (quoteStatus === "draft" || quoteStatus === "submitted")
-                    && !approvalsCompleted
-                    && !sentToSuppliers;
+                  const canEditQuote =
+                    canManageQuotes &&
+                    (quoteStatus === "draft" || quoteStatus === "submitted") &&
+                    !approvalsCompleted &&
+                    !sentToSuppliers;
                   const canDeleteQuote = canManageQuotes;
-                  const reviewBack = quoteStatus === "draft" && String(quote.transition_reason || "").toLowerCase().startsWith("hata ve eksikler var");
+                  const reviewBack =
+                    quoteStatus === "draft" &&
+                    String(quote.transition_reason || "").toLowerCase().startsWith("hata ve eksikler var");
                   const badgeLabel = reviewBack
                     ? "İade Edildi (Gözden Geçirme)"
                     : rawStatus === "approved"
@@ -358,136 +420,112 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
                         ? "Tedarikçi Yanıtladı"
                         : sentToSuppliers
                           ? "Tedarikçiye Gönderildi - Yanıt Bekleniyor"
-                          : (quoteStatus === "submitted" && approvalsCompleted)
+                          : quoteStatus === "submitted" && approvalsCompleted
                             ? "Onaylandı (Gönderime Hazır)"
                             : QuoteStatusLabel[quoteStatus];
-                  const badgeColor = reviewBack ? "#fee2e2" : QuoteStatusColor[quoteStatus];
                   return (
-                  <tr key={quote.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: "12px" }}>
-                      <div style={{ fontWeight: 600 }}>{quote.title}</div>
-                      <div style={{ marginTop: "4px", fontSize: "12px", color: "#6b7280" }}>
-                        RFQ #{quote.rfq_id ?? quote.id}
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px", textAlign: "right", fontWeight: "bold" }}>
-                      {(quote.total_amount || quote.amount || 0).toLocaleString("tr-TR", {
-                        style: "currency",
-                        currency: "TRY",
-                      })}
-                    </td>
-                    <td style={{ padding: "12px" }}>
-                      <span
-                        style={{
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          background: badgeColor,
-                          fontSize: "12px",
-                          fontWeight: "bold",
-                          color: reviewBack ? "#991b1b" : "inherit",
-                        }}
-                      >
-                        {badgeLabel}
-                      </span>
-                      {reviewBack && (
-                        <div style={{ marginTop: "6px", fontSize: "12px", color: "#991b1b" }}>
-                          {quote.transition_reason}
-                        </div>
-                      )}
-                      {pendingApprovalQuoteIds.has(quote.id) && (
-                        <div style={{ marginTop: "6px", fontSize: "12px", color: "#92400e", fontWeight: 600 }}>
-                          Tedarikçiye gönderme onayınız bekleniyor
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ padding: "12px", fontSize: "12px" }}>
-                      {new Date(quote.created_at).toLocaleDateString("tr-TR")}
-                    </td>
-                    <td style={{ padding: "12px", textAlign: "center" }}>
-                      <div style={{ display: "inline-flex", gap: "8px", alignItems: "center" }}>
-                        <Link
-                          to={`/quotes/${quote.id}`}
-                          style={{ color: "#3b82f6", textDecoration: "none", fontWeight: "bold" }}
+                    <tr key={quote.id} className="quote-list__table-row">
+                      <td className="quote-list__table-td">
+                        <div className="quote-list__table-title">{quote.title}</div>
+                        <div className="quote-list__card-meta">RFQ #{quote.rfq_id ?? quote.id}</div>
+                      </td>
+                      <td className="quote-list__table-td quote-list__table-td--right">
+                        {(quote.total_amount || quote.amount || 0).toLocaleString("tr-TR", {
+                          style: "currency",
+                          currency: "TRY",
+                        })}
+                      </td>
+                      <td className="quote-list__table-td">
+                        <span
+                          className={
+                            reviewBack
+                              ? "quote-list__status-badge quote-list__status-badge--danger"
+                              : `quote-list__status-badge quote-list__status-badge--${quoteStatus}`
+                          }
                         >
-                          Görüntüle
-                        </Link>
-                        {canManageQuotes && (
-                          <>
-                            <button
-                              onClick={() => navigate(`/quotes/${quote.id}/edit`)}
-                              disabled={!canEditQuote}
-                              title={canEditQuote ? "Teklifi düzenle" : "Onaylanan teklif düzenlenemez"}
-                              style={{ border: "none", background: "transparent", color: canEditQuote ? "#0f766e" : "#9ca3af", cursor: canEditQuote ? "pointer" : "not-allowed", fontWeight: 700 }}
-                            >
-                              Düzenle
-                            </button>
-                            {canDeleteQuote && (
+                          {badgeLabel}
+                        </span>
+                        {reviewBack ? (
+                          <div className="quote-list__status-note quote-list__status-note--danger">
+                            {quote.transition_reason}
+                          </div>
+                        ) : null}
+                        {pendingApprovalQuoteIds.has(quote.id) ? (
+                          <div className="quote-list__status-note quote-list__status-note--warning">
+                            Tedarikçiye gönderme onayınız bekleniyor
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="quote-list__table-td">{new Date(quote.created_at).toLocaleDateString("tr-TR")}</td>
+                      <td className="quote-list__table-td quote-list__table-td--center">
+                        <div className="quote-list__actions">
+                          <Link to={`/quotes/${quote.id}`} className="quote-list__link">
+                            Görüntüle
+                          </Link>
+                          {canManageQuotes ? (
+                            <>
                               <button
-                                onClick={() => handleDelete(quote.id)}
-                                style={{ border: "none", background: "transparent", color: "#dc2626", cursor: "pointer", fontWeight: 700 }}
+                                type="button"
+                                onClick={() => navigate(`/quotes/${quote.id}/edit`)}
+                                disabled={!canEditQuote}
+                                title={canEditQuote ? "Teklifi düzenle" : "Onaylanan teklif düzenlenemez"}
+                                className="quote-list__action-button quote-list__action-button--edit"
                               >
-                                Sil
+                                Düzenle
                               </button>
-                            )}
-                            <button
-                              onClick={() => openSendModal(quote)}
-                              disabled={!canSendToSuppliers}
-                              title={canSendToSuppliers ? "Teklifi tedarikçilere gönder" : "Bu durumda teklif tekrar gönderilemez"}
-                              style={{
-                                border: "none",
-                                background: "transparent",
-                                color: canSendToSuppliers ? "#1d4ed8" : "#9ca3af",
-                                cursor: canSendToSuppliers ? "pointer" : "not-allowed",
-                                fontWeight: 700,
-                              }}
-                            >
-                              Gönder
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )})}
+                              {canDeleteQuote ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(quote.id)}
+                                  className="quote-list__action-button quote-list__action-button--delete"
+                                >
+                                  Sil
+                                </button>
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => openSendModal(quote)}
+                                disabled={!canSendToSuppliers}
+                                title={canSendToSuppliers ? "Teklifi tedarikçilere gönder" : "Bu durumda teklif tekrar gönderilemez"}
+                                className="quote-list__action-button quote-list__action-button--send"
+                              >
+                                Gönder
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* Pagination */}
-        {total > 10 && (
-          <div style={{ marginTop: "16px", display: "flex", justifyContent: "center", gap: "8px" }}>
+        {total > 10 ? (
+          <div className="quote-list__pagination">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              type="button"
+              onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
               disabled={page === 1}
-              style={{
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: page === 1 ? "not-allowed" : "pointer",
-                opacity: page === 1 ? 0.5 : 1,
-              }}
+              className="quote-list__pagination-button"
             >
               Önceki
             </button>
-            <span style={{ padding: "8px 12px" }}>
+            <span className="quote-list__pagination-label">
               Sayfa {page} / {Math.ceil(total / 10)}
             </span>
             <button
-              onClick={() => setPage((p) => Math.min(Math.ceil(total / 10), p + 1))}
+              type="button"
+              onClick={() => setPage((currentPage) => Math.min(Math.ceil(total / 10), currentPage + 1))}
               disabled={page >= Math.ceil(total / 10)}
-              style={{
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: page >= Math.ceil(total / 10) ? "not-allowed" : "pointer",
-                opacity: page >= Math.ceil(total / 10) ? 0.5 : 1,
-              }}
+              className="quote-list__pagination-button"
             >
               Sonraki
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

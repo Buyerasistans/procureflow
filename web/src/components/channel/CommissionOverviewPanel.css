@@ -1,0 +1,77 @@
+.commission-overview-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #dcfce7;
+}
+
+.commission-overview-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.commission-overview-panel__title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.commission-overview-panel__period {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.commission-overview-panel__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.commission-overview-panel__summary-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.commission-overview-panel__summary-card--net {
+  border-color: #c7f9cc;
+  background: #f0fdf4;
+}
+
+.commission-overview-panel__summary-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.commission-overview-panel__summary-label--net {
+  color: #166534;
+}
+
+.commission-overview-panel__summary-value {
+  font-weight: 700;
+}
+
+.commission-overview-panel__summary-value--net {
+  font-size: 20px;
+}
+
+.commission-overview-panel__breakdown {
+  border: 1px dashed #bbf7d0;
+  border-radius: 10px;
+  padding: 10px;
+  background: #f8fff9;
+}
+
+.commission-overview-panel__breakdown-meta {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.commission-overview-panel__breakdown-text {
+  font-size: 13px;
+  color: #334155;
+  margin: 0;
+}

@@ -13,10 +13,7 @@ import {
   type SupportTicket,
   type TicketAdminUpdatePayload,
 } from "../../services/admin.service";
-
-// ---------------------------------------------------------------------------
-// Etiket/renk tanımları
-// ---------------------------------------------------------------------------
+import "./SupportTicketAdminTab.css";
 
 const STATUS_LABELS: Record<string, string> = {
   open: "Açık",
@@ -26,26 +23,11 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Kapatıldı",
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  open: "#1d4ed8",
-  in_progress: "#c2410c",
-  waiting_response: "#7c3aed",
-  resolved: "#15803d",
-  closed: "#64748b",
-};
-
 const PRIORITY_LABELS: Record<string, string> = {
   low: "Düşük",
   medium: "Orta",
   high: "Yüksek",
   urgent: "Acil",
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  low: "#64748b",
-  medium: "#1d4ed8",
-  high: "#c2410c",
-  urgent: "#dc2626",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -60,9 +42,6 @@ const ALL_STATUSES = Object.keys(STATUS_LABELS);
 const ALL_PRIORITIES = Object.keys(PRIORITY_LABELS);
 const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
 
-// ---------------------------------------------------------------------------
-// Yardımcı: SLA aşım kontrolü
-// ---------------------------------------------------------------------------
 function isSlaBreached(ticket: SupportTicket): boolean {
   if (!ticket.sla_due_at) return false;
   return new Date(ticket.sla_due_at) < new Date() && !["resolved", "closed"].includes(ticket.status);
@@ -73,9 +52,6 @@ function formatDate(iso: string | null | undefined): string {
   return new Date(iso).toLocaleString("tr-TR", { dateStyle: "short", timeStyle: "short" });
 }
 
-// ---------------------------------------------------------------------------
-// Inline güncelleme formu
-// ---------------------------------------------------------------------------
 interface InlineUpdateFormProps {
   ticket: SupportTicket;
   platformUserOptions: { id: number; full_name: string }[];
@@ -113,84 +89,88 @@ function InlineUpdateForm({ ticket, platformUserOptions, onSaved, onCancel }: In
   }
 
   return (
-    <div
-      style={{
-        background: "#f8fafc",
-        border: "1px solid #e2e8f0",
-        borderRadius: 10,
-        padding: "14px 16px",
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "10px 14px",
-      }}
-    >
-      <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>
-        <span style={{ fontWeight: 600, color: "#475569" }}>Durum</span>
+    <div className="support-ticket-admin-tab__inline-form">
+      <label className="support-ticket-admin-tab__inline-form-label">
+        <span className="support-ticket-admin-tab__inline-form-label-text">Durum</span>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid #cbd5e1", fontSize: 13 }}
+          title="Destek talebi durum seçimi"
+          aria-label="Destek talebi durum seçimi"
+          className="support-ticket-admin-tab__inline-form-select"
         >
           {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+            <option key={s} value={s}>
+              {STATUS_LABELS[s]}
+            </option>
           ))}
         </select>
       </label>
 
-      <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>
-        <span style={{ fontWeight: 600, color: "#475569" }}>Öncelik</span>
+      <label className="support-ticket-admin-tab__inline-form-label">
+        <span className="support-ticket-admin-tab__inline-form-label-text">Öncelik</span>
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid #cbd5e1", fontSize: 13 }}
+          title="Destek talebi öncelik seçimi"
+          aria-label="Destek talebi öncelik seçimi"
+          className="support-ticket-admin-tab__inline-form-select"
         >
           {ALL_PRIORITIES.map((p) => (
-            <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
+            <option key={p} value={p}>
+              {PRIORITY_LABELS[p]}
+            </option>
           ))}
         </select>
       </label>
 
-      <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, gridColumn: "1 / -1" }}>
-        <span style={{ fontWeight: 600, color: "#475569" }}>Atanan Kişi</span>
+      <label className="support-ticket-admin-tab__inline-form-label support-ticket-admin-tab__inline-form-label--full">
+        <span className="support-ticket-admin-tab__inline-form-label-text">Atanan Kişi</span>
         <select
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value === "" ? "" : Number(e.target.value))}
-          style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid #cbd5e1", fontSize: 13 }}
+          title="Destek talebi atanan kişi seçimi"
+          aria-label="Destek talebi atanan kişi seçimi"
+          className="support-ticket-admin-tab__inline-form-select"
         >
           <option value="">— Atanmamış —</option>
           {platformUserOptions.map((u) => (
-            <option key={u.id} value={u.id}>{u.full_name}</option>
+            <option key={u.id} value={u.id}>
+              {u.full_name}
+            </option>
           ))}
         </select>
       </label>
 
-      <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, gridColumn: "1 / -1" }}>
-        <span style={{ fontWeight: 600, color: "#475569" }}>Çözüm Notu</span>
+      <label className="support-ticket-admin-tab__inline-form-label support-ticket-admin-tab__inline-form-label--full">
+        <span className="support-ticket-admin-tab__inline-form-label-text">Çözüm Notu</span>
         <textarea
           value={resolutionNote}
           onChange={(e) => setResolutionNote(e.target.value)}
           rows={2}
           placeholder="Müşteriye görünecek çözüm notu..."
-          style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #cbd5e1", fontSize: 13, resize: "vertical" }}
+          className="support-ticket-admin-tab__inline-form-textarea"
         />
       </label>
 
       {error && (
-        <div style={{ gridColumn: "1 / -1", color: "#dc2626", fontSize: 12 }}>{error}</div>
+        <div className="support-ticket-admin-tab__inline-form-error">{error}</div>
       )}
 
-      <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8, justifyContent: "flex-end" }}>
+      <div className="support-ticket-admin-tab__inline-form-actions">
         <button
+          type="button"
           onClick={onCancel}
           disabled={saving}
-          style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid #cbd5e1", background: "#fff", fontSize: 13, cursor: "pointer" }}
+          className="support-ticket-admin-tab__button support-ticket-admin-tab__button--secondary"
         >
           İptal
         </button>
         <button
+          type="button"
           onClick={() => void handleSave()}
           disabled={saving}
-          style={{ padding: "6px 14px", borderRadius: 7, border: "none", background: "#1d4ed8", color: "#fff", fontSize: 13, fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}
+          className="support-ticket-admin-tab__button support-ticket-admin-tab__button--primary"
         >
           {saving ? "Kaydediliyor..." : "Kaydet"}
         </button>
@@ -199,9 +179,6 @@ function InlineUpdateForm({ ticket, platformUserOptions, onSaved, onCancel }: In
   );
 }
 
-// ---------------------------------------------------------------------------
-// Satır bileşeni
-// ---------------------------------------------------------------------------
 interface TicketRowProps {
   ticket: SupportTicket;
   isExpanded: boolean;
@@ -215,90 +192,64 @@ function TicketRow({ ticket, isExpanded, platformUserOptions, onToggle, onUpdate
 
   return (
     <div
-      style={{
-        border: "1px solid",
-        borderColor: breached ? "#fca5a5" : "#e2e8f0",
-        borderRadius: 10,
-        overflow: "hidden",
-        background: breached ? "#fff5f5" : "#fff",
-      }}
+      className={`support-ticket-admin-tab__ticket-row ${
+        breached ? "support-ticket-admin-tab__ticket-row--breached" : ""
+      }`}
     >
-      {/* Başlık satırı */}
-      <div
+      <button
+        type="button"
         onClick={onToggle}
-        role="button"
-        aria-expanded={isExpanded}
-        style={{
-          padding: "12px 14px",
-          display: "grid",
-          gridTemplateColumns: "1fr auto auto auto auto",
-          alignItems: "center",
-          gap: "8px 12px",
-          cursor: "pointer",
-        }}
+        className="support-ticket-admin-tab__ticket-header"
       >
-        {/* Konu */}
         <div>
-          <div style={{ fontWeight: 600, fontSize: 13, color: "#0f172a", lineHeight: 1.4 }}>
+          <div className="support-ticket-admin-tab__ticket-main-title">
             #{ticket.id} — {ticket.subject}
           </div>
-          <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+          <div className="support-ticket-admin-tab__ticket-main-meta">
             {ticket.tenant_name ?? "—"} · {ticket.created_by_name ?? "—"} · {formatDate(ticket.created_at)}
           </div>
         </div>
 
-        {/* Kategori */}
-        <span style={{ fontSize: 11, color: "#475569", whiteSpace: "nowrap" }}>
+        <span className="support-ticket-admin-tab__ticket-category">
           {CATEGORY_LABELS[ticket.category] ?? ticket.category}
         </span>
 
-        {/* Öncelik */}
         <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: PRIORITY_COLORS[ticket.priority] ?? "#64748b",
-            whiteSpace: "nowrap",
-          }}
+          className={`support-ticket-admin-tab__ticket-priority support-ticket-admin-tab__ticket-priority--${ticket.priority}`}
         >
           {PRIORITY_LABELS[ticket.priority] ?? ticket.priority}
         </span>
 
-        {/* Durum rozeti */}
         <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#fff",
-            background: STATUS_COLORS[ticket.status] ?? "#64748b",
-            borderRadius: 6,
-            padding: "2px 8px",
-            whiteSpace: "nowrap",
-          }}
+          className={`support-ticket-admin-tab__ticket-status support-ticket-admin-tab__ticket-status--${ticket.status}`}
         >
           {STATUS_LABELS[ticket.status] ?? ticket.status}
         </span>
 
-        {/* SLA / ok */}
-        <span style={{ fontSize: 11, color: breached ? "#dc2626" : "#94a3b8", whiteSpace: "nowrap" }}>
+        <span
+          className={`support-ticket-admin-tab__ticket-sla ${
+            breached
+              ? "support-ticket-admin-tab__ticket-sla--breached"
+              : "support-ticket-admin-tab__ticket-sla--ok"
+          }`}
+        >
           {breached ? "⚠ SLA" : "SLA: " + formatDate(ticket.sla_due_at)}
         </span>
-      </div>
+      </button>
 
-      {/* Genişletilmiş panel */}
       {isExpanded && (
-        <div style={{ borderTop: "1px solid #e2e8f0", padding: "12px 14px", background: "#f8fafc" }}>
+        <div className="support-ticket-admin-tab__ticket-details">
           {ticket.description && (
-            <div style={{ fontSize: 12, color: "#475569", marginBottom: 10, lineHeight: 1.6 }}>
+            <div className="support-ticket-admin-tab__ticket-description">
               {ticket.description}
             </div>
           )}
           {ticket.resolution_note && (
-            <div style={{ fontSize: 12, color: "#15803d", marginBottom: 10, background: "#f0fdf4", borderRadius: 6, padding: "6px 10px" }}>
+            <div className="support-ticket-admin-tab__ticket-resolution">
               <strong>Çözüm Notu:</strong> {ticket.resolution_note}
             </div>
           )}
-          <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 12 }}>
+          <div className="support-ticket-admin-tab__ticket-assignee">
             Atanan: <strong>{ticket.assigned_to_name ?? "Atanmamış"}</strong> · Kaynak: {ticket.source} · Güncellenme: {formatDate(ticket.updated_at)}
           </div>
           <InlineUpdateForm
@@ -315,21 +266,16 @@ function TicketRow({ ticket, isExpanded, platformUserOptions, onToggle, onUpdate
   );
 }
 
-// ---------------------------------------------------------------------------
-// Ana bileşen
-// ---------------------------------------------------------------------------
 export function SupportTicketAdminTab() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  // Filtreler
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
 
-  // Platform personeli listesi (atama için)
   const [platformUsers, setPlatformUsers] = useState<{ id: number; full_name: string }[]>([]);
 
   const loadTickets = useCallback(async () => {
@@ -362,7 +308,9 @@ export function SupportTicketAdminTab() {
             .map((u) => ({ id: u.id, full_name: u.full_name })),
         ),
       )
-      .catch(() => {/* sessiz hata */});
+      .catch(() => {
+        /* sessiz hata */
+      });
   }, []);
 
   function handleUpdated(updated: SupportTicket) {
@@ -370,115 +318,135 @@ export function SupportTicketAdminTab() {
     setExpandedId(null);
   }
 
-  // Özet metrikler
   const openCount = tickets.filter((t) => t.status === "open").length;
   const inProgressCount = tickets.filter((t) => t.status === "in_progress").length;
   const breachedCount = tickets.filter(isSlaBreached).length;
-  const urgentCount = tickets.filter((t) => t.priority === "urgent" && !["resolved", "closed"].includes(t.status)).length;
+  const urgentCount = tickets.filter(
+    (t) => t.priority === "urgent" && !["resolved", "closed"].includes(t.status),
+  ).length;
 
   return (
-    <div style={{ padding: "20px 0" }}>
-      {/* Başlık */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}>Destek Talepleri</div>
-        <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
+    <div className="support-ticket-admin-tab">
+      <div className="support-ticket-admin-tab__page-header">
+        <div className="support-ticket-admin-tab__title">Destek Talepleri</div>
+        <div className="support-ticket-admin-tab__subtitle">
           Tenant kullanıcılarının platform personeline ilettiği destek talepleri.
         </div>
       </div>
 
-      {/* Özet kartlar */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+      <div className="support-ticket-admin-tab__summary-row">
         {[
-          { label: "Açık", value: openCount, color: "#1d4ed8" },
-          { label: "İşlemde", value: inProgressCount, color: "#c2410c" },
-          { label: "Acil", value: urgentCount, color: "#dc2626" },
-          { label: "SLA Aşımı", value: breachedCount, color: "#b45309" },
-          { label: "Toplam", value: tickets.length, color: "#0f172a" },
+          {
+            label: "Açık",
+            value: openCount,
+            colorClass: "support-ticket-admin-tab__summary-value--open",
+          },
+          {
+            label: "İşlemde",
+            value: inProgressCount,
+            colorClass: "support-ticket-admin-tab__summary-value--in-progress",
+          },
+          {
+            label: "Acil",
+            value: urgentCount,
+            colorClass: "support-ticket-admin-tab__summary-value--urgent",
+          },
+          {
+            label: "SLA Aşımı",
+            value: breachedCount,
+            colorClass: "support-ticket-admin-tab__summary-value--breached",
+          },
+          {
+            label: "Toplam",
+            value: tickets.length,
+            colorClass: "support-ticket-admin-tab__summary-value--total",
+          },
         ].map((m) => (
-          <div
-            key={m.label}
-            style={{
-              background: "#fff",
-              border: "1px solid #e2e8f0",
-              borderRadius: 10,
-              padding: "10px 16px",
-              minWidth: 90,
-            }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 900, color: m.color }}>{m.value}</div>
-            <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{m.label}</div>
+          <div key={m.label} className="support-ticket-admin-tab__summary-card">
+            <div className={`support-ticket-admin-tab__summary-value ${m.colorClass}`}>{m.value}</div>
+            <div className="support-ticket-admin-tab__summary-label">{m.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Filtre çubuğu */}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          style={{ padding: "6px 10px", borderRadius: 7, border: "1px solid #cbd5e1", fontSize: 13 }}
-        >
-          <option value="">Tüm Durumlar</option>
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-          ))}
-        </select>
+      <div className="support-ticket-admin-tab__filters">
+        <label>
+          <span className="support-ticket-admin-tab__summary-label">Durum</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            title="Destek talebi durum filtresi"
+            aria-label="Destek talebi durum filtresi"
+            className="support-ticket-admin-tab__filter-select"
+          >
+            <option value="">Tüm Durumlar</option>
+            {ALL_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_LABELS[s]}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{ padding: "6px 10px", borderRadius: 7, border: "1px solid #cbd5e1", fontSize: 13 }}
-        >
-          <option value="">Tüm Kategoriler</option>
-          {ALL_CATEGORIES.map((c) => (
-            <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-          ))}
-        </select>
+        <label>
+          <span className="support-ticket-admin-tab__summary-label">Kategori</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            title="Destek talebi kategori filtresi"
+            aria-label="Destek talebi kategori filtresi"
+            className="support-ticket-admin-tab__filter-select"
+          >
+            <option value="">Tüm Kategoriler</option>
+            {ALL_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABELS[c]}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          style={{ padding: "6px 10px", borderRadius: 7, border: "1px solid #cbd5e1", fontSize: 13 }}
-        >
-          <option value="">Tüm Öncelikler</option>
-          {ALL_PRIORITIES.map((p) => (
-            <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
-          ))}
-        </select>
+        <label>
+          <span className="support-ticket-admin-tab__summary-label">Öncelik</span>
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            title="Destek talebi öncelik filtresi"
+            aria-label="Destek talebi öncelik filtresi"
+            className="support-ticket-admin-tab__filter-select"
+          >
+            <option value="">Tüm Öncelikler</option>
+            {ALL_PRIORITIES.map((p) => (
+              <option key={p} value={p}>
+                {PRIORITY_LABELS[p]}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <button
+          type="button"
           onClick={() => void loadTickets()}
-          style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid #cbd5e1", background: "#fff", fontSize: 13, cursor: "pointer" }}
+          className="support-ticket-admin-tab__refresh-button"
         >
           ↻ Yenile
         </button>
 
-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#94a3b8" }}>
-          {tickets.length} kayıt
-        </span>
+        <span className="support-ticket-admin-tab__record-count">{tickets.length} kayıt</span>
       </div>
 
-      {/* Hata */}
-      {error && (
-        <div style={{ borderRadius: 8, padding: "10px 14px", background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", fontSize: 13, marginBottom: 12 }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="support-ticket-admin-tab__error">{error}</div>}
 
-      {/* Yükleniyor */}
-      {loading && (
-        <div style={{ padding: 24, color: "#64748b", textAlign: "center" }}>Yükleniyor...</div>
-      )}
+      {loading && <div className="support-ticket-admin-tab__loading">Yükleniyor...</div>}
 
-      {/* Talep listesi */}
       {!loading && tickets.length === 0 && !error && (
-        <div style={{ padding: 24, color: "#94a3b8", textAlign: "center" }}>
+        <div className="support-ticket-admin-tab__empty-state">
           Bu filtreyle eşleşen destek talebi bulunamadı.
         </div>
       )}
 
       {!loading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="support-ticket-admin-tab__ticket-list">
           {tickets.map((ticket) => (
             <TicketRow
               key={ticket.id}

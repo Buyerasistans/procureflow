@@ -3,6 +3,7 @@ import { getRoles, createRole, updateRole, deleteRole, getPermissions } from "..
 import type { CatalogRequest, Role, Permission } from "../services/admin.service";
 import { useAuth } from "../hooks/useAuth";
 import { filterVisibleRoleHierarchy, isPlatformStaffUser } from "../auth/permissions";
+import "./RolesTab.css";
 
 interface RolesTabProps {
   catalogRequests?: CatalogRequest[];
@@ -42,10 +43,7 @@ export function RolesTab({
   async function loadData() {
     try {
       setLoading(true);
-      const [rolesData, permissionsData] = await Promise.all([
-        getRoles(),
-        getPermissions(),
-      ]);
+      const [rolesData, permissionsData] = await Promise.all([getRoles(), getPermissions()]);
       setRoles(rolesData);
       setPermissions(permissionsData);
     } catch (err) {
@@ -54,6 +52,11 @@ export function RolesTab({
       setLoading(false);
     }
   }
+
+  const resetRoleForm = () => {
+    setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
+    setSelectedPermissions([]);
+  };
 
   const handleAddRole = async () => {
     if (!roleForm.name.trim()) {
@@ -68,8 +71,7 @@ export function RolesTab({
         permission_ids: selectedPermissions,
       });
       await loadData();
-      setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
-      setSelectedPermissions([]);
+      resetRoleForm();
       setShowNewRoleForm(false);
     } catch (err) {
       alert("Rol ekleme hatası: " + String(err));
@@ -90,8 +92,7 @@ export function RolesTab({
         description: roleForm.description || undefined,
       });
       await loadData();
-      setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
-      setSelectedPermissions([]);
+      resetRoleForm();
       setShowNewRoleForm(false);
     } catch (err) {
       alert("Rol talep hatası: " + String(err));
@@ -109,8 +110,7 @@ export function RolesTab({
       });
       await loadData();
       setEditingRoleId(null);
-      setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
-      setSelectedPermissions([]);
+      resetRoleForm();
     } catch (err) {
       alert("Rol güncelleme hatası: " + String(err));
     }
@@ -134,20 +134,19 @@ export function RolesTab({
       parent_id: role.parent_id || undefined,
       is_active: role.is_active,
     });
-    setSelectedPermissions(role.permissions.map((p) => p.id));
+    setSelectedPermissions(role.permissions.map((permission) => permission.id));
   };
 
   const handleCancelEdit = () => {
     setEditingRoleId(null);
-    setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
-    setSelectedPermissions([]);
+    resetRoleForm();
   };
 
   const handlePermissionChange = (permissionId: number) => {
     setSelectedPermissions((prev) =>
       prev.includes(permissionId)
         ? prev.filter((id) => id !== permissionId)
-        : [...prev, permissionId]
+        : [...prev, permissionId],
     );
   };
 
@@ -175,73 +174,88 @@ export function RolesTab({
   };
 
   if (loading) {
-    return <div style={{ padding: 20 }}>Yükleniyor...</div>;
+    return <div className="roles-tab__loading">Yükleniyor...</div>;
   }
 
   return (
-    <div>
-      {onCreateRoleRequest && !readOnly && (
-        <section style={{ marginBottom: 20, borderRadius: 18, border: '1px solid #dbeafe', background: '#f8fbff', padding: 16, display: 'grid', gap: 12 }}>
+    <div className="roles-tab">
+      {onCreateRoleRequest && !readOnly ? (
+        <section className="roles-tab__panel">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#1d4ed8' }}>Onayli Katalog Akisi</div>
-            <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Yeni rol talebi ac</div>
-            <div style={{ marginTop: 6, color: '#475569', fontSize: 13 }}>Ozel rolleri once talep kuyruğuna dusurup sonra kataloga onayla.</div>
+            <div className="roles-tab__eyebrow roles-tab__eyebrow--primary">Onaylı Katalog Akışı</div>
+            <div className="roles-tab__headline">Yeni rol talebi aç</div>
+            <div className="roles-tab__subtext">
+              Özel rolleri önce talep kuyruğuna düşürüp sonra kataloğa onayla.
+            </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) minmax(260px, 1.2fr) auto', gap: 10, alignItems: 'start' }}>
+          <div className="roles-tab__input-grid">
             <input
               type="text"
               value={requestName}
               onChange={(event) => setRequestName(event.target.value)}
               placeholder="Or: Kategori Lideri"
-              style={{ padding: 10, borderRadius: 10, border: '1px solid #cbd5e1' }}
+              aria-label="Rol talebi adı"
+              title="Rol talebi adı"
+              className="roles-tab__input"
             />
             <textarea
               value={requestDescription}
               onChange={(event) => setRequestDescription(event.target.value)}
-              placeholder="Bu rol hangi karar veya operasyon boslugunu kapatacak?"
+              placeholder="Bu rol hangi karar veya operasyon boşluğunu kapatacak?"
               rows={2}
-              style={{ padding: 10, borderRadius: 10, border: '1px solid #cbd5e1', resize: 'vertical' }}
+              aria-label="Rol talebi açıklaması"
+              title="Rol talebi açıklaması"
+              className="roles-tab__textarea"
             />
             <button
               type="button"
-              onClick={() => { void handleSubmitRoleRequest(); }}
+              onClick={() => {
+                void handleSubmitRoleRequest();
+              }}
               disabled={!requestName.trim()}
-              style={{ padding: '11px 16px', borderRadius: 10, border: 'none', background: '#2563eb', color: 'white', fontWeight: 800, cursor: requestName.trim() ? 'pointer' : 'not-allowed', opacity: requestName.trim() ? 1 : 0.6 }}
+              className="roles-tab__button roles-tab__button--primary"
             >
-              Talep Ac
+              Talep Aç
             </button>
           </div>
         </section>
-      )}
-      {roleRequests.length > 0 && (
-        <section style={{ marginBottom: 20, borderRadius: 18, border: '1px solid #e2e8f0', background: 'white', padding: 16, display: 'grid', gap: 12 }}>
+      ) : null}
+
+      {roleRequests.length > 0 ? (
+        <section className="roles-tab__panel roles-tab__panel--queue">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#7c3aed' }}>Rol Talep Kuyrugu</div>
-            <div style={{ marginTop: 6, fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{pendingRoleRequests.length} bekleyen rol talebi</div>
+            <div className="roles-tab__eyebrow roles-tab__eyebrow--secondary">Rol Talep Kuyruğu</div>
+            <div className="roles-tab__headline">{pendingRoleRequests.length} bekleyen rol talebi</div>
           </div>
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div className="roles-tab__queue-list">
             {roleRequests.slice(0, 6).map((request) => (
-              <div key={request.id} style={{ borderRadius: 14, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ display: 'grid', gap: 4 }}>
-                  <div style={{ fontWeight: 800, color: '#0f172a' }}>{request.proposed_name}</div>
-                  <div style={{ color: '#64748b', fontSize: 13 }}>{request.proposed_description || 'Aciklama girilmedi'}</div>
-                  <div style={{ color: '#475569', fontSize: 12 }}>Durum: {request.review_status}</div>
+              <div key={request.id} className="roles-tab__queue-item">
+                <div className="roles-tab__queue-meta">
+                  <div className="roles-tab__queue-title">{request.proposed_name}</div>
+                  <div className="roles-tab__queue-description">
+                    {request.proposed_description || "Açıklama girilmedi"}
+                  </div>
+                  <div className="roles-tab__queue-status">Durum: {request.review_status}</div>
                 </div>
-                {request.review_status === 'pending_review' && onReviewRequest ? (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {request.review_status === "pending_review" && onReviewRequest ? (
+                  <div className="roles-tab__queue-actions">
                     <button
                       type="button"
                       disabled={requestBusyId === request.id}
-                      onClick={() => { void onReviewRequest(request.id, 'approved'); }}
-                      style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#166534', color: 'white', fontWeight: 700, cursor: requestBusyId === request.id ? 'not-allowed' : 'pointer' }}
+                      onClick={() => {
+                        void onReviewRequest(request.id, "approved");
+                      }}
+                      className="roles-tab__button roles-tab__button--approve"
                     >
                       Onayla
                     </button>
                     <button
                       type="button"
                       disabled={requestBusyId === request.id}
-                      onClick={() => { void onReviewRequest(request.id, 'rejected'); }}
-                      style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#b91c1c', color: 'white', fontWeight: 700, cursor: requestBusyId === request.id ? 'not-allowed' : 'pointer' }}
+                      onClick={() => {
+                        void onReviewRequest(request.id, "rejected");
+                      }}
+                      className="roles-tab__button roles-tab__button--reject"
                     >
                       Reddet
                     </button>
@@ -251,76 +265,72 @@ export function RolesTab({
             ))}
           </div>
         </section>
-      )}
-      {error && (
-        <div style={{ padding: 12, background: "#fecaca", color: "#dc2626", borderRadius: 4, marginBottom: 20 }}>
-          {error}
-        </div>
-      )}
+      ) : null}
 
-      <div style={{ marginBottom: 20 }}>
-        {readOnly && (
-          <div style={{ marginBottom: 12, padding: 12, borderRadius: 12, background: '#fff7ed', color: '#9a3412', border: '1px solid #fed7aa' }}>
-            Platform personeli rol hiyerarsisini inceleyebilir; yeni rol ekleme, duzenleme ve silme aksiyonlari bu yuzeyde kapatildi.
+      {error ? <div className="roles-tab__error">{error}</div> : null}
+
+      <div>
+        {readOnly ? (
+          <div className="roles-tab__panel roles-tab__panel--readonly">
+            Platform personeli rol hiyerarşisini inceleyebilir; yeni rol ekleme, düzenleme ve silme aksiyonları bu yüzeyde kapatıldı.
           </div>
-        )}
-        <button
-          onClick={() => {
-            setShowNewRoleForm(!showNewRoleForm);
-            setEditingRoleId(null);
-            setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
-            setSelectedPermissions([]);
-          }}
-          disabled={readOnly}
-          style={{
-            padding: "10px 16px",
-            background: "#10b981",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: readOnly ? "not-allowed" : "pointer",
-            fontWeight: "bold",
-            opacity: readOnly ? 0.6 : 1,
-          }}
-        >
-          {showNewRoleForm ? "❌ İptal" : "➕ Yeni Rol"}
-        </button>
+        ) : null}
+
+        <div className="roles-tab__toolbar">
+          <button
+            type="button"
+            onClick={() => {
+              setShowNewRoleForm(!showNewRoleForm);
+              setEditingRoleId(null);
+              resetRoleForm();
+            }}
+            disabled={readOnly}
+            className="roles-tab__button roles-tab__button--success"
+          >
+            {showNewRoleForm ? "❌ İptal" : "➕ Yeni Rol"}
+          </button>
+        </div>
       </div>
 
-      {!readOnly && (showNewRoleForm || editingRoleId !== null) && (
-        <div style={{ background: "#f9fafb", padding: 20, borderRadius: 8, marginBottom: 20, border: "1px solid #ddd" }}>
-          <h3>{editingRoleId ? "Rolü Düzenle" : "Yeni Rol Ekle"}</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+      {!readOnly && (showNewRoleForm || editingRoleId !== null) ? (
+        <div className="roles-tab__form">
+          <h3 className="roles-tab__section-title">{editingRoleId ? "Rolü Düzenle" : "Yeni Rol Ekle"}</h3>
+
+          <div className="roles-tab__form-grid">
             <input
               type="text"
               placeholder="Rol Adı"
               value={roleForm.name}
-              onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
-              style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd" }}
+              onChange={(event) => setRoleForm({ ...roleForm, name: event.target.value })}
+              aria-label="Rol adı"
+              title="Rol adı"
+              className="roles-tab__input"
             />
             <input
               type="text"
               placeholder="Açıklama"
               value={roleForm.description}
-              onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
-              style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd" }}
+              onChange={(event) => setRoleForm({ ...roleForm, description: event.target.value })}
+              aria-label="Rol açıklaması"
+              title="Rol açıklaması"
+              className="roles-tab__input"
             />
           </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>
-              Parent Rol (Hiyerarşi):
-            </label>
+          <div>
+            <label className="roles-tab__label">Parent Rol (Hiyerarşi):</label>
             <select
               value={roleForm.parent_id || ""}
-              onChange={(e) =>
-                setRoleForm({ ...roleForm, parent_id: e.target.value ? parseInt(e.target.value) : undefined })
+              onChange={(event) =>
+                setRoleForm({ ...roleForm, parent_id: event.target.value ? parseInt(event.target.value) : undefined })
               }
-              style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", width: "100%", maxWidth: 300 }}
+              aria-label="Parent rol seçimi"
+              title="Parent rol seçimi"
+              className="roles-tab__select"
             >
               <option value="">Yok (Root Role)</option>
               {visibleRoles
-                .filter((r) => r.id !== editingRoleId)
+                .filter((role) => role.id !== editingRoleId)
                 .map((role) => (
                   <option key={role.id} value={role.id}>
                     {"  ".repeat(role.hierarchy_level)} {role.name}
@@ -329,81 +339,48 @@ export function RolesTab({
             </select>
           </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>
-              İzinler:
-            </label>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: 8,
-                maxHeight: 350,
-                overflowY: "auto",
-                padding: 12,
-                background: "white",
-                border: "1px solid #ddd",
-                borderRadius: 4,
-              }}
-            >
-              {permissions.map((perm) => (
+          <div>
+            <label className="roles-tab__label">İzinler:</label>
+            <div className="roles-tab__permission-grid">
+              {permissions.map((permission) => (
                 <label
-                  key={perm.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 8,
-                    cursor: "pointer",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                  title={perm.tooltip || perm.description || ""}
+                  key={permission.id}
+                  className="roles-tab__permission-item"
+                  title={permission.tooltip || permission.description || ""}
                 >
                   <input
                     type="checkbox"
-                    checked={selectedPermissions.includes(perm.id)}
-                    onChange={() => handlePermissionChange(perm.id)}
-                    style={{ cursor: "pointer", width: 18, height: 18, marginTop: 2, flexShrink: 0 }}
+                    checked={selectedPermissions.includes(permission.id)}
+                    onChange={() => handlePermissionChange(permission.id)}
+                    className="roles-tab__permission-checkbox"
                   />
-                  <div style={{ flex: 1, fontSize: 13 }}>
-                    <div style={{ fontWeight: "bold", color: "#333" }}>
-                      {perm.description || perm.name}
+                  <div className="roles-tab__permission-body">
+                    <div className="roles-tab__permission-name">
+                      {permission.description || permission.name}
                     </div>
-                    {perm.tooltip && (
-                      <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{perm.tooltip}</div>
-                    )}
+                    {permission.tooltip ? (
+                      <div className="roles-tab__permission-tooltip">{permission.tooltip}</div>
+                    ) : null}
                   </div>
                 </label>
               ))}
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="roles-tab__actions">
             {editingRoleId ? (
               <>
                 <button
+                  type="button"
                   onClick={() => handleUpdateRole(editingRoleId)}
-                  style={{
-                    padding: "8px 16px",
-                    background: "#3b82f6",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
+                  className="roles-tab__button roles-tab__button--primary"
                 >
                   Güncelle
                 </button>
                 <button
+                  type="button"
                   onClick={handleCancelEdit}
-                  style={{
-                    padding: "8px 16px",
-                    background: "#f3f4f6",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
+                  className="roles-tab__button roles-tab__button--ghost"
                 >
                   İptal
                 </button>
@@ -411,46 +388,28 @@ export function RolesTab({
             ) : (
               <>
                 <button
+                  type="button"
                   onClick={handleAddRole}
-                  style={{
-                    padding: "8px 16px",
-                    background: "#10b981",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
+                  className="roles-tab__button roles-tab__button--success"
                 >
                   Ekle
                 </button>
                 {onCreateRoleRequest ? (
                   <button
+                    type="button"
                     onClick={handleRequestRole}
-                    style={{
-                      padding: "8px 16px",
-                      background: "#eff6ff",
-                      color: "#1d4ed8",
-                      border: "1px solid #bfdbfe",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
+                    className="roles-tab__button roles-tab__button--info"
                   >
-                    Onaya Gonder
+                    Onaya Gönder
                   </button>
                 ) : null}
                 <button
+                  type="button"
                   onClick={() => {
                     setShowNewRoleForm(false);
-                    setRoleForm({ name: "", description: "", parent_id: undefined, is_active: true });
-                    setSelectedPermissions([]);
+                    resetRoleForm();
                   }}
-                  style={{
-                    padding: "8px 16px",
-                    background: "#f3f4f6",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
+                  className="roles-tab__button roles-tab__button--ghost"
                 >
                   İptal
                 </button>
@@ -458,12 +417,11 @@ export function RolesTab({
             )}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Roles Tree View */}
-      <div style={{ marginTop: 32 }}>
-        <h3 style={{ marginBottom: 16 }}>Rol Hiyerarşisi</h3>
-        <div style={{ marginLeft: 0 }}>
+      <div className="roles-tab__section">
+        <h3 className="roles-tab__section-title">Rol Hiyerarşisi</h3>
+        <div className="roles-tab__tree">
           {getRoleTree(null).map((role) => (
             <RoleTreeNode
               key={role.id}
@@ -477,17 +435,15 @@ export function RolesTab({
         </div>
       </div>
 
-      {visibleRoles.length === 0 && (
-        <div style={{ padding: 20, textAlign: "center", color: "#999" }}>
-          Hiç rol yoktur. Yeni bir rol oluşturun.
-        </div>
-      )}
+      {visibleRoles.length === 0 ? (
+        <div className="roles-tab__empty">Hiç rol yoktur. Yeni bir rol oluşturun.</div>
+      ) : null}
     </div>
   );
 
   function getRoleTree(parentId: number | null = null): Role[] {
     return visibleRoles
-      .filter((r) => r.parent_id === parentId)
+      .filter((role) => role.parent_id === parentId)
       .sort((a, b) => a.hierarchy_level - b.hierarchy_level);
   }
 }
@@ -508,110 +464,85 @@ function RoleTreeNode({
   readOnly = false,
 }: RoleNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  
-  const children = allRoles.filter((r) => r.parent_id === role.id);
+
+  const children = allRoles.filter((candidate) => candidate.parent_id === role.id);
   const hasChildren = children.length > 0;
-  const parentRole = role.parent_id ? allRoles.find((r) => r.id === role.parent_id) : null;
+  const parentRole = role.parent_id ? allRoles.find((candidate) => candidate.id === role.parent_id) : null;
 
   return (
     <div>
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "12px 8px",
-          backgroundColor: role.is_active ? "#f9fafb" : "#fee2e2",
-          borderLeft: `4px solid ${role.is_active ? "#3b82f6" : "#dc2626"}`,
-          marginBottom: 4,
-          borderRadius: "0 4px 4px 0",
-          marginLeft: `${role.hierarchy_level * 20}px`,
-        }}
+        className={[
+          "roles-tab__tree-node",
+          role.is_active ? "roles-tab__tree-node--active" : "roles-tab__tree-node--inactive",
+          `roles-tab__tree-node--level-${Math.min(role.hierarchy_level, 6)}`,
+        ].join(" ")}
       >
-        {hasChildren && (
+        {hasChildren ? (
           <button
+            type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-              width: 24,
-              fontSize: 16,
-            }}
+            className="roles-tab__toggle"
+            aria-label={isExpanded ? "Alt rolleri gizle" : "Alt rolleri göster"}
+            title={isExpanded ? "Alt rolleri gizle" : "Alt rolleri göster"}
           >
             {isExpanded ? "▼" : "▶"}
           </button>
+        ) : (
+          <div className="roles-tab__spacer" />
         )}
-        {!hasChildren && <div style={{ width: 24 }} />}
 
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: "bold", color: "#333" }}>{role.name}</div>
-          <div style={{ fontSize: 12, color: "#666" }}>
+        <div className="roles-tab__tree-content">
+          <div className="roles-tab__tree-name">{role.name}</div>
+          <div className="roles-tab__tree-description">
             {role.description} {role.permissions.length > 0 && `(${role.permissions.length} izin)`}
           </div>
-          <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
-            Ust Rol: {parentRole?.name || "Root"} | Alt Rol Sayisi: {children.length}
+          <div className="roles-tab__tree-meta">
+            Üst Rol: {parentRole?.name || "Root"} | Alt Rol Sayısı: {children.length}
           </div>
         </div>
 
         <span
-          style={{
-            padding: "4px 12px",
-            background: role.is_active ? "#d1fae5" : "#fee2e2",
-            color: role.is_active ? "#065f46" : "#991b1b",
-            borderRadius: "4px",
-            fontSize: "12px",
-          }}
+          className={[
+            "roles-tab__status",
+            role.is_active ? "roles-tab__status--active" : "roles-tab__status--inactive",
+          ].join(" ")}
         >
           {role.is_active ? "Aktif" : "Pasif"}
         </span>
 
-        {!readOnly && (
-          <>
+        {!readOnly ? (
+          <div className="roles-tab__tree-actions">
             <button
+              type="button"
               onClick={() => onEdit(role)}
-              style={{
-                padding: "4px 12px",
-                background: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: 12,
-              }}
+              className="roles-tab__tree-button roles-tab__tree-button--edit"
             >
               Düzenle
             </button>
 
             <button
+              type="button"
               onClick={() => onDelete(role.id)}
-              style={{
-                padding: "4px 12px",
-                background: "#ef4444",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: 12,
-              }}
+              className="roles-tab__tree-button roles-tab__tree-button--delete"
             >
               Sil
             </button>
-          </>
-        )}
+          </div>
+        ) : null}
       </div>
 
-      {isExpanded &&
-        children.map((child) => (
-          <RoleTreeNode
-            key={child.id}
-            role={child}
-            allRoles={allRoles}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
+      {isExpanded
+        ? children.map((child) => (
+            <RoleTreeNode
+              key={child.id}
+              role={child}
+              allRoles={allRoles}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))
+        : null}
     </div>
   );
 }

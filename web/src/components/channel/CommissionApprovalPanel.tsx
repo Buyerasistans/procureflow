@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import type { AdminLedgerItem } from "../../services/profile.service";
-import { approveLedgerEntry, bulkApproveLedger } from "../../services/profile.service";
+import { useState } from "react";
+import { approveLedgerEntry, bulkApproveLedger, type AdminLedgerItem } from "../../services/profile.service";
+import "./CommissionApprovalPanel.css";
 
 interface CommissionApprovalPanelProps {
   items: AdminLedgerItem[];
@@ -8,25 +8,37 @@ interface CommissionApprovalPanelProps {
   onRefresh: () => void;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending:   { label: "Bekliyor",   color: "#f59e0b" },
-  approved:  { label: "Onaylandi",  color: "#22c55e" },
-  paid:      { label: "Odendi",     color: "#3b82f6" },
-  cancelled: { label: "Iptal",      color: "#ef4444" },
+const STATUS_LABELS: Record<string, { label: string; color: string; className: string }> = {
+  pending: {
+    label: "Bekliyor",
+    color: "#f59e0b",
+    className: "commission-approval-panel__status-pill--pending",
+  },
+  approved: {
+    label: "Onaylandi",
+    color: "#22c55e",
+    className: "commission-approval-panel__status-pill--approved",
+  },
+  paid: {
+    label: "Odendi",
+    color: "#3b82f6",
+    className: "commission-approval-panel__status-pill--paid",
+  },
+  cancelled: {
+    label: "Iptal",
+    color: "#ef4444",
+    className: "commission-approval-panel__status-pill--cancelled",
+  },
 };
 
-export function CommissionApprovalPanel({
-  items,
-  loading,
-  onRefresh,
-}: CommissionApprovalPanelProps) {
+type ActionStatus = "approved" | "paid" | "cancelled";
+
+export function CommissionApprovalPanel({ items, loading, onRefresh }: CommissionApprovalPanelProps) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("pending");
 
-  const filtered = items.filter(
-    (it) => !statusFilter || it.status === statusFilter
-  );
+  const filtered = items.filter((item) => !statusFilter || item.status === statusFilter);
 
   function toggleSelect(id: number) {
     setSelected((prev) => {
@@ -41,22 +53,26 @@ export function CommissionApprovalPanel({
     if (selected.size === filtered.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(filtered.map((i) => i.id)));
+      setSelected(new Set(filtered.map((item) => item.id)));
     }
   }
 
-  async function handleSingle(id: number, newStatus: "approved" | "paid" | "cancelled") {
+  async function handleSingle(id: number, newStatus: ActionStatus) {
     setBusy(true);
     try {
       await approveLedgerEntry(id, newStatus);
       onRefresh();
-      setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  async function handleBulk(newStatus: "approved" | "paid" | "cancelled") {
+  async function handleBulk(newStatus: ActionStatus) {
     if (selected.size === 0) return;
     setBusy(true);
     try {
@@ -69,36 +85,20 @@ export function CommissionApprovalPanel({
   }
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 14,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 14,
-        }}
-      >
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#1e293b" }}>
-          Komisyon Onay Akisi
-        </span>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <section className="commission-approval-panel">
+      <div className="commission-approval-panel__header">
+        <span className="commission-approval-panel__title">Komisyon Onay Akisi</span>
+
+        <div className="commission-approval-panel__toolbar">
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setSelected(new Set()); }}
-            style={{
-              fontSize: 12,
-              padding: "4px 8px",
-              borderRadius: 6,
-              border: "1px solid #e2e8f0",
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setSelected(new Set());
             }}
+            className="commission-approval-panel__select"
+            aria-label="Durum filtresi"
+            title="Durum filtresi"
           >
             <option value="">Tum durumlar</option>
             <option value="pending">Bekliyor</option>
@@ -106,39 +106,21 @@ export function CommissionApprovalPanel({
             <option value="paid">Odendi</option>
             <option value="cancelled">Iptal</option>
           </select>
+
           <button
+            type="button"
             onClick={onRefresh}
             disabled={busy || loading}
-            style={{
-              fontSize: 12,
-              padding: "4px 10px",
-              borderRadius: 6,
-              border: "1px solid #e2e8f0",
-              background: "#f8fafc",
-              cursor: "pointer",
-            }}
+            className="commission-approval-panel__button"
           >
             Yenile
           </button>
         </div>
       </div>
 
-      {/* Toplu islem bar */}
-      {selected.size > 0 && (
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 12,
-            padding: "8px 12px",
-            background: "#eff6ff",
-            borderRadius: 8,
-            alignItems: "center",
-          }}
-        >
-          <span style={{ fontSize: 12, color: "#1e40af", flex: 1 }}>
-            {selected.size} kayit secildi
-          </span>
+      {selected.size > 0 ? (
+        <div className="commission-approval-panel__bulk-bar">
+          <span className="commission-approval-panel__bulk-count">{selected.size} kayit secildi</span>
           <ActionButton
             label="Toplu Onayla"
             color="#22c55e"
@@ -158,73 +140,83 @@ export function CommissionApprovalPanel({
             disabled={busy}
           />
         </div>
-      )}
+      ) : null}
 
       {loading ? (
-        <div style={{ color: "#94a3b8", fontSize: 13 }}>Yukleniyor...</div>
+        <div className="commission-approval-panel__empty-state">Yukleniyor...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ color: "#94a3b8", fontSize: 13 }}>Kayit bulunamadi.</div>
+        <div className="commission-approval-panel__empty-state">Kayit bulunamadi.</div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <div className="commission-approval-panel__table-wrap">
+          <table className="commission-approval-panel__table">
             <thead>
-              <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                <th style={{ padding: "8px 6px", textAlign: "left", width: 32 }}>
-                  <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
+              <tr>
+                <th className="commission-approval-panel__th commission-approval-panel__th--checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selected.size === filtered.length && filtered.length > 0}
+                    onChange={toggleAll}
+                    aria-label="Tum kayitlari sec"
+                    title="Tum kayitlari sec"
+                  />
                 </th>
-                <th style={{ padding: "8px 6px", textAlign: "left" }}>ID</th>
-                <th style={{ padding: "8px 6px", textAlign: "left" }}>Kanal Org</th>
-                <th style={{ padding: "8px 6px", textAlign: "left" }}>Olay Tipi</th>
-                <th style={{ padding: "8px 6px", textAlign: "right" }}>Tutar</th>
-                <th style={{ padding: "8px 6px", textAlign: "center" }}>Durum</th>
-                <th style={{ padding: "8px 6px", textAlign: "left" }}>Tarih</th>
-                <th style={{ padding: "8px 6px", textAlign: "center" }}>Islemler</th>
+                <th className="commission-approval-panel__th">ID</th>
+                <th className="commission-approval-panel__th">Kanal Org</th>
+                <th className="commission-approval-panel__th">Olay Tipi</th>
+                <th className="commission-approval-panel__th commission-approval-panel__th--right">Tutar</th>
+                <th className="commission-approval-panel__th commission-approval-panel__th--center">Durum</th>
+                <th className="commission-approval-panel__th">Tarih</th>
+                <th className="commission-approval-panel__th commission-approval-panel__th--center">Islemler</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((item) => {
-                const st = STATUS_LABELS[item.status] ?? { label: item.status, color: "#64748b" };
+                const statusInfo = STATUS_LABELS[item.status] ?? {
+                  label: item.status,
+                  color: "#64748b",
+                  className: "commission-approval-panel__status-pill--default",
+                };
+                const rowClassName = [
+                  "commission-approval-panel__row",
+                  selected.has(item.id) ? "commission-approval-panel__row--selected" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                const actionStatusClassName = [
+                  "commission-approval-panel__status-pill",
+                  statusInfo.className,
+                ].join(" ");
+
                 return (
-                  <tr
-                    key={item.id}
-                    style={{
-                      borderBottom: "1px solid #f1f5f9",
-                      background: selected.has(item.id) ? "#eff6ff" : undefined,
-                    }}
-                  >
-                    <td style={{ padding: "7px 6px" }}>
+                  <tr key={item.id} className={rowClassName}>
+                    <td className="commission-approval-panel__cell commission-approval-panel__cell--center">
                       <input
                         type="checkbox"
                         checked={selected.has(item.id)}
                         onChange={() => toggleSelect(item.id)}
+                        aria-label={`Kayit #${item.id} sec`}
+                        title={`Kayit #${item.id} sec`}
                       />
                     </td>
-                    <td style={{ padding: "7px 6px", color: "#64748b" }}>#{item.id}</td>
-                    <td style={{ padding: "7px 6px" }}>{item.org_name ?? `Org #${item.channel_org_id}`}</td>
-                    <td style={{ padding: "7px 6px" }}>{item.event_type}</td>
-                    <td style={{ padding: "7px 6px", textAlign: "right", fontWeight: 600 }}>
+                    <td className="commission-approval-panel__cell commission-approval-panel__cell--muted">
+                      #{item.id}
+                    </td>
+                    <td className="commission-approval-panel__cell">
+                      {item.org_name ?? `Org #${item.channel_org_id}`}
+                    </td>
+                    <td className="commission-approval-panel__cell">{item.event_type}</td>
+                    <td className="commission-approval-panel__cell commission-approval-panel__cell--right commission-approval-panel__amount">
                       {item.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} {item.currency}
                     </td>
-                    <td style={{ padding: "7px 6px", textAlign: "center" }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          padding: "2px 8px",
-                          borderRadius: 10,
-                          background: st.color + "22",
-                          color: st.color,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {st.label}
-                      </span>
+                    <td className="commission-approval-panel__cell commission-approval-panel__cell--center">
+                      <span className={actionStatusClassName}>{statusInfo.label}</span>
                     </td>
-                    <td style={{ padding: "7px 6px", color: "#64748b", fontSize: 11 }}>
+                    <td className="commission-approval-panel__cell commission-approval-panel__cell--muted">
                       {item.created_at.slice(0, 10)}
                     </td>
-                    <td style={{ padding: "7px 6px", textAlign: "center" }}>
-                      <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
-                        {item.status === "pending" && (
+                    <td className="commission-approval-panel__cell commission-approval-panel__cell--center">
+                      <div className="commission-approval-panel__actions">
+                        {item.status === "pending" ? (
                           <>
                             <ActionButton
                               label="Onayla"
@@ -241,8 +233,9 @@ export function CommissionApprovalPanel({
                               small
                             />
                           </>
-                        )}
-                        {item.status === "approved" && (
+                        ) : null}
+
+                        {item.status === "approved" ? (
                           <ActionButton
                             label="Odendi"
                             color="#3b82f6"
@@ -250,7 +243,7 @@ export function CommissionApprovalPanel({
                             disabled={busy}
                             small
                           />
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -260,7 +253,7 @@ export function CommissionApprovalPanel({
           </table>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -277,22 +270,20 @@ function ActionButton({
   disabled?: boolean;
   small?: boolean;
 }) {
+  const statusClassName = [
+    "commission-approval-panel__action-button",
+    small
+      ? "commission-approval-panel__action-button--small"
+      : "commission-approval-panel__action-button--default",
+    color === "#22c55e"
+      ? "commission-approval-panel__action-button--green"
+      : color === "#3b82f6"
+        ? "commission-approval-panel__action-button--blue"
+        : "commission-approval-panel__action-button--red",
+  ].join(" ");
+
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        fontSize: small ? 11 : 12,
-        padding: small ? "2px 8px" : "4px 12px",
-        borderRadius: 6,
-        border: `1px solid ${color}`,
-        background: disabled ? "#f1f5f9" : color + "18",
-        color: disabled ? "#94a3b8" : color,
-        cursor: disabled ? "not-allowed" : "pointer",
-        fontWeight: 600,
-        transition: "background 0.15s",
-      }}
-    >
+    <button type="button" onClick={onClick} disabled={disabled} className={statusClassName}>
       {label}
     </button>
   );

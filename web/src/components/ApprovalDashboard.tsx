@@ -1,6 +1,6 @@
-// web/src/components/ApprovalDashboard.tsx
 import { useState, useEffect, useCallback, type ChangeEvent } from "react";
 import styled from "styled-components";
+import "./ApprovalDashboard.css";
 
 const Container = styled.div`
   padding: 20px;
@@ -324,9 +324,7 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
             <CardHeader>
               <div>
                 <CardTitle>{approval.quote_title}</CardTitle>
-                <p style={{ margin: "5px 0 0 0", fontSize: "13px", color: "#6b7280" }}>
-                  {approval.company_name}
-                </p>
+                <p className="approval-dashboard__company-name">{approval.company_name}</p>
               </div>
               <StatusBadge status={approval.quote_status}>
                 {approval.quote_status || "PENDING"}
@@ -389,7 +387,7 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
                       setActiveApprovalId(null);
                       setComment("");
                     }}
-                    style={{ backgroundColor: "#6b7280" }}
+                    className="approval-dashboard__cancel-button"
                   >
                     İptal
                   </Button>
@@ -398,17 +396,7 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
             ) : (
               <button
                 onClick={() => setActiveApprovalId(approval.approval_id)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  backgroundColor: "#f3f4f6",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  marginTop: "12px",
-                  fontWeight: 600,
-                  color: "#1f2937",
-                }}
+                className="approval-dashboard__decision-button"
               >
                 Karar Ver →
               </button>

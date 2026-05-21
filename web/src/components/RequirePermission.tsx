@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { hasPermissionForUser, type Permission } from "../auth/permissions";
 import { getDefaultRouteForUser } from "../auth/routing";
+import "./RequirePermission.css";
 
 type Props = {
   permission: Permission;
@@ -16,7 +17,7 @@ export default function RequirePermission({
   const location = useLocation();
 
   if (loading) {
-    return <div style={{ padding: 24 }}>Yetki kontrol ediliyor...</div>;
+    return <div className="require-permission__loading">Yetki kontrol ediliyor...</div>;
   }
 
   if (!user) {

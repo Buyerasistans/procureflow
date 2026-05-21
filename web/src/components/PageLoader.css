@@ -1,0 +1,8 @@
+.page-loader {
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.page-loader__text {
+  margin: 0;
+}

@@ -302,6 +302,35 @@ async function resolveAdminAccessToken(): Promise<string | null> {
   }
 }
 
+const PROGRESS_WIDTH_CLASSES: Record<number, string> = {
+  0: "w-0",
+  5: "w-[5%]",
+  10: "w-[10%]",
+  15: "w-[15%]",
+  20: "w-[20%]",
+  25: "w-[25%]",
+  30: "w-[30%]",
+  35: "w-[35%]",
+  40: "w-[40%]",
+  45: "w-[45%]",
+  50: "w-[50%]",
+  55: "w-[55%]",
+  60: "w-[60%]",
+  65: "w-[65%]",
+  70: "w-[70%]",
+  75: "w-[75%]",
+  80: "w-[80%]",
+  85: "w-[85%]",
+  90: "w-[90%]",
+  95: "w-[95%]",
+  100: "w-full",
+};
+
+function getProgressWidthClass(progress: number) {
+  const bucket = Math.max(0, Math.min(100, Math.round(progress / 5) * 5));
+  return PROGRESS_WIDTH_CLASSES[bucket] ?? "w-0";
+}
+
 // ─── YARDIMCI BİLEŞENLER ──────────────────────────────────────────────────────
 
 function ElapsedTimer({ isRunning }: { isRunning: boolean }) {
@@ -454,16 +483,10 @@ function ProgressBar({
       <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 inset-shadow-sm">
         <div
           className={`h-full rounded-full transition-all duration-500 ${
-            isRunning
-              ? "bg-sky-500"
-              : "bg-emerald-500"
-          }`}
-          style={{
-            width:
-              isRunning && pct === 0
-                ? "5%"
-                : `${Math.max(pct, isRunning ? 5 : 0)}%`,
-          }}
+            isRunning ? "bg-sky-500" : "bg-emerald-500"
+          } ${getProgressWidthClass(
+            isRunning && pct === 0 ? 5 : Math.max(pct, isRunning ? 5 : 0),
+          )}`}
         />
       </div>
 

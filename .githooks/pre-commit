@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+# staged silinen dosyaları yakala
+deleted=$(git diff --cached --name-status | awk '$1=="D"{print $2}')
+
+if [ -n "$deleted" ]; then
+  echo "❌ Commit blocked: Deleted files detected:"
+  echo "$deleted"
+  echo ""
+  echo "Silme işlemi bilinçliyse şu çevre değişkeniyle tekrar commit at:"
+  echo "ALLOW_DELETE=1 git commit -m '...'"
+  if [ "$ALLOW_DELETE" != "1" ]; then
+    exit 1
+  fi
+fi
+
+echo "✅ pre-commit delete guard passed."

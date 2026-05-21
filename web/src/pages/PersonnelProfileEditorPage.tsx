@@ -8,12 +8,12 @@ import {
   getUserCompanyAssignments,
   type TenantUser,
 } from "../services/admin.service";
+import "./PersonnelProfileEditorPage.css";
 
 export default function PersonnelProfileEditorPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editUser, setEditUser] = useState<TenantUser | null>(null);
 
@@ -25,16 +25,14 @@ export default function PersonnelProfileEditorPage() {
     return user?.id ?? null;
   }, [id, user?.id]);
 
+  const isLoading = targetUserId !== null && editUser?.id !== targetUserId && error === null;
+
   useEffect(() => {
-    if (!targetUserId) {
-      setError("Profil kaydi bulunamadi.");
-      setLoading(false);
+    if (targetUserId === null) {
       return;
     }
 
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
     Promise.all([
       getTenantUsers(),
@@ -48,20 +46,17 @@ export default function PersonnelProfileEditorPage() {
           setEditUser(null);
           return;
         }
+
         setEditUser({
           ...person,
           company_assignments: assignments,
         });
+        setError(null);
       })
       .catch((err) => {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Profil yuklenemedi.");
         setEditUser(null);
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
       });
 
     return () => {
@@ -77,14 +72,32 @@ export default function PersonnelProfileEditorPage() {
     navigate("/dashboard", { replace: true });
   };
 
-  if (loading) {
-    return <div style={{ padding: 24, color: "#475569" }}>Profil editoru yukleniyor...</div>;
+  if (targetUserId === null) {
+    return (
+      <div className="personnel-profile-editor-page">
+        <div className="personnel-profile-editor-page__message personnel-profile-editor-page__message--error">
+          Profil kaydi bulunamadi.
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="personnel-profile-editor-page">
+        <div className="personnel-profile-editor-page__message personnel-profile-editor-page__message--loading">
+          Profil editoru yukleniyor...
+        </div>
+      </div>
+    );
   }
 
   if (!editUser) {
     return (
-      <div style={{ padding: 24, color: "#b91c1c" }}>
-        {error || "Profil kaydi bulunamadi."}
+      <div className="personnel-profile-editor-page">
+        <div className="personnel-profile-editor-page__message personnel-profile-editor-page__message--error">
+          {error || "Profil kaydi bulunamadi."}
+        </div>
       </div>
     );
   }

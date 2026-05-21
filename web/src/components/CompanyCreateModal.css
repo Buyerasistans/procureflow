@@ -1,0 +1,331 @@
+.company-create-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.company-create-modal__container {
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.company-create-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.company-create-modal__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.company-create-modal__close-button {
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+}
+
+.company-create-modal__form {
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.company-create-modal__notice {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.company-create-modal__notice--info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.company-create-modal__notice--error {
+  background: #ffebee;
+  border: 1px solid #ff6b6b;
+  color: #d32f2f;
+}
+
+.company-create-modal__notice-title {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.company-create-modal__notice-text {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.company-create-modal__cta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.company-create-modal__cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  color: #fff;
+}
+
+.company-create-modal__cta-button--upgrade {
+  background: #991b1b;
+}
+
+.company-create-modal__cta-button--addon {
+  background: #7c2d12;
+}
+
+.company-create-modal__logo-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.company-create-modal__logo-preview {
+  width: 110px;
+  height: 110px;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.company-create-modal__logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.company-create-modal__logo-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: 2px dashed #93c5fd;
+  cursor: pointer;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 13px;
+  background: #eff6ff;
+}
+
+.company-create-modal__file-input {
+  display: none;
+}
+
+.company-create-modal__file-name {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.company-create-modal__two-column,
+.company-create-modal__three-column {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.company-create-modal__two-column {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.company-create-modal__three-column {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.company-create-modal__field {
+  display: grid;
+  gap: 4px;
+}
+
+.company-create-modal__field--full {
+  margin-bottom: 0;
+}
+
+.company-create-modal__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.company-create-modal__input,
+.company-create-modal__textarea,
+.company-create-modal__select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+  color: #111827;
+}
+
+.company-create-modal__textarea {
+  resize: none;
+  min-height: 72px;
+}
+
+.company-create-modal__color-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.company-create-modal__color-input {
+  width: 46px;
+  height: 38px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  padding: 0;
+}
+
+.company-create-modal__toggle-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.company-create-modal__toggle-button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  color: #334155;
+}
+
+.company-create-modal__map-frame {
+  margin-bottom: 16px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.company-create-modal__map-iframe {
+  width: 100%;
+  height: 260px;
+  border: 0;
+  display: block;
+}
+
+.company-create-modal__checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.company-create-modal__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #334155;
+}
+
+.company-create-modal__checkbox-input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.company-create-modal__footer {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+}
+
+.company-create-modal__primary-button,
+.company-create-modal__secondary-button {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.company-create-modal__primary-button {
+  background: #2196f3;
+  color: #fff;
+}
+
+.company-create-modal__primary-button--disabled {
+  background: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.company-create-modal__secondary-button {
+  background: #e0e0e0;
+  color: #333;
+}
+
+@media (max-width: 720px) {
+  .company-create-modal__container {
+    max-width: calc(100vw - 24px);
+  }
+
+  .company-create-modal__two-column,
+  .company-create-modal__three-column,
+  .company-create-modal__checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .company-create-modal__footer {
+    flex-direction: column;
+  }
+
+  .company-create-modal__color-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,3 +1,5 @@
+import "./PlatformOverviewPriorityPanels.css";
+
 type PriorityTenant = {
   id: number;
   slug?: string | null;
@@ -28,30 +30,30 @@ export function PlatformOverviewPriorityPanels({
   formatPartnerLifecycleStatus,
 }: PlatformOverviewPriorityPanelsProps) {
   return (
-    <>
-      <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Platform Odaklari</div>
-        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>Stratejik Partner gecis panosu</div>
-        <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+    <div className="platform-overview-priority-panels">
+      <div className="platform-overview-priority-panels__card">
+        <div className="platform-overview-priority-panels__eyebrow">Platform Odaklari</div>
+        <div className="platform-overview-priority-panels__title">Stratejik Partner gecis panosu</div>
+        <div className="platform-overview-priority-panels__list">
           {[
             "Admin'i personelden ayiran system_role gecisi baslatildi.",
             "Stratejik Partner omurgasi ve bootstrap scripti eklendi.",
             "Navigation ve varsayilan yonlendirme system_role bazli calisiyor.",
             "Siradaki is: Stratejik Partner yonetici yeniden atama ve daha derin yasam dongusu aksiyonlari.",
           ].map((item) => (
-            <div key={item} style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", color: "#334155" }}>
+            <div key={item} className="platform-overview-priority-panels__item">
               {item}
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Operasyon Kuyrugu</div>
-        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>Platform destek oncelikleri</div>
-        <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+      <div className="platform-overview-priority-panels__card">
+        <div className="platform-overview-priority-panels__eyebrow">Operasyon Kuyrugu</div>
+        <div className="platform-overview-priority-panels__title">Platform destek oncelikleri</div>
+        <div className="platform-overview-priority-panels__list">
           {platformOpsSummary.highestPriorityTenants.length === 0 ? (
-            <div style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", color: "#64748b" }}>
+            <div className="platform-overview-priority-panels__empty">
               Acik operasyon kuyrugu olusturan Stratejik Partner kaydi bulunmuyor.
             </div>
           ) : (
@@ -67,14 +69,14 @@ export function PlatformOverviewPriorityPanels({
               ].filter(Boolean);
 
               return (
-                <div key={`ops-${tenant.id}`} style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", display: "grid", gap: 6 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <div style={{ fontWeight: 800, color: "#0f172a" }}>{tenant.brand_name || tenant.legal_name}</div>
-                    <span style={{ color: "#64748b", fontSize: 12 }}>{tenant.slug}</span>
+                <div key={`ops-${tenant.id}`} className="platform-overview-priority-panels__item">
+                  <div className="platform-overview-priority-panels__item-header">
+                    <div className="platform-overview-priority-panels__item-title">{tenant.brand_name || tenant.legal_name}</div>
+                    <span className="platform-overview-priority-panels__item-meta">{tenant.slug}</span>
                   </div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <div className="platform-overview-priority-panels__tags">
                     {tags.map((tag) => (
-                      <span key={`${tenant.id}-${tag}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#e2e8f0", color: "#334155", fontSize: 11, fontWeight: 700 }}>
+                      <span key={`${tenant.id}-${tag}`} className="platform-overview-priority-panels__tag">
                         {tag}
                       </span>
                     ))}
@@ -85,6 +87,6 @@ export function PlatformOverviewPriorityPanels({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

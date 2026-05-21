@@ -1,12 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { createProject } from "../services/project.service";
 import { getCompanies, getTenantUsers } from "../services/admin.service";
-import { modalStyles } from "../styles/modalStyles";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
 import type { Company, TenantUser } from "../services/admin.service";
 import { filterUsersByAssignmentScope } from "../utils/tenantUserAssignments";
-import { SUBSCRIPTION_ADDON_CTA_LABEL, SUBSCRIPTION_UPGRADE_CTA_LABEL, getSubscriptionAddonHref, getSubscriptionLimitGuidanceMessage, getSubscriptionUpgradeHref, hasSubscriptionUpgradeGuidance } from "../utils/subscriptionLimitErrors";
+import {
+  SUBSCRIPTION_ADDON_CTA_LABEL,
+  SUBSCRIPTION_UPGRADE_CTA_LABEL,
+  getSubscriptionAddonHref,
+  getSubscriptionLimitGuidanceMessage,
+  getSubscriptionUpgradeHref,
+  hasSubscriptionUpgradeGuidance,
+} from "../utils/subscriptionLimitErrors";
+import "./ProjectCreateModal.css";
 
 interface ProjectCreateModalProps {
   isOpen: boolean;
@@ -47,10 +54,10 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
 
   useEffect(() => {
     if (isOpen && companies.length === 0) {
-      loadCompanies();
+      void loadCompanies();
     }
     if (isOpen && personnel.length === 0) {
-      loadPersonnel();
+      void loadPersonnel();
     }
   }, [isOpen, companies.length, personnel.length]);
 
@@ -66,7 +73,7 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
   async function loadPersonnel() {
     try {
       const data = await getTenantUsers();
-      setPersonnel(data.filter((p) => p.is_active));
+      setPersonnel(data.filter((item) => item.is_active));
     } catch (err) {
       setError("Personel yüklenemedi: " + String(err));
     }
@@ -74,12 +81,12 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
 
   function toggleResponsibleUser(userId: number) {
     setResponsibleUserIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
     );
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setError("");
     setLoading(true);
 
@@ -108,7 +115,7 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
     } catch (err) {
       const errorMessage = getSubscriptionLimitGuidanceMessage(err, "Proje oluşturulamadı");
       setError(errorMessage);
-      // Detaylı error log
+
       if (axios.isAxiosError(err)) {
         console.error("[PROJECT] API Error:", {
           status: err.response?.status,
@@ -143,28 +150,39 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
   if (!isOpen) return null;
 
   return (
-    <div style={modalStyles.backdrop}>
-      <div style={modalStyles.container}>
-        {/* Header */}
-        <div style={modalStyles.header}>
-          <h2 style={modalStyles.title}>➕ Yeni Proje Oluştur</h2>
-          <button onClick={onClose} style={modalStyles.closeButton}>
+    <div className="project-create-modal__backdrop">
+      <div className="project-create-modal__container" role="dialog" aria-modal="true" aria-labelledby="project-create-modal-title">
+        <div className="project-create-modal__header">
+          <h2 id="project-create-modal-title" className="project-create-modal__title">
+            ➕ Yeni Proje Oluştur
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="project-create-modal__close-button"
+            aria-label="Modalı kapat"
+            title="Modalı kapat"
+          >
             ✕
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={modalStyles.content}>
-          {/* Error */}
+        <form onSubmit={handleSubmit} className="project-create-modal__form">
           {error ? (
-            <div style={{ ...modalStyles.errorMessage, display: "grid", gap: 10 }}>
+            <div className="project-create-modal__error">
               <div>{error}</div>
               {hasSubscriptionUpgradeGuidance(error) ? (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <a href={getSubscriptionUpgradeHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                <div className="project-create-modal__error-actions">
+                  <a
+                    href={getSubscriptionUpgradeHref(error)}
+                    className="project-create-modal__cta project-create-modal__cta--upgrade"
+                  >
                     {SUBSCRIPTION_UPGRADE_CTA_LABEL}
                   </a>
-                  <a href={getSubscriptionAddonHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                  <a
+                    href={getSubscriptionAddonHref(error)}
+                    className="project-create-modal__cta project-create-modal__cta--addon"
+                  >
                     {SUBSCRIPTION_ADDON_CTA_LABEL}
                   </a>
                 </div>
@@ -172,57 +190,75 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
             </div>
           ) : null}
 
-          {/* Row 1: Name & Code */}
-          <div style={modalStyles.grid}>
-            <div>
-              <label style={modalStyles.label}>Proje Adı *</label>
+          <div className="project-create-modal__grid">
+            <div className="project-create-modal__field">
+              <label className="project-create-modal__label" htmlFor="project-name">
+                Proje Adı *
+              </label>
               <input
+                id="project-name"
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(event) => setName(event.target.value)}
                 placeholder="örn: Pizza Max Merkez"
-                style={modalStyles.input}
+                className="project-create-modal__input"
+                aria-label="Proje Adı"
+                title="Proje Adı"
               />
             </div>
-            <div>
-              <label style={modalStyles.label}>Proje Kodu *</label>
+
+            <div className="project-create-modal__field">
+              <label className="project-create-modal__label" htmlFor="project-code">
+                Proje Kodu *
+              </label>
               <input
+                id="project-code"
                 type="text"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(event) => setCode(event.target.value)}
                 placeholder="örn: PM-001"
-                style={modalStyles.input}
+                className="project-create-modal__input"
+                aria-label="Proje Kodu"
+                title="Proje Kodu"
               />
             </div>
           </div>
 
-          {/* Row 2: Company & Type */}
-          <div style={modalStyles.grid}>
-            <div>
-              <label style={modalStyles.label}>Firma *</label>
+          <div className="project-create-modal__grid">
+            <div className="project-create-modal__field">
+              <label className="project-create-modal__label" htmlFor="project-company">
+                Firma *
+              </label>
               <select
+                id="project-company"
                 value={companyId || ""}
-                onChange={(e) =>
-                  setCompanyId(e.target.value ? parseInt(e.target.value) : undefined)
+                onChange={(event) =>
+                  setCompanyId(event.target.value ? parseInt(event.target.value, 10) : undefined)
                 }
-                style={modalStyles.input}
+                className="project-create-modal__input"
+                aria-label="Firma seçimi"
+                title="Firma seçimi"
               >
                 <option value="">Firma seçin...</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
                   </option>
                 ))}
               </select>
             </div>
-            <div>
-              <label style={modalStyles.label}>Proje Tipi</label>
+
+            <div className="project-create-modal__field">
+              <label className="project-create-modal__label" htmlFor="project-type">
+                Proje Tipi
+              </label>
               <select
+                id="project-type"
                 value={projectType}
-                onChange={(e) =>
-                  setProjectType(e.target.value as "merkez" | "franchise")
-                }
-                style={modalStyles.input}
+                onChange={(event) => setProjectType(event.target.value as "merkez" | "franchise")}
+                className="project-create-modal__input"
+                aria-label="Proje tipi seçimi"
+                title="Proje tipi seçimi"
               >
                 <option value="merkez">🏢 Merkez</option>
                 <option value="franchise">🍕 Franchise</option>
@@ -230,81 +266,103 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
             </div>
           </div>
 
-          {/* Row 3: Manager & Phone */}
-          <div style={modalStyles.grid}>
-            <div>
-              <label style={modalStyles.label}>Proje Yetkilisi</label>
+          <div className="project-create-modal__grid">
+            <div className="project-create-modal__field">
+              <label className="project-create-modal__label" htmlFor="project-manager-name">
+                Proje Yetkilisi
+              </label>
               <input
+                id="project-manager-name"
                 type="text"
                 value={managerName}
-                onChange={(e) => setManagerName(e.target.value)}
+                onChange={(event) => setManagerName(event.target.value)}
                 placeholder="Ad Soyad"
-                style={modalStyles.input}
+                className="project-create-modal__input"
+                aria-label="Proje Yetkilisi"
+                title="Proje Yetkilisi"
               />
             </div>
-            <div>
-              <label style={modalStyles.label}>Telefon</label>
+
+            <div className="project-create-modal__field">
+              <label className="project-create-modal__label" htmlFor="project-manager-phone">
+                Telefon
+              </label>
               <input
+                id="project-manager-phone"
                 type="tel"
                 value={managerPhone}
-                onChange={(e) => setManagerPhone(e.target.value)}
+                onChange={(event) => setManagerPhone(event.target.value)}
                 placeholder="+90 555 123 4567"
-                style={modalStyles.input}
+                className="project-create-modal__input"
+                aria-label="Telefon"
+                title="Telefon"
               />
             </div>
           </div>
 
-          {/* Row 3b: Manager Email */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Yetkili E-mail</label>
+          <div className="project-create-modal__field project-create-modal__field--full">
+            <label className="project-create-modal__label" htmlFor="project-manager-email">
+              Yetkili E-mail
+            </label>
             <input
+              id="project-manager-email"
               type="email"
               value={managerEmail}
-              onChange={(e) => setManagerEmail(e.target.value)}
+              onChange={(event) => setManagerEmail(event.target.value)}
               placeholder="yetkili@example.com"
-              style={modalStyles.input}
+              className="project-create-modal__input"
+              aria-label="Yetkili E-mail"
+              title="Yetkili E-mail"
             />
           </div>
 
-          {/* Responsible Purchasing Personnel */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Satın Alma Sorumluları</label>
-            <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "8px" }}>
-              Projeyi olusturan kullanici sistem tarafinda otomatik olarak projeye eklenir.
+          <div className="project-create-modal__field project-create-modal__field--full">
+            <label className="project-create-modal__label">Satın Alma Sorumluları</label>
+            <div className="project-create-modal__helper-text">
+              Projeyi oluşturan kullanıcı sistem tarafında otomatik olarak projeye eklenir.
             </div>
-            <div style={{ maxHeight: "140px", overflowY: "auto", border: "1px solid #d1d5db", borderRadius: "6px", padding: "8px" }}>
+            <div className="project-create-modal__people-box">
               {personnel.length === 0 ? (
-                <div style={{ fontSize: "12px", color: "#6b7280" }}>Personel bulunamadı</div>
+                <div className="project-create-modal__empty-state">Personel bulunamadı</div>
               ) : (
-                availableResponsibleUsers.map((p) => (
-                  <label key={p.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", fontSize: "13px", cursor: "pointer" }}>
+                availableResponsibleUsers.map((person) => (
+                  <label key={person.id} className="project-create-modal__checkbox-row">
                     <input
                       type="checkbox"
-                      checked={responsibleUserIds.includes(p.id)}
-                      onChange={() => toggleResponsibleUser(p.id)}
+                      checked={responsibleUserIds.includes(person.id)}
+                      onChange={() => toggleResponsibleUser(person.id)}
+                      className="project-create-modal__checkbox-input"
                     />
-                    <span>{p.full_name} ({p.email})</span>
+                    <span>
+                      {person.full_name} ({person.email})
+                    </span>
                   </label>
                 ))
               )}
               {personnel.length > 0 && availableResponsibleUsers.length === 0 ? (
-                <div style={{ fontSize: "12px", color: "#6b7280" }}>Secili firmaya bagli aktif ekip uyesi bulunamadi</div>
+                <div className="project-create-modal__empty-state">
+                  Seçili firmaya bağlı aktif ekip üyesi bulunamadı
+                </div>
               ) : null}
             </div>
           </div>
 
-          {/* Address */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Adres</label>
-            <div style={{ ...modalStyles.grid, marginBottom: "8px" }}>
-              <div>
+          <div className="project-create-modal__field project-create-modal__field--full">
+            <label className="project-create-modal__label" htmlFor="project-city">
+              Adres
+            </label>
+            <div className="project-create-modal__grid project-create-modal__grid--address">
+              <div className="project-create-modal__field">
                 <select
+                  id="project-city"
                   value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
+                  onChange={(event) => {
+                    setCity(event.target.value);
                     setDistrict("");
                   }}
-                  style={modalStyles.input}
+                  className="project-create-modal__input"
+                  aria-label="İl seçimi"
+                  title="İl seçimi"
                 >
                   <option value="">İl seçin</option>
                   {cityOptions.map((item) => (
@@ -314,12 +372,16 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
                   ))}
                 </select>
               </div>
-              <div>
+
+              <div className="project-create-modal__field">
                 <select
+                  id="project-district"
                   value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  style={modalStyles.input}
+                  onChange={(event) => setDistrict(event.target.value)}
+                  className="project-create-modal__input"
                   disabled={!city}
+                  aria-label="İlçe seçimi"
+                  title="İlçe seçimi"
                 >
                   <option value="">İlçe seçin</option>
                   {districtOptions.map((item) => (
@@ -330,75 +392,76 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: ProjectCreate
                 </select>
               </div>
             </div>
+
             <textarea
+              id="project-address"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(event) => setAddress(event.target.value)}
               placeholder="Mahalle, cadde, sokak, bina no"
               rows={2}
-              style={modalStyles.textarea}
+              className="project-create-modal__textarea"
+              aria-label="Adres"
+              title="Adres"
             />
-            {fullAddress.trim() && (
-              <div
-                style={{
-                  width: "100%",
-                  height: "200px",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  border: "1px solid #ddd",
-                  marginTop: "8px",
-                }}
-              >
+
+            {fullAddress.trim() ? (
+              <div className="project-create-modal__map-shell">
                 <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
+                  title="Proje konumu haritası"
+                  className="project-create-modal__map"
                   loading="lazy"
                   allowFullScreen
                   src={`https://maps.google.com/maps?output=embed&t=k&q=${encodeURIComponent(fullAddress)}`}
                 />
               </div>
-            )}
+            ) : null}
           </div>
 
-          {/* Budget */}
-          <div style={modalStyles.fullWidth}>
-            <label style={modalStyles.label}>Bütçe (TL)</label>
+          <div className="project-create-modal__field project-create-modal__field--full">
+            <label className="project-create-modal__label" htmlFor="project-budget">
+              Bütçe (TL)
+            </label>
             <input
+              id="project-budget"
               type="number"
               value={budget || ""}
-              onChange={(e) =>
-                setBudget(e.target.value ? parseFloat(e.target.value) : undefined)
+              onChange={(event) =>
+                setBudget(event.target.value ? parseFloat(event.target.value) : undefined)
               }
               placeholder="0.00"
               step="0.01"
               min="0"
-              style={modalStyles.input}
+              className="project-create-modal__input"
+              aria-label="Bütçe (TL)"
+              title="Bütçe (TL)"
             />
           </div>
 
-          {/* Checkbox */}
-          <div style={{ ...modalStyles.fullWidth, marginBottom: "16px" }}>
-            <label style={modalStyles.checkboxLabel}>
+          <div className="project-create-modal__field project-create-modal__field--full">
+            <label className="project-create-modal__checkbox-row">
               <input
                 type="checkbox"
                 checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                style={modalStyles.checkbox}
+                onChange={(event) => setIsActive(event.target.checked)}
+                className="project-create-modal__checkbox-input"
               />
               <span>Projeyi aktif olarak oluştur</span>
             </label>
           </div>
 
-          {/* Buttons */}
-          <div style={modalStyles.footer}>
+          <div className="project-create-modal__footer">
             <button
               type="submit"
               disabled={loading}
-              style={loading ? modalStyles.primaryButtonDisabled : modalStyles.primaryButton}
+              className={
+                loading
+                  ? "project-create-modal__primary-button project-create-modal__primary-button--disabled"
+                  : "project-create-modal__primary-button"
+              }
             >
               {loading ? "⏳ Kaydediliyor..." : "✅ Proje Oluştur"}
             </button>
-            <button type="button" onClick={onClose} style={modalStyles.secondaryButton}>
+            <button type="button" onClick={onClose} className="project-create-modal__secondary-button">
               ❌ İptal
             </button>
           </div>

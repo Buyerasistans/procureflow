@@ -1,18 +1,12 @@
 import React from "react";
 import type { ChannelGamification } from "../../services/profile.service";
 import { SectionCard, SectionHeader, StatCard } from "./ChannelPrimitives";
+import "./GamificationPanel.css";
 
 interface GamificationPanelProps {
   data: ChannelGamification | null;
   loading: boolean;
 }
-
-const LEVEL_COLORS: Record<string, string> = {
-  L0: "#94a3b8",
-  L1: "#60a5fa",
-  L2: "#a78bfa",
-  L3: "#f59e0b",
-};
 
 const LEVEL_LABELS: Record<string, string> = {
   L0: "Baslangic",
@@ -21,15 +15,55 @@ const LEVEL_LABELS: Record<string, string> = {
   L3: "Altin",
 };
 
+const LEVEL_CLASSES: Record<string, string> = {
+  L0: "gamification-panel__level-pill--L0",
+  L1: "gamification-panel__level-pill--L1",
+  L2: "gamification-panel__level-pill--L2",
+  L3: "gamification-panel__level-pill--L3",
+};
+
+const PROGRESS_CLASSES: Record<number, string> = {
+  0: "gamification-panel__progress-fill--0",
+  10: "gamification-panel__progress-fill--10",
+  20: "gamification-panel__progress-fill--20",
+  30: "gamification-panel__progress-fill--30",
+  40: "gamification-panel__progress-fill--40",
+  50: "gamification-panel__progress-fill--50",
+  60: "gamification-panel__progress-fill--60",
+  70: "gamification-panel__progress-fill--70",
+  80: "gamification-panel__progress-fill--80",
+  90: "gamification-panel__progress-fill--90",
+  100: "gamification-panel__progress-fill--100",
+};
+
 function StarRating({ score }: { score: number }) {
   const full = Math.floor(score);
   const half = score - full >= 0.5;
+
   return (
-    <span style={{ fontSize: 18, letterSpacing: 2 }}>
-      {Array.from({ length: 5 }, (_, i) => {
-        if (i < full) return <span key={i} style={{ color: "#f59e0b" }}>★</span>;
-        if (i === full && half) return <span key={i} style={{ color: "#f59e0b" }}>⯨</span>;
-        return <span key={i} style={{ color: "#e2e8f0" }}>★</span>;
+    <span className="gamification-panel__stars" aria-label={`Puan ${score.toFixed(1)} / 5`}>
+      {Array.from({ length: 5 }, (_, index) => {
+        if (index < full) {
+          return (
+            <span key={index} className="gamification-panel__star gamification-panel__star--filled">
+              ★
+            </span>
+          );
+        }
+
+        if (index === full && half) {
+          return (
+            <span key={index} className="gamification-panel__star gamification-panel__star--half">
+              ⯨
+            </span>
+          );
+        }
+
+        return (
+          <span key={index} className="gamification-panel__star gamification-panel__star--empty">
+            ★
+          </span>
+        );
       })}
     </span>
   );
@@ -37,130 +71,93 @@ function StarRating({ score }: { score: number }) {
 
 export function GamificationPanel({ data, loading }: GamificationPanelProps) {
   const levelCode = data?.level_code ?? "L0";
-  const levelColor = LEVEL_COLORS[levelCode] ?? "#94a3b8";
-  const levelLabel = LEVEL_LABELS[levelCode] ?? levelCode;
+  const levelClass = LEVEL_CLASSES[levelCode] ?? LEVEL_CLASSES.L0;
+  const performanceScore = data?.performance_score ?? 0;
+  const roundedScore = Math.max(0, Math.min(100, Math.round(performanceScore)));
+  const progressBucket = Math.floor(roundedScore / 10) * 10;
+  const progressClass = PROGRESS_CLASSES[progressBucket] ?? PROGRESS_CLASSES[0];
+  const badges = data?.badges ?? [];
+  const gracePeriodRemaining = data?.grace_period_remaining ?? 0;
 
   return (
     <SectionCard backgroundColor="#fefce8" borderColor="#fde68a">
-      <SectionHeader
-        title="Performans ve Seviye"
-        right={
-          loading ? (
-            <span style={{ fontSize: 12, color: "#78716c" }}>Yukleniyor...</span>
-          ) : (
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#fff",
-                background: levelColor,
-                borderRadius: 6,
-                padding: "2px 10px",
-              }}
-            >
-              {levelLabel}
-            </span>
-          )
-        }
-      />
-
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 14 }}>
-        <StarRating score={data?.star_score ?? 0} />
-        <span style={{ fontSize: 13, color: "#92400e" }}>
-          Performans skoru:{" "}
-          <strong>{data?.performance_score ?? 0}</strong>
-          {" / 100"}
-        </span>
-        <span style={{ fontSize: 13, color: "#92400e" }}>
-          Performans faktoru:{" "}
-          <strong>×{data?.performance_factor ?? 0}</strong>
-        </span>
-      </div>
-
-      {/* Performans bar */}
-      <div
-        style={{
-          height: 8,
-          borderRadius: 4,
-          background: "#fde68a",
-          marginBottom: 16,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${Math.min(data?.performance_score ?? 0, 100)}%`,
-            background: levelColor,
-            borderRadius: 4,
-            transition: "width 0.4s ease",
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: 10,
-          marginBottom: 16,
-        }}
-      >
-        <StatCard
-          label="Toplam Referans"
-          value={<span style={{ fontSize: 20 }}>{data?.total_referrals ?? "-"}</span>}
-          borderColor="#fde68a"
-          backgroundColor="#fffbeb"
-          labelColor="#78350f"
-        />
-        <StatCard
-          label="Aktif Ekip"
-          value={<span style={{ fontSize: 20 }}>{data?.active_team_size ?? "-"}</span>}
-          borderColor="#fde68a"
-          backgroundColor="#fffbeb"
-          labelColor="#78350f"
-        />
-        {(data?.grace_period_remaining ?? 0) > 0 && (
-          <StatCard
-            label="Koruma Donemi"
-            value={
-              <span style={{ fontSize: 18, color: "#d97706" }}>
-                {data!.grace_period_remaining} donem
+      <div className="gamification-panel">
+        <SectionHeader
+          title="Performans ve Seviye"
+          right={
+            loading ? (
+              <span className="gamification-panel__loading-text">Yukleniyor...</span>
+            ) : (
+              <span className={`gamification-panel__level-pill ${levelClass}`}>
+                {LEVEL_LABELS[levelCode] ?? levelCode}
               </span>
-            }
-            borderColor="#fed7aa"
-            backgroundColor="#fff7ed"
-            labelColor="#9a3412"
-          />
-        )}
-      </div>
+            )
+          }
+        />
 
-      {/* Rozetler */}
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "#78350f", marginBottom: 8 }}>
-          Rozetler
+        <div className="gamification-panel__score-row">
+          <StarRating score={data?.star_score ?? 0} />
+          <span className="gamification-panel__score-text">
+            Performans skoru: <strong>{performanceScore}</strong> / 100
+          </span>
+          <span className="gamification-panel__score-text">
+            Performans faktoru: <strong>×{data?.performance_factor ?? 0}</strong>
+          </span>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {(data?.badges ?? []).map((badge) => (
-            <span
-              key={badge.code}
-              title={badge.label}
-              style={{
-                fontSize: 12,
-                padding: "4px 10px",
-                borderRadius: 20,
-                border: badge.earned ? "1px solid #f59e0b" : "1px solid #e2e8f0",
-                background: badge.earned ? "#fef3c7" : "#f8fafc",
-                color: badge.earned ? "#92400e" : "#94a3b8",
-                fontWeight: badge.earned ? 700 : 400,
-              }}
-            >
-              {badge.earned ? "✓ " : ""}{badge.label}
-            </span>
-          ))}
-          {(data?.badges ?? []).length === 0 && (
-            <span style={{ fontSize: 12, color: "#94a3b8" }}>Henuz rozet kazanilmadi.</span>
-          )}
+
+        <div className="gamification-panel__progress-track">
+          <div className={`gamification-panel__progress-fill ${progressClass}`} />
+        </div>
+
+        <div className="gamification-panel__metrics-grid">
+          <StatCard
+            label="Toplam Referans"
+            value={<span className="gamification-panel__metric-value">{data?.total_referrals ?? "-"}</span>}
+            borderColor="#fde68a"
+            backgroundColor="#fffbfb"
+            labelColor="#78350f"
+          />
+          <StatCard
+            label="Aktif Ekip"
+            value={<span className="gamification-panel__metric-value">{data?.active_team_size ?? "-"}</span>}
+            borderColor="#fde68a"
+            backgroundColor="#fffbfb"
+            labelColor="#78350f"
+          />
+          {gracePeriodRemaining > 0 ? (
+            <StatCard
+              label="Koruma Donemi"
+              value={
+                <span className="gamification-panel__metric-value gamification-panel__metric-value--warning">
+                  {gracePeriodRemaining} donem
+                </span>
+              }
+              borderColor="#fed7aa"
+              backgroundColor="#fff7ed"
+              labelColor="#9a3412"
+            />
+          ) : null}
+        </div>
+
+        <div>
+          <div className="gamification-panel__section-title">Rozetler</div>
+          <div className="gamification-panel__badges">
+            {badges.map((badge) => (
+              <span
+                key={badge.code}
+                title={badge.label}
+                className={`gamification-panel__badge ${
+                  badge.earned ? "gamification-panel__badge--earned" : "gamification-panel__badge--locked"
+                }`}
+              >
+                {badge.earned ? "✓ " : ""}
+                {badge.label}
+              </span>
+            ))}
+            {badges.length === 0 ? (
+              <span className="gamification-panel__empty">Henuz rozet kazanilmadi.</span>
+            ) : null}
+          </div>
         </div>
       </div>
     </SectionCard>

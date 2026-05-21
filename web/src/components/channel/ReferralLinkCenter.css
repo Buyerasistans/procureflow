@@ -1,0 +1,157 @@
+.referral-link-center__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.referral-link-center__toolbar-stats {
+  font-size: 12px;
+  color: #475569;
+}
+
+.referral-link-center__select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #334155;
+  background-color: #fff;
+}
+
+.referral-link-center__select--campaign {
+  min-width: 120px;
+}
+
+.referral-link-center__button {
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+}
+
+.referral-link-center__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.referral-link-center__button--general {
+  border: 1px solid #93c5fd;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+.referral-link-center__button--campaign {
+  border: 1px solid #86efac;
+  background-color: #f0fdf4;
+  color: #166534;
+}
+
+.referral-link-center__button--copy {
+  border: 1px solid #bfdbfe;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+}
+
+.referral-link-center__button--copy:hover:not(:disabled),
+.referral-link-center__button--general:hover:not(:disabled),
+.referral-link-center__button--campaign:hover:not(:disabled) {
+  filter: brightness(0.98);
+}
+
+.referral-link-center__empty {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.referral-link-center__list {
+  display: grid;
+  gap: 8px;
+}
+
+.referral-link-center__item {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: #f8fafc;
+}
+
+.referral-link-center__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.referral-link-center__item-info {
+  display: grid;
+  gap: 4px;
+}
+
+.referral-link-center__code {
+  word-break: break-word;
+}
+
+.referral-link-center__badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.referral-link-center__badge {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 2px 6px;
+}
+
+.referral-link-center__badge--target {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.referral-link-center__badge--campaign {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.referral-link-center__item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.referral-link-center__status {
+  font-size: 12px;
+}
+
+.referral-link-center__status--active {
+  color: #166534;
+}
+
+.referral-link-center__status--inactive {
+  color: #9f1239;
+}
+
+.referral-link-center__tracking {
+  font-size: 12px;
+  color: #334155;
+  margin-top: 6px;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .referral-link-center__toolbar {
+    justify-content: flex-start;
+  }
+
+  .referral-link-center__item-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

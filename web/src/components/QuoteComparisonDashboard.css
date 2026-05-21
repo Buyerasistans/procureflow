@@ -1,0 +1,247 @@
+.quote-comparison-dashboard {
+  padding: 20px;
+}
+
+.quote-comparison-dashboard__header {
+  margin-bottom: 20px;
+}
+
+.quote-comparison-dashboard__title {
+  margin: 0;
+  color: #1f2937;
+}
+
+.quote-comparison-dashboard__description {
+  color: #6b7280;
+  margin: 5px 0 0;
+}
+
+.quote-comparison-dashboard__tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.quote-comparison-dashboard__tab {
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 3px solid transparent;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.quote-comparison-dashboard__tab:hover {
+  color: #1f2937;
+}
+
+.quote-comparison-dashboard__tab--active {
+  color: #1f2937;
+  border-bottom-color: #3b82f6;
+}
+
+.quote-comparison-dashboard__card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.quote-comparison-dashboard__card--recommendations {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.quote-comparison-dashboard__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quote-comparison-dashboard__table th,
+.quote-comparison-dashboard__table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quote-comparison-dashboard__table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quote-comparison-dashboard__table th:hover {
+  background-color: #e5e7eb;
+}
+
+.quote-comparison-dashboard__table tr:hover {
+  background-color: #f9fafb;
+}
+
+.quote-comparison-dashboard__status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.quote-comparison-dashboard__filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.quote-comparison-dashboard__filter-button {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #374151;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.quote-comparison-dashboard__filter-button:hover {
+  border-color: #3b82f6;
+}
+
+.quote-comparison-dashboard__filter-button--active {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.quote-comparison-dashboard__sorting {
+  margin-bottom: 15px;
+}
+
+.quote-comparison-dashboard__sorting-title {
+  font-weight: 700;
+}
+
+.quote-comparison-dashboard__sorting-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 0;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.quote-comparison-dashboard__chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 200px;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.quote-comparison-dashboard__bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.quote-comparison-dashboard__bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  min-height: 5px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.quote-comparison-dashboard__bar:hover {
+  opacity: 0.8;
+}
+
+.quote-comparison-dashboard__bar-label {
+  font-size: 11px;
+  margin-top: 8px;
+  text-align: center;
+  word-break: break-word;
+}
+
+.quote-comparison-dashboard__bar-value {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+  color: #374151;
+}
+
+.quote-comparison-dashboard__bar-value--best {
+  color: #10b981;
+}
+
+.quote-comparison-dashboard__legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.quote-comparison-dashboard__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.quote-comparison-dashboard__legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.quote-comparison-dashboard__error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.quote-comparison-dashboard__empty {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+}
+
+.quote-comparison-dashboard__recommendations-title {
+  margin-top: 0;
+  color: #15803d;
+}
+
+.quote-comparison-dashboard__recommendations-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #15803d;
+}
+
+.quote-comparison-dashboard__contract-placeholder {
+  color: #9ca3af;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .quote-comparison-dashboard__tabs,
+  .quote-comparison-dashboard__filters,
+  .quote-comparison-dashboard__legend {
+    flex-wrap: wrap;
+  }
+
+  .quote-comparison-dashboard__chart {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .quote-comparison-dashboard__bar-group {
+    min-width: 120px;
+  }
+}

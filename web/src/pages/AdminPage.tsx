@@ -9,12 +9,14 @@ import { CommissionAdminTab } from "./admin/commission-admin-tab";
 import { SupportTicketAdminTab } from "../components/admin/SupportTicketAdminTab";
 import { ScopeWorkspaceHome } from "./admin/ScopeWorkspaceHome";
 import { UpgradeExtrasWorkspace } from "./admin/UpgradeExtrasWorkspace";
-import { adminFocusBannerPalette, renderTabIconBadge, translateServiceLabel } from "./admin/adminPageMeta";
+import { renderTabIconBadge, translateServiceLabel } from "./admin/adminPageMeta";
 import type { AdminFocusBannerTone, AdminTabKey, TabConfig } from "./admin/adminPageMeta";
 import { useAuth } from "../hooks/useAuth";
 import { canAccessAdminSurface, canAccessProcurementSettings, canAccessWorkspacePanel, canManageRoleCatalog, canManageTenantGovernance, getUserDisplayRoleLabel, isPlatformStaffUser, isSuperAdminUser, isTenantAdminUser, resolveApprovalRoleLabel } from "../auth/permissions";
 import { ProjectsTab } from "../components/ProjectsTab";
 import { RoleDepartmentGovernanceTab } from "../components/admin/RoleDepartmentGovernanceTab";
+import { OnboardingStudioTab } from "./admin/OnboardingStudioTab";
+import { TenantGovernanceTab } from "./admin/TenantGovernanceTab";
 import { SuppliersTab } from "../components/SuppliersTab";
 import { SettingsTab } from "../components/SettingsTab";
 import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
@@ -51,7 +53,6 @@ import {
   getOnboardingStudioSummary,
   verifyTenantOnboardingPayment,
   approveTenantOnboardingActivation,
-  forceApproveTenantOnboardingActivation,
   rejectTenantOnboardingActivation,
   reviewTenantCategoryRequest,
   requestTenantOnboardingInfo,
@@ -67,11 +68,12 @@ import {
 } from "../services/admin.service";
 import type { BillingOverview, CommercialRequestItem, CommercialRequestWebhookDelivery, CommercialRequestWebhookSettings, SubscriptionAddonAdminItem, TenantUser, Department, Company, Role, Tenant, SubscriptionCatalogSnapshot, DiscoveryLabAnswerAuditSummary, DiscoveryLabSessionSummary, DiscoveryLabSummary, OnboardingStudioSummary, WorkspacePanelConfig, AdminSupplierListItem, Project, CatalogRequest, TenantUsersQueryParams } from "../services/admin.service";
 import { useSearchParams } from "react-router-dom";
-import { QuoteStatusColor, QuoteStatusLabel, normalizeQuoteStatus } from "../types/quote.types";
+import { QuoteStatusLabel, normalizeQuoteStatus } from "../types/quote.types";
 import { getQuote, getQuoteAuditTrail, getQuoteHistory, getQuotePendingApprovals, getQuotes, type Quote, type QuoteAuditTrail, type QuotePendingApproval, type StatusLog } from "../services/quote.service";
 import { getWorkspacePanelQuickLinks, mergeWorkspacePanelConfig, resolveWorkspacePanelProfile, WORKSPACE_PANEL_DATA_TABS, type WorkspacePanelTabKey } from "../admin/workspace-panels";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
+import "../styles/pages/AdminPage.css";
 
 type ServiceUsageCard = {
   key: string;
@@ -712,21 +714,22 @@ function ChannelWorkspaceSeedButton({ onSeeded }: { onSeeded: () => void | Promi
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+    <div className="admin-page__seed-button-row">
       <button
         type="button"
         onClick={handleSeed}
         disabled={busy}
-        style={{
-          padding: "10px 18px", borderRadius: 10,
-          background: busy ? "#d1fae5" : "#059669",
-          color: "#fff", fontWeight: 700, fontSize: 13,
-          border: "none", cursor: busy ? "not-allowed" : "pointer",
-        }}
+        className="admin-page__seed-button"
       >
         {busy ? "Olusturuluyor..." : "Varsayilan Kanal Yapisini Olustur"}
       </button>
-      {msg && <span style={{ fontSize: 13, color: msg.startsWith("Hata") ? "#b91c1c" : "#065f46" }}>{msg}</span>}
+      {msg && (
+        <span
+          className={`admin-page__seed-message ${msg.startsWith("Hata") ? "admin-page__seed-message--error" : "admin-page__seed-message--success"}`}
+        >
+          {msg}
+        </span>
+      )}
     </div>
   );
 }
@@ -810,7 +813,6 @@ export default function AdminPage() {
   const [overviewQuoteTotal, setOverviewQuoteTotal] = useState(0);
   const [catalogRequests, setCatalogRequests] = useState<CatalogRequest[]>([]);
   const [catalogRequestBusyId, setCatalogRequestBusyId] = useState<number | null>(null);
-  const [hoveredMetricCard, setHoveredMetricCard] = useState<string | null>(null);
   const [panelHomeRoleName, setPanelHomeRoleName] = useState("");
   const [panelHomeRoleDescription, setPanelHomeRoleDescription] = useState("");
   const [panelHomeDeptName, setPanelHomeDeptName] = useState("");
@@ -846,7 +848,7 @@ export default function AdminPage() {
     initial_admin_personal_phone: "",
   });
   const [editingTenantId, setEditingTenantId] = useState<number | null>(null);
-  const [, setIsTenantFormModalOpen] = useState(false);
+  const [isTenantFormModalOpen, setIsTenantFormModalOpen] = useState(false);
   const [tenantSaving, setTenantSaving] = useState(false);
   const [tenantMessage, setTenantMessage] = useState<string | null>(null);
   const [subscriptionCatalog, setSubscriptionCatalog] = useState<SubscriptionCatalogSnapshot | null>(null);
@@ -1000,6 +1002,7 @@ export default function AdminPage() {
   const canViewPlatformGovernance = isPlatformStaff || isSuperAdminUser(user);
   const canViewPackagesTab = isSuperAdminUser(user);
   const canViewSettingsTab = canAccessProcurementSettings(user);
+  const showSettingsWorkspaceLinks = !canViewPlatformGovernance && (canViewSettingsTab || isChannelUser);
   const isLocalhostRuntime = typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
   const canViewDeploymentTab = isLocalhostRuntime && isSuperAdminUser(user);
   const workspaceName = user?.organization_name || user?.platform_name || "Buyera Asistans";
@@ -1070,8 +1073,8 @@ export default function AdminPage() {
       partnerProjects: partnerProjects.length,
       partnerQuotes: partnerQuoteCount,
       supplierCompanies: tenantGovernanceSuppliers.length,
-      supplierActiveCompanies,
-      supplierPassiveCompanies,
+      supplierActiveCompanies,    // ← bu satırı ekle
+      supplierPassiveCompanies,   // ← bu satırı ekle
       supplierRespondedQuotes: supplierRespondedQuoteCount,
       supplierRevisedQuotes: supplierRevisedQuoteCount,
       channelCompanies: channelCompanies.length,
@@ -1081,6 +1084,7 @@ export default function AdminPage() {
       channelProjects: channelProjects.length,
       channelQuotes: channelQuoteCount,
     };
+
   }, [channelUsers, companies, overviewQuotes, personnel, projects, tenantGovernanceSuppliers]);
   const currentTenantUsage = useMemo(() => {
     const usageRows = subscriptionCatalog?.tenant_usage || [];
@@ -1532,35 +1536,24 @@ export default function AdminPage() {
     actions?: Array<{ label: string; onClick?: () => void; href?: string }>;
     testId?: string;
   }) => {
-    const palette = adminFocusBannerPalette[options.tone];
     return (
       <div
         data-testid={options.testId}
-        style={{
-          borderRadius: 18,
-          border: `1px solid ${palette.border}`,
-          background: palette.background,
-          padding: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
+        className={`admin-page__focus-banner admin-page__focus-banner--${options.tone}`}
       >
-        <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase", color: palette.accent }}>{options.eyebrow}</div>
-          <div style={{ color: palette.accent, fontWeight: 800 }}>{options.title}</div>
-          <div style={{ color: "#475569", fontSize: 12 }}>{options.detail}</div>
+        <div className="admin-page__focus-banner-content">
+          <div className="admin-page__focus-banner-eyebrow">{options.eyebrow}</div>
+          <div className="admin-page__focus-banner-title">{options.title}</div>
+          <div className="admin-page__focus-banner-detail">{options.detail}</div>
           {(options.sourceLabel || options.timestamp) ? (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 2 }}>
+            <div className="admin-page__focus-banner-meta">
               {options.sourceLabel ? (
-                <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: palette.soft, color: palette.accent, fontSize: 11, fontWeight: 800 }}>
+                <span className="admin-page__focus-banner-chip">
                   Kaynak: {options.sourceLabel}
                 </span>
               ) : null}
               {options.timestamp ? (
-                <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", color: "#475569", fontSize: 11, fontWeight: 700, border: `1px solid ${palette.border}` }}>
+                <span className="admin-page__focus-banner-chip admin-page__focus-banner-chip--secondary">
                   {formatAdminFocusTimestamp(options.timestamp)}
                 </span>
               ) : null}
@@ -1568,12 +1561,12 @@ export default function AdminPage() {
           ) : null}
         </div>
         {options.actions?.length ? (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="admin-page__focus-banner-actions">
             {options.actions.map((action) => action.href ? (
               <Link
                 key={`${options.title}-${action.label}`}
                 to={action.href}
-                style={{ padding: "7px 11px", borderRadius: 999, border: `1px solid ${palette.border}`, background: "white", color: palette.accent, fontWeight: 800, fontSize: 12, textDecoration: "none" }}
+                className="admin-page__focus-banner-action"
               >
                 {action.label}
               </Link>
@@ -1582,7 +1575,7 @@ export default function AdminPage() {
                 key={`${options.title}-${action.label}`}
                 type="button"
                 onClick={action.onClick}
-                style={{ padding: "7px 11px", borderRadius: 999, border: `1px solid ${palette.border}`, background: "white", color: palette.accent, fontWeight: 800, fontSize: 12, cursor: "pointer" }}
+                className="admin-page__focus-banner-action"
               >
                 {action.label}
               </button>
@@ -1649,22 +1642,19 @@ export default function AdminPage() {
         key: "pending",
         label: `Pending ${pendingCount}`,
         detail: `Pending approval: ${pendingCount}`,
-        background: pendingCount > 0 ? "#fef3c7" : "#dcfce7",
-        color: pendingCount > 0 ? "#b45309" : "#166534",
+        tone: pendingCount > 0 ? "amber" : "green",
       },
       {
         key: "transition",
         label: transitionReason === "-" ? "Gerekce yok" : "Gerekce var",
         detail: `Transition reason: ${transitionReason}`,
-        background: transitionReason === "-" ? "#e5e7eb" : "#dbeafe",
-        color: transitionReason === "-" ? "#475569" : "#1d4ed8",
+        tone: transitionReason === "-" ? "gray" : "blue",
       },
       {
         key: "event",
         label: latestEvent,
         detail: `Son olay: ${latestEvent}`,
-        background: "#ede9fe",
-        color: "#6d28d9",
+        tone: "violet",
       },
     ];
   }, [discoveryQuoteAuditTrailById, discoveryQuoteById, discoveryQuotePendingApprovalsById]);
@@ -2919,7 +2909,7 @@ export default function AdminPage() {
           ? "Platform genelinde teklif karsilastirma ve performans raporlarini goruntuleyin."
           : "RFQ karsilastirma ve satin alma performans raporlarinizi goruntuleyin.",
       },
-      ...(!canViewPlatformGovernance && (canViewSettingsTab || isChannelUser)
+      ...(showSettingsWorkspaceLinks
         ? [
             {
               key: "settings" as const,
@@ -2950,13 +2940,13 @@ export default function AdminPage() {
 
     const allowedTabs = new Set(activeWorkspacePanelProfile.allowed_tabs as AdminTabKey[]);
     return baseTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer");
-  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, currentUserRoleLabel, isRoleManagementOnly, tAdmin, user]);
+  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
 
   const shouldLoadAdminWorkspaceData = useMemo(
     () => tabConfigs.some((item) => WORKSPACE_PANEL_DATA_TABS.has(item.key as WorkspacePanelTabKey)),
     [tabConfigs]
   );
-  const showUpgradeExtrasWorkspace = shouldLoadAdminWorkspaceData && isUpgradeExtrasPage && activeTab === "panel_home";
+  const showUpgradeExtrasWorkspace = Boolean(shouldLoadAdminWorkspaceData && isUpgradeExtrasPage && activeTab === "panel_home");
   const canUseSelfPanelDesigner = Boolean(activeWorkspacePanelProfile?.allow_user_self_customization);
 
   const handleCreateRoleCatalogRequest = useCallback(async (payload: { name: string; description?: string }) => {
@@ -3045,8 +3035,7 @@ export default function AdminPage() {
   }, [currentUserEmail, currentUserId, currentUserTenantId, isChannelUser, personnel]);
 
   // Load data
-  let loadData: () => Promise<void> = async () => {};
-  loadData = useCallback(async function loadData() {
+  const loadData = useCallback(async function loadData() {
     if (isRoleManagementOnly || !shouldLoadAdminWorkspaceData) {
       setLoading(false);
       return;
@@ -3842,18 +3831,6 @@ export default function AdminPage() {
     }
   }
 
-  async function handleForceApproveOnboardingMembership(tenantId: number) {
-    try {
-      setOnboardingMembershipActionTenantId(tenantId);
-      await forceApproveTenantOnboardingActivation(tenantId);
-      await loadData();
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setOnboardingMembershipActionTenantId(null);
-    }
-  }
-
   async function handleRejectOnboardingMembership(tenantId: number) {
     const note = window.prompt("Red nedeni / operasyon notu");
     if (note === null) {
@@ -3990,7 +3967,7 @@ export default function AdminPage() {
   // Check admin access
   if (!canOpenWorkspacePanel && !canAccessRoleCatalog) {
     return (
-      <div style={{ padding: 20, color: "red" }}>
+      <div className="admin-page__access-denied">
         Bu sayfaya erisim icin yonetim yetkisi gerekir
       </div>
     );
@@ -3999,22 +3976,33 @@ export default function AdminPage() {
   // Handler fonksiyonlar yeni tab bilesenlerine tasindi
 
   if (loading) {
-    return <div style={{ padding: 20 }}>Calisma alani yukleniyor...</div>;
+    return <div className="admin-page__loading">Calisma alani yukleniyor...</div>;
   }
 
   const panelMenuStyle = activeWorkspacePanelProfile?.menu_style || "pill";
-  const menuRowStyle: React.CSSProperties = panelMenuStyle === "accordion" || panelMenuStyle === "drawer"
-    ? { display: "grid", gap: 10, marginBottom: 4, borderBottom: "2px solid #e5e7eb", paddingBottom: 12 }
-    : { display: "flex", gap: 12, marginBottom: 4, borderBottom: "2px solid #e5e7eb", paddingBottom: 12, flexWrap: "wrap" as const, justifyContent: "flex-start" };
+  const menuRowClassName =
+    panelMenuStyle === "accordion" || panelMenuStyle === "drawer"
+      ? "admin-page__tabs-row admin-page__tabs-row--stacked"
+      : "admin-page__tabs-row";
+  const tabButtonClassName = (tabKey: AdminTabKey) => [
+    "admin-page__tab-button",
+    activeTab === tabKey ? "admin-page__tab-button--active" : "",
+    panelMenuStyle === "tabs" ? "admin-page__tab-button--tabs" : "",
+    panelMenuStyle === "accordion" || panelMenuStyle === "drawer" ? "admin-page__tab-button--drawer" : "",
+  ].filter(Boolean).join(" ");
+  const upgradeExtrasTabClassName = [
+    "admin-page__tab-link",
+    isUpgradeExtrasPage ? "admin-page__tab-link--active" : "",
+  ].filter(Boolean).join(" ");
 
   return (
-    <div style={{ padding: 20, display: "grid", gap: 20 }}>
+    <div className="admin-page">
 
       {/* ScopeWorkspaceHome - panel_home en uste */}
       {activeTab === "panel_home" && (
-        <section style={{ display: "grid", gap: 16 }}>
+        <section className="admin-page__section">
           {workspacePanelError ? (
-            <div style={{ borderRadius: 14, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", padding: "12px 14px" }}>
+            <div className="admin-page__notice admin-page__notice--error">
               Panel profili okunurken hata alindi: {workspacePanelError}
             </div>
           ) : null}
@@ -4052,8 +4040,8 @@ export default function AdminPage() {
         </section>
       )}
 
-      <section style={{ borderRadius: 24, border: "1px solid #e5e7eb", background: "white", padding: 16, boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)" }}>
-        <div style={menuRowStyle}>
+      <section className="admin-page__card admin-page__card--padded">
+        <div className={menuRowClassName}>
           {tabConfigs.map((tab) => (
             <button
               key={tab.key}
@@ -4062,24 +4050,9 @@ export default function AdminPage() {
               onClick={() => {
                 navigateAdminTab(tab.key);
               }}
-              style={{
-                padding: "10px 16px",
-                background: activeTab === tab.key
-                  ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
-                  : panelMenuStyle === "tabs"
-                    ? "#ffffff"
-                    : "#f8fafc",
-                color: activeTab === tab.key ? "white" : "#334155",
-                border: activeTab === tab.key ? "1px solid #2563eb" : "1px solid #dbe3ee",
-                borderRadius: panelMenuStyle === "tabs" ? "10px 10px 0 0" : panelMenuStyle === "drawer" ? "12px" : "999px",
-                cursor: "pointer",
-                fontWeight: activeTab === tab.key ? "bold" : "600",
-                boxShadow: activeTab === tab.key ? "0 10px 22px rgba(37, 99, 235, 0.18)" : "0 4px 10px rgba(15, 23, 42, 0.05)",
-                width: panelMenuStyle === "accordion" || panelMenuStyle === "drawer" ? "100%" : undefined,
-                textAlign: panelMenuStyle === "accordion" || panelMenuStyle === "drawer" ? "left" : "center",
-              }}
+              className={tabButtonClassName(tab.key)}
             >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <span className="admin-page__tab-button-inner">
                 {renderTabIconBadge(tab.icon, activeTab === tab.key)}
                 <span>{tab.label}</span>
               </span>
@@ -4088,21 +4061,9 @@ export default function AdminPage() {
           <Link
             to="/admin/yukseltme-ekstra-ozellikler?tab=panel_home"
             data-testid="admin-tab-upgrade-extras"
-            style={{
-              padding: "10px 16px",
-              background: isUpgradeExtrasPage ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" : "#f8fafc",
-              color: isUpgradeExtrasPage ? "white" : "#334155",
-              border: isUpgradeExtrasPage ? "1px solid #2563eb" : "1px solid #dbe3ee",
-              borderRadius: "999px",
-              textDecoration: "none",
-              fontWeight: isUpgradeExtrasPage ? "bold" : "600",
-              boxShadow: isUpgradeExtrasPage ? "0 10px 22px rgba(37, 99, 235, 0.18)" : "0 4px 10px rgba(15, 23, 42, 0.05)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-            }}
+            className={upgradeExtrasTabClassName}
           >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span className="admin-page__tab-link-inner">
               {renderTabIconBadge("PKG", isUpgradeExtrasPage)}
               <span>Yukseltme / Ekstra Ozellikler</span>
             </span>
@@ -4117,18 +4078,17 @@ export default function AdminPage() {
           approved: catalogRequests.filter((item) => item.review_status === "approved").length,
           rejected: catalogRequests.filter((item) => item.review_status === "rejected").length,
         };
-        const quickLinkColor = _scope === "platform" ? "#1e3a8a" : _scope === "channel" ? "#92400e" : _scope === "supplier" ? "#dc2626" : "#2563eb";
+        const quickLinkTone = _scope === "platform" ? "navy" : _scope === "channel" ? "amber" : _scope === "supplier" ? "red" : "blue";
         return (
-          <section style={{ borderRadius: 24, border: "1px solid #e5e7eb", background: "white", padding: 20, boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)", display: "grid", gap: 16 }}>
+          <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
             {_scope === "platform" && panelHomePlatformMetrics ? (
-              <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#1e3a8a" }}>Platform Yonetim Alani</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+              <div className="admin-page__grid admin-page__grid--sm">
+                <div className="admin-page__section-title admin-page__section-title--accent">Platform Yonetim Alani</div>
+                <div className="admin-page__metric-grid">
                   {[
                     {
                       label: "Stratejik Partner",
-                      color: "#2563eb",
-                      bg: "#eff6ff",
+                      tone: "blue",
                       note: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
                       items: [
                         { key: "Firma", value: panelHomePlatformMetrics.partnerCompanies },
@@ -4139,8 +4099,7 @@ export default function AdminPage() {
                     },
                     {
                       label: "Tedarikci",
-                      color: "#dc2626",
-                      bg: "#fef2f2",
+                      tone: "red",
                       note: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
                       items: [
                         { key: "Firma", value: panelHomePlatformMetrics.supplierCompanies },
@@ -4150,8 +4109,7 @@ export default function AdminPage() {
                     },
                     {
                       label: "Is Ortagi",
-                      color: "#0f766e",
-                      bg: "#f0fdfa",
+                      tone: "teal",
                       note: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
                       items: [
                         { key: "Firma", value: panelHomePlatformMetrics.channelCompanies },
@@ -4161,13 +4119,13 @@ export default function AdminPage() {
                       ],
                     },
                   ].map((group) => (
-                    <div key={group.label} style={{ borderRadius: 18, border: `1px solid ${group.color}33`, background: group.bg, padding: 14, display: "grid", gap: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", color: group.color }}>{group.label}</div>
-                      <div style={{ fontSize: 11, color: group.color, opacity: 0.72, fontWeight: 700, marginTop: -4 }}>{group.note}</div>
+                    <div key={group.label} className={`admin-page__metric-group admin-page__tone--${group.tone}`}>
+                      <div className="admin-page__metric-group-title">{group.label}</div>
+                      <div className="admin-page__metric-group-note">{group.note}</div>
                       {group.items.map((entry) => (
-                        <div key={`${group.label}-${entry.key}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{entry.key}</span>
-                          <span style={{ fontSize: 18, color: group.color, fontWeight: 900 }}>{entry.value}</span>
+                        <div key={`${group.label}-${entry.key}`} className="admin-page__metric-group-row">
+                          <span className="admin-page__metric-group-key">{entry.key}</span>
+                          <span className="admin-page__metric-group-value">{entry.value}</span>
                         </div>
                       ))}
                     </div>
@@ -4176,16 +4134,16 @@ export default function AdminPage() {
               </div>
             ) : null}
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+            <div className="admin-page__summary-grid">
               {[
-                { label: "Bekleyen Talep", value: requestSummaryTop.pending, color: "#b45309" },
-                { label: "Onaylanan", value: requestSummaryTop.approved, color: "#15803d" },
-                { label: "Reddedilen", value: requestSummaryTop.rejected, color: "#b91c1c" },
-                { label: "Hizli Link", value: workspacePanelQuickLinks.length, color: quickLinkColor },
+                { label: "Bekleyen Talep", value: requestSummaryTop.pending, tone: "amber" },
+                { label: "Onaylanan", value: requestSummaryTop.approved, tone: "green" },
+                { label: "Reddedilen", value: requestSummaryTop.rejected, tone: "red-dark" },
+                { label: "Hizli Link", value: workspacePanelQuickLinks.length, tone: quickLinkTone },
               ].map((item) => (
-                <div key={item.label} style={{ borderRadius: 18, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 16, display: "grid", gap: 6 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.2, color: item.color }}>{item.label}</div>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: item.color }}>{item.value}</div>
+                <div key={item.label} className={`admin-page__summary-card admin-page__tone--${item.tone}`}>
+                  <div className="admin-page__summary-label">{item.label}</div>
+                  <div className="admin-page__summary-value">{item.value}</div>
                 </div>
               ))}
             </div>
@@ -4194,18 +4152,18 @@ export default function AdminPage() {
       })()}
 
       {shouldLoadAdminWorkspaceData && !canViewPlatformGovernance && (
-        <section style={{ display: "grid", gap: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+        <section className="admin-page__grid admin-page__grid--compact">
+          <div className="admin-page__summary-grid">
           {[
-            { label: "Firma", value: companies.length, note: `${totalActiveCompanies} aktif / ${totalPassiveCompanies} pasif`, color: "#2563eb" },
-            { label: "Proje", value: projects.length, note: `${totalActiveProjects} aktif / ${totalPassiveProjects} pasif`, color: "#0f766e" },
-            { label: "Teklif", value: overviewQuoteTotal || currentTenantQuoteCount, note: "Toplam teklif kaydi", color: "#7c3aed" },
-            { label: "Personel", value: personnel.length, note: `${totalActivePersonnel} aktif personel`, color: "#dc2626" },
+            { label: "Firma", value: companies.length, note: `${totalActiveCompanies} aktif / ${totalPassiveCompanies} pasif`, tone: "blue" },
+            { label: "Proje", value: projects.length, note: `${totalActiveProjects} aktif / ${totalPassiveProjects} pasif`, tone: "teal" },
+            { label: "Teklif", value: overviewQuoteTotal || currentTenantQuoteCount, note: "Toplam teklif kaydi", tone: "violet" },
+            { label: "Personel", value: personnel.length, note: `${totalActivePersonnel} aktif personel`, tone: "red" },
           ].map((item) => (
-            <div key={item.label} style={{ borderRadius: 20, border: "1px solid #e5e7eb", background: "white", padding: 18, boxShadow: "0 12px 30px rgba(15, 23, 42, 0.05)" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1.2 }}>{item.label}</div>
-              <div style={{ marginTop: 10, fontSize: 32, fontWeight: 900, color: item.color }}>{item.value}</div>
-              <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{item.note}</div>
+            <div key={item.label} className={`admin-page__overview-card admin-page__tone--${item.tone}`}>
+              <div className="admin-page__overview-label">{item.label}</div>
+              <div className="admin-page__overview-value">{item.value}</div>
+              <div className="admin-page__overview-note">{item.note}</div>
             </div>
           ))}
           </div>
@@ -4214,7 +4172,7 @@ export default function AdminPage() {
 
 
       {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (
-        <section style={{ display: "grid", gap: 16 }}>
+        <section className="admin-page__grid">
           {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
             eyebrow: "Yonetici Odagi",
             title: searchParams.get("tenantFocusName")
@@ -4239,34 +4197,34 @@ export default function AdminPage() {
             ].filter(Boolean) as Array<{ label: string; onClick?: () => void; href?: string }>,
             testId: "admin-focus-banner-platform-overview",
           }) : null}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+          <div className="admin-page__metric-grid">
             {[
               {
                 label: "Kurulum Kuyruğu",
                 value: platformOpsSummary.onboardingQueue.length,
                 note: "Etkin olmayan kurulum durumundaki kiracı sayısı",
-                color: "#b45309",
+                tone: "amber",
                 onClick: () => navigateAdminTab("onboarding_studio", { onboardingPlanFocus: "pending" }),
               },
               {
                 label: "Sorumlu Aksiyonu",
                 value: platformOpsSummary.ownerAttention.length,
                 note: "Sorumlu ataması veya sorumlu e-posta bilgisi eksik kayıtlar",
-                color: "#dc2626",
+                tone: "red",
                 onClick: () => navigateAdminTab("tenant_governance"),
               },
               {
                 label: "Marka Kimliği Eksiği",
                 value: platformOpsSummary.brandingAttention.length,
                 note: "Logo veya görünen ad bilgisi eksik kiracılar",
-                color: "#7c3aed",
+                tone: "violet",
                 onClick: () => navigateAdminTab("tenant_governance"),
               },
               {
                 label: "Pasif Stratejik Partner",
                 value: platformOpsSummary.pausedTenants.length,
                 note: "Duraklatılmış veya pasif durumdaki Stratejik Partnerler",
-                color: "#475569",
+                tone: "slate",
                 onClick: () => navigateAdminTab("tenant_governance"),
               },
             ].map((card) => (
@@ -4274,74 +4232,58 @@ export default function AdminPage() {
                 key={card.label}
                 type="button"
                 onClick={card.onClick}
-                onMouseEnter={() => setHoveredMetricCard(`ops-${card.label}`)}
-                onMouseLeave={() => setHoveredMetricCard(null)}
-                style={{
-                  borderRadius: 20,
-                  background: hoveredMetricCard === `ops-${card.label}` ? "#f8fafc" : "white",
-                  border: hoveredMetricCard === `ops-${card.label}` ? `1px solid ${card.color}66` : "1px solid #e5e7eb",
-                  padding: 18,
-                  boxShadow: hoveredMetricCard === `ops-${card.label}`
-                    ? `0 20px 44px rgba(15, 23, 42, 0.12), 0 0 0 3px ${card.color}18`
-                    : "0 14px 32px rgba(15, 23, 42, 0.05)",
-                  display: "grid",
-                  gap: 8,
-                  textAlign: "left",
-                  cursor: "pointer",
-                  transition: "box-shadow 0.15s, border-color 0.15s, background 0.15s",
-                  transform: hoveredMetricCard === `ops-${card.label}` ? "translateY(-2px)" : "translateY(0)",
-                }}
+                className={`admin-page__metric-button admin-page__tone--${card.tone}`}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#64748b" }}>{card.label}</div>
-                <div style={{ marginTop: 10, fontSize: 28, fontWeight: 900, color: card.color }}>{card.value}</div>
-                <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{card.note}</div>
-                <div style={{ marginTop: 2, color: card.color, fontSize: 12, fontWeight: 800 }}>İlgili alana git →</div>
+                <div className="admin-page__metric-label">{card.label}</div>
+                <div className="admin-page__metric-value">{card.value}</div>
+                <div className="admin-page__metric-note">{card.note}</div>
+                <div className="admin-page__metric-link">İlgili alana git →</div>
               </button>
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+          <div className="admin-page__metric-grid">
             {[
               {
                 label: "Açık Destek Kaydı",
                 value: platformOpsOverviewSummary.activeWork,
                 note: "Yeni, işlemde veya sorumlu yanıtı bekleyen destek kayıtları",
-                color: "#1d4ed8",
+                tone: "blue",
                 onClick: () => navigateAdminTab("support_tickets"),
               },
               {
                 label: "Sorumlu Bekleyen Destek",
                 value: platformOpsOverviewSummary.ownerWaiting,
                 note: "Platform ekibinin sorumlu geri dönüşü beklediği kayıtlar",
-                color: "#7c3aed",
+                tone: "violet",
                 onClick: () => navigateAdminTab("support_tickets"),
               },
               {
                 label: "Kapanışı Tamamlanan",
                 value: platformOpsOverviewSummary.resolvedWithReason,
                 note: "Çözüldü durumuna alınıp kapanış nedeni girilen kayıtlar",
-                color: "#15803d",
+                tone: "green",
                 onClick: () => navigateAdminTab("support_tickets"),
               },
               {
                 label: "Teması Geciken Kayıt",
                 value: platformOpsOverviewSummary.staleContact,
                 note: "Üç gün ve üzeri temas edilmeyen aktif destek kayıtları",
-                color: "#b45309",
+                tone: "amber",
                 onClick: () => navigateAdminTab("support_tickets"),
               },
               {
                 label: "Sorumlusuz Destek Kaydı",
                 value: platformOpsOverviewSummary.unassignedOwner,
                 note: "Aktif kayıtlarda operasyon sorumlusu atanmamış Stratejik Partner sayısı",
-                color: "#dc2626",
+                tone: "red",
                 onClick: () => navigateAdminTab("support_tickets"),
               },
               {
                 label: "En Yoğun Destek Sorumlusu",
                 value: platformOpsOverviewSummary.busiestOwnerName,
                 note: `${platformOpsOverviewSummary.busiestOwnerLoad} aktif kayıt`,
-                color: "#0f766e",
+                tone: "teal",
                 onClick: () => navigateAdminTab("support_tickets"),
               },
             ].map((card) => (
@@ -4349,46 +4291,30 @@ export default function AdminPage() {
                 key={card.label}
                 type="button"
                 onClick={card.onClick}
-                onMouseEnter={() => setHoveredMetricCard(`sup-${card.label}`)}
-                onMouseLeave={() => setHoveredMetricCard(null)}
-                style={{
-                  borderRadius: 20,
-                  background: hoveredMetricCard === `sup-${card.label}` ? "#f8fafc" : "white",
-                  border: hoveredMetricCard === `sup-${card.label}` ? `1px solid ${card.color}66` : "1px solid #e5e7eb",
-                  padding: 18,
-                  boxShadow: hoveredMetricCard === `sup-${card.label}`
-                    ? `0 20px 44px rgba(15, 23, 42, 0.12), 0 0 0 3px ${card.color}18`
-                    : "0 14px 32px rgba(15, 23, 42, 0.05)",
-                  display: "grid",
-                  gap: 8,
-                  textAlign: "left",
-                  cursor: "pointer",
-                  transition: "box-shadow 0.15s, border-color 0.15s, background 0.15s",
-                  transform: hoveredMetricCard === `sup-${card.label}` ? "translateY(-2px)" : "translateY(0)",
-                }}
+                className={`admin-page__metric-button admin-page__tone--${card.tone}`}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#64748b" }}>{card.label}</div>
-                <div style={{ marginTop: 10, fontSize: 28, fontWeight: 900, color: card.color }}>{card.value}</div>
-                <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{card.note}</div>
-                <div style={{ marginTop: 2, color: card.color, fontSize: 12, fontWeight: 800 }}>Detaya git →</div>
+                <div className="admin-page__metric-label">{card.label}</div>
+                <div className="admin-page__metric-value">{card.value}</div>
+                <div className="admin-page__metric-note">{card.note}</div>
+                <div className="admin-page__metric-link">Detaya git →</div>
               </button>
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
-            <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Operasyon Kuyruğu</div>
-              <div style={{ marginTop: 8, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>Platform destek öncelikleri</div>
-              <div style={{ marginTop: 6, fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+          <div className="admin-page__single-column-grid">
+            <div className="admin-page__panel-card">
+              <div className="admin-page__panel-eyebrow">Operasyon Kuyruğu</div>
+              <div className="admin-page__panel-title">Platform destek öncelikleri</div>
+              <div className="admin-page__panel-lead">
                 Bu liste, müdahale önceliği yüksek Stratejik Partner kayıtlarını tek görünümde toplar ve operasyon ekibine günlük aksiyon sırası verir.
               </div>
-              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b" }}>
+              <div className="admin-page__panel-copy">
                 Önce sorumlu geri dönüşü bekleyen destek kayıtları, ardından kurulum ve marka kimliği eksikleri; son adımda pasif yaşam döngüsü riskleri değerlendirilir.
               </div>
-              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b" }}>{tenants.slice(0, 3).map((tenant) => tenant.brand_name || tenant.legal_name).filter(Boolean).join(" • ") || "Örnek kiracı listesi"}</div>
-              <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+              <div className="admin-page__panel-copy">{tenants.slice(0, 3).map((tenant) => tenant.brand_name || tenant.legal_name).filter(Boolean).join(" • ") || "Örnek kiracı listesi"}</div>
+              <div className="admin-page__item-stack">
                 {platformOpsSummary.highestPriorityTenants.length === 0 ? (
-                  <div style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", color: "#64748b" }}>
+                  <div className="admin-page__empty-state">
                     Açık operasyon kuyruğu oluşturan Stratejik Partner kaydı bulunmuyor.
                   </div>
                 ) : (
@@ -4404,14 +4330,14 @@ export default function AdminPage() {
                     ].filter(Boolean);
 
                     return (
-                      <div key={`ops-${tenant.id}`} style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", display: "grid", gap: 6 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                          <div style={{ fontWeight: 800, color: "#0f172a" }}>{tenant.brand_name || tenant.legal_name}</div>
-                          <span style={{ color: "#64748b", fontSize: 12 }}>{tenant.slug}</span>
+                      <div key={`ops-${tenant.id}`} className="admin-page__mini-card">
+                        <div className="admin-page__space-between-row">
+                          <div className="admin-page__mini-card-title">{tenant.brand_name || tenant.legal_name}</div>
+                          <span className="admin-page__muted-small">{tenant.slug}</span>
                         </div>
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        <div className="admin-page__chip-row">
                           {tags.map((tag) => (
-                            <span key={`${tenant.id}-${tag}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#e2e8f0", color: "#334155", fontSize: 11, fontWeight: 700 }}>
+                            <span key={`${tenant.id}-${tag}`} className="admin-page__neutral-chip">
                               {tag}
                             </span>
                           ))}
@@ -4423,58 +4349,58 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div ref={focusTelemetryPanelRef} style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Yonetici Odak Telemetrisi</div>
-              <div style={{ marginTop: 8, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>Paylasilan focus olay listesi</div>
-              <div style={{ color: "#64748b", fontSize: 13 }}>Platform genel bakis, filtre odaklari ve geri yukleme davranislari tek listede toplanir.</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div ref={focusTelemetryPanelRef} className="admin-page__panel-card admin-page__panel-card--stacked">
+              <div className="admin-page__panel-eyebrow">Yonetici Odak Telemetrisi</div>
+              <div className="admin-page__panel-title">Paylasilan focus olay listesi</div>
+              <div className="admin-page__link-description">Platform genel bakis, filtre odaklari ve geri yukleme davranislari tek listede toplanir.</div>
+              <div className="admin-page__wrap-row">
                 {focusTelemetryExportMeta.headerLines.map((line) => (
-                  <span key={line} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>
+                  <span key={line} className="admin-page__soft-chip">
                     {line}
                   </span>
                 ))}
               </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
-                <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700, minWidth: 220 }}>
+              <div className="admin-page__form-row">
+                <label className="admin-page__field admin-page__field--wide">
                   Preset Adi
-                  <input aria-label="Telemetry Preset Adi" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="ornek: Merkez Replay" style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }} />
+                  <input aria-label="Telemetry Preset Adi" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="ornek: Merkez Replay" className="admin-page__control" />
                 </label>
-                <button type="button" onClick={saveFocusTelemetryPreset} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #cbd5e1", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                <button type="button" onClick={saveFocusTelemetryPreset} className="admin-page__pill-button">
                   Preset Kaydet
                 </button>
-                <button type="button" onClick={exportFocusTelemetryPresetPackage} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #bfdbfe", background: "white", color: "#1d4ed8", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                <button type="button" onClick={exportFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--blue">
                   Preset Paketi Hazirla
                 </button>
-                <button type="button" onClick={importFocusTelemetryPresetPackage} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #c7d2fe", background: "white", color: "#4338ca", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                <button type="button" onClick={importFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--violet">
                   Preset Paketini Ice Aktar
                 </button>
                 {focusTelemetryPresets.map((preset) => (
-                  <div key={preset.id} style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                  <div key={preset.id} className="admin-page__chip-row">
                     {focusTelemetryEditingPresetId === preset.id ? (
                       <>
-                        <input aria-label={`Preset Yeniden Adlandir ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", minWidth: 180 }} />
-                        <button type="button" onClick={() => commitFocusTelemetryPresetRename(preset.id)} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #bfdbfe", background: "white", color: "#1d4ed8", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                        <input aria-label={`Preset Yeniden Adlandir ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
+                        <button type="button" onClick={() => commitFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--blue">
                           Kaydet
                         </button>
                       </>
                     ) : (
-                      <button type="button" onClick={() => applyFocusTelemetryPreset(preset.id)} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #dbe3ee", background: "#f8fafc", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                      <button type="button" onClick={() => applyFocusTelemetryPreset(preset.id)} className="admin-page__pill-button admin-page__pill-button--soft">
                         Preset: {preset.name}
                       </button>
                     )}
-                    <button type="button" onClick={() => startFocusTelemetryPresetRename(preset.id)} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #fde68a", background: "white", color: "#b45309", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                    <button type="button" onClick={() => startFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--amber">
                       Yeniden Adlandir
                     </button>
-                    <button type="button" onClick={() => deleteFocusTelemetryPreset(preset.id)} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #fecaca", background: "white", color: "#b91c1c", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                    <button type="button" onClick={() => deleteFocusTelemetryPreset(preset.id)} className="admin-page__pill-button admin-page__pill-button--red">
                       Preseti Sil
                     </button>
                   </div>
                 ))}
               </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
-                <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700, minWidth: 180 }}>
+              <div className="admin-page__form-row">
+                <label className="admin-page__field">
                   Kaynak Filtresi
-                  <select aria-label="Telemetry Kaynak Filtresi" value={focusTelemetrySourceFilter} onChange={(event) => setFocusTelemetrySourceFilter(event.target.value)} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}>
+                  <select aria-label="Telemetry Kaynak Filtresi" value={focusTelemetrySourceFilter} onChange={(event) => setFocusTelemetrySourceFilter(event.target.value)} className="admin-page__control">
                     <option value="all">Tum Kaynaklar</option>
                     <option value="platform-overview">Platform Genel Bakisi</option>
                     <option value="tenant-governance">Stratejik Partner Yonetimi</option>
@@ -4483,55 +4409,64 @@ export default function AdminPage() {
                     <option value="discovery-lab">Discovery Lab</option>
                   </select>
                 </label>
-                <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700, minWidth: 160 }}>
+                <label className="admin-page__field admin-page__field--narrow">
                   Zaman Penceresi
-                  <select aria-label="Telemetry Zaman Filtresi" value={focusTelemetryWindowFilter} onChange={(event) => setFocusTelemetryWindowFilter(event.target.value as "all" | "15m")} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}>
+                  <select aria-label="Telemetry Zaman Filtresi" value={focusTelemetryWindowFilter} onChange={(event) => setFocusTelemetryWindowFilter(event.target.value as "all" | "15m")} className="admin-page__control">
                     <option value="all">Tum Zaman</option>
                     <option value="15m">Son 15 Dakika</option>
                   </select>
                 </label>
-                <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569", fontWeight: 700, minWidth: 220 }}>
+                <label className="admin-page__field admin-page__field--wide">
                   Telemetry Arama
-                  <input aria-label="Telemetry Arama" value={focusTelemetrySearchQuery} onChange={(event) => setFocusTelemetrySearchQuery(event.target.value)} placeholder="platform, restore, RFQ ara" style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }} />
+                  <input aria-label="Telemetry Arama" value={focusTelemetrySearchQuery} onChange={(event) => setFocusTelemetrySearchQuery(event.target.value)} placeholder="platform, restore, RFQ ara" className="admin-page__control" />
                 </label>
               </div>
-              <label style={{ display: "grid", gap: 6, fontSize: 12, color: "#475569", fontWeight: 700 }}>
+              <label className="admin-page__field">
                 Preset Paketi JSON
-                <textarea aria-label="Telemetry Preset Paketi" value={focusTelemetryPresetPackageText} onChange={(event) => setFocusTelemetryPresetPackageText(event.target.value)} placeholder="Preset paketi JSON burada hazirlanir veya ice aktarim icin yapistirilir" style={{ minHeight: 110, borderRadius: 12, border: "1px solid #dbe3ee", padding: 12, color: "#334155", fontSize: 12, background: "#f8fafc" }} />
+                <textarea aria-label="Telemetry Preset Paketi" value={focusTelemetryPresetPackageText} onChange={(event) => setFocusTelemetryPresetPackageText(event.target.value)} placeholder="Preset paketi JSON burada hazirlanir veya ice aktarim icin yapistirilir" className="admin-page__control admin-page__textarea" />
               </label>
-              <div style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: previewFocusTelemetryPresetPackage.isValid ? "#f8fafc" : "#fff7ed", padding: 12, display: "grid", gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#334155" }}>On Ayar Paketi Onizlemesi</div>
+              <div className={`admin-page__preview-card${previewFocusTelemetryPresetPackage.isValid ? "" : " admin-page__preview-card--invalid"}`}>
+                <div className="admin-page__subsection-title">On Ayar Paketi Onizlemesi</div>
                 {previewFocusTelemetryPresetPackage.previewPresetNames.length > 1 ? (
-                  <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ color: "#475569", fontSize: 11, fontWeight: 800 }}>Referans on ayar secimi</div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <div className="admin-page__subsection-grid">
+                    <div className="admin-page__subsection-title admin-page__subsection-title--xs admin-page__subsection-title--muted">Referans on ayar secimi</div>
+                    <div className="admin-page__chip-row">
                       {previewFocusTelemetryPresetPackage.previewPresetNames.map((name) => (
-                        <button key={name} type="button" onClick={() => setFocusTelemetryPreviewPresetName(name)} style={{ padding: "4px 8px", borderRadius: 999, border: focusTelemetryPreviewPresetName === name || (!focusTelemetryPreviewPresetName && previewFocusTelemetryPresetPackage.previewPresetNames[0] === name) ? "1px solid #93c5fd" : "1px solid #dbe3ee", background: focusTelemetryPreviewPresetName === name || (!focusTelemetryPreviewPresetName && previewFocusTelemetryPresetPackage.previewPresetNames[0] === name) ? "#eff6ff" : "white", color: focusTelemetryPreviewPresetName === name || (!focusTelemetryPreviewPresetName && previewFocusTelemetryPresetPackage.previewPresetNames[0] === name) ? "#1d4ed8" : "#475569", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => setFocusTelemetryPreviewPresetName(name)}
+                          className={`admin-page__pill-button admin-page__pill-button--xs ${
+                            focusTelemetryPreviewPresetName === name || (!focusTelemetryPreviewPresetName && previewFocusTelemetryPresetPackage.previewPresetNames[0] === name)
+                              ? "admin-page__pill-button--active-blue"
+                              : ""
+                          }`}
+                        >
                           {name}
                         </button>
                       ))}
                     </div>
                   </div>
                 ) : null}
-                <div style={{ borderRadius: 10, border: "1px solid #cbd5e1", background: "white", padding: "8px 10px", color: "#334155", fontSize: 11, fontWeight: 700 }}>
+                <div className="admin-page__preview-summary">
                   {previewFocusTelemetryPresetPackage.activeFilterSummary}
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Versiyon: {previewFocusTelemetryPresetPackage.versionLabel}</span>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Disa Aktarim Zamani: {previewFocusTelemetryPresetPackage.exportedAtLabel}</span>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Calisma Alani: {previewFocusTelemetryPresetPackage.sourceWorkspaceLabel}</span>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Operator: {previewFocusTelemetryPresetPackage.operatorLabel}</span>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Ozet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Kayit: {previewFocusTelemetryPresetPackage.acceptedCount}/{previewFocusTelemetryPresetPackage.presetCount}</span>
-                  <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "white", border: "1px solid #e2e8f0", color: "#475569", fontSize: 11, fontWeight: 700 }}>Cakisma: {previewFocusTelemetryPresetPackage.conflictCount}</span>
+                <div className="admin-page__wrap-row">
+                  <span className="admin-page__tag-chip">Versiyon: {previewFocusTelemetryPresetPackage.versionLabel}</span>
+                  <span className="admin-page__tag-chip">Disa Aktarim Zamani: {previewFocusTelemetryPresetPackage.exportedAtLabel}</span>
+                  <span className="admin-page__tag-chip">Calisma Alani: {previewFocusTelemetryPresetPackage.sourceWorkspaceLabel}</span>
+                  <span className="admin-page__tag-chip">Operator: {previewFocusTelemetryPresetPackage.operatorLabel}</span>
+                  <span className="admin-page__tag-chip">Ozet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
+                  <span className="admin-page__tag-chip">Kayit: {previewFocusTelemetryPresetPackage.acceptedCount}/{previewFocusTelemetryPresetPackage.presetCount}</span>
+                  <span className="admin-page__tag-chip">Cakisma: {previewFocusTelemetryPresetPackage.conflictCount}</span>
                 </div>
-                <div style={{ color: previewFocusTelemetryPresetPackage.isValid ? "#166534" : "#9a3412", fontSize: 12, fontWeight: 700 }}>{previewFocusTelemetryPresetPackage.summary}</div>
+                <div className={`admin-page__status-text ${previewFocusTelemetryPresetPackage.isValid ? "admin-page__status-text--success" : "admin-page__status-text--warning"}`}>{previewFocusTelemetryPresetPackage.summary}</div>
                 {previewFocusTelemetryPresetPackage.newPresetNames.length ? (
-                  <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ color: "#166534", fontSize: 11, fontWeight: 800 }}>Yeni eklenecek presetler</div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <div className="admin-page__subsection-grid">
+                    <div className="admin-page__subsection-title admin-page__subsection-title--xs admin-page__subsection-title--green">Yeni eklenecek presetler</div>
+                    <div className="admin-page__chip-row">
                       {previewFocusTelemetryPresetPackage.newPresetNames.map((name) => (
-                        <span key={name} style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "#f0fdf4", border: "1px solid #86efac", color: "#166534", fontSize: 11, fontWeight: 700 }}>
+                        <span key={name} className="admin-page__tag-chip admin-page__tag-chip--success">
                           {name}
                         </span>
                       ))}
@@ -4539,11 +4474,11 @@ export default function AdminPage() {
                   </div>
                 ) : null}
                 {previewFocusTelemetryPresetPackage.overrideNames.length ? (
-                  <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ color: "#7c2d12", fontSize: 11, fontWeight: 800 }}>Gecersiz kilinacak on ayarlar</div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <div className="admin-page__subsection-grid">
+                    <div className="admin-page__subsection-title admin-page__subsection-title--xs admin-page__subsection-title--orange">Gecersiz kilinacak on ayarlar</div>
+                    <div className="admin-page__chip-row">
                       {previewFocusTelemetryPresetPackage.overrideNames.map((name) => (
-                        <span key={name} style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: "#fff7ed", border: "1px solid #fdba74", color: "#9a3412", fontSize: 11, fontWeight: 700 }}>
+                        <span key={name} className="admin-page__tag-chip admin-page__tag-chip--warning">
                           {name}
                         </span>
                       ))}
@@ -4551,74 +4486,96 @@ export default function AdminPage() {
                   </div>
                 ) : null}
                 {previewFocusTelemetryPresetPackage.filterDiffLines.length ? (
-                  <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ color: "#334155", fontSize: 11, fontWeight: 800 }}>Filtre farklari</div>
+                  <div className="admin-page__subsection-grid">
+                    <div className="admin-page__subsection-title admin-page__subsection-title--xs">Filtre farklari</div>
                     {previewFocusTelemetryPresetPackage.groupedDiffs.map((group) => (
-                      <div key={`${group.kind}-${group.presetName}`} style={{ borderRadius: 10, border: previewFocusTelemetryPresetPackage.selectedReferencePresetName === group.presetName ? "2px solid #0ea5e9" : group.kind === "new" ? "1px solid #bbf7d0" : "1px solid #fed7aa", background: previewFocusTelemetryPresetPackage.selectedReferencePresetName === group.presetName ? "#ecfeff" : group.kind === "new" ? "#f0fdf4" : "#fff7ed", padding: "8px 10px", display: "grid", gap: 4 }}>
-                        <div style={{ color: previewFocusTelemetryPresetPackage.selectedReferencePresetName === group.presetName ? "#0369a1" : group.kind === "new" ? "#166534" : "#9a3412", fontSize: 11, fontWeight: 800 }}>
+                      <div
+                        key={`${group.kind}-${group.presetName}`}
+                        className={`admin-page__diff-card ${
+                          previewFocusTelemetryPresetPackage.selectedReferencePresetName === group.presetName
+                            ? "admin-page__diff-card--selected"
+                            : group.kind === "new"
+                              ? "admin-page__diff-card--new"
+                              : "admin-page__diff-card--override"
+                        }`}
+                      >
+                        <div
+                          className={`admin-page__diff-title ${
+                            previewFocusTelemetryPresetPackage.selectedReferencePresetName === group.presetName
+                              ? "admin-page__diff-title--selected"
+                              : group.kind === "new"
+                                ? "admin-page__diff-title--new"
+                                : "admin-page__diff-title--override"
+                          }`}
+                        >
                           {group.presetName} • {group.kind === "new" ? "Yeni kayit" : "Override"}
                           {previewFocusTelemetryPresetPackage.selectedReferencePresetName === group.presetName ? " • Secili referans" : ""}
                         </div>
                         {group.lines.map((line) => (
-                          <div key={`${group.presetName}-${line}`} style={{ color: "#475569", fontSize: 11 }}>{line}</div>
+                          <div key={`${group.presetName}-${line}`} className="admin-page__text-xs-muted">{line}</div>
                         ))}
                       </div>
                     ))}
                   </div>
                 ) : null}
                 {previewFocusTelemetryPresetPackage.warnings.length ? (
-                  <div style={{ display: "grid", gap: 4 }}>
+                  <div className="admin-page__subsection-grid">
                     {previewFocusTelemetryPresetPackage.warnings.map((warning) => (
-                      <div key={warning} style={{ color: "#9a3412", fontSize: 11 }}>{warning}</div>
+                      <div key={warning} className="admin-page__text-xs-warning">{warning}</div>
                     ))}
                   </div>
                 ) : null}
               </div>
-              <div style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 12, display: "grid", gap: 8 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#334155" }}>Telemetri Eylem Tarihcesi</div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <div className="admin-page__history-card">
+                <div className="admin-page__space-between-row">
+                  <div className="admin-page__subsection-title">Telemetri Eylem Tarihcesi</div>
+                  <div className="admin-page__chip-row">
                     {[
                       { key: "all", label: "Tum" },
                       { key: "export", label: "Export" },
                       { key: "preset", label: "Preset" },
                       { key: "navigation", label: "Navigation" },
                     ].map((item) => (
-                      <button key={item.key} type="button" onClick={() => setFocusTelemetryActionHistoryFilter(item.key as "all" | "export" | "preset" | "navigation")} style={{ padding: "5px 9px", borderRadius: 999, border: focusTelemetryActionHistoryFilter === item.key ? "1px solid #93c5fd" : "1px solid #dbe3ee", background: focusTelemetryActionHistoryFilter === item.key ? "#eff6ff" : "white", color: focusTelemetryActionHistoryFilter === item.key ? "#1d4ed8" : "#475569", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setFocusTelemetryActionHistoryFilter(item.key as "all" | "export" | "preset" | "navigation")}
+                        className={`admin-page__pill-button admin-page__pill-button--sm ${focusTelemetryActionHistoryFilter === item.key ? "admin-page__pill-button--active-blue" : ""}`}
+                      >
                         {item.label}
                       </button>
                     ))}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
-                  <label style={{ display: "grid", gap: 4, fontSize: 11, color: "#475569", fontWeight: 700, minWidth: 160 }}>
+                <div className="admin-page__form-row admin-page__form-row--sm">
+                  <label className="admin-page__field admin-page__field--narrow">
                     Zaman Penceresi
-                    <select aria-label="Aksiyon Tarihcesi Zaman Penceresi" value={focusTelemetryActionHistoryWindow} onChange={(event) => setFocusTelemetryActionHistoryWindow(event.target.value as FocusTelemetryActionHistoryWindow)} style={{ padding: "7px 9px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}>
+                    <select aria-label="Aksiyon Tarihcesi Zaman Penceresi" value={focusTelemetryActionHistoryWindow} onChange={(event) => setFocusTelemetryActionHistoryWindow(event.target.value as FocusTelemetryActionHistoryWindow)} className="admin-page__control">
                       <option value="all">Tum Zaman</option>
                       <option value="30m">Son 30 Dakika</option>
                       <option value="24h">Son 24 Saat</option>
                     </select>
                   </label>
-                  <label style={{ display: "grid", gap: 4, fontSize: 11, color: "#475569", fontWeight: 700, minWidth: 220 }}>
+                  <label className="admin-page__field admin-page__field--wide">
                     Aksiyon Arama
-                    <input aria-label="Aksiyon Tarihcesi Arama" value={focusTelemetryActionHistorySearch} onChange={(event) => setFocusTelemetryActionHistorySearch(event.target.value)} placeholder="preset, export, navigation ara" style={{ padding: "7px 9px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }} />
+                    <input aria-label="Aksiyon Tarihcesi Arama" value={focusTelemetryActionHistorySearch} onChange={(event) => setFocusTelemetryActionHistorySearch(event.target.value)} placeholder="preset, export, navigation ara" className="admin-page__control" />
                   </label>
                 </div>
                 {filteredFocusTelemetryActionHistory.length === 0 ? (
-                  <div style={{ color: "#64748b", fontSize: 12 }}>Bu filtre icin kayitli operator aksiyonu yok.</div>
+                  <div className="admin-page__text-sm-muted">Bu filtre icin kayitli operator aksiyonu yok.</div>
                 ) : filteredFocusTelemetryActionHistory.map((item) => (
-                  <div key={item.id} style={{ display: "grid", gap: 3, borderRadius: 10, border: "1px solid #e2e8f0", background: "white", padding: "8px 10px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ color: item.tone === "error" ? "#b91c1c" : "#166534", fontSize: 11, fontWeight: 800 }}>{item.scope}</span>
-                      <span style={{ color: "#64748b", fontSize: 11 }}>{formatAdminFocusTimestamp(item.createdAt)}</span>
+                  <div key={item.id} className="admin-page__history-item">
+                    <div className="admin-page__space-between-row">
+                      <span className={`admin-page__history-scope ${item.tone === "error" ? "admin-page__history-scope--error" : ""}`}>{item.scope}</span>
+                      <span className="admin-page__text-xs-muted">{formatAdminFocusTimestamp(item.createdAt)}</span>
                     </div>
-                    <div style={{ color: "#334155", fontSize: 12 }}>{item.message}</div>
+                    <div className="admin-page__text-sm-body">{item.message}</div>
                   </div>
                 ))}
               </div>
-              <div style={{ display: "grid", gap: 8 }}>
+              <div className="admin-page__grid admin-page__grid--sm">
                 {filteredFocusTelemetryEvents.length === 0 ? (
-                  <div style={{ borderRadius: 14, background: "#f8fafc", border: "1px dashed #cbd5e1", padding: "12px 14px", color: "#64748b" }}>
+                  <div className="admin-page__empty-state">
                     Aktif focus olayi yok.
                   </div>
                 ) : filteredFocusTelemetryEvents.map((event) => (
@@ -4642,45 +4599,53 @@ export default function AdminPage() {
                     if (!eventTarget.currentTarget.contains(nextFocused)) {
                       setIsFocusTelemetryReturnPaused(false);
                     }
-                  }} style={{ borderRadius: 14, background: focusTelemetrySelectedEventId === event.id ? "#eff6ff" : replayChainTargetQuoteId != null && event.targetQuoteId === replayChainTargetQuoteId ? "#fff7ed" : focusTelemetryReturnedEventId === event.id ? "#ecfeff" : "#f8fafc", border: focusTelemetrySelectedEventId === event.id ? "1px solid #93c5fd" : replayChainTargetQuoteId != null && event.targetQuoteId === replayChainTargetQuoteId ? "1px solid #fdba74" : focusTelemetryReturnedEventId === event.id ? "1px solid #5eead4" : "1px solid #e2e8f0", padding: "10px 12px", display: "grid", gap: 4, boxShadow: focusTelemetryReturnedEventId === event.id ? "0 0 0 5px rgba(20, 184, 166, 0.14)" : selectedFocusTelemetryTarget?.quoteId != null && event.targetQuoteId === selectedFocusTelemetryTarget.quoteId ? "0 0 0 4px rgba(59, 130, 246, 0.08)" : "none", transform: focusTelemetryReturnedEventId === event.id ? "scale(1.01)" : "scale(1)", transition: "transform 220ms ease, box-shadow 180ms ease, background 180ms ease, border 180ms ease" }}>
+                  }} className={`admin-page__event-card ${
+                    focusTelemetrySelectedEventId === event.id
+                      ? "admin-page__event-card--selected"
+                      : replayChainTargetQuoteId != null && event.targetQuoteId === replayChainTargetQuoteId
+                        ? "admin-page__event-card--replay"
+                        : focusTelemetryReturnedEventId === event.id
+                          ? "admin-page__event-card--returned"
+                          : selectedFocusTelemetryTarget?.quoteId != null && event.targetQuoteId === selectedFocusTelemetryTarget.quoteId
+                            ? "admin-page__event-card--quote-target"
+                            : ""
+                  }`}>
                     {focusTelemetryReturnedEventId === event.id ? (
-                      <div style={{ display: "grid", gap: 4, width: "fit-content" }}>
-                        <div style={{ display: "inline-flex", width: "fit-content", padding: "4px 8px", borderRadius: 999, background: "#ccfbf1", color: "#0f766e", fontSize: 11, fontWeight: 800 }}>
+                      <div className="admin-page__return-panel">
+                        <div className="admin-page__return-badge">
                           {isFocusTelemetryReturnPaused ? "Geri donus hedefi - fade-out duraklatildi" : "Geri donus hedefi - fade-out aktif"}
                         </div>
-                        <div style={{ color: "#0f766e", fontSize: 10, fontWeight: 700 }}>
+                        <div className="admin-page__return-timer">
                           Kalan sure: {(focusTelemetryReturnedEventRemainingMs / 1000).toFixed(1)} sn
                         </div>
-                        <div style={{ width: 120, height: 4, borderRadius: 999, background: "#99f6e4", overflow: "hidden" }}>
-                          <div data-testid={`telemetry-return-progress-${event.id}`} style={{ width: `${focusTelemetryReturnedEventProgress}%`, height: "100%", borderRadius: 999, background: "#14b8a6", opacity: Math.max(0.2, focusTelemetryReturnedEventProgress / 100), transition: "width 100ms linear, opacity 100ms linear" }} />
-                        </div>
+                        <progress data-testid={`telemetry-return-progress-${event.id}`} className="admin-page__return-progress" value={focusTelemetryReturnedEventProgress} max={100} />
                       </div>
                     ) : null}
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 12 }}>{event.label}</div>
-                      <div style={{ color: "#64748b", fontSize: 11 }}>{formatAdminFocusTimestamp(event.createdAt)}</div>
+                    <div className="admin-page__space-between-row">
+                      <div className="admin-page__event-title">{event.label}</div>
+                      <div className="admin-page__text-xs-muted">{formatAdminFocusTimestamp(event.createdAt)}</div>
                     </div>
-                    <div style={{ color: "#475569", fontSize: 12 }}>{event.detail}</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                      <span style={{ color: "#64748b", fontSize: 11 }}>Kaynak: {event.source}</span>
+                    <div className="admin-page__event-detail">{event.detail}</div>
+                    <div className="admin-page__wrap-row">
+                      <span className="admin-page__event-source">Kaynak: {event.source}</span>
                       {event.targetSection ? (
-                        <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: event.targetSection === "status-history" ? "#dbeafe" : "#ede9fe", color: event.targetSection === "status-history" ? "#1d4ed8" : "#6d28d9", fontSize: 11, fontWeight: 800 }}>
+                        <span className={`admin-page__section-chip ${event.targetSection === "status-history" ? "admin-page__section-chip--blue" : "admin-page__section-chip--violet"}`}>
                           Hedef: {getQuoteInsightSectionLabel(event.targetSection)}
                         </span>
                       ) : null}
                     </div>
                     {event.targetQuoteId != null ? (
-                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
-                        <button type="button" onClick={() => setFocusTelemetrySelectedEventId(event.id)} style={{ padding: "6px 10px", borderRadius: 999, border: "1px solid #93c5fd", background: "white", color: "#1d4ed8", fontWeight: 800, cursor: "pointer", fontSize: 11 }}>
+                      <div className="admin-page__end-row">
+                        <button type="button" onClick={() => setFocusTelemetrySelectedEventId(event.id)} className="admin-page__pill-button admin-page__pill-button--sm admin-page__pill-button--blue">
                           Event'i Sec
                         </button>
-                        <button type="button" onClick={() => void openReplayTelemetryTarget(event.targetQuoteId!, event.targetSection || "full-audit-trail")} style={{ padding: "6px 10px", borderRadius: 999, border: "1px solid #fdba74", background: "white", color: "#c2410c", fontWeight: 800, cursor: "pointer", fontSize: 11 }}>
+                        <button type="button" onClick={() => void openReplayTelemetryTarget(event.targetQuoteId!, event.targetSection || "full-audit-trail")} className="admin-page__pill-button admin-page__pill-button--sm admin-page__pill-button--amber">
                           RFQ #{event.targetQuoteId} Kartina Git
                         </button>
-                        <button type="button" onClick={() => void openReplayTelemetryTarget(event.targetQuoteId!, "status-history")} style={{ padding: "6px 10px", borderRadius: 999, border: "1px solid #bfdbfe", background: "white", color: "#1d4ed8", fontWeight: 800, cursor: "pointer", fontSize: 11 }}>
+                        <button type="button" onClick={() => void openReplayTelemetryTarget(event.targetQuoteId!, "status-history")} className="admin-page__pill-button admin-page__pill-button--sm admin-page__pill-button--blue">
                           Durum gecmisi ac
                         </button>
-                        <button type="button" onClick={() => void openReplayTelemetryTarget(event.targetQuoteId!, "full-audit-trail")} style={{ padding: "6px 10px", borderRadius: 999, border: "1px solid #ddd6fe", background: "white", color: "#6d28d9", fontWeight: 800, cursor: "pointer", fontSize: 11 }}>
+                        <button type="button" onClick={() => void openReplayTelemetryTarget(event.targetQuoteId!, "full-audit-trail")} className="admin-page__pill-button admin-page__pill-button--sm admin-page__pill-button--violet">
                           Denetim izi ac
                         </button>
                       </div>
@@ -4689,40 +4654,40 @@ export default function AdminPage() {
                 ))}
               </div>
               {selectedFocusTelemetryTarget ? (
-                <div ref={focusTelemetryEventActionsRef} style={{ borderRadius: 16, border: "1px solid #bfdbfe", background: "#eff6ff", padding: 14, display: "grid", gap: 8 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#1d4ed8" }}>Telemetri Hizli Eylemleri</div>
-                  <div style={{ color: "#1e3a8a", fontSize: 13, fontWeight: 700 }}>{selectedFocusTelemetryTarget.label}</div>
-                  <div style={{ color: "#475569", fontSize: 12 }}>{selectedFocusTelemetryTarget.detail}</div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <button type="button" onClick={() => void openReplayTelemetryTarget(selectedFocusTelemetryTarget.quoteId, "status-history")} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #93c5fd", background: "white", color: "#1d4ed8", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                <div ref={focusTelemetryEventActionsRef} className="admin-page__quick-actions">
+                  <div className="admin-page__quick-actions-title">Telemetri Hizli Eylemleri</div>
+                  <div className="admin-page__quick-actions-label">{selectedFocusTelemetryTarget.label}</div>
+                  <div className="admin-page__event-detail">{selectedFocusTelemetryTarget.detail}</div>
+                  <div className="admin-page__wrap-row">
+                    <button type="button" onClick={() => void openReplayTelemetryTarget(selectedFocusTelemetryTarget.quoteId, "status-history")} className="admin-page__pill-button admin-page__pill-button--blue">
                       Hizli Eylem - Durum gecmisi
                     </button>
-                    <button type="button" onClick={() => void openReplayTelemetryTarget(selectedFocusTelemetryTarget.quoteId, "full-audit-trail")} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #c4b5fd", background: "white", color: "#6d28d9", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                    <button type="button" onClick={() => void openReplayTelemetryTarget(selectedFocusTelemetryTarget.quoteId, "full-audit-trail")} className="admin-page__pill-button admin-page__pill-button--violet">
                       Hizli Eylem - Denetim izi
                     </button>
-                    <button type="button" onClick={() => void openReplayTelemetryTarget(selectedFocusTelemetryTarget.quoteId, selectedFocusTelemetryTarget.section)} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #fdba74", background: "white", color: "#c2410c", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                    <button type="button" onClick={() => void openReplayTelemetryTarget(selectedFocusTelemetryTarget.quoteId, selectedFocusTelemetryTarget.section)} className="admin-page__pill-button admin-page__pill-button--amber">
                       Hizli Eylem - Discovery Lab satirina git
                     </button>
                   </div>
                 </div>
               ) : null}
               {focusTelemetryActionStatus ? (
-                <div aria-live="polite" style={{ borderRadius: 12, border: focusTelemetryActionStatus.tone === "error" ? "1px solid #fecaca" : "1px solid #bbf7d0", background: focusTelemetryActionStatus.tone === "error" ? "#fef2f2" : "#f0fdf4", color: focusTelemetryActionStatus.tone === "error" ? "#b91c1c" : "#166534", padding: "10px 12px", fontSize: 12, fontWeight: 800 }}>
+                <div aria-live="polite" className={`admin-page__notice-inline ${focusTelemetryActionStatus.tone === "error" ? "admin-page__notice-inline--error" : "admin-page__notice-inline--success"}`}>
                   {focusTelemetryActionStatus.message}
                 </div>
               ) : null}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button type="button" onClick={exportFocusTelemetry} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+              <div className="admin-page__wrap-row">
+                <button type="button" onClick={exportFocusTelemetry} className="admin-page__pill-button">
                   Telemetry Export Hazirla
                 </button>
-                <button type="button" onClick={exportFocusTelemetryCsv} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                <button type="button" onClick={exportFocusTelemetryCsv} className="admin-page__pill-button">
                   CSV Ozet Hazirla
                 </button>
                 <button type="button" onClick={() => {
                   void copyFocusTelemetryText(focusTelemetryExport)
                     .then(() => announceFocusTelemetryAction("JSON export panoya kopyalandi", "success", "export"))
                     .catch(() => announceFocusTelemetryAction("JSON export panoya kopyalanamadi", "error", "export"));
-                }} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                }} className="admin-page__pill-button">
                   JSON Kopyala
                 </button>
                 <button type="button" onClick={() => {
@@ -4732,14 +4697,14 @@ export default function AdminPage() {
                   } catch {
                     announceFocusTelemetryAction("JSON export indirilemedi", "error", "export");
                   }
-                }} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                }} className="admin-page__pill-button">
                   JSON Indir ({focusTelemetryExportMeta.jsonFilename})
                 </button>
                 <button type="button" onClick={() => {
                   void copyFocusTelemetryText(focusTelemetryCsvExport)
                     .then(() => announceFocusTelemetryAction("CSV export panoya kopyalandi", "success", "export"))
                     .catch(() => announceFocusTelemetryAction("CSV export panoya kopyalanamadi", "error", "export"));
-                }} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                }} className="admin-page__pill-button">
                   CSV Kopyala
                 </button>
                 <button type="button" onClick={() => {
@@ -4749,15 +4714,15 @@ export default function AdminPage() {
                   } catch {
                     announceFocusTelemetryAction("CSV export indirilemedi", "error", "export");
                   }
-                }} style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>
+                }} className="admin-page__pill-button">
                   CSV Indir ({focusTelemetryExportMeta.csvFilename})
                 </button>
               </div>
               {focusTelemetryExport ? (
-                <textarea readOnly aria-label="Focus Telemetry Export" value={focusTelemetryExport} style={{ minHeight: 140, borderRadius: 12, border: "1px solid #dbe3ee", padding: 12, color: "#334155", fontSize: 12, background: "#f8fafc" }} />
+                <textarea readOnly aria-label="Focus Telemetry Export" value={focusTelemetryExport} className="admin-page__export-textarea" />
               ) : null}
               {focusTelemetryCsvExport ? (
-                <textarea readOnly aria-label="Focus Telemetry CSV Export" value={focusTelemetryCsvExport} style={{ minHeight: 120, borderRadius: 12, border: "1px solid #dbe3ee", padding: 12, color: "#334155", fontSize: 12, background: "#f8fafc" }} />
+                <textarea readOnly aria-label="Focus Telemetry CSV Export" value={focusTelemetryCsvExport} className="admin-page__export-textarea admin-page__export-textarea--compact" />
               ) : null}
             </div>
           </div>
@@ -4776,100 +4741,100 @@ export default function AdminPage() {
           approved: catalogRequests.filter((r) => r.review_status === "approved").length,
           rejected: catalogRequests.filter((r) => r.review_status === "rejected").length,
         };
-        const bgPrimary = _scope === "platform" ? "#1e3a8a" : isChannel ? "#92400e" : "#166534";
+        const bgPrimaryTone = _scope === "platform" ? "navy" : isChannel ? "amber" : "green";
         return (
           <>
-            <section style={{ display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: 16 }}>
-              <div style={{ borderRadius: 24, border: "1px solid #e5e7eb", background: "white", padding: 20, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 12 }}>
+            <section className="admin-page__split-grid">
+              <div className="admin-page__card admin-page__card--large admin-page__card--stacked">
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#475569" }}>Rol / Departman Onay Masasi</div>
-                  <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Scope ayrışmalı katalog yönetimi</div>
-                  <div style={{ marginTop: 6, color: "#64748b", fontSize: 13, lineHeight: 1.7 }}>
+                  <div className="admin-page__section-title">Rol / Departman Onay Masasi</div>
+                  <div className="admin-page__section-heading">Scope ayrışmalı katalog yönetimi</div>
+                  <div className="admin-page__section-copy">
                     Tenant ekipleri yeni rol ve departman ihtiyacını talep olarak açar. Platform tarafı talepleri merkezi kuyrukta inceler, onaylanan kayıt gerçek katalog varlığına dönüşür.
                   </div>
                 </div>
                 {canRequestCatalog ? (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <form onSubmit={(e) => { e.preventDefault(); if (!panelHomeRoleName.trim()) return; void handleCreateRoleCatalogRequest({ name: panelHomeRoleName.trim(), description: panelHomeRoleDescription.trim() || undefined }).then(() => { setPanelHomeRoleName(""); setPanelHomeRoleDescription(""); }); }} style={{ borderRadius: 18, border: "1px solid #dbe3ee", background: "#f8fafc", padding: 16, display: "grid", gap: 10 }}>
-                      <div style={{ fontWeight: 900, color: "#0f172a" }}>Yeni rol talebi</div>
-                      <input value={panelHomeRoleName} onChange={(e) => setPanelHomeRoleName(e.target.value)} placeholder="Ornek: Partner Teknik Lider" style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #cbd5e1" }} />
-                      <textarea value={panelHomeRoleDescription} onChange={(e) => setPanelHomeRoleDescription(e.target.value)} placeholder="Bu rol hangi ihtiyacı çözüyor?" rows={3} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #cbd5e1", resize: "vertical" }} />
-                      <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, border: "none", background: bgPrimary, color: "white", fontWeight: 800, cursor: "pointer" }}>Rol talebini gönder</button>
+                  <div className="admin-page__catalog-form-grid">
+                    <form onSubmit={(e) => { e.preventDefault(); if (!panelHomeRoleName.trim()) return; void handleCreateRoleCatalogRequest({ name: panelHomeRoleName.trim(), description: panelHomeRoleDescription.trim() || undefined }).then(() => { setPanelHomeRoleName(""); setPanelHomeRoleDescription(""); }); }} className="admin-page__catalog-form">
+                      <div className="admin-page__form-title">Yeni rol talebi</div>
+                      <input value={panelHomeRoleName} onChange={(e) => setPanelHomeRoleName(e.target.value)} placeholder="Ornek: Partner Teknik Lider" className="admin-page__form-control" />
+                      <textarea value={panelHomeRoleDescription} onChange={(e) => setPanelHomeRoleDescription(e.target.value)} placeholder="Bu rol hangi ihtiyacı çözüyor?" rows={3} className="admin-page__form-control admin-page__form-textarea" />
+                      <button type="submit" className={`admin-page__submit-button admin-page__submit-button--primary admin-page__tone--${bgPrimaryTone}`}>Rol talebini gönder</button>
                     </form>
-                    <form onSubmit={(e) => { e.preventDefault(); if (!panelHomeDeptName.trim()) return; void handleCreateDepartmentCatalogRequest({ name: panelHomeDeptName.trim(), description: panelHomeDeptDescription.trim() || undefined }).then(() => { setPanelHomeDeptName(""); setPanelHomeDeptDescription(""); }); }} style={{ borderRadius: 18, border: "1px solid #dbe3ee", background: "#f8fafc", padding: 16, display: "grid", gap: 10 }}>
-                      <div style={{ fontWeight: 900, color: "#0f172a" }}>Yeni departman talebi</div>
-                      <input value={panelHomeDeptName} onChange={(e) => setPanelHomeDeptName(e.target.value)} placeholder="Ornek: Kanal Performans ve Hakediş" style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #cbd5e1" }} />
-                      <textarea value={panelHomeDeptDescription} onChange={(e) => setPanelHomeDeptDescription(e.target.value)} placeholder="Bu departman hangi iş hattını ayırıyor?" rows={3} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #cbd5e1", resize: "vertical" }} />
-                      <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #cbd5e1", background: "white", color: "#0f172a", fontWeight: 800, cursor: "pointer" }}>Departman talebini gönder</button>
+                    <form onSubmit={(e) => { e.preventDefault(); if (!panelHomeDeptName.trim()) return; void handleCreateDepartmentCatalogRequest({ name: panelHomeDeptName.trim(), description: panelHomeDeptDescription.trim() || undefined }).then(() => { setPanelHomeDeptName(""); setPanelHomeDeptDescription(""); }); }} className="admin-page__catalog-form">
+                      <div className="admin-page__form-title">Yeni departman talebi</div>
+                      <input value={panelHomeDeptName} onChange={(e) => setPanelHomeDeptName(e.target.value)} placeholder="Ornek: Kanal Performans ve Hakediş" className="admin-page__form-control" />
+                      <textarea value={panelHomeDeptDescription} onChange={(e) => setPanelHomeDeptDescription(e.target.value)} placeholder="Bu departman hangi iş hattını ayırıyor?" rows={3} className="admin-page__form-control admin-page__form-textarea" />
+                      <button type="submit" className="admin-page__submit-button">Departman talebini gönder</button>
                     </form>
                   </div>
                 ) : (
-                  <div style={{ borderRadius: 16, border: "1px solid #dbeafe", background: "#f8fbff", padding: "14px 16px", color: "#334155", fontSize: 13 }}>
+                  <div className="admin-page__info-box">
                     Bu profil için katalog talebi açma alanı kapalı. Yine de scope bazlı istek kuyruğunu izleyebilir ve sonuçlarını takip edebilirsiniz.
                   </div>
                 )}
-                <div style={{ display: "grid", gap: 10 }}>
+                <div className="admin-page__list-stack">
                   {catalogRequests.length === 0 ? (
-                    <div style={{ borderRadius: 16, border: "1px dashed #cbd5e1", background: "#f8fafc", padding: "14px 16px", color: "#64748b" }}>Gosterilecek katalog talebi yok.</div>
+                    <div className="admin-page__empty-state">Gosterilecek katalog talebi yok.</div>
                   ) : catalogRequests.map((item) => (
-                    <div key={item.id} style={{ borderRadius: 16, border: "1px solid #e2e8f0", background: "white", padding: 14, display: "grid", gap: 8 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                    <div key={item.id} className="admin-page__catalog-item">
+                      <div className="admin-page__space-between-row">
                         <div>
-                          <div style={{ fontWeight: 900, color: "#0f172a" }}>{item.proposed_name}</div>
-                          <div style={{ marginTop: 4, fontSize: 12, color: "#64748b" }}>{item.entity_type === "role" ? "Rol talebi" : "Departman talebi"} • {item.requested_by_name || item.requested_by_email || `Kullanici #${item.requested_by_user_id}`}</div>
+                          <div className="admin-page__form-title">{item.proposed_name}</div>
+                          <div className="admin-page__request-meta">{item.entity_type === "role" ? "Rol talebi" : "Departman talebi"} • {item.requested_by_name || item.requested_by_email || `Kullanici #${item.requested_by_user_id}`}</div>
                         </div>
-                        <span style={{ display: "inline-flex", padding: "5px 10px", borderRadius: 999, background: item.review_status === "approved" ? "#dcfce7" : item.review_status === "rejected" ? "#fee2e2" : "#fffbeb", color: item.review_status === "approved" ? "#166534" : item.review_status === "rejected" ? "#b91c1c" : "#92400e", fontWeight: 800, fontSize: 12 }}>
+                        <span className={`admin-page__status-badge admin-page__status-badge--${item.review_status === "approved" ? "approved" : item.review_status === "rejected" ? "rejected" : "pending"}`}>
                           {item.review_status === "approved" ? "Onaylandi" : item.review_status === "rejected" ? "Reddedildi" : "Inceleniyor"}
                         </span>
                       </div>
-                      {item.proposed_description ? <div style={{ color: "#475569", fontSize: 13 }}>{item.proposed_description}</div> : null}
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 12, color: "#64748b" }}>
+                      {item.proposed_description ? <div className="admin-page__link-description">{item.proposed_description}</div> : null}
+                      <div className="admin-page__wrap-row admin-page__text-sm-muted">
                         <span>Olusturma: {new Date(item.created_at).toLocaleString("tr-TR")}</span>
                         {item.reviewed_at ? <span>Karar: {new Date(item.reviewed_at).toLocaleString("tr-TR")}</span> : null}
                       </div>
                       {canReviewCatalog && item.review_status === "pending_review" ? (
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <button type="button" disabled={catalogRequestBusyId === item.id} onClick={() => void handleReviewCatalogRequest(item.id, "approved")} style={{ padding: "8px 12px", borderRadius: 10, border: "none", background: "#166534", color: "white", fontWeight: 800, cursor: "pointer", opacity: catalogRequestBusyId === item.id ? 0.7 : 1 }}>Onayla</button>
-                          <button type="button" disabled={catalogRequestBusyId === item.id} onClick={() => void handleReviewCatalogRequest(item.id, "rejected")} style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", fontWeight: 800, cursor: "pointer", opacity: catalogRequestBusyId === item.id ? 0.7 : 1 }}>Reddet</button>
+                        <div className="admin-page__button-row admin-page__button-row--nowrap">
+                          <button type="button" disabled={catalogRequestBusyId === item.id} onClick={() => void handleReviewCatalogRequest(item.id, "approved")} className="admin-page__decision-button admin-page__decision-button--approve">Onayla</button>
+                          <button type="button" disabled={catalogRequestBusyId === item.id} onClick={() => void handleReviewCatalogRequest(item.id, "rejected")} className="admin-page__decision-button admin-page__decision-button--reject">Reddet</button>
                         </div>
                       ) : null}
                     </div>
                   ))}
                 </div>
               </div>
-              <div style={{ borderRadius: 24, border: "1px solid #e5e7eb", background: "white", padding: 20, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#475569" }}>Bu scope icin operasyon ilkeleri</div>
+              <div className="admin-page__card admin-page__card--large admin-page__card--stacked">
+                <div className="admin-page__section-title">Bu scope icin operasyon ilkeleri</div>
                 {[
                   "Stratejik Partner girisi kendi renk ve tonuyla ayriliyor; bu sayede yanlis kabuga dusme riski azalir.",
                   "Super admin tum scope'lari gorebilir fakat review ve izleme katmani scope sinyalini korur.",
                   "Aktif / pasif yasam dongusu yeni katalog taleplerinde de korunur; onaylanmayan kayit canli listeye dusmez.",
                   "Scope ana sayfasi agir tek ekran yerine hizli kartlar ve acilir islem bloklariyla tasinacak sekilde kurgulandi.",
                 ].map((item) => (
-                  <div key={item} style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "12px 14px", color: "#334155", fontSize: 13, lineHeight: 1.7 }}>{item}</div>
+                  <div key={item} className="admin-page__principle-card">{item}</div>
                 ))}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, borderRadius: 16, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 14 }}>
+                <div className="admin-page__mini-stat-grid">
                   {[
-                    { label: "Bekleyen", value: requestSummaryBottom.pending, color: "#b45309" },
-                    { label: "Onaylanan", value: requestSummaryBottom.approved, color: "#15803d" },
-                    { label: "Reddedilen", value: requestSummaryBottom.rejected, color: "#b91c1c" },
+                    { label: "Bekleyen", value: requestSummaryBottom.pending, tone: "amber" },
+                    { label: "Onaylanan", value: requestSummaryBottom.approved, tone: "green" },
+                    { label: "Reddedilen", value: requestSummaryBottom.rejected, tone: "red-dark" },
                   ].map((s) => (
-                    <div key={s.label} style={{ display: "grid", gap: 4 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: s.color, textTransform: "uppercase", letterSpacing: 1 }}>{s.label}</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: s.color }}>{s.value}</div>
+                    <div key={s.label} className={`admin-page__mini-stat admin-page__tone--${s.tone}`}>
+                      <div className="admin-page__mini-stat-label">{s.label}</div>
+                      <div className="admin-page__mini-stat-value">{s.value}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
 
-            <section style={{ borderRadius: 24, border: "1px solid #e5e7eb", background: "white", padding: 20, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#475569" }}>Hizli Linkler</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+            <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
+              <div className="admin-page__section-title">Hizli Linkler</div>
+              <div className="admin-page__metric-grid">
                 {workspacePanelQuickLinks.map((item) => (
-                  <a key={item.href} href={item.href} style={{ borderRadius: 18, border: "1px solid #dbe3ee", background: "white", padding: 16, textDecoration: "none", color: "#0f172a", display: "grid", gap: 6 }}>
-                    <div style={{ fontWeight: 900 }}>{item.label}</div>
-                    <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{item.description}</div>
-                    <div style={{ color: bgPrimary, fontSize: 12, fontWeight: 800 }}>Ac →</div>
+                  <a key={item.href} href={item.href} className="admin-page__quick-link-card">
+                    <div className="admin-page__quick-link-title">{item.label}</div>
+                    <div className="admin-page__link-description">{item.description}</div>
+                    <div className={`admin-page__link-arrow admin-page__tone--${bgPrimaryTone}`}>Ac →</div>
                   </a>
                 ))}
               </div>
@@ -4879,11 +4844,11 @@ export default function AdminPage() {
       })()}
 
       {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
-        <section style={{ display: "grid", gap: 16 }}>
-          <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#0f766e" }}>Discovery Lab Operasyon Masasi</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Answer audit ve RFQ baglanti merkezi</div>
-            <div style={{ color: "#64748b" }}>Stratejik Partner, proje, kullanici ve karar kirilimi ile Discovery Lab cevaplarini ve olusan RFQ baglantilarini izleyin.</div>
+        <section className="admin-page__grid">
+          <div className="admin-page__panel-card admin-page__panel-card--stacked">
+            <div className="admin-page__discovery-title">Discovery Lab Operasyon Masasi</div>
+            <div className="admin-page__large-heading">Answer audit ve RFQ baglanti merkezi</div>
+            <div className="admin-page__plain-muted">Stratejik Partner, proje, kullanici ve karar kirilimi ile Discovery Lab cevaplarini ve olusan RFQ baglantilarini izleyin.</div>
             {showRestoredQuoteToast && restoredQuoteInsight ? (
               <div
                 ref={restoredQuoteToastRef}
@@ -4901,38 +4866,25 @@ export default function AdminPage() {
                     clearRestoredQuoteInsight();
                   }
                 }}
-                style={{
-                  borderRadius: 16,
-                  border: restoredQuoteInsight.section === "status-history" ? "1px solid #93c5fd" : "1px solid #c4b5fd",
-                  background: restoredQuoteInsight.section === "status-history" ? "#eff6ff" : "#f5f3ff",
-                  color: restoredQuoteInsight.section === "status-history" ? "#1d4ed8" : "#6d28d9",
-                  padding: "12px 14px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  flexWrap: "wrap",
-                }}
+                className={`admin-page__restore-toast ${restoredQuoteInsight.section === "status-history" ? "" : "admin-page__restore-toast--paused"}`}
               >
-                <div style={{ display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase" }}>Geri Donus Restore</div>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>RFQ #{restoredQuoteInsight.quoteId} icinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odagi geri yuklendi.</div>
-                  <div style={{ marginTop: 2, width: "100%", maxWidth: 260, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.6)", overflow: "hidden" }}>
-                    <div data-testid="restored-quote-toast-progress" style={{ width: `${restoredQuoteToastProgress}%`, height: "100%", borderRadius: 999, background: "currentColor", transition: "width 100ms linear" }} />
-                  </div>
+                <div className="admin-page__restore-toast-content">
+                  <div className="admin-page__restore-toast-title">Geri Donus Restore</div>
+                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} icinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odagi geri yuklendi.</div>
+                  <progress data-testid="restored-quote-toast-progress" className="admin-page__wide-progress" value={restoredQuoteToastProgress} max={100} />
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div className="admin-page__wrap-row">
                   <button
                     type="button"
                     onClick={jumpToRestoredQuoteCard}
-                    style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid currentColor", background: "white", color: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                    className="admin-page__ghost-button"
                   >
                     RFQ #{restoredQuoteInsight.quoteId} Odagina Git
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowRestoredQuoteToast(false)}
-                    style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid transparent", background: "rgba(255,255,255,0.6)", color: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                    className="admin-page__ghost-button admin-page__ghost-button--muted"
                   >
                     Bildirimi Kapat
                   </button>
@@ -4941,26 +4893,26 @@ export default function AdminPage() {
             ) : null}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+          <div className="admin-page__compact-metric-grid">
             {[
-              { label: "Toplam Audit", value: discoveryLabSummary.answer_audit_count, note: "Kayit altina alinan tum cevaplar", color: "#0369a1" },
-              { label: "RFQ Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile caprazlanan cevaplar", color: "#1d4ed8" },
-              { label: "Stratejik Partner Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner baglamina cozulmus kayitlar", color: "#0f766e" },
-              { label: "Inceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri donus gerektiren cevaplar", color: "#b45309" },
+              { label: "Toplam Audit", value: discoveryLabSummary.answer_audit_count, note: "Kayit altina alinan tum cevaplar", tone: "blue" },
+              { label: "RFQ Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile caprazlanan cevaplar", tone: "navy" },
+              { label: "Stratejik Partner Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner baglamina cozulmus kayitlar", tone: "teal" },
+              { label: "Inceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri donus gerektiren cevaplar", tone: "amber" },
             ].map((card) => (
-              <div key={card.label} style={{ borderRadius: 20, background: "white", border: "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#64748b" }}>{card.label}</div>
-                <div style={{ marginTop: 10, fontSize: 28, fontWeight: 900, color: card.color }}>{card.value}</div>
-                <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>{card.note}</div>
+              <div key={card.label} className={`admin-page__overview-card admin-page__tone--${card.tone}`}>
+                <div className="admin-page__overview-label">{card.label}</div>
+                <div className="admin-page__overview-value">{card.value}</div>
+                <div className="admin-page__overview-note">{card.note}</div>
               </div>
             ))}
           </div>
 
           {restoredQuoteDebugEvents.length && !isRestoredQuoteDebugTimelineHidden ? (
-            <div style={{ borderRadius: 20, background: "#fff", border: "1px solid #e5e7eb", padding: 18, display: "grid", gap: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#64748b" }}>Geri Yukleme Zaman Cizelgesi</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="admin-page__timeline-card">
+              <div className="admin-page__space-between-row">
+                <div className="admin-page__section-title">Geri Yukleme Zaman Cizelgesi</div>
+                <div className="admin-page__wrap-row">
                   {[
                     { key: "all", label: "Tum Event" },
                     { key: "restore", label: "Restore" },
@@ -4972,25 +4924,25 @@ export default function AdminPage() {
                       type="button"
                       data-testid={`restore-debug-filter-${filter.key}`}
                       onClick={() => setRestoredQuoteDebugFilter(filter.key as "all" | RestoreDebugEventType)}
-                      style={{ padding: "6px 10px", borderRadius: 999, border: restoredQuoteDebugFilter === filter.key ? "1px solid #6d28d9" : "1px solid #dbe3ee", background: restoredQuoteDebugFilter === filter.key ? "#f5f3ff" : "white", color: restoredQuoteDebugFilter === filter.key ? "#6d28d9" : "#475569", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                      className={`admin-page__pill-button admin-page__pill-button--sm ${restoredQuoteDebugFilter === filter.key ? "admin-page__pill-button--active-violet" : ""}`}
                     >
                       {filter.label}
                     </button>
                   ))}
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <label style={{ display: "flex", gap: 6, alignItems: "center", color: "#475569", fontSize: 12, fontWeight: 700 }}>
+              <div className="admin-page__space-between-row">
+                <label className="admin-page__inline-field">
                   Timeline arama
                   <input
                     aria-label="Restore Timeline Arama"
                     value={restoredQuoteDebugSearchQuery}
                     onChange={(event) => setRestoredQuoteDebugSearchQuery(event.target.value)}
                     placeholder="RFQ, replay veya toast ara"
-                    style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #dbe3ee", background: "white", color: "#334155", minWidth: 220 }}
+                    className="admin-page__control"
                   />
                 </label>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div className="admin-page__wrap-row">
                   {[
                     { key: "all", label: "Tum Zincir" },
                     { key: "last-replay-chain", label: "Son Replay Zinciri" },
@@ -5000,35 +4952,35 @@ export default function AdminPage() {
                       type="button"
                       data-testid={`restore-debug-replay-filter-${filter.key}`}
                       onClick={() => setRestoredQuoteDebugReplayFilter(filter.key as "all" | "last-replay-chain")}
-                      style={{ padding: "6px 10px", borderRadius: 999, border: restoredQuoteDebugReplayFilter === filter.key ? "1px solid #0f766e" : "1px solid #dbe3ee", background: restoredQuoteDebugReplayFilter === filter.key ? "#ecfeff" : "white", color: restoredQuoteDebugReplayFilter === filter.key ? "#0f766e" : "#475569", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                      className={`admin-page__pill-button admin-page__pill-button--sm ${restoredQuoteDebugReplayFilter === filter.key ? "admin-page__pill-button--active-teal" : ""}`}
                     >
                       {filter.label}
                     </button>
                   ))}
                 </div>
               </div>
-              <div style={{ display: "grid", gap: 8 }}>
+              <div className="admin-page__grid admin-page__grid--sm">
                 {filteredRestoredQuoteDebugEvents.map((event, index) => (
-                  <div key={`${event.id}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", borderRadius: 12, background: "#f8fafc", border: `1px solid ${getRestoreDebugEventMeta(event.type).border}`, padding: "10px 12px" }}>
-                    <div style={{ display: "grid", gap: 4 }}>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: getRestoreDebugEventMeta(event.type).background, color: getRestoreDebugEventMeta(event.type).accent, fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase" }}>
+                  <div key={`${event.id}-${index}`} className={`admin-page__restore-event admin-page__restore-event--${event.type}`}>
+                    <div className="admin-page__subsection-grid">
+                      <div className="admin-page__wrap-row">
+                        <span className={`admin-page__restore-badge admin-page__restore-badge--${event.type}`}>
                           {getRestoreDebugEventMeta(event.type).label}
                         </span>
-                        <span style={{ display: "inline-flex", padding: "3px 8px", borderRadius: 999, background: getRestoreDebugEventMeta(event.type).severityBackground, color: getRestoreDebugEventMeta(event.type).severityColor, fontSize: 10, fontWeight: 800 }}>
+                        <span className={`admin-page__restore-badge admin-page__restore-severity--${event.type}`}>
                           {getRestoreDebugEventMeta(event.type).severityLabel}
                         </span>
-                        <span style={{ color: "#0f172a", fontSize: 12, fontWeight: 800 }}>{event.label}</span>
+                        <span className="admin-page__event-title">{event.label}</span>
                       </div>
-                      <span style={{ color: "#64748b", fontSize: 11 }}>{formatAdminFocusTimestamp(event.createdAt)}</span>
+                      <span className="admin-page__text-xs-muted">{formatAdminFocusTimestamp(event.createdAt)}</span>
                     </div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <span style={{ color: "#475569", fontSize: 12 }}>{event.detail}</span>
+                    <div className="admin-page__wrap-row">
+                      <span className="admin-page__event-detail">{event.detail}</span>
                       <button
                         type="button"
                         data-testid={`restore-debug-remove-${index}`}
                         onClick={() => removeRestoredQuoteDebugEvent(event.id)}
-                        style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #fecaca", background: "#fff1f2", color: "#be123c", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                        className="admin-page__danger-mini-button"
                       >
                         Satiri Sil
                       </button>
@@ -5036,39 +4988,39 @@ export default function AdminPage() {
                   </div>
                 ))}
                 {filteredRestoredQuoteDebugEvents.length === 0 ? (
-                  <div style={{ borderRadius: 12, background: "#f8fafc", border: "1px dashed #cbd5e1", padding: "10px 12px", color: "#64748b", fontSize: 12 }}>
+                  <div className="admin-page__empty-state">
                     Secili filtre icin debug olayi bulunmuyor.
                   </div>
                 ) : null}
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <div style={{ color: "#64748b", fontSize: 12 }}>Son restore akisini secilen bolume gore yeniden tetikleyin.</div>
-                  <label style={{ display: "flex", gap: 6, alignItems: "center", color: "#475569", fontSize: 12, fontWeight: 700 }}>
+              <div className="admin-page__space-between-row">
+                <div className="admin-page__wrap-row">
+                  <div className="admin-page__text-sm-muted">Son restore akisini secilen bolume gore yeniden tetikleyin.</div>
+                  <label className="admin-page__inline-field">
                     Replay hedefi
                     <select
                       aria-label="Restore Replay Hedefi"
                       value={restoredQuoteReplayTarget}
                       onChange={(event) => setRestoredQuoteReplayTarget(event.target.value as "status-history" | "full-audit-trail")}
-                      style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #dbe3ee", background: "white", color: "#334155" }}
+                      className="admin-page__control"
                     >
                       <option value="status-history">Durum gecmisi</option>
                       <option value="full-audit-trail">Denetim izi</option>
                     </select>
                   </label>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div className="admin-page__wrap-row">
                   <button
                     type="button"
                     onClick={clearRestoredQuoteDebugEvents}
-                    style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #e2e8f0", background: "white", color: "#475569", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                    className="admin-page__pill-button"
                   >
                     Timeline Temizle
                   </button>
                   <button
                     type="button"
                     onClick={replayRestoredQuoteInsight}
-                    style={{ padding: "7px 11px", borderRadius: 999, border: "1px solid #c4b5fd", background: "#f5f3ff", color: "#6d28d9", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
+                    className="admin-page__pill-button admin-page__pill-button--active-violet"
                   >
                     Geri Yukleme Tekrari • {getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}
                   </button>
@@ -5077,38 +5029,38 @@ export default function AdminPage() {
             </div>
           ) : null}
 
-          <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 14 }}>
-            <div style={{ display: "grid", gap: 10 }}>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <div className="admin-page__panel-card admin-page__panel-card--stacked">
+            <div className="admin-page__grid admin-page__grid--sm">
+              <div className="admin-page__wrap-row">
                 <input
                   aria-label="Discovery Lab Proje Filtresi"
                   value={discoveryLabProjectQuery}
                   onChange={(event) => setDiscoveryLabProjectQuery(event.target.value)}
                   placeholder="Proje ara"
-                  style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", minWidth: 180 }}
+                  className="admin-page__control"
                 />
                 <input
                   aria-label="Discovery Lab Kullanici Filtresi"
                   value={discoveryLabUserQuery}
                   onChange={(event) => setDiscoveryLabUserQuery(event.target.value)}
                   placeholder="Kullanici ara"
-                  style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", minWidth: 180 }}
+                  className="admin-page__control"
                 />
                 <input
                   aria-label="Discovery Lab Kayit Arama"
                   value={discoveryLabSearch}
                   onChange={(event) => setDiscoveryLabSearch(event.target.value)}
                   placeholder="Kayit ara"
-                  style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white", minWidth: 180 }}
+                  className="admin-page__control"
                 />
               </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <div className="admin-page__wrap-row">
                 {(["all", "needs_review", "approved", "ignored"] as const).map((decision) => (
                   <button
                     key={decision}
                     type="button"
                     onClick={() => setDiscoveryLabAuditDecisionFilter(decision)}
-                    style={{ padding: "6px 10px", borderRadius: 999, border: discoveryLabAuditDecisionFilter === decision ? "1px solid #0f766e" : "1px solid #dbe3ee", background: discoveryLabAuditDecisionFilter === decision ? "#ecfdf5" : "white", color: discoveryLabAuditDecisionFilter === decision ? "#0f766e" : "#475569", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                    className={`admin-page__pill-button admin-page__pill-button--sm ${discoveryLabAuditDecisionFilter === decision ? "admin-page__pill-button--active-teal" : ""}`}
                   >
                     {decision === "all" ? "Tum Kararlar" : decision === "needs_review" ? "Inceleme" : decision === "approved" ? "Onaylandi" : "Goz Ardi"}
                   </button>
@@ -5122,16 +5074,16 @@ export default function AdminPage() {
                     setDiscoveryLabDateFrom(from.toISOString());
                     setDiscoveryLabDateTo(now.toISOString());
                   }}
-                  style={{ padding: "6px 10px", borderRadius: 999, border: "1px solid #dbe3ee", background: "white", color: "#475569", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                  className="admin-page__pill-button admin-page__pill-button--sm"
                 >
                   Son 7 Gun
                 </button>
               </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <div className="admin-page__space-between-row">
               <div>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#0f766e" }}>Filtrelenmis Audit Kayitlari</div>
-                <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900, color: "#0f172a" }}>Stratejik Partner ve RFQ bagli detay listesi</div>
+                <div className="admin-page__discovery-title">Filtrelenmis Audit Kayitlari</div>
+                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bagli detay listesi</div>
                 {restoredQuoteInsight ? renderAdminFocusBanner({
                   eyebrow: "Admin Focus",
                   title: `Admin geri donus odagi: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
@@ -5146,12 +5098,12 @@ export default function AdminPage() {
                   testId: "admin-focus-banner-rfq",
                 }) : null}
               </div>
-              <div style={{ color: "#64748b", fontSize: 13 }}>{sortedDiscoveryLabAnswerAudits.length} kayit yuklendi</div>
+              <div className="admin-page__link-description">{sortedDiscoveryLabAnswerAudits.length} kayit yuklendi</div>
             </div>
 
-            <div style={{ display: "grid", gap: 10 }}>
+            <div className="admin-page__list-stack">
               {discoveryLabAnswerAudits.length === 0 ? (
-                <div style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", color: "#64748b" }}>
+                <div className="admin-page__empty-state">
                   Filtreye uyan Discovery Lab yanit denetimi kaydi bulunmuyor.
                 </div>
               ) : (
@@ -5164,50 +5116,42 @@ export default function AdminPage() {
                         discoveryQuoteCardRefs.current[audit.quote_id] = node;
                       }
                     }}
-                    style={{
-                      borderRadius: 14,
-                      background: restoredQuoteInsight?.quoteId === audit.quote_id ? "#fefefe" : selectedFocusTelemetryTarget?.quoteId === audit.quote_id ? "#eff6ff" : replayChainTargetQuoteId === audit.quote_id ? "#fff7ed" : "#f8fbff",
-                      border: restoredQuoteInsight?.quoteId === audit.quote_id
-                        ? (restoredQuoteInsight?.section === "status-history" ? "1px solid #93c5fd" : "1px solid #c4b5fd")
+                    className={`admin-page__audit-card ${
+                      restoredQuoteInsight?.quoteId === audit.quote_id
+                        ? `admin-page__audit-card--restored ${restoredQuoteInsight?.section === "status-history" ? "" : "admin-page__audit-card--restored-violet"}`
                         : selectedFocusTelemetryTarget?.quoteId === audit.quote_id
-                          ? "1px solid #93c5fd"
-                        : replayChainTargetQuoteId === audit.quote_id
-                          ? "1px solid #fdba74"
-                          : "1px solid #dbeafe",
-                      padding: "14px 16px",
-                      display: "grid",
-                      gap: 8,
-                      boxShadow: restoredQuoteInsight?.quoteId === audit.quote_id ? "0 0 0 4px rgba(59, 130, 246, 0.08)" : selectedFocusTelemetryTarget?.quoteId === audit.quote_id ? "0 0 0 4px rgba(59, 130, 246, 0.08)" : replayChainTargetQuoteId === audit.quote_id ? "0 0 0 4px rgba(249, 115, 22, 0.08)" : "none",
-                      transform: "scale(1)",
-                      transition: "transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border 180ms ease",
-                    }}
+                          ? "admin-page__audit-card--selected"
+                          : replayChainTargetQuoteId === audit.quote_id
+                            ? "admin-page__audit-card--replay"
+                            : ""
+                    }`}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <div style={{ display: "grid", gap: 4 }}>
-                        <div style={{ fontWeight: 900, color: "#0f172a" }}>{audit.question_text || `Soru ${audit.question_id}`}</div>
+                    <div className="admin-page__space-between-row">
+                      <div className="admin-page__subsection-grid">
+                        <div className="admin-page__form-title">{audit.question_text || `Soru ${audit.question_id}`}</div>
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <div className="admin-page__wrap-row">
                             {restoredQuoteRiskBadges(audit.quote_id!).map((badge) => (
-                              <span key={`${audit.quote_id}-${badge.key}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: badge.background, color: badge.color, fontSize: 11, fontWeight: 800 }}>
+                              <span key={`${audit.quote_id}-${badge.key}`} className={`admin-page__pill-chip admin-page__pill-chip--${badge.tone}`}>
                                 {badge.label}: {badge.detail.replace(/^.*?:\s*/, "")}
                               </span>
                             ))}
                           </div>
                         ) : null}
                       </div>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <div className="admin-page__wrap-row">
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
-                          <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: restoredQuoteInsight?.section === "status-history" ? "#dbeafe" : "#ede9fe", color: restoredQuoteInsight?.section === "status-history" ? "#1d4ed8" : "#6d28d9", fontSize: 11, fontWeight: 900 }}>
+                          <span className={`admin-page__pill-chip ${restoredQuoteInsight?.section === "status-history" ? "admin-page__pill-chip--blue" : "admin-page__pill-chip--violet"}`}>
                             Geri Donus Odagi
                           </span>
                         ) : null}
                         {replayChainTargetQuoteId === audit.quote_id ? (
-                          <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#ffedd5", color: "#c2410c", fontSize: 11, fontWeight: 900 }}>
+                          <span className="admin-page__pill-chip admin-page__pill-chip--orange">
                             Replay Zinciri
                           </span>
                         ) : null}
                         {selectedFocusTelemetryTarget?.quoteId === audit.quote_id ? (
-                          <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#dbeafe", color: "#1d4ed8", fontSize: 11, fontWeight: 900 }}>
+                          <span className="admin-page__pill-chip admin-page__pill-chip--blue">
                             Telemetry Secimi
                           </span>
                         ) : null}
@@ -5222,46 +5166,36 @@ export default function AdminPage() {
                               }
                               focusTelemetryPanelRef.current?.scrollIntoView?.({ block: "center", behavior: "auto" });
                             }}
-                            style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #fdba74", background: "white", color: "#c2410c", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                            className="admin-page__mini-pill-button admin-page__mini-pill-button--orange"
                           >
                             Telemetry'ye Git
                           </button>
                         ) : null}
                         {audit.quote_id ? (
-                          <span
-                            style={{
-                              display: "inline-flex",
-                              padding: "4px 8px",
-                              borderRadius: 999,
-                              background: QuoteStatusColor[normalizeQuoteStatus(audit.quote_status)],
-                              color: "#0f172a",
-                              fontSize: 11,
-                              fontWeight: 800,
-                            }}
-                          >
+                          <span className={`admin-page__quote-status-chip admin-page__quote-status-chip--${normalizeQuoteStatus(audit.quote_status)}`}>
                             RFQ Durumu: {QuoteStatusLabel[normalizeQuoteStatus(audit.quote_status)]}
                           </span>
                         ) : null}
-                        <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: audit.decision === "approved" ? "#dcfce7" : audit.decision === "ignored" ? "#f1f5f9" : "#fef3c7", color: audit.decision === "approved" ? "#166534" : audit.decision === "ignored" ? "#475569" : "#b45309", fontSize: 11, fontWeight: 700 }}>
+                        <span className={`admin-page__pill-chip admin-page__pill-chip--${audit.decision === "approved" ? "green" : audit.decision === "ignored" ? "slate" : "amber"}`}>
                           {audit.decision || "answered"}
                         </span>
                       </div>
                     </div>
-                    <div style={{ color: "#334155", fontSize: 14 }}>{audit.answer_text}</div>
-                    {audit.rationale ? <div style={{ color: "#64748b", fontSize: 12 }}>Gerekce: {audit.rationale}</div> : null}
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", color: "#64748b", fontSize: 12 }}>
+                    <div className="admin-page__audit-answer">{audit.answer_text}</div>
+                    {audit.rationale ? <div className="admin-page__text-xs-muted">Gerekce: {audit.rationale}</div> : null}
+                    <div className="admin-page__wrap-row admin-page__text-xs-muted">
                       <span>Tenant: {audit.tenant_name || audit.tenant_id || "-"}</span>
                       <span>Proje: {audit.project_name || audit.project_id || "-"}</span>
                       <span>Session: {audit.session_id || "-"}</span>
                       <span>Dosya: {audit.source_filename || "-"}</span>
                       <span>Aktor: {audit.created_by_email || "Bilinmiyor"}</span>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div className="admin-page__wrap-row">
                       {audit.tenant_id ? (
                         <button
                           type="button"
                           onClick={() => openTenantGovernanceTab(audit.tenant_id, audit.tenant_name)}
-                          style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #99f6e4", background: "#ecfeff", color: "#0f766e", fontWeight: 700, cursor: "pointer" }}
+                          className="admin-page__audit-button admin-page__audit-button--teal"
                         >
                           Stratejik Partner Yonetimine Git
                         </button>
@@ -5270,100 +5204,76 @@ export default function AdminPage() {
                         <button
                           type="button"
                           onClick={() => openProjectsTab(audit.project_name)}
-                          style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", fontWeight: 700, cursor: "pointer" }}
+                          className="admin-page__audit-button admin-page__audit-button--indigo"
                         >
                           Proje Akisini Ac
                         </button>
                       ) : null}
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <div style={{ color: "#64748b", fontSize: 12 }}>Kayit Zamani: {String(audit.created_at || "")}</div>
+                    <div className="admin-page__space-between-row">
+                      <div className="admin-page__text-xs-muted">Kayit Zamani: {String(audit.created_at || "")}</div>
                       {audit.quote_id ? (
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                          <a href={`/quotes/${audit.quote_id}`} style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, textDecoration: "none" }}>
+                        <div className="admin-page__wrap-row">
+                          <a href={`/quotes/${audit.quote_id}`} className="admin-page__audit-link admin-page__audit-link--blue">
                             RFQ #{audit.quote_id}
                           </a>
-                          <a href={`/quotes/${audit.quote_id}/comparison?${buildAdminReturnQuery(audit)}`} style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #d8b4fe", background: "#faf5ff", color: "#7c3aed", fontWeight: 700, textDecoration: "none" }}>
+                          <a href={`/quotes/${audit.quote_id}/comparison?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--violet">
                             RFQ Karsilastirma
                           </a>
-                          <a href={`/quotes/${audit.quote_id}/edit?${buildAdminReturnQuery(audit)}`} style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #fde68a", background: "#fffbeb", color: "#b45309", fontWeight: 700, textDecoration: "none" }}>
+                          <a href={`/quotes/${audit.quote_id}/edit?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--amber">
                             RFQ Akisina Git
                           </a>
-                          <a href={`/quotes/${audit.quote_id}?insight=status-history&${buildAdminReturnQuery(audit, "status-history")}`} style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #bfdbfe", background: "#f8fbff", color: "#1d4ed8", fontWeight: 700, textDecoration: "none" }}>
+                          <a href={`/quotes/${audit.quote_id}?insight=status-history&${buildAdminReturnQuery(audit, "status-history")}`} className="admin-page__audit-link admin-page__audit-link--soft-blue">
                             RFQ Durum Gecmisi
                           </a>
-                          <a href={`/quotes/${audit.quote_id}?insight=full-audit-trail&${buildAdminReturnQuery(audit, "full-audit-trail")}`} style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #ddd6fe", background: "#faf5ff", color: "#6d28d9", fontWeight: 700, textDecoration: "none" }}>
+                          <a href={`/quotes/${audit.quote_id}?insight=full-audit-trail&${buildAdminReturnQuery(audit, "full-audit-trail")}`} className="admin-page__audit-link admin-page__audit-link--soft-violet">
                             RFQ Denetim Izi Sayfasi
                           </a>
                           <button
                             type="button"
                             onClick={() => toggleDiscoveryQuoteInsights(audit.quote_id!)}
-                            style={{ padding: "6px 10px", borderRadius: 10, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#334155", fontWeight: 700, cursor: "pointer" }}
+                            className="admin-page__audit-button admin-page__audit-button--slate"
                           >
                             {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Gecmisini Gizle" : "RFQ Gecmisini Ac"}
                           </button>
                         </div>
                       ) : (
-                        <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 700 }}>RFQ baglantisi yok</span>
+                        <span className="admin-page__text-xs-soft">RFQ baglantisi yok</span>
                       )}
                     </div>
                     {audit.quote_id && expandedDiscoveryQuoteInsightId === audit.quote_id ? (
-                      <div style={{ borderRadius: 12, border: "1px solid #e2e8f0", background: "white", padding: 14, display: "grid", gap: 12 }}>
+                      <div className="admin-page__inline-card">
                         {discoveryQuoteInsightLoadingId === audit.quote_id ? (
-                          <div style={{ color: "#64748b", fontSize: 13 }}>RFQ durum gecmisi ve denetim izi yukleniyor...</div>
+                          <div className="admin-page__text-sm-muted">RFQ durum gecmisi ve denetim izi yukleniyor...</div>
                         ) : null}
                         {discoveryQuoteInsightErrorById[audit.quote_id] ? (
-                          <div style={{ color: "#b91c1c", fontSize: 13 }}>{discoveryQuoteInsightErrorById[audit.quote_id]}</div>
+                          <div className="admin-page__text-sm-error">{discoveryQuoteInsightErrorById[audit.quote_id]}</div>
                         ) : null}
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
-                          <div
-                            style={{
-                              borderRadius: 10,
-                              border: restoredQuoteInsight.section === "status-history" ? "1px solid #93c5fd" : "1px solid #c4b5fd",
-                              background: restoredQuoteInsight.section === "status-history" ? "#eff6ff" : "#f5f3ff",
-                              color: restoredQuoteInsight.section === "status-history" ? "#1d4ed8" : "#6d28d9",
-                              padding: "10px 12px",
-                              fontSize: 12,
-                              fontWeight: 800,
-                              letterSpacing: 0.3,
-                              display: "flex",
-                              justifyContent: "space-between",
-                              gap: 12,
-                              alignItems: "center",
-                            }}
-                          >
+                          <div className={`admin-page__insight-focus ${restoredQuoteInsight.section === "status-history" ? "admin-page__insight-focus--blue" : "admin-page__insight-focus--violet"}`}>
                             <span>Admin geri donus odagi: {restoredQuoteInsight.section === "status-history" ? "RFQ durum gecmisi" : "RFQ denetim izi"}</span>
                             <button
                               type="button"
                               onClick={clearRestoredQuoteInsight}
-                              style={{
-                                borderRadius: 999,
-                                border: restoredQuoteInsight.section === "status-history" ? "1px solid #93c5fd" : "1px solid #c4b5fd",
-                                background: "white",
-                                color: restoredQuoteInsight.section === "status-history" ? "#1d4ed8" : "#6d28d9",
-                                fontSize: 11,
-                                fontWeight: 800,
-                                padding: "6px 10px",
-                                cursor: "pointer",
-                              }}
+                              className={`admin-page__mini-pill-button ${restoredQuoteInsight.section === "status-history" ? "admin-page__mini-pill-button--blue" : "admin-page__mini-pill-button--violet"}`}
                             >
                               Odagi Temizle
                             </button>
                           </div>
                         ) : null}
                         {discoveryQuoteById[audit.quote_id] || discoveryQuotePendingApprovalsById[audit.quote_id]?.length ? (
-                          <div style={{ display: "grid", gap: 8 }}>
-                            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#475569" }}>RFQ Karar Ozeti</div>
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                              <span style={{ color: "#475569", fontSize: 12 }}>Transition reason: {discoveryQuoteById[audit.quote_id]?.transition_reason || "-"}</span>
-                              <span style={{ color: "#475569", fontSize: 12 }}>Pending approval: {discoveryQuotePendingApprovalsById[audit.quote_id]?.length || 0}</span>
+                          <div className="admin-page__subsection-grid">
+                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Karar Ozeti</div>
+                            <div className="admin-page__wrap-row">
+                              <span className="admin-page__text-xs-body">Transition reason: {discoveryQuoteById[audit.quote_id]?.transition_reason || "-"}</span>
+                              <span className="admin-page__text-xs-body">Pending approval: {discoveryQuotePendingApprovalsById[audit.quote_id]?.length || 0}</span>
                             </div>
                             {discoveryQuotePendingApprovalsById[audit.quote_id]?.length ? (
-                              <div style={{ display: "grid", gap: 6 }}>
+                              <div className="admin-page__compact-stack">
                                 {discoveryQuotePendingApprovalsById[audit.quote_id].slice(0, 3).map((approval, index) => (
-                                  <div key={`pending-approval-${audit.quote_id}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", borderRadius: 8, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 10px" }}>
-                                    <div style={{ color: "#0f172a", fontSize: 12, fontWeight: 700 }}>{resolveApprovalRoleLabel(approval) || "Onay"}</div>
-                                    <div style={{ color: "#64748b", fontSize: 12 }}>{approval.status || "beklemede"}</div>
+                                  <div key={`pending-approval-${audit.quote_id}-${index}`} className="admin-page__compact-row-card">
+                                    <div className="admin-page__text-xs-strong">{resolveApprovalRoleLabel(approval) || "Onay"}</div>
+                                    <div className="admin-page__text-xs-muted">{approval.status || "beklemede"}</div>
                                   </div>
                                 ))}
                               </div>
@@ -5376,29 +5286,25 @@ export default function AdminPage() {
                             ref={(node) => {
                               discoveryQuoteStatusHistoryRefs.current[audit.quote_id!] = node;
                             }}
-                            style={{
-                              display: "grid",
-                              gap: 8,
-                              borderRadius: 12,
-                              transform: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "status-history" ? "scale(1.02)" : "scale(1)",
-                              padding: restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "status-history" ? 10 : 0,
-                              border: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "status-history" ? "1px solid #2563eb" : restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "status-history" ? "1px solid #93c5fd" : "none",
-                              background: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "status-history" ? "#dbeafe" : restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "status-history" ? "#f8fbff" : "transparent",
-                              boxShadow: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "status-history" ? "0 0 0 6px rgba(37, 99, 235, 0.18)" : "none",
-                              transition: "transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border 180ms ease",
-                            }}
+                            className={`admin-page__quote-insight-section ${
+                              telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "status-history"
+                                ? "admin-page__quote-insight-section--pulse-blue"
+                                : restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "status-history"
+                                  ? "admin-page__quote-insight-section--restored-blue"
+                                  : ""
+                            }`}
                           >
-                            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#475569" }}>RFQ Durum Gecmisi</div>
+                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Durum Gecmisi</div>
                             {telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "status-history" ? (
-                              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                                <div style={{ display: "inline-flex", width: "fit-content", padding: "4px 8px", borderRadius: 999, background: "#dbeafe", color: "#1d4ed8", fontSize: 11, fontWeight: 800 }}>
+                              <div className="admin-page__wrap-row">
+                                <div className="admin-page__pill-chip admin-page__pill-chip--blue">
                                   {telemetryPulseTarget.reason}
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => selectedFocusTelemetryActionSourceId && focusTelemetryQuickAction(selectedFocusTelemetryActionSourceId)}
                                   disabled={!selectedFocusTelemetryActionSourceId}
-                                  style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #93c5fd", background: "white", color: "#1d4ed8", fontSize: 11, fontWeight: 800, cursor: !selectedFocusTelemetryActionSourceId ? "not-allowed" : "pointer", opacity: !selectedFocusTelemetryActionSourceId ? 0.6 : 1 }}
+                                  className="admin-page__mini-pill-button admin-page__mini-pill-button--blue"
                                 >
                                   Telemetry eventine don
                                 </button>
@@ -5408,25 +5314,25 @@ export default function AdminPage() {
                                     setTelemetryPulseTarget(null);
                                     setFocusTelemetrySelectedEventId(null);
                                   }}
-                                  style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #bfdbfe", background: "white", color: "#1d4ed8", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                                  className="admin-page__mini-pill-button admin-page__mini-pill-button--soft-blue"
                                 >
                                   Secimi temizle
                                 </button>
                               </div>
                             ) : null}
                             {discoveryQuoteHistoryById[audit.quote_id].map((entry) => (
-                              <div key={`quote-history-${audit.quote_id}-${entry.id}`} style={{ borderRadius: 10, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 12px", display: "grid", gap: 8 }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                                  <div style={{ color: "#0f172a", fontWeight: 700 }}>{entry.from_status || "-"} {"->"} {entry.to_status || "-"}</div>
-                                  <div style={{ color: "#64748b", fontSize: 12 }}>{entry.changed_by_name || entry.changed_by || "Sistem"} - {entry.changed_at || entry.created_at || "-"}</div>
+                              <div key={`quote-history-${audit.quote_id}-${entry.id}`} className="admin-page__timeline-card">
+                                <div className="admin-page__space-between-row">
+                                  <div className="admin-page__text-strong">{entry.from_status || "-"} {"->"} {entry.to_status || "-"}</div>
+                                  <div className="admin-page__text-xs-muted">{entry.changed_by_name || entry.changed_by || "Sistem"} - {entry.changed_at || entry.created_at || "-"}</div>
                                 </div>
                                 {entry.approval_details?.length ? (
-                                  <div style={{ display: "grid", gap: 6 }}>
-                                    <div style={{ color: "#475569", fontSize: 12, fontWeight: 800 }}>Onay Adimlari</div>
+                                  <div className="admin-page__compact-stack">
+                                    <div className="admin-page__text-xs-body-strong">Onay Adimlari</div>
                                     {entry.approval_details.map((approval) => (
-                                      <div key={`approval-${entry.id}-${approval.level}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", borderRadius: 8, background: "white", border: "1px solid #e2e8f0", padding: "8px 10px" }}>
-                                        <div style={{ color: "#0f172a", fontSize: 12, fontWeight: 700 }}>Seviye {approval.level} - {resolveApprovalRoleLabel(approval) || "-"}</div>
-                                        <div style={{ color: "#64748b", fontSize: 12 }}>{approval.status}{approval.comment ? ` - ${approval.comment}` : ""}</div>
+                                      <div key={`approval-${entry.id}-${approval.level}`} className="admin-page__compact-row-card admin-page__compact-row-card--white">
+                                        <div className="admin-page__text-xs-strong">Seviye {approval.level} - {resolveApprovalRoleLabel(approval) || "-"}</div>
+                                        <div className="admin-page__text-xs-muted">{approval.status}{approval.comment ? ` - ${approval.comment}` : ""}</div>
                                       </div>
                                     ))}
                                   </div>
@@ -5441,29 +5347,25 @@ export default function AdminPage() {
                             ref={(node) => {
                               discoveryQuoteAuditTrailRefs.current[audit.quote_id!] = node;
                             }}
-                            style={{
-                              display: "grid",
-                              gap: 8,
-                              borderRadius: 12,
-                              transform: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail" ? "scale(1.02)" : "scale(1)",
-                              padding: restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "full-audit-trail" ? 10 : 0,
-                              border: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail" ? "1px solid #6d28d9" : restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "full-audit-trail" ? "1px solid #c4b5fd" : "none",
-                              background: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail" ? "#f5f3ff" : restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "full-audit-trail" ? "#faf5ff" : "transparent",
-                              boxShadow: telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail" ? "0 0 0 6px rgba(109, 40, 217, 0.16)" : "none",
-                              transition: "transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border 180ms ease",
-                            }}
+                            className={`admin-page__quote-insight-section ${
+                              telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail"
+                                ? "admin-page__quote-insight-section--pulse-violet"
+                                : restoredQuoteInsight?.quoteId === audit.quote_id && restoredQuoteInsight.section === "full-audit-trail"
+                                  ? "admin-page__quote-insight-section--restored-violet"
+                                  : ""
+                            }`}
                           >
-                            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#475569" }}>RFQ Denetim Izi</div>
+                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Denetim Izi</div>
                             {telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail" ? (
-                              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                                <div style={{ display: "inline-flex", width: "fit-content", padding: "4px 8px", borderRadius: 999, background: "#ede9fe", color: "#6d28d9", fontSize: 11, fontWeight: 800 }}>
+                              <div className="admin-page__wrap-row">
+                                <div className="admin-page__pill-chip admin-page__pill-chip--violet">
                                   {telemetryPulseTarget.reason}
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => selectedFocusTelemetryActionSourceId && focusTelemetryQuickAction(selectedFocusTelemetryActionSourceId)}
                                   disabled={!selectedFocusTelemetryActionSourceId}
-                                  style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #c4b5fd", background: "white", color: "#6d28d9", fontSize: 11, fontWeight: 800, cursor: !selectedFocusTelemetryActionSourceId ? "not-allowed" : "pointer", opacity: !selectedFocusTelemetryActionSourceId ? 0.6 : 1 }}
+                                  className="admin-page__mini-pill-button admin-page__mini-pill-button--violet"
                                 >
                                   Telemetry eventine don
                                 </button>
@@ -5473,28 +5375,28 @@ export default function AdminPage() {
                                     setTelemetryPulseTarget(null);
                                     setFocusTelemetrySelectedEventId(null);
                                   }}
-                                  style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #ddd6fe", background: "white", color: "#6d28d9", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                                  className="admin-page__mini-pill-button admin-page__mini-pill-button--soft-violet"
                                 >
                                   Secimi temizle
                                 </button>
                               </div>
                             ) : null}
-                            <div style={{ color: "#475569", fontSize: 13 }}>
+                            <div className="admin-page__text-sm-body">
                               Toplam olay: {discoveryQuoteAuditTrailById[audit.quote_id].total_events} - Guncel durum: {discoveryQuoteAuditTrailById[audit.quote_id].current_status}
                             </div>
                             {discoveryQuoteAuditTrailById[audit.quote_id].summary ? (
-                              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                <span style={{ color: "#475569", fontSize: 12 }}>Durum degisikligi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
-                                <span style={{ color: "#475569", fontSize: 12 }}>Onay seviyesi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.approval_levels ?? 0}</span>
-                                <span style={{ color: "#475569", fontSize: 12 }}>Tedarikci yaniti: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.suppliers_responded ?? 0}</span>
+                              <div className="admin-page__wrap-row">
+                                <span className="admin-page__text-xs-body">Durum degisikligi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
+                                <span className="admin-page__text-xs-body">Onay seviyesi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.approval_levels ?? 0}</span>
+                                <span className="admin-page__text-xs-body">Tedarikci yaniti: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.suppliers_responded ?? 0}</span>
                               </div>
                             ) : null}
                             {discoveryQuoteAuditTrailById[audit.quote_id].timeline.slice(0, 5).map((event, index) => (
-                              <div key={`quote-audit-${audit.quote_id}-${index}`} style={{ borderRadius: 10, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 12px", display: "grid", gap: 4 }}>
-                                <div style={{ color: "#0f172a", fontWeight: 700 }}>{event.title}</div>
-                                <div style={{ color: "#64748b", fontSize: 12 }}>{event.type} - {String(event.actor || "Sistem")} - {String(event.timestamp || "-")}</div>
+                              <div key={`quote-audit-${audit.quote_id}-${index}`} className="admin-page__timeline-card admin-page__timeline-card--compact">
+                                <div className="admin-page__text-strong">{event.title}</div>
+                                <div className="admin-page__text-xs-muted">{event.type} - {String(event.actor || "Sistem")} - {String(event.timestamp || "-")}</div>
                                 {event.details && Object.keys(event.details).length ? (
-                                  <div style={{ color: "#64748b", fontSize: 12 }}>
+                                  <div className="admin-page__text-xs-muted">
                                     {Object.entries(event.details).slice(0, 3).map(([key, value]) => `${key}: ${String(value)}`).join(" - ")}
                                   </div>
                                 ) : null}
@@ -5548,704 +5450,63 @@ export default function AdminPage() {
       )}
 
       {activeTab === "onboarding_studio" && canViewPlatformGovernance && (
-        <section style={{ display: "grid", gap: 16 }}>
-          <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Kurulum Studyosu</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Yeni Stratejik Partner kurulum iskeleti</div>
-            <div style={{ color: "#64748b" }}>Plan secimi, Stratejik Partner kaydi, ilk admin aktivasyonu ve ilk kurulum sihirbazi icin operasyon akisini tek ekranda toplar.</div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-            {[
-              { label: "Stratejik Partner", value: onboardingStudioSummary.tenant_count, note: "Toplam Stratejik Partner portfoyu", color: "#1d4ed8" },
-              { label: "Onboarding Kuyrugu", value: onboardingStudioSummary.onboarding_queue_count, note: "Aktif olmayan kurulum akislari", color: "#b45309" },
-              { label: "Owner Eksigi", value: onboardingStudioSummary.owner_pending_count, note: "Sahip atamasi bekleyen Stratejik Partner", color: "#dc2626" },
-              { label: "Branding Eksigi", value: onboardingStudioSummary.branding_pending_count, note: "Logo veya brand name eksigi", color: "#7c3aed" },
-              { label: "Yeni Uyelik", value: onboardingStudioSummary.new_membership_count, note: "Public onboarding ile gelen yeni basvurular", color: "#0f766e" },
-              { label: "Odeme Kontrol", value: onboardingStudioSummary.payment_review_count, note: "Odeme dogrulamasi bekleyen uyelikler", color: "#c2410c" },
-              { label: "Bilgi Istendi", value: onboardingStudioSummary.information_requested_count, note: "Ek bilgi veya yeni dekont bekleyen uyelikler", color: "#2563eb" },
-              { label: "Onay Bekliyor", value: onboardingStudioSummary.activation_approval_waiting_count, note: "Aktivasyon onayi bekleyen uyelikler", color: "#6d28d9" },
-              { label: "Onaylandi", value: onboardingStudioSummary.approved_membership_count, note: "Aktivasyonu tamamlanan yeni uyelikler", color: "#15803d" },
-            ].map((item) => (
-              <div key={item.label} style={{ borderRadius: 18, background: "white", border: "1px solid #e5e7eb", padding: 16, boxShadow: "0 12px 28px rgba(15, 23, 42, 0.05)", display: "grid", gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: item.color }}>{item.label}</div>
-                <div style={{ fontSize: 30, fontWeight: 900, color: item.color }}>{item.value}</div>
-                <div style={{ color: "#64748b", fontSize: 12 }}>{item.note}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-            {searchParams.get("onboardingPlanFocus") ? (
-              <div style={{ gridColumn: "1 / -1" }}>
-                {renderAdminFocusBanner({
-                  eyebrow: "Admin Focus",
-                  title: `Onboarding odagi: ${String(searchParams.get("onboardingPlanFocus") || "").toUpperCase()} plani`,
-                  detail: "Secilen onboarding planina ait kartlar oncelikli olarak vurgulaniyor.",
-                  tone: "blue",
-                  sourceLabel: "Onboarding deep-link",
-                  timestamp: Date.now(),
-                  actions: [{ label: "Odagi Temizle", onClick: () => navigateAdminTab("onboarding_studio") }],
-                  testId: "admin-focus-banner-onboarding",
-                })}
-              </div>
-            ) : null}
-            {[
-              { title: "1. Plan Secimi", note: "Starter, Growth veya Enterprise paketi ile ticari cerceveyi sabitle.", status: "Hazir", color: "#2563eb", action: "starter" },
-              { title: "2. Stratejik Partner Kaydi", note: "Stratejik Partner slug, branding ve sahip kullanici adayi ile workspace kaydini ac.", status: "Hazir", color: "#0f766e", action: "growth" },
-              { title: "3. Ilk Admin Aktivasyonu", note: "Owner daveti ve ilk yonetici aktivasyonunu tamamla.", status: "Hazir", color: "#b45309", action: "enterprise" },
-              { title: "4. Kurulum Sihirbazi", note: "Sirket, departman, roller, proje ve tedarikci tohumlarini adim adim tamamlama akisini kur.", status: "Taslak", color: "#7c3aed", action: null },
-            ].filter((card) => {
-              const focus = searchParams.get("onboardingPlanFocus");
-              if (!focus) return true;
-              return card.action === focus || card.action === null;
-            }).map((card) => (
-              <div key={card.title} style={{ borderRadius: 20, background: "white", border: searchParams.get("onboardingPlanFocus") === card.action ? "2px solid #1d4ed8" : "1px solid #e5e7eb", padding: 18, boxShadow: "0 14px 32px rgba(15, 23, 42, 0.05)", display: "grid", gap: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: card.color }}>{card.status}</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a" }}>{card.title}</div>
-                <div style={{ color: "#64748b", fontSize: 13, lineHeight: 1.6 }}>{card.note}</div>
-                {card.action ? (
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
-                    <button
-                      type="button"
-                      onClick={() => handleStartOnboardingTemplate(card.action)}
-                      style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 800, cursor: "pointer" }}
-                    >
-                      Stratejik Partner formuna tasla
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleCreateDraftTenant(card.action)}
-                      style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", fontWeight: 800, cursor: "pointer" }}
-                    >
-                      Taslak Stratejik Partner olustur
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-
-          <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#1d4ed8" }}>Yeni Uyelik Onay Masasi</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Odeme kontrolu ve aktivasyon onayi</div>
-            <div style={{ color: "#64748b" }}>Public ana sayfadan gelen stratejik partner ve tedarikci uyelik basvurulari burada takip edilir. Ucretli planlarda EFT dahil tum odemeler dogrulanmadan ve super admin onayi verilmeden aktivasyon tamamlanmaz.</div>
-            <div style={{ borderRadius: 16, background: "#eff6ff", border: "1px solid #bfdbfe", padding: "14px 16px", display: "grid", gap: 6 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#1d4ed8" }}>Kategori ve Eslesme Notu</div>
-              <div style={{ color: "#334155", fontSize: 13, lineHeight: 1.7 }}>
-                Onboarding sirasinda toplanan kategori bilgisi burada yalnizca bir profil alani olarak durmaz. Super admin ekibi bu veriyi stratejik partner kapsami, supplier uygunlugu ve kategori eksigi olan basvurulari hizlica ayiklamak icin kullanir.
-              </div>
-              <div style={{ color: "#475569", fontSize: 12, lineHeight: 1.7 }}>
-                Ozellikle supplier ve stratejik partner basvurularinda kategori uyumu; aktivasyon karari sonrasi hangi havuzun once acilacagini, hangi tenantin ek supplier sourcing ihtiyaci tasidigini ve hangi kayitlarin operasyonel takip gerektirdigini gosterir.
-              </div>
-            </div>
-            {(onboardingStudioSummary.recent_memberships ?? []).length === 0 ? (
-              <div style={{ borderRadius: 14, background: "#f8fafc", border: "1px dashed #cbd5e1", padding: "12px 14px", color: "#64748b" }}>
-                Gosterilecek yeni uyelik kaydi yok.
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: 10 }}>
-                {(onboardingStudioSummary.recent_memberships ?? []).map((tenant) => {
-                  const paymentStatus = String(tenant.onboarding_payment_status || "not_required").toLowerCase();
-                  const approvalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
-                  const demoDetectionBucket = [tenant.slug, tenant.legal_name, tenant.brand_name, tenant.category, tenant.subscription_plan_code]
-                    .map((value) => String(value || "").toLowerCase())
-                    .join(" ");
-                  const isDemoTenant = demoDetectionBucket.includes("demo");
-                  const categoryTags = Array.isArray(tenant.category_tags) ? tenant.category_tags : [];
-                  const targetCategoryTags = Array.isArray(tenant.target_category_tags) ? tenant.target_category_tags : [];
-                  const categoryRequests = Array.isArray(tenant.category_requests) ? tenant.category_requests : [];
-                  const hasPendingCategoryReview = categoryRequests.some((item) => !["final_approved", "rejected"].includes(String(item.status || "").toLowerCase()));
-                  const normalizedTenantCategory = String(tenant.category || "").trim();
-                  const matchingCategoryPool = categoryTags.length > 0 ? categoryTags : normalizedTenantCategory ? [normalizedTenantCategory] : [];
-                  const matchingSupplierCount = matchingCategoryPool.length > 0
-                    ? tenantGovernanceSuppliers.filter((supplier) => matchingCategoryPool.includes(String(supplier.category || "").trim())).length
-                    : 0;
-                  const canVerifyPayment = paymentStatus === "submitted" || paymentStatus === "processing";
-                  const canApprove = ["pending", "needs_info"].includes(approvalStatus) && ["verified", "succeeded", "not_required"].includes(paymentStatus) && !hasPendingCategoryReview;
-                  const canForceApprove = isSuperAdminUser(user) && isDemoTenant && !canApprove && ["pending", "needs_info", "rejected"].includes(approvalStatus);
-                  const canRequestInfo = approvalStatus === "pending" || approvalStatus === "needs_info";
-                  const canReject = approvalStatus === "pending" || approvalStatus === "rejected";
-                  const decisionGuidance = canVerifyPayment
-                    ? "Dekont veya hareket kaniti geldigi icin once odeme dogrulama yapilmali. Dogrulama tamamlanmadan aktivasyon onayi verilmemeli."
-                    : hasPendingCategoryReview
-                      ? "Listede olmayan kategori talepleri icin once destek ve final onay akisi tamamlanmali. Bu islem bitmeden aktivasyon onayi verilmemeli."
-                    : canApprove
-                      ? "Odeme gereklilikleri tamamlandi. Kategori uyumu ve tenant sahibi bilgilerinde eksik yoksa aktivasyon onayi verilebilir."
-                      : approvalStatus === "needs_info"
-                        ? "Kayit ek bilgi bekliyor. Yeni dekont, kategori netlestirmesi veya tenant sahibi teyidi tamamlanana kadar bekletilmeli."
-                        : approvalStatus === "rejected"
-                          ? "Bu kayit reddedilmis durumda. Yeniden ilerletilecekse once operasyon notu ve karar gerekcesi kontrol edilmeli."
-                          : "Kayit ilk inceleme asamasinda. Kategori, plan, odeme ve aktivasyon notlari birlikte kontrol edilerek karar verilmelidir.";
-                  const decisionTone = canApprove ? "#dcfce7" : canVerifyPayment ? "#fff7ed" : approvalStatus === "needs_info" ? "#eff6ff" : approvalStatus === "rejected" ? "#fef2f2" : "#f8fafc";
-                  const decisionBorder = canApprove ? "#86efac" : canVerifyPayment ? "#fdba74" : approvalStatus === "needs_info" ? "#93c5fd" : approvalStatus === "rejected" ? "#fca5a5" : "#cbd5e1";
-                  const decisionColor = canApprove ? "#166534" : canVerifyPayment ? "#9a3412" : approvalStatus === "needs_info" ? "#1d4ed8" : approvalStatus === "rejected" ? "#b91c1c" : "#475569";
-                  return (
-                    <div key={tenant.id} style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", padding: 14, display: "grid", gap: 10 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                        <div>
-                          <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a" }}>{tenant.brand_name || tenant.legal_name}</div>
-                          <div style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>{tenant.owner_email || "owner e-postasi yok"} - {tenant.subscription_plan_code || "starter"} - {String(tenant.subscription_plan_code || "").startsWith("supplier") ? "tedarikci uyeligi" : "stratejik partner uyeligi"}</div>
-                        </div>
-                        <span style={{ display: "inline-flex", padding: "5px 10px", borderRadius: 999, background: approvalStatus === "approved" ? "#dcfce7" : "#ede9fe", color: approvalStatus === "approved" ? "#166534" : "#6d28d9", fontSize: 12, fontWeight: 800 }}>
-                          {formatOnboardingApprovalStatus(tenant.onboarding_approval_status)}
-                        </span>
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
-                        <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Odeme Durumu</div>
-                          <div style={{ marginTop: 6, fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{formatOnboardingPaymentStatus(tenant.onboarding_payment_status)}</div>
-                          <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>{tenant.onboarding_payment_method || "yontem yok"}</div>
-                        </div>
-                        <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Kurulum Durumu</div>
-                          <div style={{ marginTop: 6, fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{formatPartnerOnboardingStatus(tenant.onboarding_status)}</div>
-                          <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>{tenant.onboarding_approved_by_name || "super admin karari bekleniyor"}</div>
-                        </div>
-                        <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Aktivasyon</div>
-                          <div style={{ marginTop: 6, fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{formatActivationDeliveryStatus(tenant.activation_delivery_status)}</div>
-                          <div style={{ marginTop: 4, color: "#64748b", fontSize: 12 }}>
-                            {tenant.initial_admin_invitation_accepted ? "Ilk admin hesabi aktive edildi" : "Aktivasyon bekleniyor"}
-                          </div>
-                        </div>
-                        <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbe3ee", padding: "12px 14px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Kategori ve Eslesme</div>
-                          <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            {(categoryTags.length > 0 ? categoryTags : [normalizedTenantCategory || "Kategori eksik"]).map((item) => (
-                              <span key={`${tenant.id}-${item}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: item !== "Kategori eksik" ? "#ecfeff" : "#f8fafc", color: item !== "Kategori eksik" ? "#0f766e" : "#64748b", fontWeight: 700, fontSize: 11 }}>
-                                {item}
-                              </span>
-                            ))}
-                            {targetCategoryTags.map((item) => (
-                              <span key={`${tenant.id}-target-${item}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#eef2ff", color: "#4338ca", fontWeight: 700, fontSize: 11 }}>
-                                hedef: {item}
-                              </span>
-                            ))}
-                            <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: matchingSupplierCount > 0 ? "#ecfdf5" : "#fff7ed", color: matchingSupplierCount > 0 ? "#166534" : "#9a3412", fontWeight: 700, fontSize: 11 }}>
-                              {matchingSupplierCount > 0 ? `${matchingSupplierCount} supplier eslesiyor` : "Eslesen supplier yok"}
-                            </span>
-                          </div>
-                          <div style={{ marginTop: 8, color: "#64748b", fontSize: 12 }}>
-                            {matchingCategoryPool.length > 0 ? "Aktivasyon sonrasi sourcing havuzu secilen ve hedef kategorilere gore acilabilir." : "Kategori netlesmeden aktivasyon verilirse supplier havuzu zayif acilir."}
-                          </div>
-                        </div>
-                      </div>
-                      {categoryRequests.length > 0 ? (
-                        <div style={{ borderRadius: 12, background: "white", border: "1px solid #dbe3ee", padding: "10px 12px", display: "grid", gap: 8 }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Kategori Talep Onayi</div>
-                          {categoryRequests.map((item) => {
-                            const requestStatus = String(item.status || "pending_support").toLowerCase();
-                            const statusColor = requestStatus === "final_approved" ? "#166534" : requestStatus === "rejected" ? "#b91c1c" : requestStatus === "support_approved" ? "#1d4ed8" : "#9a3412";
-                            const statusBg = requestStatus === "final_approved" ? "#ecfdf5" : requestStatus === "rejected" ? "#fef2f2" : requestStatus === "support_approved" ? "#eff6ff" : "#fff7ed";
-                            const isBusy = onboardingMembershipActionTenantId === tenant.id;
-                            return (
-                              <div key={`${tenant.id}-request-${item.name}-${item.applies_to}`} style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "10px 12px", display: "grid", gap: 8 }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                                  <div style={{ color: "#0f172a", fontWeight: 800 }}>{item.name}</div>
-                                  <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: statusBg, color: statusColor, fontSize: 11, fontWeight: 800 }}>
-                                    {formatCategoryRequestStatus(item.status)}
-                                  </span>
-                                </div>
-                                <div style={{ color: "#64748b", fontSize: 12 }}>
-                                  {item.applies_to === "target" ? "Hedef kategori talebi" : "Faaliyet kategorisi talebi"}
-                                  {item.note ? ` - ${item.note}` : ""}
-                                </div>
-                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                  {requestStatus === "pending_support" ? (
-                                    <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "support_approved")} style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid #fdba74", background: "#fff7ed", color: "#9a3412", fontWeight: 800, cursor: isBusy ? "not-allowed" : "pointer" }}>
-                                      Destek Onayi Ver
-                                    </button>
-                                  ) : null}
-                                  {["pending_support", "support_approved"].includes(requestStatus) ? (
-                                    <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "final_approved")} style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8", fontWeight: 800, cursor: isBusy ? "not-allowed" : "pointer" }}>
-                                      Final Onayla
-                                    </button>
-                                  ) : null}
-                                  {!['final_approved', 'rejected'].includes(requestStatus) ? (
-                                    <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "rejected")} style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", fontWeight: 800, cursor: isBusy ? "not-allowed" : "pointer" }}>
-                                      Reddet
-                                    </button>
-                                  ) : null}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : null}
-                      <div style={{ borderRadius: 12, background: decisionTone, border: `1px solid ${decisionBorder}`, padding: "10px 12px", color: decisionColor, fontSize: 12, lineHeight: 1.7 }}>
-                        <strong style={{ display: "block", marginBottom: 4 }}>Karar Rehberi</strong>
-                        {decisionGuidance}
-                      </div>
-                      {tenant.onboarding_payment_receipt_url || tenant.onboarding_payment_note || tenant.onboarding_activation_notes ? (
-                        <div style={{ borderRadius: 12, background: "white", border: "1px solid #dbe3ee", padding: "10px 12px", display: "grid", gap: 4 }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Operasyon Notlari</div>
-                          {tenant.onboarding_payment_receipt_url ? (
-                            <a href={tenant.onboarding_payment_receipt_url} target="_blank" rel="noreferrer" style={{ color: "#2563eb", fontWeight: 700 }}>
-                              {tenant.onboarding_payment_receipt_name || "Dekontu ac"}
-                            </a>
-                          ) : null}
-                          {tenant.onboarding_payment_note ? <div style={{ color: "#475569", fontSize: 12 }}>{tenant.onboarding_payment_note}</div> : null}
-                          {tenant.onboarding_activation_notes ? <div style={{ color: "#7c2d12", fontSize: 12 }}>{tenant.onboarding_activation_notes}</div> : null}
-                        </div>
-                      ) : null}
-                      {tenant.onboarding_decision_timeline && tenant.onboarding_decision_timeline.length > 0 ? (
-                        <div style={{ borderRadius: 12, background: "white", border: "1px solid #dbe3ee", padding: "10px 12px", display: "grid", gap: 8 }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b" }}>Karar Zaman Cizelgesi</div>
-                          {tenant.onboarding_decision_timeline.slice().reverse().map((item, index) => (
-                            <div key={`${item.at}-${index}`} style={{ paddingLeft: 12, borderLeft: "2px solid #cbd5e1", display: "grid", gap: 2 }}>
-                              <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>{item.actor_name} - {item.action}</div>
-                              <div style={{ fontSize: 12, color: "#64748b" }}>{new Date(item.at).toLocaleString("tr-TR")} - {item.actor_type}</div>
-                              {item.note ? <div style={{ fontSize: 12, color: "#334155" }}>{item.note}</div> : null}
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <button
-                          type="button"
-                          disabled={!canVerifyPayment || onboardingMembershipActionTenantId === tenant.id}
-                          onClick={() => void handleVerifyOnboardingPayment(tenant.id)}
-                          style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #fed7aa", background: canVerifyPayment ? "#fff7ed" : "#f8fafc", color: canVerifyPayment ? "#c2410c" : "#94a3b8", fontWeight: 800, cursor: canVerifyPayment ? "pointer" : "not-allowed" }}
-                        >
-                          Odemeyi Dogrula
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!canApprove || onboardingMembershipActionTenantId === tenant.id}
-                          onClick={() => void handleApproveOnboardingMembership(tenant.id)}
-                          style={{ padding: "8px 12px", borderRadius: 12, border: "none", background: canApprove ? "#1d4ed8" : "#cbd5e1", color: "white", fontWeight: 800, cursor: canApprove ? "pointer" : "not-allowed" }}
-                        >
-                          Uyelik Aktivasyonunu Onayla
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!canForceApprove || onboardingMembershipActionTenantId === tenant.id}
-                          onClick={() => void handleForceApproveOnboardingMembership(tenant.id)}
-                          style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #fdba74", background: canForceApprove ? "#fff7ed" : "#f8fafc", color: canForceApprove ? "#9a3412" : "#94a3b8", fontWeight: 800, cursor: canForceApprove ? "pointer" : "not-allowed" }}
-                        >
-                          Demo Icin Zorla Onayla (Super Admin)
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!canRequestInfo || onboardingMembershipActionTenantId === tenant.id}
-                          onClick={() => void handleRequestOnboardingInfo(tenant.id)}
-                          style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #bfdbfe", background: canRequestInfo ? "#eff6ff" : "#f8fafc", color: canRequestInfo ? "#1d4ed8" : "#94a3b8", fontWeight: 800, cursor: canRequestInfo ? "pointer" : "not-allowed" }}
-                        >
-                          Ek Bilgi / Yeni Dekont Iste
-                        </button>
-                        <button
-                          type="button"
-                          disabled={!canReject || onboardingMembershipActionTenantId === tenant.id}
-                          onClick={() => void handleRejectOnboardingMembership(tenant.id)}
-                          style={{ padding: "8px 12px", borderRadius: 12, border: "1px solid #fecaca", background: canReject ? "#fef2f2" : "#f8fafc", color: canReject ? "#b91c1c" : "#94a3b8", fontWeight: 800, cursor: canReject ? "pointer" : "not-allowed" }}
-                        >
-                          Reddet ve Not Dus
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-            <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#0f766e" }}>Operasyon Akisi</div>
-              {[
-                "Stratejik Partner Yonetimi sekmesinden plan ve kurulum durumunu sec.",
-                "Ilk admin e-postasini initial_admin alanlari ile ac ve owner atamasini tamamla.",
-                "Kurulum durumunu taslak > onboarding > aktif seklinde ilerlet.",
-                "Branding, destek kanali ve paket limitleri aktif olmadan canliya gecme.",
-              ].map((item) => (
-                <div key={item} style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px", color: "#334155" }}>{item}</div>
-              ))}
-            </div>
-
-            <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, display: "grid", gap: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#7c3aed" }}>RFQ Gecis Hazirligi</div>
-              <div style={{ borderRadius: 16, background: onboardingStudioSummary.rfq_readiness.transition_ready ? "#ecfdf5" : "#fff7ed", border: onboardingStudioSummary.rfq_readiness.transition_ready ? "1px solid #bbf7d0" : "1px solid #fed7aa", padding: "12px 14px", color: onboardingStudioSummary.rfq_readiness.transition_ready ? "#166534" : "#9a3412", fontWeight: 800 }}>
-                {onboardingStudioSummary.rfq_readiness.transition_ready ? "Stratejik Partner RFQ gecisi icin kritik blokaj gorunmuyor" : "Stratejik Partner RFQ gecisi oncesi veri duzeltme gerekli"}
-              </div>
-              {[
-                "Quotes, quote_approvals ve supplier_quotes Stratejik Partner tutarliligi audit ile izlenir.",
-                "Platform agi tedarikci senaryosu Stratejik Partner-ozel tedarikci ayrimiyla birlikte korunur.",
-                "Stratejik Partner RFQ modeline gecmeden once quote domaini readiness skoru uretir.",
-              ].map((item) => (
-                <div key={item} style={{ borderRadius: 14, background: "#faf5ff", border: "1px solid #ede9fe", padding: "12px 14px", color: "#4c1d95" }}>{item}</div>
-              ))}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-                {[
-                  { label: "Stratejik Partner Eksik Quote", value: onboardingStudioSummary.rfq_readiness.quotes_missing_tenant, color: "#dc2626" },
-                  { label: "Stratejik Partner Eksik Approval", value: onboardingStudioSummary.rfq_readiness.approvals_missing_tenant, color: "#ea580c" },
-                  { label: "Approval-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.approvals_quote_tenant_mismatch, color: "#9a3412" },
-                  { label: "Quote-Proje Uyumsuz", value: onboardingStudioSummary.rfq_readiness.quotes_project_tenant_mismatch, color: "#7c2d12" },
-                  { label: "Supplier-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.supplier_quote_scope_mismatch, color: "#7c3aed" },
-                  { label: "Platform Agi TedarikciTeklifi", value: onboardingStudioSummary.rfq_readiness.supplier_quotes_platform_network_count, color: "#0f766e" },
-                ].map((item) => (
-                  <div key={item.label} style={{ borderRadius: 14, background: "#fff", border: "1px solid #e9d5ff", padding: "12px 14px", display: "grid", gap: 4 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: item.color }}>{item.label}</div>
-                    <div style={{ fontSize: 26, fontWeight: 900, color: item.color }}>{item.value}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "14px 16px", display: "grid", gap: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#0f766e" }}>Tedarikci Kaynak Dengesi</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <div style={{ borderRadius: 14, background: "white", border: "1px solid #dbeafe", padding: "12px 14px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#1d4ed8", textTransform: "uppercase" }}>Ozel Tedarikci</div>
-                    <div style={{ marginTop: 4, fontSize: 24, fontWeight: 900, color: "#1d4ed8" }}>{onboardingStudioSummary.supplier_mix.private_count}</div>
-                  </div>
-                  <div style={{ borderRadius: 14, background: "white", border: "1px solid #ddd6fe", padding: "12px 14px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#7c3aed", textTransform: "uppercase" }}>Platform Agi</div>
-                    <div style={{ marginTop: 4, fontSize: 24, fontWeight: 900, color: "#7c3aed" }}>{onboardingStudioSummary.supplier_mix.platform_network_count}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <OnboardingStudioTab
+          onboardingStudioSummary={onboardingStudioSummary}
+          searchParams={searchParams}
+          renderAdminFocusBanner={renderAdminFocusBanner}
+          navigateAdminTab={navigateAdminTab}
+          handleStartOnboardingTemplate={handleStartOnboardingTemplate}
+          handleCreateDraftTenant={handleCreateDraftTenant}
+          tenantGovernanceSuppliers={tenantGovernanceSuppliers}
+          formatOnboardingApprovalStatus={formatOnboardingApprovalStatus}
+          formatOnboardingPaymentStatus={formatOnboardingPaymentStatus}
+          formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
+          formatActivationDeliveryStatus={formatActivationDeliveryStatus}
+          formatCategoryRequestStatus={formatCategoryRequestStatus}
+          onboardingMembershipActionTenantId={onboardingMembershipActionTenantId}
+          handleReviewTenantCategory={handleReviewTenantCategory}
+          handleVerifyOnboardingPayment={handleVerifyOnboardingPayment}
+          handleApproveOnboardingMembership={handleApproveOnboardingMembership}
+          handleRequestOnboardingInfo={handleRequestOnboardingInfo}
+          handleRejectOnboardingMembership={handleRejectOnboardingMembership}
+        />
       )}
 
       {activeTab === "tenant_governance" && canViewPlatformGovernance && (
-        <section style={{ display: "grid", gap: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "0.95fr 1.05fr", gap: 16 }}>
-            <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)", display: "grid", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Stratejik Partner Hizli Islem</div>
-                <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Super admin onayli partner acilisi</div>
-              </div>
-              {!canEditTenantGovernance ? <div style={{ borderRadius: 14, padding: "12px 14px", background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412" }}>Platform destek personeli bu alani izleyebilir; Stratejik Partner olusturma, owner yeniden atama ve yasam dongusu degistirme yetkisi sadece super admin hesabindadir.</div> : null}
-              <div style={{ borderRadius: 16, border: "1px solid #dbeafe", background: "#f8fbff", padding: "14px 16px", display: "grid", gap: 8 }}>
-                <div style={{ fontWeight: 800, color: "#1d4ed8" }}>Bu akis onboarding kuyruguna girmez.</div>
-                <div style={{ color: "#475569", fontSize: 13 }}>Super admin buradan stratejik partneri dogrudan aktif olarak acar. Ilk yoneticiye sadece sifre belirleme ve hesap aktivasyon e-postasi gider.</div>
-              </div>
-              {tenantMessage ? <div style={{ borderRadius: 14, padding: "12px 14px", background: "#f8fafc", border: "1px solid #e2e8f0", color: "#334155" }}>{tenantMessage}</div> : null}
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button type="button" onClick={openNewTenantModal} disabled={tenantSaving || !canEditTenantGovernance} style={{ padding: "12px 16px", borderRadius: 14, border: "none", background: "#1d4ed8", color: "white", fontWeight: 800, cursor: "pointer", opacity: tenantSaving || !canEditTenantGovernance ? 0.6 : 1 }}>
-                  Stratejik Partner olustur
-                </button>
-                <button type="button" onClick={() => handleStartOnboardingTemplate("starter")} disabled={!canEditTenantGovernance} style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid #cbd5e1", background: "white", color: "#334155", fontWeight: 700, cursor: "pointer", opacity: !canEditTenantGovernance ? 0.6 : 1 }}>
-                  Starter Taslagi
-                </button>
-                <button type="button" onClick={() => handleStartOnboardingTemplate("growth")} disabled={!canEditTenantGovernance} style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid #cbd5e1", background: "white", color: "#334155", fontWeight: 700, cursor: "pointer", opacity: !canEditTenantGovernance ? 0.6 : 1 }}>
-                  Growth Taslagi
-                </button>
-              </div>
-            </div>
-
-            <div role="dialog" aria-modal="true" style={{ borderRadius: 24, background: "white", border: "1px solid #dbe3ee", boxShadow: "0 24px 80px rgba(15, 23, 42, 0.24)", padding: 22, display: "grid", gap: 12 }}>
-                  <form onSubmit={handleSubmitTenant} style={{ display: "grid", gap: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Stratejik Partner Kaydi</div>
-                        <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>{editingTenantId ? "Stratejik Partner guncelle" : "Yeni Stratejik Partner olustur"}</div>
-                        <div style={{ marginTop: 6, color: "#64748b", fontSize: 13 }}>Bu kayit super admin onayli olarak acilir ve ilk yoneticiye sadece sifre belirleme e-postasi gider.</div>
-                      </div>
-                      <button type="button" onClick={closeTenantModal} style={{ border: "1px solid #cbd5e1", background: "white", color: "#334155", borderRadius: 12, padding: "10px 12px", fontWeight: 700, cursor: "pointer" }}>
-                        Kapat
-                      </button>
-                    </div>
-                    <input disabled={!canEditTenantGovernance} value={tenantForm.legal_name} onChange={(e) => setTenantForm((prev) => ({ ...prev, legal_name: e.target.value }))} placeholder="Resmi firma adi" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                    <input disabled={!canEditTenantGovernance} value={tenantForm.brand_name} onChange={(e) => setTenantForm((prev) => ({ ...prev, brand_name: e.target.value }))} placeholder="Marka / gorunen ad" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                    <input disabled={!canEditTenantGovernance} value={tenantForm.category} onChange={(e) => setTenantForm((prev) => ({ ...prev, category: e.target.value }))} placeholder="Kategori / uzmanlik alani" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                    <input disabled={!canEditTenantGovernance} value={tenantForm.city} onChange={(e) => setTenantForm((prev) => ({ ...prev, city: e.target.value }))} placeholder="Sehir" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                    <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.6, textTransform: "uppercase", color: "#8a5b2b", marginTop: 4 }}>Ilk Stratejik Partner Admin</div>
-                    <input disabled={!canEditTenantGovernance || editingTenantId !== null} value={tenantForm.initial_admin_full_name} onChange={(e) => setTenantForm((prev) => ({ ...prev, initial_admin_full_name: e.target.value }))} placeholder="Ad soyad" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance || editingTenantId !== null ? "#f8fafc" : "white", color: !canEditTenantGovernance || editingTenantId !== null ? "#94a3b8" : "#0f172a" }} />
-                    <input disabled={!canEditTenantGovernance || editingTenantId !== null} value={tenantForm.initial_admin_email} onChange={(e) => setTenantForm((prev) => ({ ...prev, initial_admin_email: e.target.value }))} placeholder="E-posta" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance || editingTenantId !== null ? "#f8fafc" : "white", color: !canEditTenantGovernance || editingTenantId !== null ? "#94a3b8" : "#0f172a" }} />
-                    <input disabled={!canEditTenantGovernance || editingTenantId !== null} value={tenantForm.initial_admin_personal_phone} onChange={(e) => setTenantForm((prev) => ({ ...prev, initial_admin_personal_phone: e.target.value }))} placeholder="Cep telefonu" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance || editingTenantId !== null ? "#f8fafc" : "white", color: !canEditTenantGovernance || editingTenantId !== null ? "#94a3b8" : "#0f172a" }} />
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                      <input disabled={!canEditTenantGovernance} value={tenantForm.subscription_plan_code} onChange={(e) => setTenantForm((prev) => ({ ...prev, subscription_plan_code: e.target.value }))} placeholder="Plan kodu" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                      <input disabled={!canEditTenantGovernance} value={tenantForm.onboarding_status} onChange={(e) => setTenantForm((prev) => ({ ...prev, onboarding_status: e.target.value }))} placeholder="Onboarding durumu" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                    </div>
-                    <input disabled={!canEditTenantGovernance} value={tenantForm.status} onChange={(e) => setTenantForm((prev) => ({ ...prev, status: e.target.value }))} placeholder="Status" style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid #dbe3ee", background: !canEditTenantGovernance ? "#f8fafc" : "white", color: !canEditTenantGovernance ? "#94a3b8" : "#0f172a" }} />
-                    {tenantMessage ? <div style={{ borderRadius: 14, padding: "12px 14px", background: "#f8fafc", border: "1px solid #e2e8f0", color: "#334155" }}>{tenantMessage}</div> : null}
-                    <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap" }}>
-                      <button type="button" onClick={closeTenantModal} style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid #cbd5e1", background: "white", color: "#334155", fontWeight: 700, cursor: "pointer" }}>
-                        Vazgec
-                      </button>
-                      {canEditTenantGovernance ? (
-                        <button type="submit" disabled={tenantSaving} style={{ padding: "12px 16px", borderRadius: 14, border: "none", background: "#1d4ed8", color: "white", fontWeight: 800, cursor: "pointer", opacity: tenantSaving ? 0.6 : 1 }}>
-                          {tenantSaving ? "Kaydediliyor..." : editingTenantId ? "Stratejik Partner guncelle" : "Kaydet"}
-                        </button>
-                      ) : null}
-                    </div>
-                  </form>
-            </div>
-
-            <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", padding: 22, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Platform Yonlendirmesi</div>
-              <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Stratejik Partner olgunluk siniflari</div>
-              <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-                {[
-                  { label: "draft", note: "Kurulum basladi, Stratejik Partner owner ve branding eksik olabilir." },
-                  { label: "onboarding", note: "Ilk admin, branding ve temel organizasyon yapisi kuruluyor." },
-                  { label: "aktif", note: "Operasyon kullanima acik, proje ve tedarikci akislari baslayabilir." },
-                  { label: "duraklatildi", note: "Abonelik veya operasyon karariyla gecici durdurulmus Stratejik Partner." },
-                ].map((item) => (
-                  <div key={item.label} style={{ borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 14px" }}>
-                    <div style={{ fontWeight: 800, color: "#0f172a" }}>{item.label}</div>
-                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>{item.note}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ borderRadius: 24, background: "white", border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 16px 40px rgba(15, 23, 42, 0.06)" }}>
-            <div style={{ padding: 20, borderBottom: "1px solid #e5e7eb", background: "#f8fafc" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.8, textTransform: "uppercase", color: "#8a5b2b" }}>Stratejik Partner Portfoyu</div>
-              <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>Musteri olgunluk gorunumu</div>
-              <div style={{ marginTop: 8, color: "#64748b" }}>Bu alan artik Stratejik Partner tablosundaki kayitlari dogrudan yonetir.</div>
-              {tenantGovernanceFocus ? (
-                <div style={{ marginTop: 12 }}>
-                  {renderAdminFocusBanner({
-                    eyebrow: "Admin Focus",
-                    title: `Discovery Lab odagi: ${tenantGovernanceFocus.tenantName || `Stratejik Partner #${tenantGovernanceFocus.tenantId}`}`,
-                    detail: "Tenant listesi bu odaga gore daraltildi.",
-                    tone: "blue",
-                    sourceLabel: "Stratejik Partner deep-link",
-                    timestamp: Date.now(),
-                    actions: [{ label: "Odagi Temizle", onClick: () => setTenantGovernanceFocus(null) }],
-                    testId: "admin-focus-banner-tenant",
-                  })}
-                </div>
-              ) : null}
-              <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {[
-                    { key: "all", label: "Tum Stratejik Partnerler" },
-                    { key: "pressure", label: "Limit Baskisi" },
-                    { key: "breach", label: "Limit Asimi" },
-                  ].map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setTenantUsageFilter(item.key as "all" | "pressure" | "breach")}
-                      style={{
-                        padding: "8px 12px",
-                        borderRadius: 999,
-                        border: tenantUsageFilter === item.key ? "1px solid #1d4ed8" : "1px solid #dbe3ee",
-                        background: tenantUsageFilter === item.key ? "#dbeafe" : "white",
-                        color: tenantUsageFilter === item.key ? "#1d4ed8" : "#475569",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#475569", fontSize: 13, fontWeight: 700 }}>
-                    Kategori
-                    <select
-                      value={tenantCategoryFilter}
-                      onChange={(event) => setTenantCategoryFilter(event.target.value)}
-                      style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}
-                    >
-                      <option value="all">Tum kategoriler</option>
-                      <option value="uncategorized">Kategori eksik</option>
-                      {tenantCategoryOptions.map((category) => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#475569", fontSize: 13, fontWeight: 700 }}>
-                    Siralama
-                    <select
-                      value={tenantSortMode}
-                      onChange={(event) => setTenantSortMode(event.target.value as "risk" | "name")}
-                      style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: "white" }}
-                    >
-                      <option value="risk">Risk onceligi</option>
-                      <option value="name">Ada gore</option>
-                    </select>
-                  </label>
-                </div>
-              </div>
-              <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-                <div style={{ borderRadius: 16, border: "1px solid #dbeafe", background: "#eff6ff", padding: "12px 14px", display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#1d4ed8" }}>Kategori Kapsami</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: "#1d4ed8" }}>{tenantCategorySummary.length}</div>
-                  <div style={{ color: "#475569", fontSize: 12 }}>Tenant ve tedarikci tarafinda gorulen ortak kategori sayisi</div>
-                </div>
-                <div style={{ borderRadius: 16, border: "1px solid #d1fae5", background: "#ecfdf5", padding: "12px 14px", display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#15803d" }}>Kategori Eslesen Tedarikci</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: "#15803d" }}>{tenantCategorySummary.reduce((sum, item) => sum + item.supplierCount, 0)}</div>
-                  <div style={{ color: "#475569", fontSize: 12 }}>Kategoriye sahip supplier portfoyu sinyali</div>
-                </div>
-                <div style={{ borderRadius: 16, border: "1px solid #fde68a", background: "#fffbeb", padding: "12px 14px", display: "grid", gap: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#b45309" }}>Kategori Eksigi</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: "#b45309" }}>{tenants.filter((tenant) => !String(tenant.category || "").trim()).length}</div>
-                  <div style={{ color: "#475569", fontSize: 12 }}>Esleme icin henuz kategori atanmamis tenant sayisi</div>
-                </div>
-              </div>
-              {tenantCategorySummary.length > 0 ? (
-                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {tenantCategorySummary.slice(0, 8).map((item) => (
-                    <button
-                      key={item.category}
-                      type="button"
-                      onClick={() => setTenantCategoryFilter(item.category)}
-                      style={{ padding: "7px 11px", borderRadius: 999, border: tenantCategoryFilter === item.category ? "1px solid #0f766e" : "1px solid #dbe3ee", background: tenantCategoryFilter === item.category ? "#ecfeff" : "white", color: tenantCategoryFilter === item.category ? "#0f766e" : "#475569", fontWeight: 800, cursor: "pointer", fontSize: 12 }}
-                    >
-                      {item.category} | {item.tenantCount} tenant / {item.supplierCount} supplier
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "white", borderBottom: "1px solid #e5e7eb" }}>
-                    <th style={{ padding: 14, textAlign: "left" }}>Stratejik Partner</th>
-                    <th style={{ padding: 14, textAlign: "left" }}>Durum</th>
-                    <th style={{ padding: 14, textAlign: "left" }}>Plan</th>
-                    <th style={{ padding: 14, textAlign: "left" }}>Branding</th>
-                    <th style={{ padding: 14, textAlign: "left" }}>Stratejik Partner Owner</th>
-                    <th style={{ padding: 14, textAlign: "left" }}>Islem</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleTenants.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ padding: 18, color: "#64748b", textAlign: "center" }}>
-                        Secili filtre icin gosterilecek Stratejik Partner kaydi yok.
-                      </td>
-                    </tr>
-                  ) : (
-                    visibleTenants.map((tenant) => {
-                      const usage = tenantUsageByTenant.get(tenant.id);
-                      const normalizedTenantCategory = String(tenant.category || "").trim();
-                      const governancePaymentStatus = String(tenant.onboarding_payment_status || "not_required").toLowerCase();
-                      const governanceApprovalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
-                      const governanceOnboardingStatus = String(tenant.onboarding_status || "draft").toLowerCase();
-                      const hasPendingCategoryReview = (tenant.category_requests || []).some((item) => !["final_approved", "rejected"].includes(String(item.status || "").toLowerCase()));
-                      const governanceLocked = governanceOnboardingStatus !== "active"
-                        || governanceApprovalStatus !== "approved"
-                        || !["verified", "succeeded", "not_required"].includes(governancePaymentStatus)
-                        || hasPendingCategoryReview;
-                      const matchingSupplierCount = normalizedTenantCategory
-                        ? tenantGovernanceSuppliers.filter((supplier) => String(supplier.category || "").trim() === normalizedTenantCategory).length
-                        : 0;
-                      const hasLimitPressure = (usage?.metrics || []).some((metric) => metric.limit !== null && metric.limit !== undefined && metric.limit > 0 && metric.used / metric.limit >= 0.8);
-                      const hasLimitBreach = (usage?.metrics || []).some((metric) => metric.limit !== null && metric.limit !== undefined && metric.limit > 0 && metric.used >= metric.limit);
-                      return (
-                      <tr key={tenant.id} style={{ borderBottom: "1px solid #eef2f7", background: hasLimitBreach ? "#fff7f7" : hasLimitPressure ? "#fffbeb" : "white" }}>
-                        <td style={{ padding: 14 }}>
-                          <div style={{ fontWeight: 800, color: "#0f172a" }}>{tenant.brand_name || tenant.legal_name}</div>
-                          <div style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>{tenant.slug} | {tenant.city || "Sehir eksik"}</div>
-                          <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: normalizedTenantCategory ? "#ecfeff" : "#f8fafc", color: normalizedTenantCategory ? "#0f766e" : "#64748b", fontWeight: 700, fontSize: 11 }}>
-                              {normalizedTenantCategory || "Kategori eksik"}
-                            </span>
-                            {normalizedTenantCategory ? (
-                              <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: matchingSupplierCount > 0 ? "#ecfdf5" : "#fff7ed", color: matchingSupplierCount > 0 ? "#166534" : "#9a3412", fontWeight: 700, fontSize: 11 }}>
-                                {matchingSupplierCount > 0 ? `${matchingSupplierCount} tedarikci eslesiyor` : "Eslesen tedarikci yok"}
-                              </span>
-                            ) : null}
-                          </div>
-                          {usage ? (
-                            <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                              {usage.metrics.map((metric) => {
-                                const ratio = metric.limit !== null && metric.limit !== undefined && metric.limit > 0 ? metric.used / metric.limit : 0;
-                                const background = ratio >= 1 ? "#fee2e2" : ratio >= 0.8 ? "#fef3c7" : "#eef2ff";
-                                const color = ratio >= 1 ? "#991b1b" : ratio >= 0.8 ? "#92400e" : "#3730a3";
-                                return (
-                                  <span key={`${tenant.id}-${metric.key}`} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background, color, fontWeight: 700, fontSize: 11 }}>
-                                    {metric.label}: {metric.used}{metric.limit !== null && metric.limit !== undefined ? `/${metric.limit}` : ""}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </td>
-                        <td style={{ padding: 14 }}>
-                          <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: hasLimitBreach ? "#fee2e2" : tenant.is_active ? "#dcfce7" : "#fee2e2", color: hasLimitBreach ? "#991b1b" : tenant.is_active ? "#166534" : "#991b1b", fontWeight: 700, fontSize: 12 }}>
-                            {formatPartnerLifecycleStatus(tenant.status)}
-                          </span>
-                          {hasLimitBreach ? <div style={{ marginTop: 8, color: "#b91c1c", fontSize: 12, fontWeight: 700 }}>Limit asimi var</div> : hasLimitPressure ? <div style={{ marginTop: 8, color: "#92400e", fontSize: 12, fontWeight: 700 }}>Limit yaklasiyor</div> : null}
-                        </td>
-                        <td style={{ padding: 14, color: "#334155" }}>{tenant.subscription_plan_code || "starter"}</td>
-                        <td style={{ padding: 14, color: "#334155" }}>
-                          {tenant.logo_url ? "Logo var" : "Logo eksik"}
-                        </td>
-                        <td style={{ padding: 14 }}>
-                          <div style={{ display: "grid", gap: 8 }}>
-                            <div style={{ color: "#0f172a", fontWeight: 700 }}>
-                              {tenant.owner_full_name || "Owner atanmamis"}
-                            </div>
-                            <div style={{ color: "#64748b", fontSize: 12 }}>
-                              {tenant.owner_email || "Stratejik Partner admin secilmeli"}
-                            </div>
-                            {governanceLocked ? (
-                              <div style={{ color: "#b45309", fontSize: 12, fontWeight: 700 }}>
-                                Odeme dogrulama, kategori onayi ve uyelik aktivasyonu tamamlanana kadar bu kayit salt okunur.
-                              </div>
-                            ) : null}
-                            <select
-                              disabled={!canEditTenantGovernance || governanceLocked}
-                              value={tenant.owner_user_id ? String(tenant.owner_user_id) : ""}
-                              onChange={(event) => void handleReassignTenantOwner(tenant, event.target.value)}
-                              style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#334155", background: !canEditTenantGovernance || governanceLocked ? "#f8fafc" : "white" }}
-                            >
-                              <option value="">Stratejik Partner owner sec</option>
-                              {(tenantOwnerCandidates.get(tenant.id) || []).map((candidate) => (
-                                <option key={candidate.id} value={candidate.id}>
-                                  {candidate.full_name} | {candidate.email}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </td>
-                        <td style={{ padding: 14 }}>
-                          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                            {canEditTenantGovernance ? <button onClick={() => handleEditTenant(tenant)} disabled={governanceLocked} style={{ padding: "8px 12px", borderRadius: 12, border: "none", background: governanceLocked ? "#e2e8f0" : "#e0e7ff", color: governanceLocked ? "#94a3b8" : "#3730a3", fontWeight: 700, cursor: governanceLocked ? "not-allowed" : "pointer" }}>
-                            Duzenle
-                            </button> : null}
-                            {canEditTenantGovernance ? <button
-                              onClick={() => void handleTenantStatusAction(tenant, tenant.is_active ? "paused" : "active")}
-                              disabled={tenantSaving || governanceLocked}
-                              style={{
-                                padding: "8px 12px",
-                                borderRadius: 12,
-                                border: "none",
-                                background: governanceLocked ? "#e2e8f0" : tenant.is_active ? "#fef2f2" : "#ecfdf5",
-                                color: governanceLocked ? "#94a3b8" : tenant.is_active ? "#b91c1c" : "#166534",
-                                fontWeight: 700,
-                                cursor: governanceLocked ? "not-allowed" : "pointer",
-                              }}
-                            >
-                              {tenant.is_active ? "Pasife Al" : "Aktif Et"}
-                            </button> : null}
-                            {canEditTenantGovernance && !tenant.is_active ? <button
-                              onClick={() => void handleDeleteTenant(tenant)}
-                              disabled={tenantSaving || governanceLocked}
-                              style={{
-                                padding: "8px 12px",
-                                borderRadius: 12,
-                                border: "none",
-                                background: governanceLocked ? "#cbd5e1" : "#111827",
-                                color: "white",
-                                fontWeight: 700,
-                                cursor: governanceLocked ? "not-allowed" : "pointer",
-                              }}
-                            >
-                              Sil
-                            </button> : null}
-                          </div>
-                        </td>
-                      </tr>
-                    )})
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+        <TenantGovernanceTab
+          canEditTenantGovernance={canEditTenantGovernance}
+          tenantMessage={tenantMessage}
+          openNewTenantModal={openNewTenantModal}
+          tenantSaving={tenantSaving}
+          handleStartOnboardingTemplate={handleStartOnboardingTemplate}
+          isTenantFormModalOpen={isTenantFormModalOpen}
+          handleSubmitTenant={handleSubmitTenant}
+          closeTenantModal={closeTenantModal}
+          editingTenantId={editingTenantId}
+          tenantForm={tenantForm}
+          setTenantForm={setTenantForm}
+          tenantGovernanceFocus={tenantGovernanceFocus}
+          renderAdminFocusBanner={renderAdminFocusBanner}
+          setTenantGovernanceFocus={setTenantGovernanceFocus}
+          setTenantUsageFilter={setTenantUsageFilter}
+          tenantUsageFilter={tenantUsageFilter}
+          tenantCategoryFilter={tenantCategoryFilter}
+          setTenantCategoryFilter={setTenantCategoryFilter}
+          tenantCategoryOptions={tenantCategoryOptions}
+          tenantSortMode={tenantSortMode}
+          setTenantSortMode={setTenantSortMode}
+          tenantCategorySummary={tenantCategorySummary}
+          tenants={tenants}
+          visibleTenants={visibleTenants}
+          tenantUsageByTenant={tenantUsageByTenant}
+          tenantGovernanceSuppliers={tenantGovernanceSuppliers}
+          formatPartnerLifecycleStatus={formatPartnerLifecycleStatus}
+          tenantOwnerCandidates={tenantOwnerCandidates}
+          handleReassignTenantOwner={handleReassignTenantOwner}
+          handleEditTenant={handleEditTenant}
+          handleTenantStatusAction={handleTenantStatusAction}
+          handleDeleteTenant={handleDeleteTenant}
+        />
       )}
 
       {activeTab === "packages" && canViewPackagesTab && (
@@ -6319,7 +5580,7 @@ export default function AdminPage() {
         />
       )}
 
-      {error && <div style={{ padding: 12, background: "#fecaca", color: "#dc2626", borderRadius: 4, marginBottom: 20 }}>{error}</div>}
+      {error && <div className="admin-page__error-banner">{error}</div>}
 
       {activeTab === "personnel" && (
         <PersonnelTab
@@ -6336,18 +5597,18 @@ export default function AdminPage() {
 
       {/* Departments Tab */}
       {activeTab === "departments" && (
-        <section style={{ display: "grid", gap: 12 }}>
-          <div style={{ borderRadius: 16, border: `1px solid ${isChannelUser ? "#d1fae5" : "#dbeafe"}`, background: isChannelUser ? "#f0fdf4" : "#f8fbff", padding: "14px 16px", display: "grid", gap: 6 }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: isChannelUser ? "#065f46" : "#1d4ed8" }}>
+        <section className="admin-page__subsection-grid">
+          <div className={`admin-page__channel-info ${isChannelUser ? "admin-page__channel-info--channel" : "admin-page__channel-info--platform"}`}>
+            <div className="admin-page__channel-info-title">
               {isChannelUser ? "Kanal Departmanlari" : "Departmanlar nasil kullanilmali?"}
             </div>
-            <div style={{ color: "#475569", fontSize: 13 }}>
+            <div className="admin-page__channel-info-copy">
               {isChannelUser
                 ? "Is ortagi organizasyonunuze ait varsayilan departmanlar asagida listelenmistir. Musteriler, Operasyon, Satis ve Finans birimlerinizi buradan yonetin."
                 : "Varsayilan satin alma departmanlari ilk aktivasyonda otomatik acilir. Yeni departman eklerken sirketinizde farkli kategori, uzmanlik veya operasyon hatti varsa ayri gorunurluk ve sahiplik olusturmak icin ekleyin."}
             </div>
             {isChannelUser && (
-              <div style={{ color: "#64748b", fontSize: 12 }}>Henuz departman yoksa asagidaki butonu kullanarak varsayilan kanal departmanlarini olusturabilirsiniz.</div>
+              <div className="admin-page__text-xs-muted">Henuz departman yoksa asagidaki butonu kullanarak varsayilan kanal departmanlarini olusturabilirsiniz.</div>
             )}
           </div>
           {isChannelUser && departments.length === 0 && (
@@ -6374,9 +5635,9 @@ export default function AdminPage() {
       {activeTab === "companies" && (
         <>
           {isChannelUser && (
-            <div style={{ borderRadius: 16, border: "1px solid #d1fae5", background: "#f0fdf4", padding: "14px 16px", display: "grid", gap: 4, marginBottom: 4 }}>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#065f46" }}>Is Ortagi Firma Gorunumu</div>
-              <div style={{ color: "#475569", fontSize: 13 }}>
+            <div className="admin-page__channel-info admin-page__channel-info--channel admin-page__channel-info--spaced">
+              <div className="admin-page__channel-info-title">Is Ortagi Firma Gorunumu</div>
+              <div className="admin-page__channel-info-copy">
                 Bu ekranda is ortagi organizasyonunuza ait firma kaydini ve bagli yapilari goruntuluyorsunuz. Yonlendirdiginiz musterilerin firma kayitlari platformdaki katilim sureclerine gore burada gozukecektir.
               </div>
             </div>
@@ -6404,18 +5665,18 @@ export default function AdminPage() {
 
       {/* Roles Tab */}
       {activeTab === "roles" && (
-        <section style={{ display: "grid", gap: 12 }}>
-          <div style={{ borderRadius: 16, border: `1px solid ${isChannelUser ? "#d1fae5" : "#dbeafe"}`, background: isChannelUser ? "#f0fdf4" : "#f8fbff", padding: "14px 16px", display: "grid", gap: 6 }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: isChannelUser ? "#065f46" : "#1d4ed8" }}>
+        <section className="admin-page__subsection-grid">
+          <div className={`admin-page__channel-info ${isChannelUser ? "admin-page__channel-info--channel" : "admin-page__channel-info--platform"}`}>
+            <div className="admin-page__channel-info-title">
               {isChannelUser ? "Kanal Rolleri" : "Rol ve departman governance merkezi"}
             </div>
-            <div style={{ color: "#475569", fontSize: 13 }}>
+            <div className="admin-page__channel-info-copy">
               {isChannelUser
                 ? "Kanal organizasyonunuzdaki roller asagida listelenmistir. Hesap sahibi, ekip lideri, temsilci, finans ve denetci rollerini ekibinize atayabilirsiniz."
                 : "Super admin bu ekranda platform, stratejik partner, tedarikci ve is ortagi bolumlerini tek yerden yonetir. Yetkili personel rol/departman ekleyebilir, duzenleyebilir ve silebilir."}
             </div>
             {isChannelUser && (
-              <div style={{ color: "#64748b", fontSize: 12 }}>Henuz rol yoksa varsayilan kanal rollerini olusturmak icin asagidaki butonu kullanin.</div>
+              <div className="admin-page__text-xs-muted">Henuz rol yoksa varsayilan kanal rollerini olusturmak icin asagidaki butonu kullanin.</div>
             )}
           </div>
           {isChannelUser && roles.filter(r => r.tenant_id != null).length === 0 && (
@@ -6438,7 +5699,7 @@ export default function AdminPage() {
 
       {/* Projects Tab */}
       {activeTab === "projects" && (
-        <section style={{ display: "grid", gap: 12 }}>
+        <section className="admin-page__subsection-grid">
           {searchParams.get("projectFocusName") ? (
             renderAdminFocusBanner({
               eyebrow: "Admin Focus",
@@ -6487,7 +5748,7 @@ export default function AdminPage() {
 
         {/* Reports Tab */}
         {activeTab === "reports" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             {isChannelUser ? <ChannelReportsTabContent /> : <ReportsTabContent />}
           </Suspense>
         )}
@@ -6503,42 +5764,42 @@ export default function AdminPage() {
 
         {/* Platform Analytics Tab */}
         {activeTab === "platform_analytics" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <PlatformAnalyticsTab />
           </Suspense>
         )}
 
         {/* Platform Suppliers Tab */}
         {activeTab === "platform_suppliers" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <PlatformSuppliersTab />
           </Suspense>
         )}
 
         {/* Public Pricing Tab */}
         {activeTab === "public_pricing" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <PublicPricingTab />
           </Suspense>
         )}
 
         {/* Campaigns Tab */}
         {activeTab === "campaigns" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <CampaignsTab />
           </Suspense>
         )}
 
         {/* Commission Admin Tab */}
         {activeTab === "commission_admin" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <CommissionAdminTab />
           </Suspense>
         )}
 
         {/* Support Tickets Tab */}
         {activeTab === "support_tickets" && (
-          <Suspense fallback={<div style={{ padding: 24, color: "#64748b" }}>Tab yukleniyor...</div>}>
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <SupportTicketAdminTab />
           </Suspense>
         )}

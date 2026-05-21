@@ -1,6 +1,7 @@
 import React from "react";
 import type { AdminCommissionDashboard } from "../../services/profile.service";
 import { SectionCard, SectionHeader, StatCard } from "./ChannelPrimitives";
+import "./CommissionDashboardPanel.css";
 
 interface CommissionDashboardPanelProps {
   data: AdminCommissionDashboard | null;
@@ -8,11 +9,53 @@ interface CommissionDashboardPanelProps {
   onRefresh?: () => void;
 }
 
+const SUMMARY_CARD_STYLES = [
+  {
+    label: "Bekleyen",
+    borderColor: "#fde68a",
+    backgroundColor: "#fffbeb",
+    labelColor: "#78350f",
+    amountClass: "commission-dashboard-panel__amount--pending",
+    value: (data: AdminCommissionDashboard | null, loading: boolean) =>
+      loading ? "..." : `${(data?.total_pending ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`,
+  },
+  {
+    label: "Onaylandi",
+    borderColor: "#bbf7d0",
+    backgroundColor: "#f0fdf4",
+    labelColor: "#14532d",
+    amountClass: "commission-dashboard-panel__amount--approved",
+    value: (data: AdminCommissionDashboard | null, loading: boolean) =>
+      loading ? "..." : `${(data?.total_approved ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`,
+  },
+  {
+    label: "Odendi",
+    borderColor: "#bfdbfe",
+    backgroundColor: "#eff6ff",
+    labelColor: "#1e3a8a",
+    amountClass: "commission-dashboard-panel__amount--paid",
+    value: (data: AdminCommissionDashboard | null, loading: boolean) =>
+      loading ? "..." : `${(data?.total_paid ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`,
+  },
+  {
+    label: "Iptal",
+    borderColor: "#fecaca",
+    backgroundColor: "#fef2f2",
+    labelColor: "#7f1d1d",
+    amountClass: "commission-dashboard-panel__amount--cancelled",
+    value: (data: AdminCommissionDashboard | null, loading: boolean) =>
+      loading ? "..." : `${(data?.total_cancelled ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`,
+  },
+] as const;
+
 export function CommissionDashboardPanel({
   data,
   loading,
   onRefresh,
 }: CommissionDashboardPanelProps) {
+  const orgBreakdown = data?.org_breakdown ?? [];
+  const referralBreakdown = data?.referral_breakdown ?? [];
+
   return (
     <SectionCard backgroundColor="#f0fdf4" borderColor="#bbf7d0">
       <SectionHeader
@@ -20,16 +63,10 @@ export function CommissionDashboardPanel({
         right={
           onRefresh ? (
             <button
+              type="button"
               onClick={onRefresh}
               disabled={loading}
-              style={{
-                fontSize: 12,
-                padding: "3px 10px",
-                borderRadius: 6,
-                border: "1px solid #bbf7d0",
-                background: "#f0fdf4",
-                cursor: "pointer",
-              }}
+              className="commission-dashboard-panel__refresh-button"
             >
               Yenile
             </button>
@@ -37,103 +74,55 @@ export function CommissionDashboardPanel({
         }
       />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-          gap: 10,
-          marginBottom: 16,
-        }}
-      >
-        <StatCard
-          label="Bekleyen"
-          value={
-            <span style={{ fontSize: 18, color: "#d97706" }}>
-              {loading ? "..." : `${(data?.total_pending ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`}
-            </span>
-          }
-          borderColor="#fde68a"
-          backgroundColor="#fffbeb"
-          labelColor="#78350f"
-        />
-        <StatCard
-          label="Onaylandi"
-          value={
-            <span style={{ fontSize: 18, color: "#16a34a" }}>
-              {loading ? "..." : `${(data?.total_approved ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`}
-            </span>
-          }
-          borderColor="#bbf7d0"
-          backgroundColor="#f0fdf4"
-          labelColor="#14532d"
-        />
-        <StatCard
-          label="Odendi"
-          value={
-            <span style={{ fontSize: 18, color: "#2563eb" }}>
-              {loading ? "..." : `${(data?.total_paid ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`}
-            </span>
-          }
-          borderColor="#bfdbfe"
-          backgroundColor="#eff6ff"
-          labelColor="#1e3a8a"
-        />
-        <StatCard
-          label="Iptal"
-          value={
-            <span style={{ fontSize: 18, color: "#dc2626" }}>
-              {loading ? "..." : `${(data?.total_cancelled ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺`}
-            </span>
-          }
-          borderColor="#fecaca"
-          backgroundColor="#fef2f2"
-          labelColor="#7f1d1d"
-        />
+      <div className="commission-dashboard-panel__summary-grid">
+        {SUMMARY_CARD_STYLES.map((card) => (
+          <StatCard
+            key={card.label}
+            label={card.label}
+            value={
+              <span className={`commission-dashboard-panel__amount ${card.amountClass}`}>
+                {card.value(data, loading)}
+              </span>
+            }
+            borderColor={card.borderColor}
+            backgroundColor={card.backgroundColor}
+            labelColor={card.labelColor}
+          />
+        ))}
       </div>
 
-      {/* Org bazli breakdown */}
-      {!loading && (data?.org_breakdown?.length ?? 0) > 0 && (
+      {!loading && orgBreakdown.length > 0 ? (
         <div>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#14532d",
-              marginBottom: 8,
-            }}
-          >
+          <div className="commission-dashboard-panel__section-title">
             Kanal Organizasyon Dagilimi
           </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <div className="commission-dashboard-panel__table-wrap">
+            <table className="commission-dashboard-panel__table">
               <thead>
-                <tr style={{ background: "#dcfce7", borderBottom: "1px solid #bbf7d0" }}>
-                  <th style={{ padding: "6px 8px", textAlign: "left" }}>Organizasyon</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Bekleyen</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Onaylandi</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Odendi</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Iptal</th>
+                <tr className="commission-dashboard-panel__table-head-row--org">
+                  <th className="commission-dashboard-panel__th">Organizasyon</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Bekleyen</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Onaylandi</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Odendi</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Iptal</th>
                 </tr>
               </thead>
               <tbody>
-                {data!.org_breakdown.map((row) => (
-                  <tr
-                    key={row.org_id}
-                    style={{ borderBottom: "1px solid #f0fdf4" }}
-                  >
-                    <td style={{ padding: "6px 8px", fontWeight: 600 }}>
+                {orgBreakdown.map((row) => (
+                  <tr key={row.org_id} className="commission-dashboard-panel__row">
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__cell--bold">
                       {row.org_name ?? `Org #${row.org_id}`}
                     </td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#d97706" }}>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__cell--pending">
                       {(row.pending ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#16a34a" }}>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__cell--approved">
                       {(row.approved ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#2563eb" }}>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__cell--paid">
                       {(row.paid ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#dc2626" }}>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__cell--cancelled">
                       {(row.cancelled ?? 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -142,57 +131,58 @@ export function CommissionDashboardPanel({
             </table>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {!loading && (data?.org_breakdown?.length ?? 0) === 0 && (
-        <div style={{ color: "#94a3b8", fontSize: 13 }}>
+      {!loading && orgBreakdown.length === 0 ? (
+        <div className="commission-dashboard-panel__empty">
           Henuz komisyon verisi bulunmuyor.
         </div>
-      )}
+      ) : null}
 
-      {!loading && (data?.referral_breakdown?.length ?? 0) > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#14532d",
-              marginBottom: 8,
-            }}
-          >
+      {!loading && referralBreakdown.length > 0 ? (
+        <div className="commission-dashboard-panel__referral-section">
+          <div className="commission-dashboard-panel__referral-headline">
             Referral Link / Kampanya Takip Tablosu
           </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <div className="commission-dashboard-panel__table-wrap">
+            <table className="commission-dashboard-panel__table">
               <thead>
-                <tr style={{ background: "#f0fdf4", borderBottom: "1px solid #bbf7d0" }}>
-                  <th style={{ padding: "6px 8px", textAlign: "left" }}>Org</th>
-                  <th style={{ padding: "6px 8px", textAlign: "left" }}>Link</th>
-                  <th style={{ padding: "6px 8px", textAlign: "left" }}>Kampanya</th>
-                  <th style={{ padding: "6px 8px", textAlign: "left" }}>Hedef</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Tiklama</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Kayit</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Aktivasyon</th>
-                  <th style={{ padding: "6px 8px", textAlign: "right" }}>Net Komisyon</th>
+                <tr className="commission-dashboard-panel__table-head-row--referral">
+                  <th className="commission-dashboard-panel__th">Org</th>
+                  <th className="commission-dashboard-panel__th">Link</th>
+                  <th className="commission-dashboard-panel__th">Kampanya</th>
+                  <th className="commission-dashboard-panel__th">Hedef</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Tiklama</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Kayit</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Aktivasyon</th>
+                  <th className="commission-dashboard-panel__th commission-dashboard-panel__th--right">Net Komisyon</th>
                 </tr>
               </thead>
               <tbody>
-                {data!.referral_breakdown.slice(0, 30).map((row) => (
-                  <tr key={row.link_code} style={{ borderBottom: "1px solid #ecfeff" }}>
-                    <td style={{ padding: "6px 8px", fontWeight: 600 }}>
+                {referralBreakdown.slice(0, 30).map((row) => (
+                  <tr key={row.link_code} className="commission-dashboard-panel__row--referral">
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__cell--bold">
                       {row.org_name ?? (row.org_id ? `Org #${row.org_id}` : "-")}
                     </td>
-                    <td style={{ padding: "6px 8px", fontWeight: 700, color: "#1d4ed8" }}>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__referral-cell--link">
                       {row.link_code}
                     </td>
-                    <td style={{ padding: "6px 8px" }}>
+                    <td className="commission-dashboard-panel__cell">
                       {row.campaign_name ?? (row.campaign_id ? `#${row.campaign_id}` : "Genel")}
                     </td>
-                    <td style={{ padding: "6px 8px" }}>{row.target_type ?? "mixed"}</td>
-                    <td style={{ padding: "6px 8px", textAlign: "right" }}>{row.clicks}</td>
-                    <td style={{ padding: "6px 8px", textAlign: "right" }}>{row.signups}</td>
-                    <td style={{ padding: "6px 8px", textAlign: "right" }}>{row.activations}</td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#166534", fontWeight: 700 }}>
+                    <td className="commission-dashboard-panel__cell">
+                      {row.target_type ?? "mixed"}
+                    </td>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__th--right">
+                      {row.clicks}
+                    </td>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__th--right">
+                      {row.signups}
+                    </td>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__th--right">
+                      {row.activations}
+                    </td>
+                    <td className="commission-dashboard-panel__cell commission-dashboard-panel__referral-cell--commission">
                       {row.net_commission.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -201,7 +191,7 @@ export function CommissionDashboardPanel({
             </table>
           </div>
         </div>
-      )}
+      ) : null}
     </SectionCard>
   );
 }
