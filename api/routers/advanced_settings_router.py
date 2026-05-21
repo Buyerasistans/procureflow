@@ -891,14 +891,6 @@ async def test_email_settings(
 
     try:
         print("[EMAIL] Test email gönderme işlemi başlatıldı.")
-
-        # Create message with plain + html alternatives
-        msg = MIMEMultipart("alternative")
-        msg["From"] = (
-            f"{effective_settings['from_name']} <{effective_settings['from_email']}>"
-        )
-        msg["To"] = to_email
-        msg["Subject"] = "[ProcureFlow] SMTP Test Mesaji"
         msg["Date"] = formatdate(localtime=True)
         from_domain = (effective_settings["from_email"] or "procureflow.local").split(
             "@"
