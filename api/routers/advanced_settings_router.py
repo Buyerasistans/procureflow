@@ -805,11 +805,12 @@ async def upload_email_signature_image(
 
 @router.get("/email/signature-image/{filename}")
 async def get_email_signature_image(filename: str):
-    if not re.fullmatch(r"signature_[0-9a-f]{16}\.(jpg|jpeg|png|gif|webp|svg)", filename):
+    safe_filename = Path(filename).name
+    if not re.fullmatch(r"signature_[0-9a-f]{16}\.(jpg|jpeg|png|gif|webp|svg)", safe_filename):
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
 
     base_dir = (Path("uploads") / "email_signatures").resolve()
-    file_path = (base_dir / filename).resolve()
+    file_path = (base_dir / safe_filename).resolve()
 
     try:
         file_path.relative_to(base_dir)
