@@ -36,6 +36,16 @@ import type { TenantUser } from "../services/admin.service";
 const ALL_DEPARTMENTS_MARKER = "__ALL_DEPARTMENTS__";
 const ALL_DEPARTMENTS_OPTION = "__ALL__";
 
+const toDigitsOnly = (value: string): string => value.replace(/\D/g, "");
+const toTelHref = (value: string): string | undefined => {
+  const digits = toDigitsOnly(value);
+  return digits ? `tel:${digits}` : undefined;
+};
+const toWhatsAppHref = (value: string): string | undefined => {
+  const digits = toDigitsOnly(value);
+  return digits ? `https://wa.me/${digits}` : undefined;
+};
+
 interface PersonnelCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -971,14 +981,14 @@ export function PersonnelCreateModal({
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="text" value={personalPhone} onChange={e => setPersonalPhone(e.target.value)} placeholder="05xx..." style={modalStyles.input} />
                 <a
-                  href={personalPhone ? `https://wa.me/${personalPhone.replace(/\D/g, '')}` : undefined}
+                  href={toWhatsAppHref(personalPhone)}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="WhatsApp"
                   style={{ background: "none", border: "none", cursor: personalPhone ? "pointer" : "not-allowed", color: personalPhone ? '#25D366' : '#bbb', fontSize: 18, textDecoration: 'none' }}
                 >🟢</a>
                 <a
-                  href={personalPhone ? `tel:${personalPhone.replace(/\s+/g, '')}` : undefined}
+                  href={toTelHref(personalPhone)}
                   title="Ara"
                   style={{ background: "none", border: "none", cursor: personalPhone ? "pointer" : "not-allowed", color: personalPhone ? '#10b981' : '#bbb', fontSize: 18, textDecoration: 'none' }}
                 >📞</a>
@@ -990,14 +1000,14 @@ export function PersonnelCreateModal({
                 <input type="text" value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} placeholder="0xxx..." style={modalStyles.input} />
                 <input type="text" value={companyPhoneShort} onChange={e => setCompanyPhoneShort(e.target.value)} placeholder="Kısa Kod" style={{ ...modalStyles.input, width: 60 }} />
                 <a
-                  href={companyPhone ? `https://wa.me/${companyPhone.replace(/\D/g, '')}` : undefined}
+                  href={toWhatsAppHref(companyPhone)}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="WhatsApp"
                   style={{ background: "none", border: "none", cursor: companyPhone ? "pointer" : "not-allowed", color: companyPhone ? '#25D366' : '#bbb', fontSize: 18, textDecoration: 'none' }}
                 >🟢</a>
                 <a
-                  href={companyPhone ? `tel:${companyPhone.replace(/\s+/g, '')}` : undefined}
+                  href={toTelHref(companyPhone)}
                   title="Ara"
                   style={{ background: "none", border: "none", cursor: companyPhone ? "pointer" : "not-allowed", color: companyPhone ? '#10b981' : '#bbb', fontSize: 18, textDecoration: 'none' }}
                 >📞</a>
