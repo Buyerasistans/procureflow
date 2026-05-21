@@ -2,6 +2,7 @@ param(
   [string]$Task = "Genel geliştirme",
   [string]$Domain = "general"
 )
+powershell -ExecutionPolicy Bypass -File "$PSScriptRoot\local_snapshot.ps1"
 
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path "$PSScriptRoot\..\..").Path

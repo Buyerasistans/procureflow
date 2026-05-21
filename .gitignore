@@ -155,3 +155,7 @@ adminer.php.bak
 /test.dxf
 /c
 "local_cleanup_archives/" 
+
+# local safety snapshots
+local_backups/
+
