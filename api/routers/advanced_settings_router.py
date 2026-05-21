@@ -890,15 +890,7 @@ async def test_email_settings(
         )
 
     try:
-        print("[EMAIL] Test email gönderiliyor...")
-        print(
-            f"[EMAIL] SMTP Host: {effective_settings['smtp_host']}:{effective_settings['smtp_port']}"
-        )
-        print(f"[EMAIL] Username: {effective_settings['smtp_username']}")
-        print(
-            f"[EMAIL] TLS: {effective_settings['use_tls']}, SSL: {effective_settings['use_ssl']}"
-        )
-        print(f"[EMAIL] To: {to_email}")
+        print("[EMAIL] Test email gönderme işlemi başlatıldı.")
 
         # Create message with plain + html alternatives
         msg = MIMEMultipart("alternative")
