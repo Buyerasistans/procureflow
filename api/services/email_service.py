@@ -172,7 +172,7 @@ class EmailService:
         # Email credentials kontrol et
         if not self.sender_email or not self.sender_password:
             logger.error(
-                f"[EMAIL] SMTP credentials eksik! SENDER_EMAIL={self.sender_email}, PASSWORD={'*' * 5 if self.sender_password else 'EMPTY'}"
+                f"[EMAIL] SMTP credentials eksik! SENDER_EMAIL={self.sender_email}, PASSWORD={'SET' if self.sender_password else 'EMPTY'}"
             )
             return False
 
@@ -228,7 +228,7 @@ class EmailService:
         except smtplib.SMTPAuthenticationError as e:
             logger.error(f"[EMAIL] ❌ Kimlik doğrulama hatası: {str(e)}")
             logger.error(
-                f"[EMAIL] SMTP_USERNAME={self.smtp_username or from_email}, FROM_EMAIL={from_email}, PWD={(self.sender_password[:3] + '***') if self.sender_password else 'EMPTY'}"
+                f"[EMAIL] SMTP_USERNAME={self.smtp_username or from_email}, FROM_EMAIL={from_email}, PASSWORD={'SET' if self.sender_password else 'EMPTY'}"
             )
             return False
         except smtplib.SMTPException as e:
