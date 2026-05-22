@@ -1846,7 +1846,7 @@ def resend_supplier_invitation(
             }
     except Exception as e:
         logger.exception(f"[RESEND] Error sending email to {supplier.email}: {str(e)}")
-        return {"status": "error", "message": f"Email göndermede hata: {str(e)}"}
+        return {"status": "error", "message": "Email göndermede hata"}
 
 
 # ============ SUPPLIER REGISTRATION (Magic Link) ============
@@ -3167,21 +3167,19 @@ def download_supplier_document_file_admin(
         detail="Bu dosyaya erişim izniniz yok",
     )
 
-    safe_name = os.path.basename((filename or "").strip())
-    safe_category = (category or "").strip()
-    safe_supplier_dir = str(supplier_id).strip()
-    if (
-        not safe_name
-        or safe_name in {".", ".."}
-        or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name)
-        or not safe_category
-        or safe_category in {".", ".."}
-        or "/" in safe_category
-        or "\\" in safe_category
-        or not re.fullmatch(r"[A-Za-z0-9_-]+", safe_category)
-        or not re.fullmatch(r"[1-9][0-9]*", safe_supplier_dir)
-    ):
-        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
+    _ensure_supplier_documents_table(db)
+    row = db.execute(
+        text(
+            "SELECT stored_filename, category FROM supplier_documents"
+            " WHERE supplier_id = :sid AND stored_filename = :fn LIMIT 1"
+        ),
+        {"sid": supplier.id, "fn": filename or ""},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+
+    db_stored = row[0]
+    db_category = row[1]
 
     docs_root = os.path.realpath(
         os.path.join(
@@ -3190,10 +3188,8 @@ def download_supplier_document_file_admin(
             "supplier_docs",
         )
     )
-    base_dir = os.path.realpath(os.path.join(docs_root, safe_supplier_dir))
-    file_path = os.path.realpath(
-        os.path.join(base_dir, safe_category, safe_name)
-    )
+    base_dir = os.path.realpath(os.path.join(docs_root, str(supplier.id)))
+    file_path = os.path.realpath(os.path.join(base_dir, db_category, db_stored))
     if (
         os.path.commonpath([docs_root, base_dir]) != docs_root
         or os.path.commonpath([base_dir, file_path]) != base_dir
@@ -3210,24 +3206,30 @@ def download_supplier_document_file(
     supplier_id: int,
     category: str,
     supplier_user: SupplierUser = Depends(get_current_supplier_user),
+    db: Session = Depends(get_db),
 ):
     """Supplier doküman dosyasını güvenli şekilde indir."""
     if supplier_user.supplier_id != supplier_id:
         raise HTTPException(status_code=403, detail="Bu dosyaya erişim izniniz yok")
 
-    safe_name = os.path.basename((filename or "").strip())
-    safe_category = (category or "").strip()
-    _allowed_cats = {"certificates", "company_docs", "personnel_docs", "guarantee_docs"}
-    if (
-        not safe_name
-        or safe_name in {".", ".."}
-        or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name)
-        or safe_category not in _allowed_cats
-    ):
-        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
+    _ensure_supplier_documents_table(db)
+    row = db.execute(
+        text(
+            "SELECT stored_filename, category FROM supplier_documents"
+            " WHERE supplier_id = :sid AND stored_filename = :fn LIMIT 1"
+        ),
+        {"sid": supplier_user.supplier_id, "fn": filename or ""},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
 
-    base_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
-    file_path = os.path.realpath(os.path.join(base_dir, safe_category, safe_name))
+    db_stored = row[0]
+    db_category = row[1]
+
+    base_dir = os.path.realpath(
+        os.path.join("uploads", "supplier_docs", str(supplier_user.supplier_id))
+    )
+    file_path = os.path.realpath(os.path.join(base_dir, db_category, db_stored))
     if os.path.commonpath([base_dir, file_path]) != base_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     if not os.path.exists(file_path):
