@@ -13,6 +13,7 @@ import pytest
 from api.database import SessionLocal
 from api.models import QuoteApproval
 from api.models.supplier import Supplier
+from api.models.tenant import Tenant
 
 
 def test_admin_can_create_and_submit_quote(client, admin_auth_headers):
@@ -344,12 +345,23 @@ def test_send_to_same_supplier_is_not_recreated(client, admin_auth_headers):
 
     db = SessionLocal()
     try:
+        _tenant = Tenant(
+            slug="supplier-dup-check-tenant",
+            legal_name="Supplier Dup Check Ltd",
+            brand_name="SDC",
+            status="active",
+            onboarding_status="active",
+            is_active=True,
+        )
+        db.add(_tenant)
+        db.flush()
         supplier = Supplier(
             created_by_id=1,
             company_name="Repeat Supplier",
             phone="5559999",
             email="repeat-supplier@test.com",
             is_active=True,
+            tenant_id=_tenant.id,
         )
         db.add(supplier)
         db.commit()
