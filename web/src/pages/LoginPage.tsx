@@ -1,74 +1,55 @@
-// FILE: web/src/pages/LoginPage.tsx
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import NavBar from "../components/NavBar";
+import PublicBrandLogo from "../components/PublicBrandLogo";
+import "./LoginPage.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAuth();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-
-    try {
-      await login(email, password);
-      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
-      navigate(from || "/dashboard", { replace: true });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Giriş başarısız.";
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   return (
-    <div style={{ maxWidth: 360, margin: "60px auto" }}>
-      <h1>Giriş Yap</h1>
+    <div className="login-page">
+      <NavBar variant="strategic" activePath="/login" />
+      <div className="login-page__shell">
+        <div className="login-page__card">
+          <div className="login-page__logo-row">
+            <PublicBrandLogo height={42} maxWidth={220} />
+          </div>
 
-      <form onSubmit={onSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="email">E-posta</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: "100%" }}
-          />
+          <h1 className="login-page__title">Giris Tipinizi Secin</h1>
+          <p className="login-page__description">
+            Her giris kendi rolune ozel ekrana yonlendirir. Stratejik partner, tedarikci ve is
+            ortagi girisleri birbirinden ayridir.
+          </p>
+
+          <div className="login-page__entry-grid">
+            <button
+              type="button"
+              onClick={() => navigate("/strategic-partner-login")}
+              className="login-page__entry-button login-page__entry-button--strategic"
+            >
+              Stratejik Partner Girisi
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/supplier/login")}
+              className="login-page__entry-button login-page__entry-button--supplier"
+            >
+              Tedarikci Girisi
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/channel/login")}
+              className="login-page__entry-button login-page__entry-button--channel"
+            >
+              Is Ortagi Girisi
+            </button>
+          </div>
+
+          <div className="login-page__footer-note">
+            Platform yonetici girisi guvenlik nedeniyle ozel erisim akisi ile acilir.
+          </div>
         </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="password">Şifre</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%" }}
-          />
-        </div>
-
-        {error && <p style={{ color: "crimson", marginTop: 8 }}>{error}</p>}
-
-        <button type="submit" disabled={submitting} style={{ width: "100%" }}>
-          {submitting ? "Giriş yapılıyor..." : "Giriş Yap"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,35 @@
+PROCUREFLOW ROL-YETKI-DEPARTMAN OZETI (2026-04-16)
+
+1) SISTEM ROLU (ERISIM KAPSAMI)
+- super_admin: Platform geneli tam yetki. Tenant governance yazma, tenant olusturma/guncelleme, ortak e-posta profili yonetimi.
+- platform_support: Governance okuma ve destek sureci guncelleme. Admin yazma isteklerinde backend kisiti var.
+- platform_operator: Governance okuma ve operasyonel destek guncelleme. Admin yazma isteklerinde backend kisiti var.
+- tenant_owner: Kendi tenant'inda yonetim. Tenant identity ayarlari yapabilir.
+- tenant_admin: Kendi tenant'inda personel/firma/departman yonetimi. Governance write yok.
+- tenant_member: Varsayilan uye. Is rolune gore operasyonel erisim.
+
+2) OPERASYONEL ROL (IS AKISI)
+- satinalma_direktoru: En yuksek satin alma otoritesi. Varsayilan onay limiti 1.000.000
+- satinalma_yoneticisi: Onay review + proje olusturma. Varsayilan onay limiti 300.000
+- satinalma_uzmani: Operasyonel satin alma + proje olusturma. Varsayilan onay limiti 200.000
+- satinalmaci: Temel satin alma islemleri. Varsayilan onay limiti 100.000
+- admin/super_admin is rol degeri: Nihai yonetim yetkisini system_role belirler.
+
+3) DEPARTMAN ILISKISI
+- Bir personelin ana departmani users.department_id alaniyla tutulur.
+- department_id bossa sistem efektif departmani bulur:
+  a) user_departments[0]
+  b) ad-soyad ile departman adi benzerligi
+- Firma bazli atamalarda company_roles tablosu kullanilir:
+  user_id + company_id + role_id + department_id + sub_items
+- Ayni atamada kullanici/firma/rol/departman tenant uyumu zorunludur.
+
+4) KRITIK DAVRANIS
+- Tenant governance write: yalnizca super_admin
+- Governance read: super_admin + platform_support + platform_operator
+- /tenants/{tenant_id}/support-workflow: governance_reader ile guncellenebilir
+- Tenant admin, super_admin veya admin benzeri hesaplari personel akisindan olusturamaz/guncelleyemez.
+
+5) PRAKTIK YORUM
+- Yetkiyi tek alandan okumayin. Nihai davranis = system_role + business_role + tenant/departman/firma scope.
+- UI ile backend guard'lari arasindaki fark, platform rollerinde 'goruyorum ama yazamiyorum' hissi dogurabilir.

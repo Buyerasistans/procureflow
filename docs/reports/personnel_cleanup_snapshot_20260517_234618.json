@@ -1,0 +1,2077 @@
+[
+  {
+    "id": 1,
+    "full_name": "Admin 1",
+    "email": "admin-1@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 2,
+    "full_name": "Satin Almaci 2",
+    "email": "satinalmaci-2@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 3,
+    "full_name": "Personel 3",
+    "email": "user-3@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "user",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 4,
+    "full_name": "Super Admin",
+    "email": "superadmin@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "super_admin",
+    "role": "super_admin",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 5,
+    "full_name": "Satin Alma Direktoru 5",
+    "email": "satinalma-direktoru-5@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 6,
+    "full_name": "Satin Alma Direktoru 6",
+    "email": "satinalma-direktoru-6@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 8,
+    "full_name": "Satin Alma Uzmani 8",
+    "email": "satinalma-uzmani-8@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 9,
+    "full_name": "Satin Alma Yoneticisi 9",
+    "email": "satinalma-yoneticisi-9@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 10,
+    "full_name": "Admin 10",
+    "email": "admin-10@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 11,
+    "full_name": "Satin Almaci 11",
+    "email": "satinalmaci-11@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 12,
+    "full_name": "Satin Alma Uzmani 12",
+    "email": "satinalma-uzman-12@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzman",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 13,
+    "full_name": "Satin Alma Yoneticisi 13",
+    "email": "satinalma-yoneticisi-13@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 14,
+    "full_name": "Satin Alma Direktoru 14",
+    "email": "satinalma-direktoru-14@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 15,
+    "full_name": "Satin Alma Direktoru 15",
+    "email": "satinalma-direktoru-15@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 16,
+    "full_name": "Satin Alma Direktoru 16",
+    "email": "satinalma-direktoru-16@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 17,
+    "full_name": "Admin 17",
+    "email": "admin-17@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 18,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.18@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "super_admin",
+    "role": "super_admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 19,
+    "full_name": "Satin Almaci 19",
+    "email": "satinalmaci-19@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 21,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.21@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "super_admin",
+    "role": "super_admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 28,
+    "full_name": "Personel 28",
+    "email": "user-28@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "tenant_member",
+    "role": "user",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 29,
+    "full_name": "Personel 29",
+    "email": "user-29@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 42,
+    "full_name": "Ahmet YILMAZ",
+    "email": "olimposdanismanlik@gmail.com",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 43,
+    "full_name": "DENEME POSEYDON",
+    "email": "poseydonteknoloji@gmail.com",
+    "tenant_id": 15,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 44,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.44@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "super_admin",
+    "role": "super_admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 45,
+    "full_name": "Serkan ERYILMAZ",
+    "email": "serkaneryilmazz@gmail.com",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 46,
+    "full_name": "Satin Alma Yoneticisi 46",
+    "email": "satinalma-yoneticisi-46@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 47,
+    "full_name": "Satin Alma Yoneticisi 47",
+    "email": "satinalma-yoneticisi-47@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 48,
+    "full_name": "Satin Alma Yoneticisi 48",
+    "email": "satinalma-yoneticisi-48@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 49,
+    "full_name": "Satin Alma Yoneticisi 49",
+    "email": "satinalma-yoneticisi-49@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 51,
+    "full_name": "Admin 51",
+    "email": "admin-51@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 52,
+    "full_name": "Platform Operasyon Admin",
+    "email": "admin-52@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 53,
+    "full_name": "Platform Destek Admin 1",
+    "email": "admin-53@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 54,
+    "full_name": "Platform Destek Admin 2",
+    "email": "admin-54@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 55,
+    "full_name": " Finance Officer Admin 1",
+    "email": "admin-55@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "finance_officer",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 56,
+    "full_name": " Finance Officer Admin 2",
+    "email": "admin-56@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "finance_officer",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 57,
+    "full_name": "Platform Portal Admini",
+    "email": "portaladmin@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "admin",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 58,
+    "full_name": "Platform Destek Admin 3",
+    "email": "support@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "admin",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 59,
+    "full_name": "Platform Finans Sorumlusu",
+    "email": "finance@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "admin",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 60,
+    "full_name": "Partner Ana Yonetici Demo",
+    "email": "partner.owner.demo@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_owner",
+    "role": "admin",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 61,
+    "full_name": "Partner Yonetici Demo",
+    "email": "partner.admin.demo@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 62,
+    "full_name": "Satin Alma Muduru Demo 1",
+    "email": "partner.procurement.lead1@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 63,
+    "full_name": "Satin Alma Muduru Demo 2",
+    "email": "partner.procurement.lead2@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 64,
+    "full_name": "Teknik Uzman Demo 1",
+    "email": "partner.tech.demo1@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 65,
+    "full_name": "Teknik Uzman Demo 2",
+    "email": "partner.tech.demo2@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 66,
+    "full_name": "Partner Denetci Demo",
+    "email": "partner.audit.demo@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 67,
+    "full_name": "Ozel Partner Rol Demo",
+    "email": "partner.custom.demo@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 68,
+    "full_name": "Kanal Ana Yonetici Demo",
+    "email": "webcadisi@gmail.com",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_owner",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 69,
+    "full_name": "Kanal Ekip Lideri Demo",
+    "email": "channel.lead.demo@buyerasistans.com.tr",
+    "tenant_id": 19,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 70,
+    "full_name": "Kanal Temsilcisi Demo",
+    "email": "channel.agent.demo@buyerasistans.com.tr",
+    "tenant_id": 19,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 71,
+    "full_name": "Kanal Finans Izleyici Demo",
+    "email": "channel.finance.demo@buyerasistans.com.tr",
+    "tenant_id": 19,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 72,
+    "full_name": "Kanal Denetci Demo",
+    "email": "channel.audit.demo@buyerasistans.com.tr",
+    "tenant_id": 19,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 73,
+    "full_name": "Admin 73",
+    "email": "admin-73@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 74,
+    "full_name": "Admin 74",
+    "email": "admin-74@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 76,
+    "full_name": "Admin 76",
+    "email": "admin-76@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "tenant_admin",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 77,
+    "full_name": "Channel",
+    "email": "channel-mailbox@procureflow.dev",
+    "tenant_id": null,
+    "system_role": "tenant_member",
+    "role": "channel_owner",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 78,
+    "full_name": "Kanal Ekip Lideri",
+    "email": "channel.kanal-ana-yonetici-demo-kisisel-is-ortagi-workspace.lead@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 79,
+    "full_name": "Kanal Temsilcisi",
+    "email": "channel.kanal-ana-yonetici-demo-kisisel-is-ortagi-workspace.agent@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 80,
+    "full_name": "Kanal Finans Izleyici",
+    "email": "channel.kanal-ana-yonetici-demo-kisisel-is-ortagi-workspace.finance@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 81,
+    "full_name": "Kanal Denetci",
+    "email": "channel.kanal-ana-yonetici-demo-kisisel-is-ortagi-workspace.audit@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 82,
+    "full_name": "Kanal Ana Yonetici Demo",
+    "email": "channel.owner.demo@buyerasistans.com.tr",
+    "tenant_id": 19,
+    "system_role": "tenant_owner",
+    "role": "channel_owner",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 83,
+    "full_name": "Yorpas Satin Alma Direktoru",
+    "email": "yorpas.direktor@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 84,
+    "full_name": "Komagene Satin Alma Yoneticisi",
+    "email": "komagene.yonetici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 85,
+    "full_name": "Pizza Max Satin Alma Muduru",
+    "email": "pizzamax.mudur@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 86,
+    "full_name": "Bereket Doner Satin Alma Uzmani",
+    "email": "bereket.uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 87,
+    "full_name": "Schbitzel Landmann Satin Almaci",
+    "email": "schbitzel.satinalmaci@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 88,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.88@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 89,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.89@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 90,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.90@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 91,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.91@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 92,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.92@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "finance_officer",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 93,
+    "full_name": "Silinen Personel (Isten Ayrildi)",
+    "email": "aktif.kullanici.93@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "finance_officer",
+    "role": "admin",
+    "scope_type": null,
+    "is_active": true,
+    "company_ids": []
+  },
+  {
+    "id": 94,
+    "full_name": "Partner Ana Yönetici",
+    "email": "c8.partner-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 95,
+    "full_name": "Partner Yöneticisi",
+    "email": "c8.partner-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 96,
+    "full_name": "Satın Alma Direktör",
+    "email": "c8.sat-n-alma-direkt-r@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 97,
+    "full_name": "Satın Alma Müdür",
+    "email": "c8.sat-n-alma-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 98,
+    "full_name": "Satın Alma Müdür Yardmcs",
+    "email": "c8.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 99,
+    "full_name": "Satın Alma Yöneticisi",
+    "email": "c8.sat-n-alma-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 100,
+    "full_name": "Satın Alma Kıdemli Uzmanı",
+    "email": "c8.sat-n-alma-k-demli-uzman@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 101,
+    "full_name": "Satın Alma Uzmanı",
+    "email": "c8.sat-n-alma-uzman@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 102,
+    "full_name": "Teknik Uzman ve Mimar",
+    "email": "c8.teknik-uzman-ve-mimar@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 103,
+    "full_name": "Özel Stratejik Partner Rol",
+    "email": "c8.zel-stratejik-partner-rol@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 104,
+    "full_name": "Partner Denetçi / Finans İzleyici",
+    "email": "c8.partner-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 14,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      8
+    ]
+  },
+  {
+    "id": 105,
+    "full_name": "Tedarikçi Ana Yöneticisi",
+    "email": "c12.tedarik-i-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 106,
+    "full_name": "Tedarikçi Yöneticisi",
+    "email": "c12.tedarik-i-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 107,
+    "full_name": "Pazarlama Müdür",
+    "email": "c12.pazarlama-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 108,
+    "full_name": "Pazarlama Müdür Yardmcs",
+    "email": "c12.pazarlama-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 109,
+    "full_name": "Pazarlama Yöneticisi",
+    "email": "c12.pazarlama-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 110,
+    "full_name": "Kıdemli Pazarlama Uzmanı",
+    "email": "c12.k-demli-pazarlama-uzman@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 111,
+    "full_name": "Pazarlama Uzmanı",
+    "email": "c12.pazarlama-uzman@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 112,
+    "full_name": "Teklif Uzmanı",
+    "email": "c12.teklif-uzman@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 113,
+    "full_name": "Özel Tedarikçi Rol",
+    "email": "c12.zel-tedarik-i-rol@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 114,
+    "full_name": "Tedarikçi Denetçi / Finans İzleyici",
+    "email": "c12.tedarik-i-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      12
+    ]
+  },
+  {
+    "id": 115,
+    "full_name": "Tedarikçi Ana Yöneticisi",
+    "email": "c13.tedarik-i-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 116,
+    "full_name": "Tedarikçi Yöneticisi",
+    "email": "c13.tedarik-i-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 117,
+    "full_name": "Pazarlama Müdür",
+    "email": "c13.pazarlama-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 118,
+    "full_name": "Pazarlama Müdür Yardmcs",
+    "email": "c13.pazarlama-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 119,
+    "full_name": "Pazarlama Yöneticisi",
+    "email": "c13.pazarlama-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_admin",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 120,
+    "full_name": "Kıdemli Pazarlama Uzmanı",
+    "email": "c13.k-demli-pazarlama-uzman@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 121,
+    "full_name": "Pazarlama Uzmanı",
+    "email": "c13.pazarlama-uzman@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 122,
+    "full_name": "Teklif Uzmanı",
+    "email": "c13.teklif-uzman@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 123,
+    "full_name": "Özel Tedarikçi Rol",
+    "email": "c13.zel-tedarik-i-rol@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 124,
+    "full_name": "Tedarikçi Denetçi / Finans İzleyici",
+    "email": "c13.tedarik-i-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 17,
+    "system_role": "tenant_member",
+    "role": "supplier_user",
+    "scope_type": "supplier",
+    "is_active": true,
+    "company_ids": [
+      13
+    ]
+  },
+  {
+    "id": 125,
+    "full_name": "Kanal Ana Yonetici Demo Workspace Kanal Hesap Sahibi",
+    "email": "c14.kanal-hesap-sahibi@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_owner",
+    "role": "channel_owner",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 126,
+    "full_name": "Kanal Ana Ynetici Demo Workspace Kanal Finans Grntleyici",
+    "email": "c14.kanal-finans-g-r-nt-leyici@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 127,
+    "full_name": "Kanal Ana Yonetici Demo Workspace Kanal Denetçisi",
+    "email": "c14.kanal-denet-isi@buyerasistans.com.tr",
+    "tenant_id": 18,
+    "system_role": "tenant_member",
+    "role": "channel_agent",
+    "scope_type": "channel",
+    "is_active": true,
+    "company_ids": [
+      14
+    ]
+  },
+  {
+    "id": 128,
+    "full_name": "Partner Ana Yönetici",
+    "email": "c1.partner-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 129,
+    "full_name": "Partner Yöneticisi",
+    "email": "c1.partner-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 130,
+    "full_name": "Satın Alma Direktör",
+    "email": "c1.sat-n-alma-direkt-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 131,
+    "full_name": "Satın Alma Müdür",
+    "email": "c1.sat-n-alma-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 132,
+    "full_name": "Satın Alma Müdür Yardmcs",
+    "email": "c1.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 133,
+    "full_name": "Satın Alma Yöneticisi",
+    "email": "c1.sat-n-alma-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 134,
+    "full_name": "Satın Alma Kıdemli Uzmanı",
+    "email": "c1.sat-n-alma-k-demli-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 135,
+    "full_name": "Satın Alma Uzmanı",
+    "email": "c1.sat-n-alma-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 136,
+    "full_name": "Teknik Uzman ve Mimar",
+    "email": "c1.teknik-uzman-ve-mimar@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 137,
+    "full_name": "Özel Stratejik Partner Rol",
+    "email": "c1.zel-stratejik-partner-rol@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 138,
+    "full_name": "Partner Denetçi / Finans İzleyici",
+    "email": "c1.partner-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      1
+    ]
+  },
+  {
+    "id": 139,
+    "full_name": "Partner Ana Yönetici",
+    "email": "c2.partner-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 140,
+    "full_name": "Partner Yöneticisi",
+    "email": "c2.partner-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 141,
+    "full_name": "Satın Alma Direktör",
+    "email": "c2.sat-n-alma-direkt-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 142,
+    "full_name": "Satın Alma Müdür",
+    "email": "c2.sat-n-alma-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 143,
+    "full_name": "Satın Alma Müdür Yardmcs",
+    "email": "c2.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 144,
+    "full_name": "Satın Alma Yöneticisi",
+    "email": "c2.sat-n-alma-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 145,
+    "full_name": "Satın Alma Kıdemli Uzmanı",
+    "email": "c2.sat-n-alma-k-demli-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 146,
+    "full_name": "Satın Alma Uzmanı",
+    "email": "c2.sat-n-alma-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 147,
+    "full_name": "Teknik Uzman ve Mimar",
+    "email": "c2.teknik-uzman-ve-mimar@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 148,
+    "full_name": "Özel Stratejik Partner Rol",
+    "email": "c2.zel-stratejik-partner-rol@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 149,
+    "full_name": "Partner Denetçi / Finans İzleyici",
+    "email": "c2.partner-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      2
+    ]
+  },
+  {
+    "id": 150,
+    "full_name": "Partner Ana Yönetici",
+    "email": "c3.partner-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 151,
+    "full_name": "Partner Yöneticisi",
+    "email": "c3.partner-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 152,
+    "full_name": "Satın Alma Direktör",
+    "email": "c3.sat-n-alma-direkt-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 153,
+    "full_name": "Satın Alma Müdür",
+    "email": "c3.sat-n-alma-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 154,
+    "full_name": "Satın Alma Müdür Yardmcs",
+    "email": "c3.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 155,
+    "full_name": "Satın Alma Yöneticisi",
+    "email": "c3.sat-n-alma-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 156,
+    "full_name": "Satın Alma Kıdemli Uzmanı",
+    "email": "c3.sat-n-alma-k-demli-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 157,
+    "full_name": "Satın Alma Uzmanı",
+    "email": "c3.sat-n-alma-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 158,
+    "full_name": "Teknik Uzman ve Mimar",
+    "email": "c3.teknik-uzman-ve-mimar@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 159,
+    "full_name": "Özel Stratejik Partner Rol",
+    "email": "c3.zel-stratejik-partner-rol@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 160,
+    "full_name": "Partner Denetçi / Finans İzleyici",
+    "email": "c3.partner-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      3
+    ]
+  },
+  {
+    "id": 161,
+    "full_name": "Partner Ana Yönetici",
+    "email": "c4.partner-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 162,
+    "full_name": "Partner Yöneticisi",
+    "email": "c4.partner-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 163,
+    "full_name": "Satın Alma Direktör",
+    "email": "c4.sat-n-alma-direkt-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 164,
+    "full_name": "Satın Alma Müdür",
+    "email": "c4.sat-n-alma-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 165,
+    "full_name": "Satın Alma Müdür Yardmcs",
+    "email": "c4.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 166,
+    "full_name": "Satın Alma Yöneticisi",
+    "email": "c4.sat-n-alma-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 167,
+    "full_name": "Satın Alma Kıdemli Uzmanı",
+    "email": "c4.sat-n-alma-k-demli-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 168,
+    "full_name": "Satın Alma Uzmanı",
+    "email": "c4.sat-n-alma-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 169,
+    "full_name": "Teknik Uzman ve Mimar",
+    "email": "c4.teknik-uzman-ve-mimar@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 170,
+    "full_name": "Özel Stratejik Partner Rol",
+    "email": "c4.zel-stratejik-partner-rol@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 171,
+    "full_name": "Partner Denetçi / Finans İzleyici",
+    "email": "c4.partner-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      4
+    ]
+  },
+  {
+    "id": 172,
+    "full_name": "Partner Ana Yönetici",
+    "email": "c5.partner-ana-y-netici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 173,
+    "full_name": "Partner Yöneticisi",
+    "email": "c5.partner-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 174,
+    "full_name": "Satın Alma Direktör",
+    "email": "c5.sat-n-alma-direkt-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_direktoru",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 175,
+    "full_name": "Satın Alma Müdür",
+    "email": "c5.sat-n-alma-m-d-r@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 176,
+    "full_name": "Satın Alma Müdür Yardmcs",
+    "email": "c5.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 177,
+    "full_name": "Satın Alma Yöneticisi",
+    "email": "c5.sat-n-alma-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_yoneticisi",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 178,
+    "full_name": "Satın Alma Kıdemli Uzmanı",
+    "email": "c5.sat-n-alma-k-demli-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 179,
+    "full_name": "Satın Alma Uzmanı",
+    "email": "c5.sat-n-alma-uzman@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 180,
+    "full_name": "Teknik Uzman ve Mimar",
+    "email": "c5.teknik-uzman-ve-mimar@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalma_uzmani",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 181,
+    "full_name": "Özel Stratejik Partner Rol",
+    "email": "c5.zel-stratejik-partner-rol@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 182,
+    "full_name": "Partner Denetçi / Finans İzleyici",
+    "email": "c5.partner-denet-i-finans-zleyici@buyerasistans.com.tr",
+    "tenant_id": 2,
+    "system_role": "tenant_member",
+    "role": "satinalmaci",
+    "scope_type": "partner",
+    "is_active": true,
+    "company_ids": [
+      5
+    ]
+  },
+  {
+    "id": 183,
+    "full_name": "Platform Operasyon Yöneticisi",
+    "email": "c11.platform-operasyon-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "manager",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 184,
+    "full_name": "Platform Operasyon Uzmanı",
+    "email": "c11.platform-operasyon-uzman@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "employee",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 185,
+    "full_name": "Platform Destek Yöneticisi",
+    "email": "c11.platform-destek-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "manager",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 186,
+    "full_name": "Platform Destek Uzmanı",
+    "email": "c11.platform-destek-uzman@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_support",
+    "role": "employee",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 187,
+    "full_name": "Platform Finans Yöneticisi",
+    "email": "c11.platform-finans-y-neticisi@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "finance_officer",
+    "role": "manager",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 188,
+    "full_name": "Platform Finans Uzmanı",
+    "email": "c11.platform-finans-uzman@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "finance_officer",
+    "role": "employee",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 189,
+    "full_name": "Platform Denetim ve Uyum Uzmanı",
+    "email": "c11.platform-denetim-ve-uyum-uzman@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "employee",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 190,
+    "full_name": "Platform Güvenlik Uzmanı",
+    "email": "c11.platform-g-venlik-uzman@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "employee",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  },
+  {
+    "id": 191,
+    "full_name": "Platform Raporlama Analisti",
+    "email": "c11.platform-raporlama-analisti@buyerasistans.com.tr",
+    "tenant_id": null,
+    "system_role": "platform_operator",
+    "role": "employee",
+    "scope_type": "platform",
+    "is_active": true,
+    "company_ids": [
+      11
+    ]
+  }
+]

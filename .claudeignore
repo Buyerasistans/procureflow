@@ -1,0 +1,50 @@
+# Dependency and build artifacts
+node_modules/
+web/node_modules/
+api/.venv/
+web/dist/
+api/__pycache__/
+**/__pycache__/
+*.pyc
+
+# VCS and editor
+.git/
+.idea/
+.vscode/
+
+# Large/generated runtime data
+uploads/
+backups/
+tmp/
+_deploy_extract_tmp/
+local_cleanup_archives/
+
+# Logs and dumps
+*.log
+*.dump
+*.sql
+*.sqlite
+*.sqlite3
+
+# Binary/media artifacts that do not help code reasoning
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.pdf
+*.xlsx
+*.xls
+*.csv
+
+# Environment and secrets
+.env
+api/.env
+web/.env
+*.pem
+*.key
+
+# One-off audit exports (keep source code, ignore heavy outputs)
+audit-*.json
+audit-*.csv

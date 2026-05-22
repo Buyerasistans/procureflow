@@ -3,29 +3,109 @@ import smtplib
 import re
 import html
 from typing import Union
+from email.message import EmailMessage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate, make_msgid
 from datetime import datetime
 import logging
 
+from api.services.email_runtime_config import get_effective_email_config
+
 logger = logging.getLogger(__name__)
+
+
+def _is_valid_email_address(value: str) -> bool:
+    candidate = (value or "").strip()
+    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", candidate))
 
 
 class EmailService:
     """Email servisi - Magic link ve bildirimler için kullanılır"""
 
     def __init__(self):
-        self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-        self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        self.sender_email = os.getenv("SENDER_EMAIL", "noreply@procureflow.local")
-        self.sender_password = os.getenv("SENDER_PASSWORD", "")
-        self.use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+        self.smtp_server = ""
+        self.smtp_port = 587
+        self.smtp_username = ""
+        self.sender_email = "noreply@procureflow.local"
+        self.sender_password = ""
+        self.use_tls = True
+        self.use_ssl = False
+        self.sender_name = "ProcureFlow"
+        self.reply_to_email = ""
         self.app_url = os.getenv("APP_URL", "http://localhost:5177")
+        self._refresh_runtime_config()
+
+    def _refresh_runtime_config(
+        self,
+        owner_user_id: int | None = None,
+        system_email_id: int | None = None,
+    ) -> None:
+        config = get_effective_email_config(
+            owner_user_id=owner_user_id,
+            system_email_id=system_email_id,
+        )
+        self.smtp_server = (config.smtp_host or "localhost").strip().rstrip(".")
+        self.smtp_port = int(config.smtp_port or 587)
+        self.smtp_username = (
+            config.smtp_username or config.from_email or "noreply@procureflow.local"
+        ).strip()
+        self.sender_email = (
+            config.from_email or config.smtp_username or "noreply@procureflow.local"
+        ).strip()
+        self.sender_password = config.smtp_password or ""
+        self.use_tls = bool(config.use_tls)
+        self.use_ssl = bool(config.use_ssl)
+        self.sender_name = config.from_name or "ProcureFlow"
+        self.reply_to_email = (config.reply_to_email or self.sender_email).strip()
+        self.app_url = (config.app_url or self.app_url).rstrip("/")
+        self.signature_name = config.signature_name or ""
+        self.signature_title = config.signature_title or ""
+        self.signature_note = config.signature_note or ""
+        self.signature_image_url = config.signature_image_url or ""
+
+    def _with_signature(self, html_content: str, plain_text: str) -> tuple[str, str]:
+        signature_lines = [
+            line for line in [self.signature_name, self.signature_title] if line
+        ]
+        if self.signature_note:
+            signature_lines.append(self.signature_note)
+
+        if not signature_lines and not self.signature_image_url:
+            return html_content, plain_text
+
+        signature_html_parts = []
+        if signature_lines:
+            signature_html_parts.append(
+                '<div style="font-weight:700;color:#0f172a;">'
+                + html.escape(signature_lines[0])
+                + "</div>"
+            )
+            for line in signature_lines[1:]:
+                signature_html_parts.append(
+                    '<div style="color:#475569;">' + html.escape(line) + "</div>"
+                )
+        if self.signature_image_url:
+            signature_html_parts.append(
+                f'<div style="margin-top:12px;"><img src="{html.escape(self.signature_image_url)}" alt="mail-imza" style="max-width:240px;max-height:120px;border-radius:8px;object-fit:contain;" /></div>'
+            )
+
+        signature_html = (
+            '<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;">'
+            + "".join(signature_html_parts)
+            + "</div>"
+        )
+        signature_plain = "\n\n--\n" + "\n".join(signature_lines)
+        if self.signature_image_url:
+            signature_plain += f"\nGorsel: {self.signature_image_url}"
+        return html_content + signature_html, (plain_text or "") + signature_plain
 
     def _get_magic_link(self, token: str) -> str:
         """Magic link URL'ini oluştur"""
         return f"{self.app_url}/supplier/register?token={token}"
+
+    def _get_internal_user_magic_link(self, token: str) -> str:
+        return f"{self.app_url}/activate-account?token={token}"
 
     def _html_to_plain_text(self, html_content: str) -> str:
         """HTML içeriği temel seviyede düz metne dönüştür."""
@@ -38,6 +118,32 @@ class EmailService:
         text = re.sub(r"\n{3,}", "\n\n", text)
         return text.strip()
 
+    def _apply_transactional_headers(
+        self,
+        msg: EmailMessage | MIMEMultipart,
+        *,
+        from_email: str,
+        to_email: str,
+        subject: str,
+    ) -> None:
+        normalized_reply_to = self.reply_to_email or from_email
+        if not _is_valid_email_address(normalized_reply_to):
+            normalized_reply_to = from_email
+
+        msg["Subject"] = self._normalize_subject(subject)
+        msg["From"] = f"{self.sender_name} <{from_email}>"
+        msg["Sender"] = from_email
+        msg["To"] = to_email
+        msg["Reply-To"] = normalized_reply_to
+        msg["Return-Path"] = from_email
+        msg["Date"] = formatdate(localtime=True)
+        msg["Message-ID"] = make_msgid(domain=from_email.split("@")[-1])
+        msg["Content-Language"] = "tr-TR"
+        msg["X-Mailer"] = "ProcureFlow"
+        msg["X-Auto-Response-Suppress"] = "All"
+        msg["Auto-Submitted"] = "auto-generated"
+        msg["MIME-Version"] = "1.0"
+
     def _normalize_subject(self, subject: str) -> str:
         """Konu satırını güvenli ve tutarlı bir formata getir."""
         clean = " ".join((subject or "").split())
@@ -48,9 +154,21 @@ class EmailService:
         return clean
 
     def _send_smtp(
-        self, to_email: str, subject: str, html_content: str, plain_text: str = ""
+        self,
+        to_email: str,
+        subject: str,
+        html_content: str,
+        plain_text: str = "",
+        owner_user_id: int | None = None,
+        system_email_id: int | None = None,
     ) -> bool:
         """SMTP üzerinden email gönder (plain_text + HTML multipart)"""
+        self._refresh_runtime_config(
+            owner_user_id=owner_user_id,
+            system_email_id=system_email_id,
+        )
+        html_content, plain_text = self._with_signature(html_content, plain_text)
+
         # Email credentials kontrol et
         if not self.sender_email or not self.sender_password:
             logger.error(
@@ -58,84 +176,144 @@ class EmailService:
             )
             return False
 
+        from_email = self.sender_email.strip()
+        if not _is_valid_email_address(from_email):
+            fallback_email = (self.smtp_username or "").strip()
+            if _is_valid_email_address(fallback_email):
+                from_email = fallback_email
+            else:
+                logger.error("[EMAIL] Geçerli bir gönderen e-posta adresi yok")
+                return False
+
         try:
             msg = MIMEMultipart("alternative")
-            msg["Subject"] = self._normalize_subject(subject)
-            msg["From"] = f"ProcureFlow <{self.sender_email}>"
-            msg["To"] = to_email
-            msg["Reply-To"] = self.sender_email
-            msg["Return-Path"] = self.sender_email
-            msg["Date"] = formatdate(localtime=True)
-            msg["Message-ID"] = make_msgid(domain=self.sender_email.split("@")[-1])
-            msg["Content-Language"] = "tr-TR"
-            msg["X-Mailer"] = "ProcureFlow"
+            self._apply_transactional_headers(
+                msg,
+                from_email=from_email,
+                to_email=to_email,
+                subject=subject,
+            )
 
-            # Plain text versiyonu (spam filtreler text'i tercih eder)
             final_plain_text = (plain_text or "").strip() or self._html_to_plain_text(
                 html_content
             )
             if final_plain_text:
-                part_text = MIMEText(final_plain_text, "plain", "utf-8")
-                msg.attach(part_text)
-
-            # HTML versiyonu (alternatif)
-            part_html = MIMEText(html_content, "html", "utf-8")
-            msg.attach(part_html)
+                msg.attach(MIMEText(final_plain_text, "plain", "utf-8"))
+            msg.attach(MIMEText(html_content, "html", "utf-8"))
 
             logger.info(f"[EMAIL] Bağlanılıyor: {self.smtp_server}:{self.smtp_port}")
 
-            # SMTP bağlantısı - Port 465 için SMTP_SSL, Port 587 için SMTP + STARTTLS
             server: Union[smtplib.SMTP, smtplib.SMTP_SSL]
-            if self.smtp_port == 465:
-                # Port 465: Direct SSL connection
+            if self.use_ssl or self.smtp_port == 465:
                 server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, timeout=10)
-                server.set_debuglevel(0)
-                logger.info(f"[EMAIL] Using SMTP_SSL (port 465)")
             else:
-                # Port 587 veya diğer: STARTTLS ile upgrade
                 server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=10)
-                server.set_debuglevel(0)
                 if self.use_tls:
                     server.starttls()
-                    logger.info(f"[EMAIL] Using STARTTLS (port {self.smtp_port})")
 
-            # Gönder
-            logger.info(f"[EMAIL] Login: {self.sender_email}")
-            server.login(self.sender_email, self.sender_password)
-            logger.info(f"[EMAIL] ✓ Logged in successfully")
-            logger.info(f"[EMAIL] Sending message to {to_email}")
-            send_result = server.send_message(msg)
+            login_identity = self.smtp_username or from_email
+            logger.info(f"[EMAIL] Login: {login_identity}")
+            server.login(login_identity, self.sender_password)
+            send_result = server.send_message(
+                msg, from_addr=from_email, to_addrs=[to_email]
+            )
+            server.quit()
             if send_result:
                 logger.error(f"[EMAIL] ❌ Recipient refusal details: {send_result}")
-                server.quit()
                 return False
-            logger.info(f"[EMAIL] ✓ Message accepted by SMTP server")
-            server.quit()
-            logger.info(f"[EMAIL] ✓ Connection closed")
-
             logger.info(
                 f"[EMAIL] ✅ Email SMTP sunucusu tarafından kabul edildi: {to_email}"
             )
             return True
-
         except smtplib.SMTPAuthenticationError as e:
             logger.error(f"[EMAIL] ❌ Kimlik doğrulama hatası: {str(e)}")
             logger.error(
-                f"[EMAIL] SENDER_EMAIL={self.sender_email}, PWD={(self.sender_password[:3] + '***') if self.sender_password else 'EMPTY'}"
+                f"[EMAIL] SMTP_USERNAME={self.smtp_username or from_email}, FROM_EMAIL={from_email}, PASSWORD_SET={'yes' if self.sender_password else 'no'}"
             )
-            print(f"[EMAIL] ❌ Authentication error: {str(e)}")
             return False
         except smtplib.SMTPException as e:
             logger.error(f"[EMAIL] ❌ SMTP hatası: {str(e)}")
-            print(f"[EMAIL] ❌ SMTP error: {str(e)}")
             return False
         except Exception as e:
             logger.error(f"[EMAIL] ❌ Email gönderme hatası ({to_email}): {str(e)}")
-            import traceback
+            logger.error(f"[EMAIL] Traceback:", exc_info=True)
+            return False
 
-            logger.error(f"[EMAIL] Traceback:\n{traceback.format_exc()}")
-            print(f"[EMAIL] ❌ Error sending email: {str(e)}")
-            print(f"[EMAIL] Traceback: {traceback.format_exc()}")
+    def send_custom_email(
+        self,
+        to_email: str,
+        subject: str,
+        body: str,
+        cc: str | None = None,
+        attachments: list[tuple[str, str, bytes]] | None = None,
+        owner_user_id: int | None = None,
+        system_email_id: int | None = None,
+    ) -> bool:
+        self._refresh_runtime_config(
+            owner_user_id=owner_user_id,
+            system_email_id=system_email_id,
+        )
+        if not self.sender_email or not self.sender_password:
+            logger.error("[EMAIL] SMTP credentials eksik")
+            return False
+
+        from_email = self.sender_email.strip()
+        if not _is_valid_email_address(from_email):
+            fallback_email = (self.smtp_username or "").strip()
+            if _is_valid_email_address(fallback_email):
+                from_email = fallback_email
+            else:
+                logger.error("[EMAIL] Geçerli bir gönderen e-posta adresi yok")
+                return False
+
+        plain_body = (body or "").strip() or (
+            "Merhaba,\n\nBu ileti ProcureFlow sisteminden gonderilmistir.\n\nIyi calismalar."
+        )
+        html_body = (
+            '<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">'
+            + "<p>"
+            + html.escape(plain_body).replace("\n", "<br>")
+            + "</p>"
+            + "</body></html>"
+        )
+        html_body, plain_body = self._with_signature(html_body, plain_body)
+
+        msg = EmailMessage()
+        self._apply_transactional_headers(
+            msg,
+            from_email=from_email,
+            to_email=to_email,
+            subject=subject,
+        )
+        if cc:
+            msg["Cc"] = cc
+        msg.set_content(plain_body, subtype="plain", charset="utf-8")
+        msg.add_alternative(html_body, subtype="html", charset="utf-8")
+
+        for filename, content_type, content in attachments or []:
+            maintype, subtype = (content_type.split("/", 1) + ["octet-stream"])[:2]
+            msg.add_attachment(
+                content, maintype=maintype, subtype=subtype, filename=filename
+            )
+
+        recipients = [to_email]
+        if cc:
+            recipients.extend([r.strip() for r in cc.split(",") if r.strip()])
+
+        try:
+            server: Union[smtplib.SMTP, smtplib.SMTP_SSL]
+            if self.use_ssl or self.smtp_port == 465:
+                server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, timeout=12)
+            else:
+                server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=12)
+                if self.use_tls:
+                    server.starttls()
+            server.login(self.smtp_username or from_email, self.sender_password)
+            server.send_message(msg, from_addr=from_email, to_addrs=recipients)
+            server.quit()
+            return True
+        except Exception:
+            logger.exception("[EMAIL] Custom email send failed")
             return False
 
     def send_magic_link(
@@ -145,6 +323,7 @@ class EmailService:
         supplier_user_name: str,
         magic_token: str,
         company_name: str = "ProcureFlow",
+        owner_user_id: int | None = None,
     ) -> bool:
         """Tedarikçi kayıt için magic link gönder"""
 
@@ -156,18 +335,19 @@ class EmailService:
         <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #2c3e50;">Hoş Geldiniz, {supplier_user_name}!</h2>
+                    <h2 style="color: #2c3e50;">Stratejik Partner Daveti</h2>
                     
-                    <p>Merhaba,</p>
+                    <p>Merhaba <strong>{supplier_user_name}</strong>,</p>
                     
-                    <p>{company_name} tarafından <strong>{supplier_name}</strong> şirketimize tedarikçi olarak davet edildiniz.</p>
+                    <p><strong>{supplier_name}</strong> firmanız ProcureFlow üzerinde stratejik partner portföyüne hızlı davet akışı ile eklendi.</p>
+                    <p>Bu ilk adımda sadece hesabınızı aktive edip şifrenizi belirlemeniz yeterlidir. Firma profilinizin kalan detaylarını giriş yaptıktan sonra supplier panelinden siz tamamlayabilirsiniz.</p>
                     
-                    <p>Kaydı tamamlamak için aşağıdaki bağlantıya tıklayın:</p>
+                    <p>Davetinizi tamamlamak için aşağıdaki bağlantıya tıklayın:</p>
                     
                     <p style="margin: 30px 0;">
                         <a href="{magic_link}" 
                            style="display: inline-block; padding: 12px 30px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                            Kaydı Tamamla
+                            Daveti Tamamla
                         </a>
                     </p>
                     
@@ -181,10 +361,10 @@ class EmailService:
                     <div style="background-color: #f0f7ff; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0;">
                         <h3 style="margin-top: 0; color: #2c3e50;">ℹ️ Sonraki Adımlar</h3>
                         <ol style="margin: 10px 0; padding-left: 20px;">
-                            <li>Yukarıdaki linke tıklayarak kayıt sayfasına girin</li>
-                            <li>Bir şifre belirleyin (en az 8 karakter)</li>
-                            <li>Kayıt tamamlandıktan sonra <strong>Giriş Sayfasına</strong> gideceksiniz</li>
-                            <li>E-mail ve şifrenizle sistemde giriş yapın</li>
+                            <li>Yukarıdaki link ile supplier davet ekranını açın</li>
+                            <li>Bir şifre belirleyin ve hesabınızı aktive edin</li>
+                            <li>Giriş yaptıktan sonra firma adresi, vergi, finans ve belge alanlarını doldurun</li>
+                            <li>Bu bilgiler tamamlandığında teklif ve hızlı listeleme akışlarında daha görünür olursunuz</li>
                         </ol>
                     </div>
                     
@@ -209,25 +389,25 @@ class EmailService:
         """
 
         # Plain text version
-        plain_text = f"""ProcureFlow Tedarikçi Kaydı
+        plain_text = f"""ProcureFlow Tedarikçi Daveti
 
-Hoş Geldiniz, {supplier_user_name}!
+    Merhaba {supplier_user_name},
 
-Merhaba,
+    {supplier_name} firmanız ProcureFlow üzerinde stratejik partner portföyüne hızlı davet akışı ile eklendi.
+    Bu ilk adımda sadece hesabınızı aktive edip şifrenizi belirlemeniz yeterlidir.
+    Firma profilinizin kalan detaylarını giriş yaptıktan sonra supplier panelinden tamamlayabilirsiniz.
 
-{company_name} tarafından {supplier_name} şirketimize tedarikçi olarak davet edildiniz.
-
-Kaydı tamamlamak için aşağıdaki bağlantıya tıklayın:
+    Davetinizi tamamlamak için aşağıdaki bağlantıya tıklayın:
 {magic_link}
 
 Veya bu bağlantıyı tarayıcınıza kopyalayın:
 {magic_link}
 
 Sonraki Adımlar:
-1. Yukarıdaki linke tıklayarak kayıt sayfasına girin
-2. Bir şifre belirleyin (en az 8 karakter)
-3. Kayıt tamamlandıktan sonra Giriş Sayfasına gideceksiniz
-4. E-mail ve şifrenizle sistemde giriş yapın
+    1. Supplier davet ekranını açın
+    2. Şifrenizi belirleyip hesabınızı aktive edin
+    3. Giriş yaptıktan sonra firma detaylarını tamamlayın
+    4. Teklif ve hızlı listeleme akışlarında görünür olun
 
 Giriş Sayfası: {login_url}
 
@@ -238,8 +418,144 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
 {datetime.now().strftime('%d.%m.%Y %H:%M')}
 """
 
-        subject = f"{supplier_name} - ProcureFlow Tedarikçi Kaydı"
-        return self._send_smtp(to_email, subject, html_content, plain_text)
+        subject = f"{supplier_name} - ProcureFlow Tedarikçi Davetinizi Tamamlayın"
+        return self._send_smtp(
+            to_email,
+            subject,
+            html_content,
+            plain_text,
+            owner_user_id=owner_user_id,
+        )
+
+    def send_internal_user_invitation(
+        self,
+        to_email: str,
+        full_name: str,
+        activation_token: str,
+        company_name: str = "ProcureFlow",
+        owner_user_id: int | None = None,
+    ) -> bool:
+        """İç kullanıcı/personel magic-link davet maili gönder."""
+        activation_url = self._get_internal_user_magic_link(activation_token)
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; background: #f8fafc; margin: 0; padding: 24px 12px;">
+                <div style="max-width: 620px; margin: 0 auto; padding: 28px 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px;">
+                    <div style="font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; color: #64748b; font-weight: 700;">ProcureFlow</div>
+                    <h2 style="color: #0f172a; margin: 12px 0 0;">Hesabinizi olusturun</h2>
+                    <p>Merhaba <strong>{full_name}</strong>,</p>
+                    <p>{company_name} icin super admin onayli hesabiniz hazirlandi. Asagidaki butonla sifrenizi belirleyip dogrudan giris yapabilirsiniz.</p>
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin:20px 0;">
+                        <p style="margin:4px 0 10px;"><strong>E-posta:</strong> {to_email}</p>
+                        <p style="margin:0;"><a href="{activation_url}" style="display:inline-block; padding:12px 18px; background:#2563eb; color:white; text-decoration:none; border-radius:10px; font-weight:700;">Sifre belirle ve hesabi aktifleştir</a></p>
+                    </div>
+                    <p style="margin:0 0 8px;"><strong>Baglanti 24 saat boyunca gecerlidir.</strong></p>
+                    <p style="font-size:12px;color:#64748b; margin: 0;">Bu kayit size ait degilse bu e-postayi dikkate almayin veya yoneticinizle iletisime gecin.</p>
+                </div>
+            </body>
+        </html>
+        """
+        plain_text = (
+            f"ProcureFlow Hesap Aktivasyonu\n\n"
+            f"Merhaba {full_name},\n\n"
+            f"{company_name} icin super admin onayli hesabiniz hazirlandi.\n"
+            f"E-posta: {to_email}\n"
+            f"Sifre belirleme baglantisi: {activation_url}\n\n"
+            "Baglantiyi acip sifrenizi belirleyerek hesabinizi aktiflestirebilirsiniz. Baglanti 24 saat gecerlidir."
+        )
+        return self._send_smtp(
+            to_email,
+            "ProcureFlow hesabinizi olusturun",
+            html_content,
+            plain_text,
+            owner_user_id=owner_user_id,
+        )
+
+    def send_onboarding_status_update(
+        self,
+        to_email: str,
+        full_name: str,
+        company_name: str,
+        decision: str,
+        note: str | None = None,
+        action_url: str | None = None,
+        owner_user_id: int | None = None,
+    ) -> bool:
+        decision_value = (decision or "").strip().lower()
+        is_rejected = decision_value == "rejected"
+        is_needs_info = decision_value == "needs_info"
+        title = "Uyelik basvurunuz guncellendi"
+        headline = "Uyelik basvurunuzla ilgili guncelleme"
+        body_intro = f"<strong>{company_name}</strong> icin yaptiginiz ProcureFlow basvurusu super admin ekibi tarafindan guncellendi."
+        action_box = ""
+        plain_note = ""
+
+        if is_rejected:
+            title = "Uyelik basvurunuz icin ek islem gerekli"
+            headline = "Basvurunuz su an icin onaylanmadi"
+            body_intro = f"<strong>{company_name}</strong> icin yaptiginiz ProcureFlow basvurusu incelendi ancak aktivasyon bu asamada tamamlanmadi."
+            action_box = (
+                '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px;margin:18px 0;">'
+                '<div style="font-weight:700;color:#9a3412;margin-bottom:8px;">Neden / Operasyon Notu</div>'
+                f'<div style="color:#7c2d12;">{html.escape((note or "Operasyon ekibi sizinle iletisime gececektir.").strip())}</div>'
+                '</div>'
+            )
+            plain_note = f"\n\nNeden / not: {(note or 'Operasyon ekibi sizinle iletisime gececektir.').strip()}"
+        elif is_needs_info:
+            title = "Uyelik basvurunuz icin ek bilgi gerekiyor"
+            headline = "Basvurunuz icin ek bilgi veya yeni dekont gerekiyor"
+            body_intro = f"<strong>{company_name}</strong> icin yaptiginiz ProcureFlow basvurusu incelendi. Aktivasyon oncesi sizden ek bilgi veya guncel odeme kaniti talep ediliyor."
+            action_box = (
+                '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin:18px 0;">'
+                '<div style="font-weight:700;color:#1d4ed8;margin-bottom:8px;">Talep Detayi</div>'
+                f'<div style="color:#1e3a8a;">{html.escape((note or "Lutfen odeme kanitini ve aciklama bilgisini guncelleyin.").strip())}</div>'
+                '</div>'
+            )
+            if action_url:
+                action_box += (
+                    '<div style="margin:18px 0;">'
+                    f'<a href="{html.escape(action_url)}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;">Basvurumu Guncelle</a>'
+                    "</div>"
+                )
+            plain_note = f"\n\nTalep detayi: {(note or 'Lutfen odeme kanitini ve aciklama bilgisini guncelleyin.').strip()}"
+            if action_url:
+                plain_note += f"\nBasvuru guncelleme linki: {action_url}"
+        else:
+            action_box = (
+                '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin:18px 0;color:#1e3a8a;">'
+                "Basvurunuz onaylandiginda aktivasyon baglantisi ayrica e-posta ile iletilir."
+                "</div>"
+            )
+            if note:
+                plain_note = f"\n\nNot: {note.strip()}"
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
+                <div style="max-width: 620px; margin: 0 auto; padding: 24px;">
+                    <h2 style="color: #0f172a;">{headline}</h2>
+                    <p>Merhaba <strong>{html.escape(full_name)}</strong>,</p>
+                    <p>{body_intro}</p>
+                    {action_box}
+                    <p style="color:#475569;">Sorulariniz varsa bu e-postayi yanitlayabilir veya platform ekibiyle iletisime gecebilirsiniz.</p>
+                </div>
+            </body>
+        </html>
+        """
+        plain_text = (
+            f"{title}\n\n"
+            f"Merhaba {full_name},\n\n"
+            f"{company_name} icin yaptiginiz ProcureFlow basvurusu guncellendi."
+            f"{plain_note}\n\n"
+            "Sorulariniz varsa bu e-postayi yanitlayabilirsiniz."
+        )
+        return self._send_smtp(
+            to_email,
+            title,
+            html_content,
+            plain_text,
+            owner_user_id=owner_user_id,
+        )
 
     def send_quote_notification(
         self,
@@ -249,6 +565,7 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
         deadline: str,
         quote_url: str,
         company_name: str = "ProcureFlow",
+        owner_user_id: int | None = None,
     ) -> bool:
         """Yeni teklif bildirimi gönder"""
 
@@ -310,7 +627,13 @@ Lütfen son tarihinden önce teklif yöneticimize yanıt verin.
 """
 
         subject = f"Yeni Teklif - {quote_title}"
-        return self._send_smtp(to_email, subject, html_content, plain_text)
+        return self._send_smtp(
+            to_email,
+            subject,
+            html_content,
+            plain_text,
+            owner_user_id=owner_user_id,
+        )
 
     def send_supplier_email_change_magic_link(
         self,
@@ -370,6 +693,7 @@ Lütfen son tarihinden önce teklif yöneticimize yanıt verin.
         approval_level: str,
         approval_url: str,
         company_name: str = "ProcureFlow",
+        owner_user_id: int | None = None,
     ) -> bool:
         """Onay isteği gönder (Manager/Director için)"""
 
@@ -427,7 +751,13 @@ Onay Sayfasına Git: {approval_url}
 """
 
         subject = f"Onay İsteği - {quote_title}"
-        return self._send_smtp(to_email, subject, html_content, plain_text)
+        return self._send_smtp(
+            to_email,
+            subject,
+            html_content,
+            plain_text,
+            owner_user_id=owner_user_id,
+        )
 
     def send_project_invitation(
         self,
@@ -638,6 +968,7 @@ Paneli açmak için: {self.app_url}/supplier/dashboard
         warranty: str | None = None,
         workspace_url: str = "",
         company_name: str = "ProcureFlow",
+        owner_user_id: int | None = None,
     ) -> bool:
         """Satın alma sorumlusuna tedarikçi yanıtı bildirimi (ilk teklif veya revize)"""
         is_revision = revision_number > 0
@@ -712,7 +1043,13 @@ Paneli açmak için: {self.app_url}/supplier/dashboard
         subject = (
             f"[ProcureFlow] {icon} {supplier_company} — {revision_label}: {quote_title}"
         )
-        return self._send_smtp(to_email, subject, html_content, plain_text)
+        return self._send_smtp(
+            to_email,
+            subject,
+            html_content,
+            plain_text,
+            owner_user_id=owner_user_id,
+        )
 
 
 # Singleton instance

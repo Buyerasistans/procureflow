@@ -50,6 +50,15 @@ export function isSupplierLoggedIn() {
   return !!readWithLegacyFallback(SUPPLIER_ACCESS_KEY);
 }
 
+export function isSupplierRoute(pathname: string | null | undefined) {
+  return String(pathname || "").includes("/supplier/");
+}
+
+export function shouldUseSupplierSession(pathname: string | null | undefined) {
+  const normalizedPath = String(pathname || "");
+  return isSupplierRoute(normalizedPath) || (normalizedPath === "/" && isSupplierLoggedIn());
+}
+
 export function clearToken() {
   sessionStorage.removeItem(ACCESS_KEY);
   sessionStorage.removeItem(LEGACY_ACCESS_KEY);

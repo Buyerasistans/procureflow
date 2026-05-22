@@ -1,7 +1,7 @@
 // FILE: web/src/pages/ForbiddenPage.tsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { getDefaultRouteForRole } from "../auth/routing";
+import { getDefaultRouteForUser } from "../auth/routing";
 
 export default function ForbiddenPage() {
   const location = useLocation();
@@ -12,7 +12,7 @@ export default function ForbiddenPage() {
     (location.state as { deniedFrom?: string } | null)?.deniedFrom ?? "bu sayfa";
   const fallbackToState =
     (location.state as { fallbackTo?: string } | null)?.fallbackTo;
-  const fallbackTo = user ? fallbackToState ?? getDefaultRouteForRole(user.role) : "/dashboard";
+  const fallbackTo = user ? fallbackToState ?? getDefaultRouteForUser(user) : "/dashboard";
 
   return (
     <div style={{ maxWidth: 720, margin: "48px auto", padding: 16, fontFamily: "Arial" }}>

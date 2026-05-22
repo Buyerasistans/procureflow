@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Now import modules
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 from core.security import get_password_hash
 from models.user import User
@@ -30,7 +30,11 @@ db = SessionLocal()
 
 try:
     # Mevcut super_admin'i kontrol et
-    existing_admin = db.query(User).filter(User.role == "super_admin").first()
+    existing_admin = (
+        db.query(User)
+        .filter(or_(User.system_role == "super_admin", User.role == "super_admin"))
+        .first()
+    )
     if existing_admin:
         print(f"⚠️  Super Admin zaten var: {existing_admin.email}")
         sys.exit(0)
@@ -41,6 +45,7 @@ try:
         full_name="Super Admin",
         hashed_password=get_password_hash("superadmin123"),
         role="super_admin",
+        system_role="super_admin",
         approval_limit=999999999,  # Sınırsız onay limiti
         is_active=True,
     )
@@ -53,6 +58,7 @@ try:
     print(f"Email: {super_admin.email}")
     print(f"Şifre: superadmin123")
     print(f"Role: {super_admin.role}")
+    print(f"System Role: {super_admin.system_role}")
     print()
     print("İçeri girmek için bu bilgilerini kullan:")
     print("  Email: superadmin@procureflow.com")

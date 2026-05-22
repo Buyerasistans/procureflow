@@ -13,7 +13,18 @@ class SupplierUserCreate(BaseModel):
 
     name: str
     email: EmailStr
+    work_email: Optional[EmailStr] = None
     phone: Optional[str] = None
+
+
+class SupplierUserUpdate(BaseModel):
+    """Tedarikçi firma kullanıcısı güncelle"""
+
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    work_email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class SupplierUserOut(SupplierUserCreate):
@@ -44,8 +55,12 @@ class SupplierCreate(BaseModel):
     website: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
+    address_district: Optional[str] = None
     postal_code: Optional[str] = None
+    notes: Optional[str] = None
     category: Optional[str] = None  # e.g., "Yazılım", "Donanım", "Hizmet"
+    category_tags: list[str] = Field(default_factory=list)
+    partner_category_tags: list[str] = Field(default_factory=list)
 
 
 class SupplierUpdate(BaseModel):
@@ -60,14 +75,18 @@ class SupplierUpdate(BaseModel):
     website: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
+    address_district: Optional[str] = None
     postal_code: Optional[str] = None
     invoice_name: Optional[str] = None
     invoice_address: Optional[str] = None
     invoice_city: Optional[str] = None
+    invoice_district: Optional[str] = None
     invoice_postal_code: Optional[str] = None
     reference_score: Optional[float] = None
     notes: Optional[str] = None
     category: Optional[str] = None
+    category_tags: list[str] | None = None
+    partner_category_tags: list[str] | None = None
     is_verified: Optional[bool] = None
     logo_url: Optional[str] = None
 
@@ -82,13 +101,22 @@ class SupplierOut(SupplierCreate):
     is_active: bool
     is_verified: bool
     logo_url: Optional[str] = None
+    category_tags: list[str] = Field(default_factory=list)
+    partner_category_tags: list[str] = Field(default_factory=list)
+    effective_category_tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: Optional[datetime] = None
+    source_type: str = "private"
+    tenant_id: Optional[int] = None
+    tenant_name: Optional[str] = None
+    inviter_company_name: Optional[str] = None
+    special_listing_active: bool = False
 
     # Invoice fields
     invoice_name: Optional[str] = None
     invoice_address: Optional[str] = None
     invoice_city: Optional[str] = None
+    invoice_district: Optional[str] = None
     invoice_postal_code: Optional[str] = None
     registration_number: Optional[str] = None
 

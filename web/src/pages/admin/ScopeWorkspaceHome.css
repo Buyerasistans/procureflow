@@ -1,0 +1,665 @@
+.scope-workspace-home {
+  --scope-header-bg: #0f172acc;
+  --scope-header-text: #f8fafc;
+  --scope-footer-bg: #0f172a99;
+  --scope-footer-text: #e2e8f0;
+  --scope-hero-text: #ffffff;
+  --scope-hero-muted: rgba(255, 255, 255, 0.82);
+  --scope-hero-bg: linear-gradient(95deg, rgba(37, 99, 235, 0.85) 0%, rgba(37, 99, 235, 0.67) 100%);
+  --scope-hero-glow: 0 0 30px rgba(37, 99, 235, 0.24);
+  display: grid;
+  gap: 16px;
+}
+
+.scope-workspace-home__shell {
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
+}
+
+.scope-workspace-home__header-strip,
+.scope-workspace-home__footer-strip {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scope-workspace-home__header-strip {
+  background: var(--scope-header-bg);
+  color: var(--scope-header-text);
+}
+
+.scope-workspace-home__footer-strip {
+  background: var(--scope-footer-bg);
+  color: var(--scope-footer-text);
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.scope-workspace-home__hero {
+  padding: 20px 24px;
+  color: var(--scope-hero-text);
+  background: var(--scope-hero-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: var(--scope-hero-glow);
+}
+
+.scope-workspace-home__logo-frame {
+  width: 120px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(7, 18, 30, 0.22);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.scope-workspace-home__hero-copy {
+  flex: 1;
+  min-width: 200px;
+}
+
+.scope-workspace-home__eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  opacity: 0.88;
+  margin-bottom: 6px;
+  color: var(--scope-hero-muted);
+}
+
+.scope-workspace-home__title {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--scope-hero-text);
+}
+
+.scope-workspace-home__role-label {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--scope-hero-muted);
+}
+
+.scope-workspace-home__description {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--scope-hero-muted);
+}
+
+.scope-workspace-home__user-block {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.scope-workspace-home__user-caption {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin-bottom: 4px;
+  color: var(--scope-hero-muted);
+}
+
+.scope-workspace-home__user-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--scope-hero-text);
+}
+
+.scope-workspace-home__user-email {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-top: 4px;
+  color: var(--scope-hero-muted);
+}
+
+.scope-workspace-home__summary {
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.scope-workspace-home__summary-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.scope-workspace-home__section-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #1e3a8a;
+}
+
+.scope-workspace-home__metric-grid,
+.scope-workspace-home__links-grid,
+.scope-workspace-home__request-grid,
+.scope-workspace-home__form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.scope-workspace-home__metric-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.scope-workspace-home__metric-card {
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.scope-workspace-home__metric-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.scope-workspace-home__metric-value {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.scope-workspace-home__metric-card--pending .scope-workspace-home__metric-label,
+.scope-workspace-home__metric-card--pending .scope-workspace-home__metric-value {
+  color: #b45309;
+}
+
+.scope-workspace-home__metric-card--approved .scope-workspace-home__metric-label,
+.scope-workspace-home__metric-card--approved .scope-workspace-home__metric-value {
+  color: #15803d;
+}
+
+.scope-workspace-home__metric-card--rejected .scope-workspace-home__metric-label,
+.scope-workspace-home__metric-card--rejected .scope-workspace-home__metric-value {
+  color: #b91c1c;
+}
+
+.scope-workspace-home__metric-card--links .scope-workspace-home__metric-label,
+.scope-workspace-home__metric-card--links .scope-workspace-home__metric-value {
+  color: var(--scope-header-bg);
+}
+
+.scope-workspace-home__panel {
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 12px;
+}
+
+.scope-workspace-home__panel-title {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.scope-workspace-home__section-copy {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.scope-workspace-home__status-note {
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+  padding: 14px 16px;
+  color: #334155;
+  font-size: 13px;
+}
+
+.scope-workspace-home__card-list,
+.scope-workspace-home__details-list {
+  display: grid;
+  gap: 10px;
+}
+
+.scope-workspace-home__catalog-card {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.scope-workspace-home__catalog-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.scope-workspace-home__catalog-card-title {
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.scope-workspace-home__catalog-card-meta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.scope-workspace-home__status-pill {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.scope-workspace-home__status-pill--approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.scope-workspace-home__status-pill--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.scope-workspace-home__status-pill--pending {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.scope-workspace-home__catalog-card-description {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.scope-workspace-home__catalog-card-note {
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 10px;
+  color: #334155;
+  font-size: 12px;
+}
+
+.scope-workspace-home__catalog-card-actions,
+.scope-workspace-home__request-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scope-workspace-home__primary-button,
+.scope-workspace-home__secondary-button {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.scope-workspace-home__primary-button {
+  border: none;
+  background: var(--scope-header-bg);
+  color: var(--scope-header-text);
+}
+
+.scope-workspace-home__secondary-button {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.scope-workspace-home__primary-button:disabled,
+.scope-workspace-home__secondary-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.scope-workspace-home__field-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.scope-workspace-home__input,
+.scope-workspace-home__textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+}
+
+.scope-workspace-home__textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.scope-workspace-home__info-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.scope-workspace-home__info-item {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 12px 14px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.scope-workspace-home__quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.scope-workspace-home__quick-link {
+  border-radius: 18px;
+  border: 1px solid #dbe3ee;
+  background: #ffffff;
+  padding: 16px;
+  text-decoration: none;
+  color: #0f172a;
+  display: grid;
+  gap: 6px;
+}
+
+.scope-workspace-home__quick-link-title {
+  font-weight: 900;
+}
+
+.scope-workspace-home__quick-link-description {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.scope-workspace-home__quick-link-action {
+  color: var(--scope-header-bg);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.scope-workspace-home__scope-panel {
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 12px;
+}
+
+.scope-workspace-home__scope-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.scope-workspace-home__scope-copy {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.scope-workspace-home__scope-list {
+  display: grid;
+  gap: 12px;
+}
+
+.scope-workspace-home__scope-item {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 12px 14px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.scope-workspace-home__request-empty {
+  border-radius: 16px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  padding: 14px 16px;
+  color: #64748b;
+}
+
+.scope-workspace-home__request-card {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.scope-workspace-home__request-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.scope-workspace-home__request-card-title {
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.scope-workspace-home__request-card-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.scope-workspace-home__request-card-text {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.scope-workspace-home__request-meta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.scope-workspace-home__request-decision-note {
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 10px;
+  color: #334155;
+  font-size: 12px;
+}
+
+.scope-workspace-home__theme-card {
+  border-radius: 18px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: #eff6ff;
+}
+
+.scope-workspace-home__theme-card-title {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #1e3a8a;
+}
+
+.scope-workspace-home__theme-card-note {
+  font-size: 11px;
+  color: #1e3a8a;
+  opacity: 0.72;
+  font-weight: 700;
+  margin-top: -4px;
+}
+
+.scope-workspace-home__theme-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.scope-workspace-home__theme-row-label {
+  font-size: 12px;
+  color: #475569;
+  font-weight: 700;
+}
+
+.scope-workspace-home__theme-row-value {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.scope-workspace-home__theme-card--partner {
+  border-color: rgba(37, 99, 235, 0.2);
+  background: #eff6ff;
+}
+
+.scope-workspace-home__theme-card--partner .scope-workspace-home__theme-card-title,
+.scope-workspace-home__theme-card--partner .scope-workspace-home__theme-row-value {
+  color: #2563eb;
+}
+
+.scope-workspace-home__theme-card--supplier {
+  border-color: rgba(220, 38, 38, 0.18);
+  background: #fef2f2;
+}
+
+.scope-workspace-home__theme-card--supplier .scope-workspace-home__theme-card-title,
+.scope-workspace-home__theme-card--supplier .scope-workspace-home__theme-row-value {
+  color: #dc2626;
+}
+
+.scope-workspace-home__theme-card--channel {
+  border-color: rgba(15, 118, 110, 0.18);
+  background: #f0fdfa;
+}
+
+.scope-workspace-home__theme-card--channel .scope-workspace-home__theme-card-title,
+.scope-workspace-home__theme-card--channel .scope-workspace-home__theme-row-value {
+  color: #0f766e;
+}
+
+.scope-workspace-home__summary-pill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.scope-workspace-home__summary-pill-card {
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.scope-workspace-home__summary-pill-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.scope-workspace-home__summary-pill-value {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.scope-workspace-home__summary-pill-card--pending .scope-workspace-home__summary-pill-label,
+.scope-workspace-home__summary-pill-card--pending .scope-workspace-home__summary-pill-value {
+  color: #b45309;
+}
+
+.scope-workspace-home__summary-pill-card--approved .scope-workspace-home__summary-pill-label,
+.scope-workspace-home__summary-pill-card--approved .scope-workspace-home__summary-pill-value {
+  color: #15803d;
+}
+
+.scope-workspace-home__summary-pill-card--rejected .scope-workspace-home__summary-pill-label,
+.scope-workspace-home__summary-pill-card--rejected .scope-workspace-home__summary-pill-value {
+  color: #b91c1c;
+}
+
+.scope-workspace-home__summary-pill-card--links .scope-workspace-home__summary-pill-label,
+.scope-workspace-home__summary-pill-card--links .scope-workspace-home__summary-pill-value {
+  color: #1d4ed8;
+}
+
+@media (max-width: 64rem) {
+  .scope-workspace-home__hero {
+    align-items: flex-start;
+  }
+
+  .scope-workspace-home__user-block {
+    text-align: left;
+  }
+
+  .scope-workspace-home__summary {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 48rem) {
+  .scope-workspace-home__hero {
+    padding: 18px;
+  }
+
+  .scope-workspace-home__title {
+    font-size: 24px;
+  }
+
+  .scope-workspace-home__panel-title {
+    font-size: 22px;
+  }
+
+  .scope-workspace-home__quick-links-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scope-workspace-home__form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scope-workspace-home__catalog-card-actions,
+  .scope-workspace-home__request-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

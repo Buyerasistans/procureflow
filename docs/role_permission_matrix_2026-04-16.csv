@@ -1,0 +1,13 @@
+category,role_key,display_name,admin_surface_access,admin_catalog_read,manage_users,tenant_governance_read,tenant_governance_write,support_workflow_update,quote_workspace_access,review_approvals,project_create,view_all_projects,manage_tenant_identity,manage_shared_email_profiles,department_scope
+system_role,super_admin,Super Admin,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Platform genelinde
+system_role,platform_support,Platform Destek,UI'da evet API yazmada hayir,Evet,Hayir,Evet,Hayir,Evet,Sinirli/Hayir,Sinirli/Hayir,Hayir,Sinirli/Hayir,Hayir,Hayir,Tenant bazli destek kayitlari
+system_role,platform_operator,Platform Operasyon,UI'da evet API yazmada hayir,Evet,Hayir,Evet,Hayir,Evet,Sinirli/Hayir,Sinirli/Hayir,Hayir,Sinirli/Hayir,Hayir,Hayir,Tenant bazli operasyon kayitlari
+system_role,tenant_owner,Tenant Sahibi,Evet,Evet,Evet,Hayir,Hayir,Hayir,Evet,Evet,Role bagli,Evet,Evet,Hayir,Sadece kendi tenant'i
+system_role,tenant_admin,Tenant Admin,Evet,Evet,Evet,Hayir,Hayir,Hayir,Evet,Evet,Role bagli,Evet,Hayir,Hayir,Sadece kendi tenant'i
+system_role,tenant_member,Tenant Uyesi,Hayir,Hayir,Hayir,Hayir,Hayir,Hayir,Role bagli,Role bagli,Role bagli,Role bagli,Hayir,Hayir,Kendi atandigi departman/firma
+business_role,satinalma_direktoru,Satin Alma Direktoru,Duruma bagli,Duruma bagli,Duruma bagli,Hayir,Hayir,Hayir,Evet,Evet,Evet,Evet,Hayir,Hayir,Departman/firma atamasina gore
+business_role,satinalma_yoneticisi,Satin Alma Yoneticisi,Duruma bagli,Duruma bagli,Duruma bagli,Hayir,Hayir,Hayir,Evet,Evet,Evet,Hayir,Hayir,Hayir,Departman/firma atamasina gore
+business_role,satinalma_uzmani,Satin Alma Uzmani,Duruma bagli,Duruma bagli,Duruma bagli,Hayir,Hayir,Hayir,Evet,Hayir,Evet,Hayir,Hayir,Hayir,Departman/firma atamasina gore
+business_role,satinalmaci,Satin Almaci,Duruma bagli,Duruma bagli,Duruma bagli,Hayir,Hayir,Hayir,Evet,Hayir,Hayir,Hayir,Hayir,Hayir,Departman/firma atamasina gore
+business_role,admin,Admin (is rolu),Sistem rolu ile belirlenir,Sistem rolu ile belirlenir,Sistem rolu ile belirlenir,Hayir,Hayir,Hayir,Sistem+is rolu ile belirlenir,Sistem+is rolu ile belirlenir,Evet,Evet,Hayir,Hayir,Genelde tenant yonetimi
+business_role,super_admin,Super Admin (is rolu),Sistem rolu super_admin ise tam yetki,Sistem rolu super_admin ise tam yetki,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Evet,Platform geneli

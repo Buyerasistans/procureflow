@@ -6,12 +6,10 @@ import AppLayout from "../components/AppLayout"
 
 const mockLogout = vi.fn()
 const mockNavigate = vi.fn()
+const mockUseAuth = vi.fn()
 
 vi.mock("../hooks/useAuth", () => ({
-  useAuth: () => ({
-    user: { email: "admin@pf.com", role: "admin" },
-    logout: mockLogout,
-  }),
+  useAuth: () => mockUseAuth(),
 }))
 
 vi.mock("../lib/notify", () => ({
@@ -30,9 +28,31 @@ vi.mock("react-router-dom", async () => {
   }
 })
 
+vi.mock("../services/admin.service", () => ({
+  getWorkspacePanelConfig: vi.fn().mockResolvedValue({ profiles: [] }),
+}))
+
+vi.mock("../services/mail-center.service", () => ({
+  getMailCenterAccounts: vi.fn().mockResolvedValue([]),
+  getDashboardMailButtonConfig: vi.fn().mockResolvedValue({ dashboard_mail_button_enabled: true }),
+}))
+
+vi.mock("../services/profile.service", () => ({
+  getMyProfile: vi.fn().mockResolvedValue(null),
+}))
+
 describe("AppLayout", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUseAuth.mockReturnValue({
+      user: {
+        email: "admin@pf.com",
+        role: "admin",
+        system_role: "tenant_admin",
+        platform_name: "Buyera Asistans",
+      },
+      logout: mockLogout,
+    })
   })
 
   it("Outlet içeriğini render eder", () => {
@@ -47,7 +67,7 @@ describe("AppLayout", () => {
     )
 
     expect(screen.getByText("İçerik")).toBeInTheDocument()
-    expect(screen.getByText(/ProcureFlow/i)).toBeInTheDocument()
+    expect(screen.getByText(/Buyera Asistans/i)).toBeInTheDocument()
   })
 
   it("Çıkış Yap tıklanınca logout + navigate çalışır", async () => {
@@ -68,5 +88,53 @@ describe("AppLayout", () => {
 
     expect(mockLogout).toHaveBeenCalledTimes(1)
     expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true })
+  })
+
+  it("platform support kullanıcısı için workspace fallback etiketini gösterir", () => {
+    mockUseAuth.mockReturnValue({
+      user: {
+        email: "support@pf.com",
+        role: "admin",
+        system_role: "platform_support",
+        platform_name: "Buyera Asistans",
+      },
+      logout: mockLogout,
+    })
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<div>İçerik</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/Platform Operasyon Alani/i)).toBeInTheDocument()
+  })
+
+  it("tenant owner kullanıcısı için owner workspace fallback etiketini gösterir", () => {
+    mockUseAuth.mockReturnValue({
+      user: {
+        email: "owner@pf.com",
+        role: "admin",
+        system_role: "tenant_owner",
+        platform_name: "Buyera Asistans",
+      },
+      logout: mockLogout,
+    })
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<div>İçerik</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/Owner Yonetim Alani/i)).toBeInTheDocument()
   })
 })

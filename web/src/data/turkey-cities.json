@@ -1,0 +1,5 @@
+[
+  {"il": "Adana", "ilceler": ["Seyhan", "Çukurova", "Yüreğir", "Sarıçam", "Ceyhan", "İmamoğlu", "Karaisalı", "Karataş", "Kozan", "Pozantı", "Saimbeyli", "Tufanbeyli", "Feke", "Aladağ", "Yumurtalık"]},
+  {"il": "Ankara", "ilceler": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan", "Altındağ", "Pursaklar", "Gölbaşı", "Polatlı", "Beypazarı", "Ayaş", "Çubuk", "Elmadağ", "Evren", "Haymana", "Kalecik", "Kızılcahamam", "Nallıhan", "Şereflikoçhisar", "Akyurt"]},
+  {"il": "İstanbul", "ilceler": ["Kadıköy", "Beşiktaş", "Üsküdar", "Şişli", "Bakırköy", "Fatih", "Beyoğlu", "Ataşehir", "Maltepe", "Kartal", "Pendik", "Tuzla", "Sancaktepe", "Sultanbeyli", "Çekmeköy", "Ümraniye", "Beykoz", "Sarıyer", "Eyüpsultan", "Gaziosmanpaşa", "Bayrampaşa", "Esenler", "Bağcılar", "Güngören", "Bahçelievler", "Zeytinburnu", "Avcılar", "Küçükçekmece", "Başakşehir", "Esenyurt", "Beylikdüzü", "Büyükçekmece", "Silivri", "Çatalca", "Arnavutköy", "Sultangazi"]}
+]

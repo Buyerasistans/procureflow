@@ -1,19 +1,23 @@
 // QuoteCreatePage — Profesyonel Teklif Talebi Oluşturma
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { createQuote, updateQuoteItems } from "../services/quote.service";
-import type { QuoteItemPayload } from "../services/quote.service";
+import { createRfq, updateRfqItems } from "../services/quote.service";
+import { SUBSCRIPTION_ADDON_CTA_LABEL, SUBSCRIPTION_UPGRADE_CTA_LABEL, getSubscriptionAddonHref, getSubscriptionLimitGuidanceMessage, getSubscriptionUpgradeHref, hasSubscriptionUpgradeGuidance } from "../utils/subscriptionLimitErrors";
+import type { RfqItemPayload } from "../services/quote.service";
 import {
   getDepartments,
-  getPersonnel,
+  getTenantUsers,
   getProjects,
+  getUserCompanyAssignments,
   type Department,
-  type Personnel,
+  type TenantUser,
   type Project,
 } from "../services/admin.service";
 import { getAccessToken } from "../lib/token";
 import { useAuth } from "../hooks/useAuth";
 import { getSettings } from "../services/settings.service";
+import { canManageQuoteWorkspace, isPlatformStaffUser, isScopedTenantUser } from "../auth/permissions";
+import { filterUsersByAssignmentScope, getUserDepartmentIds } from "../utils/tenantUserAssignments";
 
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -95,7 +99,7 @@ const S = {
   },
 };
 
-const EMPTY_ITEM = (): QuoteItemPayload => ({
+const EMPTY_ITEM = (): RfqItemPayload => ({
   line_number: "",
   category_code: "",
   category_name: "",
@@ -108,6 +112,30 @@ const EMPTY_ITEM = (): QuoteItemPayload => ({
 });
 
 type ItemMeta = { detail: string; imageUrl: string };
+type ListingScopePreference = "private_suppliers_only" | "platform_network_only" | "private_and_platform_network" | "premium_featured_listing";
+
+const LISTING_SCOPE_OPTIONS: Array<{ value: ListingScopePreference; label: string; hint: string }> = [
+  {
+    value: "private_suppliers_only",
+    label: "Sadece kendi tedarikcileri",
+    hint: "RFQ sadece private supplier havuzundan gorunur.",
+  },
+  {
+    value: "platform_network_only",
+    label: "Platform agina acik",
+    hint: "Platform network tedarikcileri hedeflenir (paket/premium kurallari gecerlidir).",
+  },
+  {
+    value: "private_and_platform_network",
+    label: "Karma havuz",
+    hint: "Private + platform network supplier havuzlari birlikte kullanilir.",
+  },
+  {
+    value: "premium_featured_listing",
+    label: "Premium / ozel listeleme",
+    hint: "Premium entitlement aktifse RFQ ozel vitrin sinyalini tasir.",
+  },
+];
 
 const parseItemMeta = (notes?: string): ItemMeta => {
   if (!notes) return { detail: "", imageUrl: "" };
@@ -137,7 +165,7 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-const renumberItems = (rows: QuoteItemPayload[]): QuoteItemPayload[] => {
+const renumberItems = (rows: RfqItemPayload[]): RfqItemPayload[] => {
   let groupNo = 0;
   let currentGroup = "";
   let plainNo = 0;
@@ -182,13 +210,13 @@ const renumberItems = (rows: QuoteItemPayload[]): QuoteItemPayload[] => {
   });
 };
 
-const isGroupHeaderRow = (item: QuoteItemPayload): boolean => {
+const isGroupHeaderRow = (item: RfqItemPayload): boolean => {
   if (item.is_group_header) return true;
   const line = String(item.line_number || "").trim();
   return line.length > 0 && !line.includes(".");
 };
 
-const resolveGroupKey = (item: QuoteItemPayload): string => {
+const resolveGroupKey = (item: RfqItemPayload): string => {
   if (item.group_key) return String(item.group_key);
   const line = String(item.line_number || "").trim();
   if (!line) return "";
@@ -197,7 +225,7 @@ const resolveGroupKey = (item: QuoteItemPayload): string => {
 
 type GroupTotals = { net: number; vat: number; gross: number };
 
-const buildGroupTotals = (rows: QuoteItemPayload[]): Record<string, GroupTotals> => {
+const buildGroupTotals = (rows: RfqItemPayload[]): Record<string, GroupTotals> => {
   const totals: Record<string, GroupTotals> = {};
   rows.forEach((row) => {
     if (isGroupHeaderRow(row)) return;
@@ -221,10 +249,14 @@ export default function QuoteCreatePage() {
   const [searchParams] = useSearchParams();
   const fileRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+  const readOnly = isPlatformStaffUser(user);
+  const canManageQuotes = canManageQuoteWorkspace(user);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [personnel, setPersonnel] = useState<Personnel[]>([]);
+  const [personnel, setPersonnel] = useState<TenantUser[]>([]);
+  const [projectPersonnelAssignments, setProjectPersonnelAssignments] = useState<Record<number, TenantUser["company_assignments"]>>({});
+  const [projectPersonnelAssignmentsLoading, setProjectPersonnelAssignmentsLoading] = useState(false);
 
   const [projectId, setProjectId] = useState<number | "">("");
   const [departmentId, setDepartmentId] = useState<number | "">("");
@@ -232,22 +264,24 @@ export default function QuoteCreatePage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [listingScopePreference, setListingScopePreference] = useState<ListingScopePreference>("private_suppliers_only");
 
   const [mode, setMode] = useState<"manual" | "excel">("manual");
   const [excelFile, setExcelFile] = useState<File | null>(null);
-  const [items, setItems] = useState<QuoteItemPayload[]>(renumberItems([EMPTY_ITEM()]));
+  const [items, setItems] = useState<RfqItemPayload[]>(renumberItems([EMPTY_ITEM()]));
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [vatRates, setVatRates] = useState<number[]>([1, 10, 20]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isScopedUser = Boolean(user && user.role !== "admin" && user.role !== "super_admin");
+  const isScopedUser = isScopedTenantUser(user);
 
   useEffect(() => {
     if (!isScopedUser || !user) return;
 
-    const fallbackDeptId = personnel.find((p) => p.id === user.id)?.department_id;
+    const currentPersonnel = personnel.find((p) => p.id === user.id);
+    const fallbackDeptId = currentPersonnel ? getUserDepartmentIds(currentPersonnel)[0] : undefined;
     const userDeptId = user.department_id ?? fallbackDeptId;
 
     setAssignedToId(user.id);
@@ -261,7 +295,7 @@ export default function QuoteCreatePage() {
 
   // Veri yükleme
   useEffect(() => {
-    Promise.all([getProjects(), getDepartments(), getPersonnel()]).then(
+    Promise.all([getProjects(), getDepartments(), getTenantUsers()]).then(
       ([p, d, u]) => { setProjects(p); setDepartments(d); setPersonnel(u); }
     );
 
@@ -283,13 +317,78 @@ export default function QuoteCreatePage() {
     }
   }, [searchParams]);
 
-  const filteredPersonnel = effectiveDepartmentId
-    ? personnel.filter((p) => p.department_id === Number(effectiveDepartmentId))
+  const selectedProject = projects.find((project) => project.id === Number(projectId));
+  const projectMemberIds = useMemo(() => (
+    selectedProject
+      ? Array.from(
+        new Set([
+          ...(selectedProject.personnel?.map((member) => member.id).filter(Boolean) || []),
+          ...(selectedProject.created_by_id ? [selectedProject.created_by_id] : []),
+        ]),
+      )
+      : []
+  ), [selectedProject]);
+
+  useEffect(() => {
+    if (projectMemberIds.length === 0) {
+      setProjectPersonnelAssignments({});
+      return;
+    }
+
+    let cancelled = false;
+    setProjectPersonnelAssignmentsLoading(true);
+    Promise.all(
+      projectMemberIds.map(async (userId) => ({
+        userId,
+        assignments: await getUserCompanyAssignments(userId).catch(() => []),
+      })),
+    )
+      .then((rows) => {
+        if (cancelled) return;
+        const nextAssignments: Record<number, TenantUser["company_assignments"]> = {};
+        rows.forEach((row) => {
+          nextAssignments[row.userId] = row.assignments;
+        });
+        setProjectPersonnelAssignments(nextAssignments);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setProjectPersonnelAssignmentsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectMemberIds]);
+
+  const projectScopedPersonnel = projectMemberIds.length
+    ? personnel
+      .filter((person) => projectMemberIds.includes(person.id))
+      .map((person) => ({
+        ...person,
+        company_assignments: projectPersonnelAssignments[person.id] || person.company_assignments || [],
+      }))
     : personnel;
+
+  const filteredPersonnel = filterUsersByAssignmentScope(projectScopedPersonnel, {
+    departmentId: effectiveDepartmentId ? Number(effectiveDepartmentId) : undefined,
+  });
 
   const visiblePersonnel = isScopedUser && user
     ? filteredPersonnel.filter((p) => p.id === user.id)
     : filteredPersonnel;
+
+  useEffect(() => {
+    if (isScopedUser || !effectiveDepartmentId) {
+      return;
+    }
+    const numericAssignedUserId = effectiveAssignedToId ? Number(effectiveAssignedToId) : null;
+    if (numericAssignedUserId && visiblePersonnel.some((person) => person.id === numericAssignedUserId)) {
+      return;
+    }
+    setAssignedToId(visiblePersonnel[0]?.id || "");
+  }, [effectiveAssignedToId, effectiveDepartmentId, isScopedUser, visiblePersonnel]);
 
   const groupedTotals = buildGroupTotals(items);
   const overallNet = items
@@ -305,7 +404,7 @@ export default function QuoteCreatePage() {
   const overallGross = overallNet + overallVat;
 
   // --- Items helpers ---
-  const updateItem = (idx: number, field: keyof QuoteItemPayload, val: string | number | undefined) => {
+  const updateItem = (idx: number, field: keyof RfqItemPayload, val: string | number | undefined) => {
     setItems((prev) => {
       const next = [...prev];
       const item = { ...next[idx], [field]: val };
@@ -369,6 +468,10 @@ export default function QuoteCreatePage() {
   // --- Submit ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageQuotes) {
+      setError("Bu hesap teklif olusturma yetkisine sahip degil");
+      return;
+    }
     if (!projectId) { setError("Lütfen proje seçiniz"); return; }
     if (!title.trim()) { setError("Teklif başlığı zorunludur"); return; }
     if (!effectiveDepartmentId) { setError("Departman bilgisi bulunamadı. Yöneticinize başvurun."); return; }
@@ -388,6 +491,7 @@ export default function QuoteCreatePage() {
         fd.append("company_contact_phone", "-");
         fd.append("company_contact_email", user?.email || "system@procureflow.local");
         if (title) fd.append("title", title);
+        fd.append("listing_scope_preference", listingScopePreference);
 
         const token = getAccessToken();
         const res = await fetch(
@@ -421,7 +525,7 @@ export default function QuoteCreatePage() {
               vat_rate: Number(it.vat_rate ?? 20),
             };
           });
-        const quote = await createQuote({
+        const rfq = await createRfq({
           project_id: Number(projectId),
           title: title.trim(),
           description: description.trim() || undefined,
@@ -431,18 +535,39 @@ export default function QuoteCreatePage() {
           company_contact_email: user?.email || "system@procureflow.local",
           department_id: Number(effectiveDepartmentId),
           assigned_to_id: Number(effectiveAssignedToId),
+          listing_scope_preference: listingScopePreference,
         });
         if (validItems.length > 0) {
-          await updateQuoteItems(quote.id, validItems);
+          await updateRfqItems(rfq.id, validItems);
         }
-        navigate(`/quotes/${quote.id}`);
+        navigate(`/quotes/${rfq.id}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Teklif oluşturulamadı");
+      setError(getSubscriptionLimitGuidanceMessage(err, "Teklif oluşturulamadı"));
     } finally {
       setLoading(false);
     }
   };
+
+  if (readOnly) {
+    return (
+      <div style={S.page}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            style={{ padding: "6px 12px", background: "#f3f4f6", border: "1px solid #ddd", borderRadius: "6px", cursor: "pointer" }}
+          >
+            ← Geri
+          </button>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>Yeni RFQ / Teklif Talebi</h2>
+        </div>
+        <div style={{ ...S.card, background: "#eff6ff", borderColor: "#bfdbfe", color: "#1e3a8a" }}>
+          Platform personeli teklif alaninda salt okunur erisime sahiptir. Yeni teklif olusturma akisi bu hesaplar icin kapatildi.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} style={S.page}>
@@ -455,12 +580,27 @@ export default function QuoteCreatePage() {
         >
           ← Geri
         </button>
-        <h2 style={{ margin: 0, fontSize: "20px" }}>Yeni Teklif Talebi</h2>
+        <div>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>Yeni RFQ / Teklif Talebi</h2>
+          <div style={{ marginTop: "4px", color: "#6b7280", fontSize: "13px" }}>
+            RFQ adapter gecisi aktif: bu ekran mevcut quote akisini korurken RFQ terminolojisini de gorunur kilir.
+          </div>
+        </div>
       </div>
 
       {error && (
-        <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "6px", marginBottom: "16px" }}>
-          {error}
+        <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "6px", marginBottom: "16px", display: "grid", gap: 10 }}>
+          <div>{error}</div>
+          {hasSubscriptionUpgradeGuidance(error) ? (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <a href={getSubscriptionUpgradeHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                {SUBSCRIPTION_UPGRADE_CTA_LABEL}
+              </a>
+              <a href={getSubscriptionAddonHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                {SUBSCRIPTION_ADDON_CTA_LABEL}
+              </a>
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -469,16 +609,32 @@ export default function QuoteCreatePage() {
         <div style={S.sectionTitle}>① Temel Bilgiler</div>
         <div style={{ marginBottom: "12px" }}>
           <label style={S.label}>Başlık *</label>
-          <input style={S.input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Teklif başlığı" required />
+          <input aria-label="Başlık" style={S.input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Teklif başlığı" required />
         </div>
         <div style={{ marginBottom: "12px" }}>
           <label style={S.label}>Açıklama</label>
-          <textarea style={S.textarea} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="İsteğe bağlı açıklama" />
+          <textarea aria-label="Açıklama" style={S.textarea} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="İsteğe bağlı açıklama" />
+        </div>
+        <div style={{ marginBottom: "12px" }}>
+          <label style={S.label}>Yayin Modeli *</label>
+          <select
+            aria-label="Yayin Modeli"
+            style={S.select}
+            value={listingScopePreference}
+            onChange={(e) => setListingScopePreference(e.target.value as ListingScopePreference)}
+          >
+            {LISTING_SCOPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+          <div style={{ marginTop: 6, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+            {LISTING_SCOPE_OPTIONS.find((option) => option.value === listingScopePreference)?.hint}
+          </div>
         </div>
         <div style={S.row3}>
           <div>
             <label style={S.label}>Proje *</label>
-            <select style={S.select} value={projectId} onChange={(e) => setProjectId(Number(e.target.value) || "")} required>
+            <select aria-label="Proje" style={S.select} value={projectId} onChange={(e) => setProjectId(Number(e.target.value) || "")} required>
               <option value="">-- Proje seçin --</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
@@ -488,6 +644,7 @@ export default function QuoteCreatePage() {
           <div>
             <label style={S.label}>Departman</label>
             <select
+              aria-label="Departman"
               style={S.select}
               value={effectiveDepartmentId}
               onChange={(e) => { setDepartmentId(Number(e.target.value) || ""); setAssignedToId(""); }}
@@ -502,6 +659,7 @@ export default function QuoteCreatePage() {
           <div>
             <label style={S.label}>Sorumlu Kişi</label>
             <select
+              aria-label="Sorumlu Kişi"
               style={S.select}
               value={effectiveAssignedToId}
               onChange={(e) => setAssignedToId(Number(e.target.value) || "")}
@@ -512,6 +670,16 @@ export default function QuoteCreatePage() {
                 <option key={p.id} value={p.id}>{p.full_name} ({p.role})</option>
               ))}
             </select>
+            {projectPersonnelAssignmentsLoading && selectedProject?.personnel?.length ? (
+              <div style={{ marginTop: 6, fontSize: 12, color: "#475569" }}>
+                Proje personel atamalari yukleniyor...
+              </div>
+            ) : null}
+            {!projectPersonnelAssignmentsLoading && !visiblePersonnel.length && effectiveDepartmentId ? (
+              <div style={{ marginTop: 6, fontSize: 12, color: "#92400e" }}>
+                Secili proje ve departman icin uygun sorumlu bulunamadi.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 # api/models/quote.py
 from datetime import datetime, UTC
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from sqlalchemy import (
     DateTime,
@@ -12,6 +12,7 @@ from sqlalchemy import (
     Text,
     Boolean,
     Enum as SQLEnum,
+    event,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -20,6 +21,7 @@ from api.database import Base
 
 if TYPE_CHECKING:
     from api.models.project import Project
+    from api.models.tenant import Tenant
     from api.models.user import User
     from api.models.supplier import SupplierQuote, SupplierQuoteItem
     from api.models.quote_approval import QuoteApproval
@@ -27,7 +29,7 @@ if TYPE_CHECKING:
 
 class QuoteStatus(str, enum.Enum):
     DRAFT = "draft"
-    SENT = "sent"
+    SUBMITTED = "submitted"
     PENDING = "pending"
     RESPONDED = "responded"
     APPROVED = "approved"
@@ -37,12 +39,42 @@ class QuoteStatus(str, enum.Enum):
 class Quote(Base):
     """Teklif İsteği (RFQ)"""
 
+    # RFQ gecisi sirasinda bu alanlar compatibility mirror olarak tutuluyor.
+    LEGACY_MIRROR_COLUMNS: ClassVar[tuple[str, ...]] = (
+        "user_id",
+        "amount",
+        "created_by",
+        "updated_by",
+        "deleted_by",
+    )
+    LEGACY_DROP_READINESS_CHECK_COLUMNS: ClassVar[tuple[str, ...]] = (
+        "created_by_id",
+        "user_id",
+        "total_amount",
+        "amount",
+        "created_by",
+        "updated_by",
+        "deleted_by",
+    )
+    SNAPSHOT_COLUMNS: ClassVar[tuple[str, ...]] = (
+        "company_name",
+        "company_contact_name",
+        "company_contact_phone",
+        "company_contact_email",
+    )
+
     __tablename__ = "quotes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id"), nullable=True, index=True
+    )
+    # Legacy owner mirror; hedef modelde created_by_id tek kaynak olacak.
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     project_id: Mapped[int] = mapped_column(
         ForeignKey("projects.id"), nullable=False, index=True
     )
+    # RFQ aggregate icin canonical owner alani.
     created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     # Teklif Bilgileri
@@ -58,13 +90,16 @@ class Quote(Base):
         default=QuoteStatus.DRAFT,
     )
 
-    # Firma Bilgileri
+    # Firma Bilgileri (RFQ snapshot alanlari; tenant company kaydindan bagimsiz korunur)
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     company_contact_name: Mapped[str] = mapped_column(String(255), nullable=False)
     company_contact_phone: Mapped[str] = mapped_column(String(20), nullable=False)
     company_contact_email: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    # Finansal
+    # Finansal (amount legacy mirror, total_amount canonical RFQ toplamidir)
+    amount: Mapped[float] = mapped_column(
+        Numeric(12, 2), default=0, server_default=text("0")
+    )
     total_amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
     currency: Mapped[str] = mapped_column(String(3), default="TRL")
 
@@ -109,6 +144,7 @@ class Quote(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # İlişkiler
+    tenant: Mapped["Tenant | None"] = relationship(back_populates="quotes")
     project: Mapped["Project"] = relationship("Project", back_populates="quotes")
     created_by_user: Mapped["User"] = relationship("User", foreign_keys=[created_by_id])
     items: Mapped[list["QuoteItem"]] = relationship(
@@ -120,6 +156,52 @@ class Quote(Base):
     approvals: Mapped[list["QuoteApproval"]] = relationship(
         "QuoteApproval", back_populates="quote", cascade="all, delete-orphan"
     )
+
+    @property
+    def rfq_id(self) -> int:
+        return self.id
+
+    @property
+    def canonical_created_by_id(self) -> int:
+        return self.created_by_id
+
+    @property
+    def canonical_total_amount(self) -> float | None:
+        return self.total_amount if self.total_amount is not None else self.amount
+
+    @property
+    def company_snapshot(self) -> dict[str, str]:
+        return {
+            "company_name": self.company_name,
+            "company_contact_name": self.company_contact_name,
+            "company_contact_phone": self.company_contact_phone,
+            "company_contact_email": self.company_contact_email,
+        }
+
+
+def _sync_quote_legacy_columns(target: Quote) -> None:
+    if target.user_id is None:
+        target.user_id = target.created_by_id
+
+    if target.created_by is None:
+        target.created_by = target.created_by_id
+
+    if target.total_amount is None and target.amount is not None:
+        target.total_amount = target.amount
+    elif target.amount is None and target.total_amount is not None:
+        target.amount = target.total_amount
+    elif target.amount != target.total_amount:
+        target.amount = target.total_amount
+
+
+@event.listens_for(Quote, "before_insert")
+def _quote_before_insert(mapper, connection, target: Quote) -> None:
+    _sync_quote_legacy_columns(target)
+
+
+@event.listens_for(Quote, "before_update")
+def _quote_before_update(mapper, connection, target: Quote) -> None:
+    _sync_quote_legacy_columns(target)
 
 
 class QuoteItem(Base):

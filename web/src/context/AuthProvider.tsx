@@ -8,20 +8,29 @@ import {
   setAccessToken,
   setRefreshToken,
 } from "../lib/token";
-import { getSupplierAccessToken } from "../lib/session";
-import { loginRequest, logoutRequest, meRequest, refreshRequest } from "../services/auth.service";
+import { shouldUseSupplierSession } from "../lib/session";
+import { loginRequest, logoutRequest, meRequest, normalizeAuthUser, refreshRequest } from "../services/auth.service";
 
 type Props = { children: ReactNode };
 
 const USER_KEY = "pf_user";
 const SUPPLIER_TOKEN_KEY = "supplier_access_token";
+const PUBLIC_AUTH_PATHS = new Set([
+  "/login",
+  "/platform-login",
+  "/strategic-partner-login",
+  "/channel/login",
+  "/supplier/login",
+  "/supplier/register",
+  "/activate-account",
+]);
 
 function readStoredUser(): AuthUser | null {
   const raw = sessionStorage.getItem(USER_KEY);
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as AuthUser;
+    return normalizeAuthUser(JSON.parse(raw) as AuthUser);
   } catch {
     sessionStorage.removeItem(USER_KEY);
     localStorage.removeItem(USER_KEY);
@@ -30,15 +39,11 @@ function readStoredUser(): AuthUser | null {
 }
 
 function shouldSkipAdminAuth(pathname: string): boolean {
-  const isSupplierPage = pathname.includes("/supplier/");
-  if (isSupplierPage) return true;
-
-  if (pathname.includes("/supplier/register") || pathname.includes("/supplier/login")) {
+  if (PUBLIC_AUTH_PATHS.has(pathname)) {
     return true;
   }
 
-  const supplierToken = getSupplierAccessToken();
-  return Boolean(supplierToken);
+  return shouldUseSupplierSession(pathname);
 }
 
 export function AuthProvider({ children }: Props) {

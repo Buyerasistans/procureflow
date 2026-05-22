@@ -37,12 +37,40 @@ if (-not (Test-Path -LiteralPath $sqlBackupDir)) {
 }
 
 $outputFile = Join-Path $sqlBackupDir ("procureflow_sql_" + $timestamp + ".sql")
+$rarOutputFile = Join-Path $sqlBackupDir ("procureflow_sql_" + $timestamp + ".rar")
+
+$rarCandidates = @(
+    "C:\Program Files\WinRAR\Rar.exe",
+    "C:\Program Files (x86)\WinRAR\Rar.exe"
+)
+
+$rarPath = $null
+foreach ($candidate in $rarCandidates) {
+    if (Test-Path -LiteralPath $candidate) {
+        $rarPath = $candidate
+        break
+    }
+}
+
+$rarCommand = if ($rarPath) { $rarPath } else { (Get-Command rar -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue) }
 $env:PGPASSWORD = $dbPass
 
 try {
     & pg_dump -h $dbHost -p $dbPort -U $dbUser -d $dbName -f $outputFile
     if ($LASTEXITCODE -ne 0) {
         throw "pg_dump komutu basarisiz oldu (kod=$LASTEXITCODE)"
+    }
+
+    if ($rarCommand) {
+        & $rarCommand a -ep1 -m5 -idq $rarOutputFile $outputFile
+        if ($LASTEXITCODE -ne 0) {
+            throw "rar sikistirma basarisiz oldu (kod=$LASTEXITCODE)"
+        }
+        if (-not (Test-Path -LiteralPath $rarOutputFile)) {
+            throw "rar cikti dosyasi olusturulamadi: $rarOutputFile"
+        }
+        Remove-Item -LiteralPath $outputFile -Force -ErrorAction SilentlyContinue
+        $outputFile = $rarOutputFile
     }
 }
 finally {

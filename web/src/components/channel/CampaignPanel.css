@@ -1,0 +1,119 @@
+.campaign-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.campaign-panel__empty {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.campaign-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campaign-card--joined {
+  background-color: #f0fdf4;
+}
+
+.campaign-card--default {
+  background-color: #fff;
+}
+
+.campaign-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.campaign-card__name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.campaign-card__description {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.campaign-card__status {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.campaign-card__progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #374151;
+}
+
+.campaign-card__next-reward {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 3px;
+}
+
+.campaign-card__completed {
+  font-size: 12px;
+  color: #047857;
+  font-weight: 600;
+}
+
+.campaign-card__grants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.campaign-card__grant {
+  font-size: 10px;
+  background-color: #d1fae5;
+  color: #065f46;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-weight: 600;
+}
+
+.campaign-card__end-date {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.campaign-card__progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.campaign-card__progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.campaign-card__progress-bar-fill--complete {
+  background-color: #047857;
+}
+
+.campaign-card__progress-bar-fill--incomplete {
+  background-color: #3b82f6;
+}

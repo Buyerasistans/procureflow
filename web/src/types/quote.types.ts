@@ -27,6 +27,26 @@ export const ApprovalLimits: Record<string, number> = {
 // Quote Status
 export type QuoteStatus = "draft" | "submitted" | "approved" | "rejected";
 
+export function normalizeQuoteStatus(status: string | null | undefined): QuoteStatus {
+  const normalized = String(status || "draft").toLowerCase();
+  if (normalized === "approved") return "approved";
+  if (normalized === "rejected") return "rejected";
+  if (
+    normalized === "submitted"
+    || normalized === "sent"
+    || normalized === "pending"
+    || normalized === "responded"
+  ) {
+    return "submitted";
+  }
+  return "draft";
+}
+
+export function isSubmittedLikeQuoteStatus(status: string | null | undefined): boolean {
+  const normalized = String(status || "").toLowerCase();
+  return normalized === "submitted" || normalized === "sent" || normalized === "responded";
+}
+
 export const QuoteStatusLabel: Record<QuoteStatus, string> = {
   draft: "Taslak",
   submitted: "Onaya Gönderildi",
@@ -46,6 +66,7 @@ export interface UserWithDept {
   id: number;
   email: string;
   role: string;
+  business_role?: string | null;
   full_name: string;
   is_active: boolean;
   department?: Department;

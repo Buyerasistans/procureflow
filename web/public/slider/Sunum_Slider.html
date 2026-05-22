@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Asistans - Kurumsal Sunum (Kompakt ve Otomatik)</title>
+    <!-- Tailwind CSS (Düzen ve yardımcı sınıflar için) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Urbanist & Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Urbanist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome (İkonlar için) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* TEMEL AYARLAR */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0a1916; /* Dış arka plan */
+            font-family: 'Urbanist', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 16:9 ULTRA-DARALTILMIŞ SUNUM KONTEYNERİ (1024x576) */
+        .presentation-container {
+            position: relative;
+            width: 1024px;  /* Eski: 1120px - Daha da daraltıldı */
+            height: 576px;  /* Eski: 630px - Kusursuz 16:9 Oranı */
+            background: linear-gradient(135deg, #112a25 0%, #173630 52%, #20463e 100%);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* ÜST MENÜ / HEADER */
+        .slider-header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+            background: linear-gradient(to bottom, rgba(17,42,37,0.9) 0%, rgba(17,42,37,0) 100%);
+        }
+
+        /* SLAYT SARICI */
+        .slides-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr; /* Sol metin tarafına oran düzenlemesi */
+            align-items: center;
+        }
+
+        .slide.active { opacity: 1; visibility: visible; }
+
+        .slide.full-hero {
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center;
+        }
+
+        /* İÇERİK ANİMASYONLARI */
+        .content-left {
+            padding: 0 30px 0 50px; /* Daha da daraltılmış iç boşluklar */
+            transform: translateX(-30px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+            z-index: 10;
+        }
+        
+        .slide.active .content-left { transform: translateX(0); opacity: 1; }
+
+        .content-right {
+            position: relative; height: 100%; width: 100%;
+            transform: scale(1.05); opacity: 0;
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+        }
+
+        .slide.active .content-right { transform: scale(1); opacity: 1; }
+
+        /* DAHA DA KÜÇÜLTÜLMÜŞ TİPOGRAFİ */
+        h1.hero-title { font-size: 52px; color: #fff; font-weight: 900; line-height: 1.1; letter-spacing: -1px; margin-bottom: 15px;}
+        h1.hero-title span { color: #D4AF37; }
+        
+        h2.slide-title { font-size: 40px; color: #fff; font-weight: 900; line-height: 1.1; margin-bottom: 15px; letter-spacing: -1px; }
+        h2.slide-title span { color: #D4AF37; font-size: 26px; font-weight: 700; display: block; margin-top: 5px;}
+        
+        h3.slide-subtitle { color: #D4AF37; font-size: 18px; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        p.slide-desc { color: #d6e1db; font-size: 16px; font-weight: 400; line-height: 1.5; margin-bottom: 15px; }
+        p.highlight-desc { color: #fff; font-weight: 500; background: rgba(255,255,255,0.05); padding: 14px; border-left: 3px solid #D4AF37; border-radius: 0 8px 8px 0; font-size: 15px;}
+
+        /* GÖRSELLER VE EFEKTLER */
+        .bleed-img {
+            width: 100%; height: 100%; object-fit: cover;
+            border-radius: 0 12px 12px 0; opacity: 0.7; mix-blend-mode: luminosity;
+        }
+        
+        .img-gradient-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, rgba(17,42,37,1) 0%, rgba(17,42,37,0) 30%);
+        }
+
+        /* BUTONLAR & ROZETLER */
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.5);
+            color: #D4AF37; padding: 6px 12px; border-radius: 50px;
+            font-weight: 700; font-size: 12px; margin-bottom: 20px; letter-spacing: 1px;
+        }
+
+        .gold-btn {
+            background: linear-gradient(90deg, #D4AF37 0%, #b5952f 100%);
+            color: #112a25; padding: 12px 24px; border-radius: 8px;
+            font-size: 15px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2); cursor: pointer; transition: transform 0.3s;
+            margin-top: 20px; border: none;
+        }
+        .gold-btn:hover { transform: translateY(-3px); }
+
+        /* ALT KONTROLLER */
+        .controls {
+            position: absolute; bottom: 25px; right: 35px;
+            display: flex; gap: 12px; z-index: 50;
+        }
+        
+        .ctrl-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; font-size: 14px; cursor: pointer; backdrop-filter: blur(4px);
+            transition: all 0.3s; display: grid; place-items: center;
+        }
+        .ctrl-btn:hover { background: #D4AF37; color: #112a25; border-color: #D4AF37; }
+
+        .dots {
+            position: absolute; bottom: 35px; left: 50px;
+            display: flex; gap: 8px; z-index: 50;
+        }
+        .dot {
+            width: 30px; height: 4px; background: rgba(255,255,255,0.2);
+            border-radius: 2px; cursor: pointer; transition: all 0.3s;
+        }
+        .dot.active { background: #D4AF37; width: 50px; }
+
+        /* HOLOGRAM EKRANLARI (UI) */
+        .hologram-ui {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(17, 42, 37, 0.85); border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 20px; border-radius: 12px; backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset;
+            color: #fff;
+        }
+        
+        /* Bilişsel Pazarlık Slaytı Özel UI */
+        .cog-neg-ui { width: 280px; }
+        .cog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .cog-row:last-child { border: none; margin: 0; padding: 0; }
+        .price-val { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 16px; }
+        .outlier { color: #ef4444; } /* Kırmızı sapan fiyat */
+        .avg { color: #D4AF37; } /* Altın ortalama */
+        .ai-action { display: flex; align-items: center; gap: 8px; color: #50C878; font-size: 12px; font-weight: 700; background: rgba(80, 200, 120, 0.1); padding: 8px; border-radius: 8px; margin-top: 12px; }
+
+        /* YÜKLEME ÇUBUĞU (Autoplay Göstergesi) */
+        .progress-bar-container {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 4px;
+            background: rgba(255,255,255,0.05); z-index: 60;
+        }
+        .progress-bar {
+            height: 100%; width: 0%; background: #D4AF37;
+            transition: width linear; /* JS ile kontrol edilecek */
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation-container">
+    
+    <!-- Yükleme Çubuğu (Zamanlayıcı Göstergesi) -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- HEADER & LOGO -->
+    <header class="slider-header">
+        <!-- Küçültülmüş Logo -->
+        <svg viewBox="10 5 335 90" width="150" xmlns="http://www.w3.org/2000/svg">
+            <rect x="25" y="15" width="10" height="70" rx="4" fill="#D4AF37"/>
+            <path d="M 39 20 H 49 L 69 34 L 49 48 H 39 L 59 34 Z" fill="#ffffff"/>
+            <path d="M 39 52 H 49 L 69 66 L 49 80 H 39 L 59 66 Z" fill="#D4AF37"/>
+            <text x="80" y="48" font-family="'Segoe UI', Arial Black, sans-serif" font-weight="900" font-size="38" fill="#ffffff" letter-spacing="2">BUYER</text>
+            <text x="80" y="80" font-family="'Segoe UI', Arial Black, sans-serif" font-weight="900" font-size="38" fill="#D4AF37">AS</text>
+            <path d="M 140 54 H 149 V 80 H 140 Z M 144.5 56 L 147.5 59 L 144.5 62 L 141.5 59 Z" fill="#D4AF37" fill-rule="evenodd" />
+            <text x="152" y="80" font-family="'Segoe UI', Arial Black, sans-serif" font-weight="900" font-size="38" fill="#D4AF37">STANS</text>
+            <path d="M 294 68 L 304 78 L 324 54" fill="none" stroke="#50C878" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="text-white/50 font-bold tracking-widest text-[10px]">STRATEJİK SUNUM</div>
+    </header>
+
+    <div class="slides-wrapper">
+
+        <!-- SLAYT 1: KAPAK -->
+        <div class="slide full-hero active" data-index="0">
+            <div style="z-index: 10; transform: translateY(-10px);">
+                <div class="badge mx-auto mb-4" style="background: rgba(80, 200, 120, 0.1); border-color: rgba(80, 200, 120, 0.3); color: #50C878;">
+                    <i class="fa-solid fa-microchip"></i> YENİ NESİL TEDARİK ZİNCİRİ
+                </div>
+                <h1 class="hero-title">Veriden <span>Güce.</span><br>Tedarikten <span>Zekaya.</span></h1>
+                <p class="slide-desc mt-4 max-w-xl mx-auto text-center">İnşaat, tersane ve ağır sanayi devleri için tasarlanmış; mühendisliği, satın almayı ve stratejik ortaklığı tek bir yapay zeka çekirdeğinde birleştiren ekosistem.</p>
+                <button class="gold-btn mx-auto mt-4" onclick="if(window.top!==window){window.top.location.href='/onboarding';}else{nextSlide();}">Hemen Başla <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 50% 50%, rgba(212,175,55,0.12) 0%, rgba(17,42,37,1) 65%); z-index: 1;"></div>
+        </div>
+
+        <!-- SLAYT 2: ORTAK DİL -->
+        <div class="slide" data-index="1">
+            <div class="content-left">
+                <div class="badge"><i class="fa-solid fa-network-wired"></i> Modül 1: Senkronizasyon</div>
+                <h2 class="slide-title">Ortak Dil<span>(Common Language)</span></h2>
+                <h3 class="slide-subtitle">Teknik Karmaşaya Son</h3>
+                <p class="slide-desc">Mimar ve Satın Almacı için ortak dil oluşturuyoruz. Teknik ekiplerin çizimleri ve vizyonu, ticari ekiplerin anlayacağı bütçe diline anında çevrilir.</p>
+                <p class="highlight-desc"><i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] mr-2"></i> Mimarın çizdiği karmaşık CAD projeleri, saniyeler içinde net malzeme kalemlerine (BOM) dönüşür.</p>
+            </div>
+            <div class="content-right">
+                <img class="bleed-img" src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop" alt="[Mimari Proje]">
+                <div class="img-gradient-overlay"></div>
+                
+                <div class="hologram-ui text-center" style="width: 220px;">
+                    <div class="flex justify-center items-center gap-4 mb-2">
+                        <div class="text-[#50C878] text-2xl"><i class="fa-solid fa-pen-ruler"></i></div>
+                        <div class="text-[#D4AF37] text-lg"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                        <div class="text-[#50C878] text-2xl"><i class="fa-solid fa-list-check"></i></div>
+                    </div>
+                    <div class="font-black tracking-widest text-[10px] uppercase text-slate-300">CAD &rarr; BOM<br>Çevirisi Aktif</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLAYT 3: BİLİŞSEL PAZARLIK -->
+        <div class="slide" data-index="2">
+            <div class="content-left">
+                <div class="badge" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1);"><i class="fa-solid fa-brain"></i> Modül 2: AI Karar Destek</div>
+                <h2 class="slide-title">Bilişsel Pazarlık<span>(Cognitive Negotiation)</span></h2>
+                <h3 class="slide-subtitle">Veri Odaklı Kararlar</h3>
+                <p class="slide-desc">Platform, gelen tüm teklifleri piyasa verileri ve geçmiş performansla saniyeler içinde kıyaslar.</p>
+                <p class="highlight-desc"><i class="fa-solid fa-robot text-[#D4AF37] mr-2"></i> AI Asistanı, sapan fiyatlar tespit ettiğinde tedarikçilere otomatik olarak <strong>Revize İsteği</strong> göndererek pazarlığı yönetir.</p>
+            </div>
+            <div class="content-right">
+                <img class="bleed-img" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop" alt="[Veri Analizi]">
+                <div class="img-gradient-overlay"></div>
+                
+                <div class="hologram-ui cog-neg-ui">
+                    <div class="text-[9px] font-bold text-slate-400 mb-2 tracking-widest uppercase">Piyasa Analizi (Çelik Kiriş)</div>
+                    <div class="cog-row">
+                        <div><span class="block text-[11px] text-slate-300">Piyasa Ortalaması</span></div>
+                        <div class="price-val avg">₺ 1.000</div>
+                    </div>
+                    <div class="cog-row">
+                        <div><span class="block text-[11px] text-slate-300">Tedarikçi A Teklifi</span><span class="text-[9px] text-red-400">+%35 Sapan Fiyat</span></div>
+                        <div class="price-val outlier">₺ 1.350</div>
+                    </div>
+                    <div class="ai-action">
+                        <i class="fa-solid fa-paper-plane fa-beat-fade"></i> AI: Revize Talebi Gönderildi
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLAYT 4: GÜVEN VE BÜYÜME -->
+        <div class="slide" data-index="3">
+            <div class="content-left">
+                <div class="badge"><i class="fa-solid fa-award"></i> Modül 3: Sonuç ve Onay</div>
+                <h2 class="slide-title">Güven ve Büyüme<span>(The PO Seal)</span></h2>
+                <h3 class="slide-subtitle">Birlikte İnşa Ediyoruz</h3>
+                <p class="slide-desc">Tüm teknik pürüzler çözüldü, fiyatlar AI ile optimize edildi. Geriye kalan tek şey sağlam bir partnerliğe imza atmak.</p>
+                <p class="highlight-desc"><i class="fa-solid fa-shield-halved text-[#D4AF37] mr-2"></i> Şeffaf veriyle en doğru kararı verin, Satın Alma Emrini (PO) dijital olarak mühürleyin.</p>
+                <a href="/onboarding" class="gold-btn mt-4" style="text-decoration:none;"><i class="fa-solid fa-file-signature"></i> Hemen Başla</a>
+            </div>
+            <div class="content-right">
+                <img class="bleed-img" src="https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=1000&auto=format&fit=crop" alt="[Kurumsal Anlaşma]">
+                <div class="img-gradient-overlay"></div>
+                
+                <div class="hologram-ui text-center" style="border-radius: 50%; width: 170px; height: 170px; display: flex; flex-direction: column; justify-content: center; border: 2px solid #D4AF37;">
+                    <i class="fa-regular fa-handshake text-3xl text-[#D4AF37] mb-2"></i>
+                    <span class="text-[10px] font-black tracking-widest uppercase mt-1">Stratejik<br>Partner<br>Onayı</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ALT KONTROLLER -->
+    <div class="dots" id="dots-container">
+        <div class="dot active" onclick="goToSlide(0)"></div>
+        <div class="dot" onclick="goToSlide(1)"></div>
+        <div class="dot" onclick="goToSlide(2)"></div>
+        <div class="dot" onclick="goToSlide(3)"></div>
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn" onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="ctrl-btn" onclick="nextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+</div>
+
+<script>
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const progressBar = document.getElementById('progress-bar');
+    let currentSlide = 0;
+    const totalSlides = slides.length;
+    
+    // Otomatik geçiş ayarları (5 saniye)
+    const autoPlayInterval = 5000; 
+    let autoPlayTimer;
+
+    function updateSlides() {
+        slides.forEach((slide, index) => {
+            if (index === currentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+
+        dots.forEach((dot, index) => {
+            if (index === currentSlide) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        // Progress bar animasyonunu sıfırla ve yeniden başlat
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '0%';
+        setTimeout(() => {
+            progressBar.style.transition = `width ${autoPlayInterval}ms linear`;
+            progressBar.style.width = '100%';
+        }, 50);
+    }
+
+    function nextSlideAuto() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        updateSlides();
+    }
+
+    // Zamanlayıcıyı başlatan ve sıfırlayan ana fonksiyon
+    function resetTimer() {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = setInterval(nextSlideAuto, autoPlayInterval);
+    }
+
+    // Manuel Kontroller (Tıklandığında zamanlayıcıyı da sıfırlar)
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        updateSlides();
+        resetTimer(); 
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        updateSlides();
+        resetTimer();
+    }
+
+    function goToSlide(index) {
+        currentSlide = index;
+        updateSlides();
+        resetTimer();
+    }
+
+    // Klavye ile yönlendirme
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'Space') {
+            nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+            prevSlide();
+        }
+    });
+
+    // Sayfa yüklendiğinde otomatik geçişi başlat
+    resetTimer();
+    updateSlides(); // İlk bar animasyonunu tetiklemek için
+
+</script>
+
+</body>
+</html>

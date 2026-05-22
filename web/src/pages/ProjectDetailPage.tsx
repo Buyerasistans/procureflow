@@ -1,28 +1,45 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProjects, getProjectFiles, uploadProjectFile, deleteProjectFile, deleteProject, updateProject, getProjectSuppliers, type ProjectSupplierItem } from "../services/project.service";
-import { getQuotes } from "../services/quotes.service";
+import { getProjects, getProjectFiles, uploadProjectFile, deleteProjectFile, deleteProject, updateProject, getProjectSuppliers, removeProjectTenantUser, type ProjectSupplierItem } from "../services/project.service";
+import { getRfqs } from "../services/quotes.service";
 import { getSupplierQuotesGrouped, type SupplierQuoteRevision } from "../services/quote.service";
-import { getCompanies } from "../services/admin.service";
+import { getCompanies, getTenantUsers } from "../services/admin.service";
 import { QuoteTab } from "../components/QuoteTab";
 import { ProjectSuppliersModal } from "../components/ProjectSuppliersModal";
+import { isPlatformStaffUser } from "../auth/permissions";
 import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
 import { modalStyles } from "../styles/modalStyles";
 import type { Project, ProjectFile } from "../types/project";
 import type { Quote } from "../types/quote";
 import type { Company } from "../services/admin.service";
+import { SUBSCRIPTION_ADDON_CTA_LABEL, SUBSCRIPTION_UPGRADE_CTA_LABEL, getSubscriptionAddonHref, getSubscriptionLimitGuidanceMessage, getSubscriptionUpgradeHref, hasSubscriptionUpgradeGuidance } from "../utils/subscriptionLimitErrors";
 
 type SupplierOfferSummary = {
   quoteId: number;
   quoteTitle: string;
   supplierQuoteId: number;
   status: string;
+  currency?: string;
   totalAmount: number;
   initialAmount: number;
   submittedAt?: string;
   revisionNumber: number;
 };
+
+const normalizeCurrency = (value?: string | null): "TRY" | "USD" | "EUR" => {
+  const raw = String(value || "TRY").toUpperCase();
+  if (raw === "TL" || raw === "TRL") return "TRY";
+  if (raw === "USDT") return "USD";
+  if (raw === "USD" || raw === "EUR") return raw;
+  return "TRY";
+};
+
+const formatMoney = (amount: number, currency?: string) =>
+  Number(amount || 0).toLocaleString("tr-TR", {
+    style: "currency",
+    currency: normalizeCurrency(currency),
+  });
 
 function getLatestRevisionNode(node: SupplierQuoteRevision): SupplierQuoteRevision {
   if (!node.revisions || node.revisions.length === 0) return node;
@@ -38,9 +55,11 @@ export default function ProjectDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const projectId = parseInt(id || "0");
+  const readOnly = isPlatformStaffUser(user);
 
   const [project, setProject] = useState<Project | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [tenantUsers, setTenantUsers] = useState<Array<{ id: number; full_name: string; role?: string; company_assignments?: Array<{ company_id: number; is_active: boolean }> }>>([]);
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [projectSuppliers, setProjectSuppliers] = useState<ProjectSupplierItem[]>([]);
@@ -51,19 +70,22 @@ export default function ProjectDetailPage() {
   const [showQuotes, setShowQuotes] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSuppliersModal, setShowSuppliersModal] = useState(false);
-  const [editData, setEditData] = useState<Partial<Project>>({});
   const [editLoading, setEditLoading] = useState(false);
+  const [editData, setEditData] = useState<Partial<Project>>({});
+  const [fileActionError, setFileActionError] = useState<string | null>(null);
 
   // Proje ve dosyaları yükle
   const loadProjectData = useCallback(async () => {
     try {
       setLoading(true);
-      const [projectsData, companiesData] = await Promise.all([
+      const [projectsData, companiesData, usersData] = await Promise.all([
         getProjects(),
         getCompanies(),
+        getTenantUsers().catch(() => []),
       ]);
-      
+
       setCompanies(companiesData);
+      setTenantUsers(usersData as typeof tenantUsers);
       const found = projectsData.find((p) => p.id === projectId);
       setProject(found || null);
       if (found) {
@@ -76,7 +98,7 @@ export default function ProjectDetailPage() {
         const suppliers = await getProjectSuppliers(projectId).catch(() => []);
         setProjectSuppliers(suppliers);
 
-        const allQuotes = await getQuotes();
+        const allQuotes = await getRfqs().catch(() => []);
         const projectQuotes = allQuotes.filter((q: Quote) => q.project_id === projectId);
 
         const groupedResponses = await Promise.all(
@@ -101,6 +123,7 @@ export default function ProjectDetailPage() {
               quoteTitle: row.quote.title,
               supplierQuoteId: latestQuote.id,
               status: latestQuote.status,
+              currency: latestQuote.currency,
               totalAmount: Number(latestQuote.total_amount || 0),
               initialAmount: Number(latestQuote.initial_final_amount || latestQuote.total_amount || 0),
               submittedAt: latestQuote.submitted_at,
@@ -133,11 +156,24 @@ export default function ProjectDetailPage() {
     }
   }, [projectId]);
 
+  async function handleRemoveResponsible(userId: number) {
+    if (readOnly) return;
+    if (!confirm("Bu personeli projeden çıkarmak istiyor musunuz?")) return;
+    try {
+      await removeProjectTenantUser(projectId, userId);
+      await loadProjectData();
+    } catch (error) {
+      console.error("Proje sorumlusu kaldırma hatası:", error);
+      alert("Sorumlu kaldırılamadı");
+    }
+  }
+
   useEffect(() => {
     loadProjectData();
   }, [loadProjectData]);
 
   async function handleDelete() {
+    if (readOnly) return;
     if (!confirm("Projeyi silmek istediğinize emin misiniz?")) return;
     try {
       await deleteProject(projectId);
@@ -149,6 +185,7 @@ export default function ProjectDetailPage() {
   }
 
   async function handleUpdate() {
+    if (readOnly) return;
     if (!project) return;
     try {
       setEditLoading(true);
@@ -165,22 +202,26 @@ export default function ProjectDetailPage() {
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (readOnly) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setUploading(true);
+      setFileActionError(null);
       await uploadProjectFile(projectId, file);
       await loadProjectData();
       e.target.value = "";
     } catch (error) {
       console.error("Dosya yükleme hatası:", error);
+      setFileActionError(getSubscriptionLimitGuidanceMessage(error, "Dosya yuklenemedi"));
     } finally {
       setUploading(false);
     }
   };
 
   const handleDeleteFile = async (fileId: number) => {
+    if (readOnly) return;
     if (!confirm("Dosyayı silmek istediğinize emin misiniz?")) return;
 
     try {
@@ -298,6 +339,21 @@ export default function ProjectDetailPage() {
 
   return (
     <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
+      {fileActionError ? (
+        <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 12, border: "1px solid #fecaca", background: "#fff5f5", color: "#991b1b", fontWeight: 600, display: "grid", gap: 10 }}>
+          <div>{fileActionError}</div>
+          {hasSubscriptionUpgradeGuidance(fileActionError) ? (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <a href={getSubscriptionUpgradeHref(fileActionError)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                {SUBSCRIPTION_UPGRADE_CTA_LABEL}
+              </a>
+              <a href={getSubscriptionAddonHref(fileActionError)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+                {SUBSCRIPTION_ADDON_CTA_LABEL}
+              </a>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {/* Header - Back Button */}
       <button
         onClick={() => navigate("/admin?tab=projects")}
@@ -325,6 +381,11 @@ export default function ProjectDetailPage() {
           marginBottom: "24px",
         }}
       >
+        {readOnly && (
+          <div style={{ marginBottom: "16px", padding: "12px", borderRadius: "12px", background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa" }}>
+            Bu proje sayfasi platform personeli icin salt okunur durumdadir.
+          </div>
+        )}
         {/* Title - Firma Adı */}
         <h1 style={{ fontSize: "28px", fontWeight: "bold", margin: "0 0 16px 0", color: "#333" }}>
           {getCompanyName(project.company_id)}
@@ -382,24 +443,28 @@ export default function ProjectDetailPage() {
 
         {/* Action Buttons */}
         <div style={{ display: "flex", gap: "10px", borderTop: "1px solid #e0e0e0", paddingTop: "16px" }}>
-          <button
-            onClick={() => setShowEditModal(true)}
-            style={{
-              ...modalStyles.primaryButton,
-              flex: "0 1 auto",
-            }}
-          >
-            ✏️ Düzenle
-          </button>
-          <button
-            onClick={handleDelete}
-            style={{
-              ...modalStyles.dangerButton,
-              flex: "0 1 auto",
-            }}
-          >
-            🗑️ Sil
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                onClick={() => setShowEditModal(true)}
+                style={{
+                  ...modalStyles.primaryButton,
+                  flex: "0 1 auto",
+                }}
+              >
+                ✏️ Düzenle
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  ...modalStyles.dangerButton,
+                  flex: "0 1 auto",
+                }}
+              >
+                🗑️ Sil
+              </button>
+            </>
+          )}
           <button
             onClick={() => {
               const companyName = getCompanyName(project.company_id);
@@ -421,23 +486,127 @@ export default function ProjectDetailPage() {
           >
             💬 WhatsApp Paylaş
           </button>
-          <button
-            onClick={() => setShowSuppliersModal(true)}
-            style={{
-              padding: "10px 16px",
-              backgroundColor: "#8b5cf6",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              fontSize: "14px",
-              flex: "0 1 auto",
-            }}
-          >
-            📧 Projeye Tedarikçi Ekle
-          </button>
+          {!readOnly && (
+            <button
+              onClick={() => setShowSuppliersModal(true)}
+              style={{
+                padding: "10px 16px",
+                backgroundColor: "#8b5cf6",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontWeight: "bold",
+                fontSize: "14px",
+                flex: "0 1 auto",
+              }}
+            >
+              📧 Projeye Tedarikçi Ekle
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Satın Alma Sorumluları */}
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "16px",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          marginBottom: "24px",
+        }}
+      >
+        <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
+          👥 Satın Alma Sorumluları
+        </h3>
+        {project.created_by_id ? (
+          <div style={{ marginBottom: "12px", fontSize: "12px", color: "#64748b" }}>
+            Projeyi olusturan kullanici sistem tarafinda otomatik eklenir ve "Proje olusturan" etiketi ile gosterilir.
+          </div>
+        ) : null}
+
+        {project.personnel && project.personnel.length > 0 ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {project.personnel.map((member) => (
+              <div
+                key={member.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  backgroundColor: "#eef2ff",
+                  color: "#3730a3",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                }}
+              >
+                <span>{member.full_name}</span>
+                {member.role ? (
+                  <span style={{ padding: "2px 8px", borderRadius: "999px", backgroundColor: "#ede9fe", color: "#6d28d9", fontSize: "11px", fontWeight: 700 }}>
+                    {member.role}
+                  </span>
+                ) : null}
+                {project.created_by_id === member.id ? (
+                  <span style={{ padding: "2px 8px", borderRadius: "999px", backgroundColor: "#dbeafe", color: "#1d4ed8", fontSize: "11px", fontWeight: 700 }}>
+                    Proje olusturan
+                  </span>
+                ) : null}
+                {!readOnly && <button
+                  onClick={() => handleRemoveResponsible(member.id)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    color: "#b91c1c",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                  }}
+                  title="Projeden çıkar"
+                >
+                  ×
+                </button>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
+            Bu projeye henüz satın alma sorumlusu atanmadı.
+          </p>
+        )}
+
+        {/* Personnel assignment select for tenant admin */}
+        {!readOnly && (
+          <div style={{ marginTop: "12px" }}>
+            <select
+              aria-label="Sorumlu ekle"
+              onChange={async (e) => {
+                const userId = parseInt(e.target.value);
+                if (!userId) return;
+                try {
+                  const { addProjectTenantUser } = await import("../services/project.service");
+                  await addProjectTenantUser(projectId, userId);
+                  await loadProjectData();
+                } catch { /* ignore */ }
+              }}
+            >
+              <option value="">Sorumlu seç...</option>
+              {tenantUsers
+                .filter((u) => {
+                  if (!project?.company_id) return false;
+                  return Boolean(
+                    u.company_assignments?.some(
+                      (ca) => ca.company_id === project.company_id && ca.is_active,
+                    ),
+                  );
+                })
+                .map((u) => (
+                  <option key={u.id} value={u.id}>{u.full_name}</option>
+                ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Proje Bilgileri - Grid */}
@@ -587,20 +756,20 @@ export default function ProjectDetailPage() {
                                     <>
                                       <span style={{ color: "#6b7280" }}>İlk Teklif: </span>
                                       <span style={{ textDecoration: "line-through", color: "#9ca3af" }}>
-                                        {offer.initialAmount.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                                        {formatMoney(offer.initialAmount, offer.currency)}
                                       </span>
                                     </>
                                   ) : (
                                     <>
                                       <span>Gelen teklif: </span>
-                                      {Number(offer.totalAmount || 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                                      {formatMoney(Number(offer.totalAmount || 0), offer.currency)}
                                     </>
                                   )}
                                 </div>
                                 {offer.revisionNumber > 0 && offer.initialAmount > 0 && (
                                   <div style={{ marginTop: "4px" }}>
                                     <div style={{ fontSize: "12px", color: "#1f2937", fontWeight: 600 }}>
-                                      Revize Teklif {offer.revisionNumber}: {Number(offer.totalAmount || 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                                      Revize Teklif {offer.revisionNumber}: {formatMoney(Number(offer.totalAmount || 0), offer.currency)}
                                     </div>
                                     {offer.totalAmount < offer.initialAmount && (
                                       <div style={{
@@ -614,7 +783,7 @@ export default function ProjectDetailPage() {
                                         marginTop: "3px",
                                         display: "inline-block",
                                       }}>
-                                        ▼ İndirim: {(offer.initialAmount - offer.totalAmount).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                                        ▼ İndirim: {formatMoney((offer.initialAmount - offer.totalAmount), offer.currency)}
                                         {" "}(%{((offer.initialAmount - offer.totalAmount) / offer.initialAmount * 100).toFixed(1)})
                                       </div>
                                     )}
@@ -630,7 +799,7 @@ export default function ProjectDetailPage() {
                                         marginTop: "3px",
                                         display: "inline-block",
                                       }}>
-                                        ▲ Artış: {(offer.totalAmount - offer.initialAmount).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                                        ▲ Artış: {formatMoney((offer.totalAmount - offer.initialAmount), offer.currency)}
                                         {" "}(%{((offer.totalAmount - offer.initialAmount) / offer.initialAmount * 100).toFixed(1)})
                                       </div>
                                     )}
@@ -647,17 +816,19 @@ export default function ProjectDetailPage() {
                               </span>
                               <div style={{ display: "flex", gap: "6px" }}>
                                 <button
-                                  onClick={() => navigate(`/quotes/${offer.quoteId}`)}
+                                  onClick={() => navigate(`/quotes/${offer.quoteId}?supplierQuoteId=${offer.supplierQuoteId}`)}
                                   style={{ padding: "5px 9px", borderRadius: "4px", border: "none", background: "#2563eb", color: "#fff", fontSize: "11px", cursor: "pointer" }}
                                 >
                                   Göster
                                 </button>
-                                <button
-                                  onClick={() => navigate(`/quotes/${offer.quoteId}?supplierQuoteId=${offer.supplierQuoteId}&action=revize`)}
-                                  style={{ padding: "5px 9px", borderRadius: "4px", border: "none", background: "#f59e0b", color: "#fff", fontSize: "11px", cursor: "pointer" }}
-                                >
-                                  Revize
-                                </button>
+                                {!readOnly && (
+                                  <button
+                                    onClick={() => navigate(`/quotes/${offer.quoteId}?supplierQuoteId=${offer.supplierQuoteId}&action=revize`)}
+                                    style={{ padding: "5px 9px", borderRadius: "4px", border: "none", background: "#f59e0b", color: "#fff", fontSize: "11px", cursor: "pointer" }}
+                                  >
+                                    Revize
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -686,7 +857,7 @@ export default function ProjectDetailPage() {
           📁 Proje Dosyaları
         </h3>
 
-        <label
+        {!readOnly && <label
           style={{
             display: "block",
             marginBottom: "16px",
@@ -709,7 +880,7 @@ export default function ProjectDetailPage() {
               </p>
             </>
           )}
-        </label>
+        </label>}
 
         {files.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -767,7 +938,7 @@ export default function ProjectDetailPage() {
                   >
                     ⬇️ İndir
                   </button>
-                  <button
+                  {!readOnly && <button
                     onClick={() => handleDeleteFile(file.id)}
                     style={{
                       padding: "6px 12px",
@@ -781,7 +952,7 @@ export default function ProjectDetailPage() {
                     }}
                   >
                     🗑️ Sil
-                  </button>
+                  </button>}
                 </div>
               </div>
             ))}
@@ -898,12 +1069,13 @@ export default function ProjectDetailPage() {
             projectId={projectId}
             apiUrl={import.meta.env.VITE_API_URL || "http://localhost:8000"}
             authToken={getAccessToken() || ""}
+            readOnly={readOnly}
           />
         </div>
       )}
 
       {/* Project Suppliers Modal */}
-      {showSuppliersModal && (
+      {!readOnly && showSuppliersModal && (
         <ProjectSuppliersModal
           projectId={projectId}
           onClose={() => setShowSuppliersModal(false)}
@@ -915,7 +1087,7 @@ export default function ProjectDetailPage() {
       )}
 
       {/* Edit Modal */}
-      {showEditModal && (
+      {!readOnly && showEditModal && (
         <div style={modalStyles.backdrop}>
           <div style={modalStyles.container}>
             <div style={modalStyles.header}>

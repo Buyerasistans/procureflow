@@ -1,8 +1,19 @@
 """Quote ve Teklif İsteği (RFQ) Şemaları"""
 
-from pydantic import BaseModel, ConfigDict, Field
+from enum import Enum
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional
+
+from api.app.domain.quote.enums import to_public_quote_status
 
 
 # ============ QUOTE ITEM SCHEMAS ============
@@ -34,6 +45,11 @@ class QuoteItemOut(QuoteItemCreate):
 
     model_config = ConfigDict(from_attributes=True)
 
+    @computed_field
+    @property
+    def rfq_id(self) -> int:
+        return self.quote_id
+
 
 # ============ QUOTE SCHEMAS ============
 
@@ -50,6 +66,25 @@ class QuoteCreate(BaseModel):
     company_contact_email: str
     department_id: Optional[int] = None
     assigned_to_id: Optional[int] = None
+    listing_scope_preference: Optional[str] = None
+
+    @field_validator("listing_scope_preference")
+    @classmethod
+    def validate_listing_scope_preference(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        if not normalized:
+            return None
+        allowed = {
+            "private_suppliers_only",
+            "platform_network_only",
+            "private_and_platform_network",
+            "premium_featured_listing",
+        }
+        if normalized not in allowed:
+            raise ValueError("Gecersiz listing_scope_preference degeri")
+        return normalized
 
 
 class QuoteUpdate(BaseModel):
@@ -57,11 +92,25 @@ class QuoteUpdate(BaseModel):
 
     title: Optional[str] = None
     amount: Optional[float] = Field(default=None, ge=0)
+    total_amount: Optional[float] = Field(default=None, ge=0)
     description: Optional[str] = None
     company_name: Optional[str] = None
     company_contact_name: Optional[str] = None
     company_contact_phone: Optional[str] = None
     company_contact_email: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_amount_fields(cls, value: object) -> object:
+        if not isinstance(value, dict):
+            return value
+
+        data = dict(value)
+        if data.get("total_amount") is None and data.get("amount") is not None:
+            data["total_amount"] = data["amount"]
+        elif data.get("amount") is None and data.get("total_amount") is not None:
+            data["amount"] = data["total_amount"]
+        return data
 
 
 class QuoteOut(BaseModel):
@@ -77,6 +126,21 @@ class QuoteOut(BaseModel):
     company_contact_name: str
     company_contact_phone: str
     company_contact_email: str
+    tenant_id: Optional[int] = None
+    published_by_tenant_name: Optional[str] = None
+    listing_scope: Optional[str] = None
+    listing_scope_label: Optional[str] = None
+    private_supplier_count: int = 0
+    platform_network_supplier_count: int = 0
+    invited_supplier_count: int = 0
+    responded_supplier_count: int = 0
+    package_plan_code: Optional[str] = None
+    package_plan_name: Optional[str] = None
+    active_premium_feature_codes: list[str] = []
+    entitlement_status: Optional[str] = None
+    entitlement_summary: Optional[str] = None
+    platform_network_listing_enabled: bool = False
+    premium_listing_enabled: bool = False
     total_amount: float
     currency: str
     version: Optional[int] = None
@@ -91,6 +155,22 @@ class QuoteOut(BaseModel):
     items: list[QuoteItemOut] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+    @computed_field
+    @property
+    def rfq_id(self) -> int:
+        return self.id
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, value: object) -> str:
+        if value is None:
+            return "draft"
+        if isinstance(value, Enum):
+            raw_value = value.value
+        else:
+            raw_value = str(value)
+        return to_public_quote_status(raw_value)
 
 
 # Uyumluluk için eski şemalar
@@ -124,7 +204,7 @@ class QuoteApprovalCreate(BaseModel):
 
     quote_id: int
     approval_level: int
-    required_role: str
+    required_business_role: Optional[str] = None
 
 
 class QuoteApprovalOut(BaseModel):
@@ -133,7 +213,7 @@ class QuoteApprovalOut(BaseModel):
     id: int
     quote_id: int
     approval_level: int
-    required_role: str
+    required_business_role: Optional[str] = None
     status: str
     comment: Optional[str] = None
     requested_at: datetime
@@ -141,3 +221,27 @@ class QuoteApprovalOut(BaseModel):
     approved_by_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @computed_field
+    @property
+    def rfq_id(self) -> int:
+        return self.quote_id
+
+
+class RfqCreate(QuoteCreate):
+    """RFQ oluşturma alias'ı; mevcut QuoteCreate sözleşmesi ile uyumludur."""
+
+
+class RfqUpdate(QuoteUpdate):
+    """RFQ güncelleme alias'ı; mevcut QuoteUpdate sözleşmesi ile uyumludur."""
+
+
+class RfqOut(QuoteOut):
+    """RFQ çıktı alias'ı; mevcut QuoteOut sözleşmesi ile uyumludur."""
+
+
+class RfqListOut(BaseModel):
+    count: int
+    page: int
+    size: int
+    items: list[RfqOut]

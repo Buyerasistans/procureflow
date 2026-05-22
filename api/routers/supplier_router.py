@@ -1,9 +1,12 @@
 """Tedarikçi (Supplier) Yönetimi API Endpoints"""
 
+import json
 import logging
 import os
+import re
 import uuid
 import smtplib
+from decimal import Decimal
 from html import escape
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
@@ -11,41 +14,204 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    status,
     Body,
     UploadFile,
     File,
     Form,
 )
 from fastapi.responses import FileResponse
-from sqlalchemy import text
+from sqlalchemy import or_, text, func
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import secrets
-
-logger = logging.getLogger(__name__)
+from threading import Lock
 
 from api.database import get_db
-from api.models import Supplier, SupplierUser, User, ProjectSupplier, Project
+from api.core.authz import (
+    GLOBAL_PROCUREMENT_MANAGER_ROLES,
+    is_admin_like,
+    is_global_procurement_manager,
+    normalized_role,
+    normalized_system_role,
+)
+from api.models import (
+    Supplier,
+    SupplierUser,
+    User,
+    ProjectSupplier,
+    Project,
+    Quote,
+    SupplierQuote,
+    ProjectFile,
+)
 from api.models.report import Contract
 from api.schemas.supplier import (
     SupplierCreate,
     SupplierOut,
     SupplierUpdate,
     SupplierUserCreate,
+    SupplierUserUpdate,
     SupplierUserOut,
 )
 from api.core.deps import get_current_user, get_current_supplier_user
 from api.core.security import get_password_hash
 from api.services.email_service import get_email_service
 from api.services.sms_service import get_sms_service
+from api.services.subscription_service import enforce_active_private_supplier_limit
+from api.services.work_mailbox_service import ensure_supplier_user_work_mailbox
+from api.models.tenant import Tenant
+from api.models.company import Company
+from api.models.payment import TenantSubscriptionAddon
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/suppliers", tags=["suppliers"])
+_SUPPLIER_FINANCE_SCHEMA_LOCK = Lock()
+_SUPPLIER_FINANCE_SCHEMA_READY = False
+
+
+def _normalize_category_items(values: object) -> list[str]:
+    if values is None:
+        return []
+    if isinstance(values, str):
+        candidate_values = [values]
+    elif isinstance(values, (list, tuple, set)):
+        candidate_values = list(values)
+    else:
+        candidate_values = [values]
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in candidate_values:
+        text_value = str(item).strip()
+        if not text_value:
+            continue
+        lowered = text_value.casefold()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        normalized.append(text_value[:255])
+    return normalized
+
+
+def _set_supplier_category_fields(
+    supplier: Supplier,
+    *,
+    category_tags: list[str] | None = None,
+    partner_category_tags: list[str] | None = None,
+    category: str | None = None,
+) -> None:
+    next_category_tags = (
+        category_tags if category_tags is not None else supplier.category_tags
+    )
+    next_partner_category_tags = (
+        partner_category_tags
+        if partner_category_tags is not None
+        else supplier.partner_category_tags
+    )
+    fallback_category = str(category or supplier.category or "").strip()
+
+    supplier.category_tags_json = (
+        json.dumps(next_category_tags, ensure_ascii=False)
+        if next_category_tags
+        else None
+    )
+    supplier.partner_category_tags_json = (
+        json.dumps(next_partner_category_tags, ensure_ascii=False)
+        if next_partner_category_tags
+        else None
+    )
+
+    effective_tags: list[str] = []
+    seen: set[str] = set()
+    for item in [*next_category_tags, *next_partner_category_tags]:
+        lowered = item.casefold()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        effective_tags.append(item)
+
+    if effective_tags:
+        supplier.category = effective_tags[0]
+    else:
+        supplier.category = fallback_category or None
+
+
+def _serialize_supplier(supplier: Supplier) -> dict:
+    inviter_company_name: str | None = None
+    if supplier.tenant is not None and getattr(supplier.tenant, "companies", None):
+        tenant_companies = [c for c in supplier.tenant.companies if c.is_active]
+        if tenant_companies:
+            tenant_companies.sort(
+                key=lambda c: (0 if c.is_primary else 1, c.name.lower())
+            )
+            inviter_company_name = tenant_companies[0].name
+
+    special_listing_active = False
+
+    return {
+        "id": supplier.id,
+        "created_by_id": supplier.created_by_id,
+        "company_name": supplier.company_name,
+        "company_title": supplier.company_title,
+        "tax_number": supplier.tax_number,
+        "registration_number": supplier.registration_number,
+        "phone": supplier.phone,
+        "email": supplier.email,
+        "website": supplier.website,
+        "address": supplier.address,
+        "city": supplier.city,
+        "address_district": supplier.address_district,
+        "postal_code": supplier.postal_code,
+        "category": supplier.category,
+        "category_tags": supplier.category_tags,
+        "partner_category_tags": supplier.partner_category_tags,
+        "effective_category_tags": supplier.effective_category_tags,
+        "invoice_name": supplier.invoice_name,
+        "invoice_address": supplier.invoice_address,
+        "invoice_city": supplier.invoice_city,
+        "invoice_district": supplier.invoice_district,
+        "invoice_postal_code": supplier.invoice_postal_code,
+        "reference_score": _num_to_float(supplier.reference_score),
+        "notes": supplier.notes,
+        "is_active": supplier.is_active,
+        "is_verified": supplier.is_verified,
+        "logo_url": supplier.logo_url,
+        "created_at": supplier.created_at,
+        "updated_at": supplier.updated_at,
+        "source_type": supplier.source_type,
+        "tenant_id": supplier.tenant_id,
+        "tenant_name": (
+            supplier.tenant.brand_name or supplier.tenant.legal_name
+            if supplier.tenant
+            else None
+        ),
+        "inviter_company_name": inviter_company_name,
+        "special_listing_active": special_listing_active,
+    }
+
+
+def _can_bypass_supplier_scope(current_user: User) -> bool:
+    return normalized_system_role(current_user) == "super_admin"
+
+
+def _is_global_supplier_manager(current_user: User) -> bool:
+    return is_global_procurement_manager(current_user)
 
 
 def _is_postgresql(db: Session) -> bool:
-    return getattr(getattr(db, "bind", None), "dialect", None).name == "postgresql"
+    bind = getattr(db, "bind", None)
+    dialect = getattr(bind, "dialect", None)
+    return getattr(dialect, "name", None) == "postgresql"
+
+
+def _num_to_float(value: object | None) -> float:
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float, Decimal, str)):
+        return float(value)
+    return 0.0
 
 
 def _ensure_supplier_default_user_table(db: Session) -> None:
@@ -113,7 +279,203 @@ def _set_default_user_id(db: Session, supplier_id: int, supplier_user_id: int) -
     db.commit()
 
 
+def _create_default_supplier_user_for_invite(
+    db: Session,
+    supplier: Supplier,
+    *,
+    email_service,
+) -> tuple[SupplierUser, bool]:
+    existing_user = (
+        db.query(SupplierUser)
+        .filter(SupplierUser.email == supplier.email, SupplierUser.is_active)
+        .first()
+    )
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Bu e-mail ile kayıtlı aktif bir tedarikçi kullanıcısı zaten mevcut",
+        )
+
+    magic_token = secrets.token_urlsafe(32)
+    magic_token_expires = datetime.now(ZoneInfo("UTC")) + timedelta(hours=24)
+    supplier_user = SupplierUser(
+        supplier_id=supplier.id,
+        name=(supplier.company_name or "Firma Yetkilisi").strip()[:255],
+        email=supplier.email,
+        phone=supplier.phone,
+        magic_token=magic_token,
+        magic_token_expires=magic_token_expires,
+        is_active=True,
+        email_verified=False,
+        password_set=False,
+    )
+    db.add(supplier_user)
+    db.flush()
+
+    _ensure_supplier_default_user_table(db)
+    db.execute(
+        text(
+            """
+            INSERT INTO supplier_default_users (supplier_id, supplier_user_id, updated_at)
+            VALUES (:supplier_id, :supplier_user_id, :updated_at)
+            ON CONFLICT(supplier_id) DO UPDATE SET
+                supplier_user_id = excluded.supplier_user_id,
+                updated_at = excluded.updated_at
+        """
+        ),
+        {
+            "supplier_id": supplier.id,
+            "supplier_user_id": supplier_user.id,
+            "updated_at": datetime.now(ZoneInfo("UTC")).isoformat(),
+        },
+    )
+
+    email_sent = False
+    try:
+        email_sent = email_service.send_magic_link(
+            to_email=supplier_user.email,
+            supplier_name=supplier.company_name,
+            supplier_user_name=supplier_user.name,
+            magic_token=magic_token,
+            company_name="ProcureFlow",
+            owner_user_id=supplier.created_by_id,
+        )
+    except Exception:
+        logger.exception("[SUPPLIER_INVITE] Magic link email could not be sent")
+        email_sent = False
+
+    return supplier_user, email_sent
+
+
 # ============ SUPPLIER CRUD ============
+
+
+def _current_tenant_id(current_user: User) -> int | None:
+    return getattr(current_user, "tenant_id", None)
+
+
+def _current_tenant(db: Session, current_user: User) -> Tenant | None:
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is None:
+        return None
+    return db.query(Tenant).filter(Tenant.id == tenant_id).first()
+
+
+def _require_private_supplier_tenant_scope(current_user: User) -> None:
+    if _current_tenant_id(current_user) is not None or _can_bypass_supplier_scope(
+        current_user
+    ):
+        return
+
+    if normalized_system_role(current_user) in {
+        "tenant_owner",
+        "tenant_admin",
+        "tenant_member",
+    }:
+        raise HTTPException(
+            status_code=400,
+            detail="Tenant kapsamı olmayan kullanıcı private tedarikçi oluşturamaz. Önce tenant bootstrap akışını tamamlayın.",
+        )
+
+
+def _ensure_supplier_scope(
+    supplier: Supplier,
+    current_user: User,
+    *,
+    detail: str = "Bu tedarikci üzerinde yetkiniz yok",
+) -> None:
+    if _can_bypass_supplier_scope(current_user):
+        return
+
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is not None and supplier.tenant_id != tenant_id:
+        raise HTTPException(status_code=403, detail=detail)
+
+    if (
+        tenant_id is None
+        and supplier.created_by_id
+        and supplier.created_by_id != current_user.id
+    ):
+        raise HTTPException(status_code=403, detail=detail)
+
+
+def _ensure_supplier_creator_access(
+    supplier: Supplier,
+    current_user: User,
+    *,
+    detail: str,
+) -> None:
+    if _can_bypass_supplier_scope(current_user):
+        return
+
+    if supplier.created_by_id and supplier.created_by_id != current_user.id:
+        raise HTTPException(status_code=403, detail=detail)
+
+
+def _apply_supplier_visibility_filter(
+    query,
+    current_user: User,
+    *,
+    allow_global_manager_unscoped: bool = False,
+    source_type: str | None = None,
+):
+    tenant_id = _current_tenant_id(current_user)
+    normalized_source_type = (source_type or "").strip().lower() or None
+
+    if normalized_source_type == "platform_network":
+        return query.filter(Supplier.tenant_id.is_(None))
+
+    if tenant_id is not None:
+        if normalized_source_type == "all":
+            return query.filter(
+                or_(Supplier.tenant_id == tenant_id, Supplier.tenant_id.is_(None))
+            )
+        return query.filter(Supplier.tenant_id == tenant_id)
+
+    if allow_global_manager_unscoped and is_global_procurement_manager(current_user):
+        if normalized_source_type == "private":
+            return query.filter(Supplier.tenant_id.is_not(None))
+        return query
+
+    if normalized_source_type == "private":
+        return query.filter(
+            Supplier.created_by_id == current_user.id,
+            Supplier.tenant_id.is_(None),
+        )
+
+    return query.filter(Supplier.created_by_id == current_user.id)
+
+
+def _get_visible_supplier_or_404(
+    db: Session,
+    supplier_id: int,
+    current_user: User,
+    *,
+    detail: str = "Bu tedarikciyi kullanma yetkiniz yok",
+    allow_platform_network_for_tenant: bool = False,
+) -> Supplier:
+    supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
+
+    if _can_bypass_supplier_scope(current_user):
+        return supplier
+
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is not None:
+        if supplier.tenant_id == tenant_id:
+            return supplier
+        if allow_platform_network_for_tenant and supplier.tenant_id is None:
+            return supplier
+        raise HTTPException(status_code=403, detail=detail)
+
+    if is_global_procurement_manager(current_user):
+        return supplier
+
+    if supplier.created_by_id and supplier.created_by_id == current_user.id:
+        return supplier
+
+    raise HTTPException(status_code=403, detail=detail)
 
 
 @router.post("", response_model=SupplierOut)
@@ -121,19 +483,57 @@ def create_supplier(
     supplier_data: SupplierCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    email_service=Depends(get_email_service),
 ):
     """Yeni tedarikçi ekle (Personel tarafından)"""
     # Email benzersizliği kontrol et
     existing = db.query(Supplier).filter(Supplier.email == supplier_data.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Bu e-mail zaten kayıtlı")
+    existing_supplier_user = (
+        db.query(SupplierUser)
+        .filter(SupplierUser.email == supplier_data.email, SupplierUser.is_active)
+        .first()
+    )
+    if existing_supplier_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Bu e-mail ile kayıtlı aktif bir tedarikçi kullanıcısı zaten mevcut",
+        )
 
-    supplier = Supplier(created_by_id=current_user.id, **supplier_data.model_dump())
+    _require_private_supplier_tenant_scope(current_user)
+
+    enforce_active_private_supplier_limit(db, _current_tenant(db, current_user))
+
+    normalized_category_tags = _normalize_category_items(
+        supplier_data.category_tags or supplier_data.category
+    )
+    normalized_partner_category_tags = _normalize_category_items(
+        supplier_data.partner_category_tags
+    )
+
+    supplier = Supplier(
+        created_by_id=current_user.id,
+        tenant_id=_current_tenant_id(current_user),
+        **supplier_data.model_dump(exclude={"category_tags", "partner_category_tags"}),
+    )
+    _set_supplier_category_fields(
+        supplier,
+        category_tags=normalized_category_tags,
+        partner_category_tags=normalized_partner_category_tags,
+        category=supplier_data.category,
+    )
 
     db.add(supplier)
+    db.flush()
+    _create_default_supplier_user_for_invite(
+        db,
+        supplier,
+        email_service=email_service,
+    )
     db.commit()
     db.refresh(supplier)
-    return supplier
+    return _serialize_supplier(supplier)
 
 
 @router.get("", response_model=list[SupplierOut])
@@ -141,24 +541,81 @@ def list_suppliers(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     filter_active: bool = True,
+    source_type: str | None = None,
 ):
     """Tedarikçileri listele (Personel tarafından girilen)"""
     try:
         query = db.query(Supplier)
 
         if filter_active:
-            query = query.filter(Supplier.is_active == True)
+            query = query.filter(Supplier.is_active)
 
-        # Sadece ekleyen ve yetkili kişiler görebilsin (TODO: Sonra permission ekle)
+        query = _apply_supplier_visibility_filter(
+            query,
+            current_user,
+            allow_global_manager_unscoped=True,
+            source_type=source_type,
+        )
+
         suppliers = query.order_by(Supplier.company_name).all()
-        return suppliers
+
+        tenant_ids = sorted(
+            {int(s.tenant_id) for s in suppliers if s.tenant_id is not None}
+        )
+        special_tenant_ids: set[int] = set()
+        if tenant_ids:
+            special_rows = (
+                db.query(TenantSubscriptionAddon.tenant_id)
+                .filter(
+                    TenantSubscriptionAddon.tenant_id.in_(tenant_ids),
+                    TenantSubscriptionAddon.status == "active",
+                    func.lower(func.coalesce(TenantSubscriptionAddon.addon_code, ""))
+                    == "special_listing",
+                )
+                .all()
+            )
+            special_tenant_ids = {
+                int(row.tenant_id) for row in special_rows if row.tenant_id is not None
+            }
+
+        inviter_company_name_by_tenant_id: dict[int, str] = {}
+        if tenant_ids:
+            companies = (
+                db.query(Company)
+                .filter(Company.tenant_id.in_(tenant_ids), Company.is_active == True)
+                .order_by(
+                    Company.tenant_id.asc(),
+                    Company.is_primary.desc(),
+                    Company.name.asc(),
+                )
+                .all()
+            )
+            for company in companies:
+                if company.tenant_id is None:
+                    continue
+                tenant_key = int(company.tenant_id)
+                if tenant_key not in inviter_company_name_by_tenant_id:
+                    inviter_company_name_by_tenant_id[tenant_key] = company.name
+
+        rows: list[dict] = []
+        for supplier in suppliers:
+            payload = _serialize_supplier(supplier)
+            tenant_id = supplier.tenant_id
+            if tenant_id is not None:
+                payload["special_listing_active"] = int(tenant_id) in special_tenant_ids
+                payload["inviter_company_name"] = inviter_company_name_by_tenant_id.get(
+                    int(tenant_id)
+                )
+            rows.append(payload)
+
+        return rows
     except Exception as e:
         import traceback
 
         print(f"[ERROR] GET /suppliers error: {str(e)}")
         traceback.print_exc()
         raise HTTPException(
-            status_code=500, detail=f"Tedarikçiler yüklenirken hata: {str(e)}"
+            status_code=500, detail="Tedarikçiler yüklenirken hata"
         )
 
 
@@ -172,7 +629,10 @@ def get_supplier(
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
-    return supplier
+    _ensure_supplier_scope(
+        supplier, current_user, detail="Bu tedarikciyi goruntuleme yetkiniz yok"
+    )
+    return _serialize_supplier(supplier)
 
 
 @router.put("/{supplier_id:int}", response_model=SupplierOut)
@@ -187,13 +647,9 @@ def update_supplier(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    # Sadece ekleyen kişi veya super admin güncelleyebilsin
-    # created_by_id null ise super admin güncelleyebilir
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Sadece ekleyen kişi güncelleyebilir"
-            )
+    _ensure_supplier_scope(
+        supplier, current_user, detail="Bu tedarikciyi guncelleme yetkiniz yok"
+    )
 
     # Email unique kontrol (email değiştirilirse)
     if supplier_data.email and supplier_data.email != supplier.email:
@@ -205,16 +661,39 @@ def update_supplier(
         if existing:
             raise HTTPException(status_code=400, detail="Bu e-mail zaten kayıtlı")
 
-    for field, value in supplier_data.dict(exclude_unset=True).items():
+    update_values = supplier_data.model_dump(exclude_unset=True)
+    normalized_category_tags = None
+    normalized_partner_category_tags = None
+    if "category_tags" in update_values:
+        normalized_category_tags = _normalize_category_items(
+            update_values.pop("category_tags")
+        )
+    if "partner_category_tags" in update_values:
+        normalized_partner_category_tags = _normalize_category_items(
+            update_values.pop("partner_category_tags")
+        )
+
+    for field, value in update_values.items():
         if hasattr(supplier, field):
             setattr(supplier, field, value)
+
+    if (
+        normalized_category_tags is not None
+        or normalized_partner_category_tags is not None
+    ):
+        _set_supplier_category_fields(
+            supplier,
+            category_tags=normalized_category_tags,
+            partner_category_tags=normalized_partner_category_tags,
+            category=update_values.get("category"),
+        )
 
     # updated_at alanını güncelle
     supplier.updated_at = datetime.now(ZoneInfo("UTC"))
 
     db.commit()
     db.refresh(supplier)
-    return supplier
+    return _serialize_supplier(supplier)
 
 
 @router.delete("/{supplier_id:int}")
@@ -228,8 +707,9 @@ def delete_supplier(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if supplier.created_by_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Sadece ekleyen kişi silebilir")
+    _ensure_supplier_scope(
+        supplier, current_user, detail="Bu tedarikciyi silme yetkiniz yok"
+    )
 
     supplier.is_active = False
     db.commit()
@@ -250,11 +730,9 @@ def get_supplier_management_detail(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçiyi görüntüleme yetkiniz yok"
-            )
+    _ensure_supplier_scope(
+        supplier, current_user, detail="Bu tedarikciyi goruntuleme yetkiniz yok"
+    )
 
     payment_payload = _get_supplier_payment_payload(db, supplier.id)
     default_user_id = _get_default_user_id(db, supplier.id)
@@ -262,7 +740,7 @@ def get_supplier_management_detail(
         db.query(SupplierUser)
         .filter(
             SupplierUser.supplier_id == supplier.id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .order_by(SupplierUser.id.asc())
         .all()
@@ -311,6 +789,9 @@ def get_supplier_management_detail(
             "tax_office": supplier.tax_office,
             "notes": supplier.notes,
             "category": supplier.category,
+            "category_tags": supplier.category_tags,
+            "partner_category_tags": supplier.partner_category_tags,
+            "effective_category_tags": supplier.effective_category_tags,
             "logo_url": supplier.logo_url,
             "payment_accounts": payment_payload["payment_accounts"],
             "accepts_checks": payment_payload["accepts_checks"],
@@ -357,11 +838,9 @@ def update_supplier_management_detail(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçiyi güncelleme yetkiniz yok"
-            )
+    _ensure_supplier_scope(
+        supplier, current_user, detail="Bu tedarikciyi guncelleme yetkiniz yok"
+    )
 
     next_email = payload.get("email")
     if (
@@ -399,10 +878,25 @@ def update_supplier_management_detail(
         "tax_office": payload.get("tax_office"),
         "notes": payload.get("notes"),
         "category": payload.get("category"),
+        "is_active": payload.get("is_active") if "is_active" in payload else None,
     }
     for field, value in update_fields.items():
         if value is not None and hasattr(supplier, field):
             setattr(supplier, field, value)
+
+    if "category_tags" in payload or "partner_category_tags" in payload:
+        _set_supplier_category_fields(
+            supplier,
+            category_tags=_normalize_category_items(payload.get("category_tags"))
+            if "category_tags" in payload
+            else None,
+            partner_category_tags=_normalize_category_items(
+                payload.get("partner_category_tags")
+            )
+            if "partner_category_tags" in payload
+            else None,
+            category=payload.get("category"),
+        )
 
     _ensure_supplier_payment_tables(db)
     payment_accounts = payload.get("payment_accounts")
@@ -501,11 +995,11 @@ def create_supplier_guarantee(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçi için teminat ekleme yetkiniz yok"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi için teminat ekleme yetkiniz yok",
+    )
 
     title = str(payload.get("title") or "").strip()
     guarantee_type = str(payload.get("guarantee_type") or "").strip()
@@ -551,11 +1045,11 @@ def delete_supplier_guarantee(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçi için teminat silme yetkiniz yok"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi için teminat silme yetkiniz yok",
+    )
 
     _ensure_supplier_guarantees_table(db)
     db.execute(
@@ -582,12 +1076,11 @@ def update_supplier_guarantee(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Bu tedarikçi için teminat güncelleme yetkiniz yok",
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi için teminat güncelleme yetkiniz yok",
+    )
 
     _ensure_supplier_guarantees_table(db)
     row = (
@@ -668,16 +1161,16 @@ def create_supplier_user(
 
     # Sadece ekleyen kişi veya super admin kullanıcı ekleyebilsin
     # created_by_id null ise super admin ekleyebilir
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Sadece ekleyen kişi kullanıcı ekleyebilir"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Sadece ekleyen kişi kullanıcı ekleyebilir",
+    )
 
     # Email benzersizliği (sadece aktif kullanıcılar kontrol edilecek)
     existing = (
         db.query(SupplierUser)
-        .filter(SupplierUser.email == user_data.email, SupplierUser.is_active == True)
+        .filter(SupplierUser.email == user_data.email, SupplierUser.is_active)
         .first()
     )
     if existing:
@@ -705,12 +1198,12 @@ def create_supplier_user(
                 status_code=400,
                 detail="Bu e-mail adı zaten veritabanında kayıtlı. Lütfen silinmiş kayıtları temizleyin.",
             )
-        raise HTTPException(status_code=400, detail=f"Veritabanı hatası: {str(e)}")
+        raise HTTPException(status_code=400, detail="Veritabanı hatası")
     except Exception as e:
         db.rollback()
         print(f"[ERROR] Kullanıcı oluşturma hatası: {str(e)}")
         raise HTTPException(
-            status_code=500, detail=f"Kullanıcı oluşturma hatası: {str(e)}"
+            status_code=500, detail="Kullanıcı oluşturma hatası"
         )
 
     if _get_default_user_id(db, supplier_id) is None:
@@ -725,6 +1218,7 @@ def create_supplier_user(
             supplier_user_name=supplier_user.name,
             magic_token=magic_token,
             company_name="ProcureFlow",
+            owner_user_id=supplier.created_by_id,
         )
         if email_sent:
             print(
@@ -767,7 +1261,7 @@ def list_supplier_users(
 def update_supplier_user(
     supplier_id: int,
     user_id: int,
-    user_data: SupplierUserCreate,
+    user_data: SupplierUserUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     email_service=Depends(get_email_service),
@@ -791,11 +1285,11 @@ def update_supplier_user(
         raise HTTPException(status_code=400, detail="Varsayılan yetkili değiştirilemez")
 
     # Sadece ekleyen kişi veya super admin güncelleyebilsin
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Sadece ekleyen kişi güncelleyebilir"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Sadece ekleyen kişi güncelleyebilir",
+    )
 
     # Email unique kontrol (email değiştirilirse, sadece aktif kullanıcılar)
     if user_data.email and user_data.email != supplier_user.email:
@@ -804,7 +1298,7 @@ def update_supplier_user(
             .filter(
                 SupplierUser.email == user_data.email,
                 SupplierUser.id != user_id,
-                SupplierUser.is_active == True,
+                SupplierUser.is_active,
             )
             .first()
         )
@@ -812,9 +1306,16 @@ def update_supplier_user(
             raise HTTPException(status_code=400, detail="Bu e-mail zaten kayıtlı")
 
     # Güncellemeleri yapla
-    supplier_user.name = user_data.name
-    supplier_user.email = user_data.email
-    supplier_user.phone = user_data.phone
+    payload = user_data.model_dump(exclude_unset=True)
+    if "name" in payload:
+        supplier_user.name = payload["name"]
+    if "email" in payload:
+        supplier_user.email = payload["email"]
+        supplier_user.work_email = payload.get("work_email") or payload["email"]
+    if "phone" in payload:
+        supplier_user.phone = payload["phone"]
+    if "is_active" in payload:
+        supplier_user.is_active = bool(payload["is_active"])
 
     db.commit()
     db.refresh(supplier_user)
@@ -862,7 +1363,79 @@ def delete_supplier_user(
     except Exception as e:
         db.rollback()
         print(f"[ERROR] Kullanıcı silme hatası: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Silme hatası: {str(e)}")
+        raise HTTPException(status_code=500, detail="Silme hatası")
+
+
+@router.post(
+    "/{supplier_id:int}/users/{user_id}/resend-magic-link", response_model=dict
+)
+def resend_supplier_user_magic_link(
+    supplier_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    email_service=Depends(get_email_service),
+):
+    """Tedarikçi kullanıcı için magic link'i yeniden üretip tekrar gönder."""
+    supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
+
+    supplier_user = (
+        db.query(SupplierUser)
+        .filter(SupplierUser.id == user_id, SupplierUser.supplier_id == supplier_id)
+        .first()
+    )
+    if not supplier_user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Magic link tekrar gönderme yetkiniz yok",
+    )
+
+    if not supplier_user.is_active:
+        raise HTTPException(
+            status_code=400, detail="Pasif kullanıcı için magic link gönderilemez"
+        )
+
+    if supplier_user.email_verified and supplier_user.password_set:
+        raise HTTPException(
+            status_code=409, detail="Kullanıcı kaydı tamamlanmış; magic link pasif"
+        )
+
+    magic_token = secrets.token_urlsafe(32)
+    magic_token_expires = datetime.now(ZoneInfo("UTC")) + timedelta(hours=24)
+    supplier_user.magic_token = magic_token
+    supplier_user.magic_token_expires = magic_token_expires
+
+    db.commit()
+    db.refresh(supplier_user)
+
+    email_sent = False
+    try:
+        email_sent = email_service.send_magic_link(
+            to_email=supplier_user.email,
+            supplier_name=supplier.company_name,
+            supplier_user_name=supplier_user.name,
+            magic_token=magic_token,
+            company_name="ProcureFlow",
+            owner_user_id=supplier.created_by_id,
+        )
+    except Exception:
+        logger.exception("[SUPPLIER_MAGIC] Magic link yeniden gonderilemedi")
+        email_sent = False
+
+    return {
+        "status": "success" if email_sent else "warning",
+        "message": (
+            "Magic link yeniden gönderildi"
+            if email_sent
+            else "Magic link yenilendi ancak e-posta gönderilemedi"
+        ),
+        "magic_link_sent": email_sent,
+    }
 
 
 @router.post("/{supplier_id:int}/users/{user_id}/set-default", response_model=dict)
@@ -877,19 +1450,18 @@ def set_default_supplier_user(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Varsayılan yetkiliyi sadece admin belirleyebilir",
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Varsayılan yetkiliyi sadece admin belirleyebilir",
+    )
 
     supplier_user = (
         db.query(SupplierUser)
         .filter(
             SupplierUser.id == user_id,
             SupplierUser.supplier_id == supplier_id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .first()
     )
@@ -916,21 +1488,18 @@ def add_suppliers_to_project(
     email_service=Depends(get_email_service),
 ):
     """Projeye tedarikçileri ekle ve davet maileri gönder"""
-    print(f"\n[ENDPOINT] add_suppliers_to_project called")
-    print(f"[ENDPOINT] project_id={project_id}, supplier_ids={supplier_ids}")
-    print(f"[ENDPOINT] email_service={email_service}, type={type(email_service)}")
-    print(f"[ENDPOINT] current_user.role={current_user.role}")
+    current_role = normalized_role(current_user)
 
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
 
-    # Yetki kontrol: Super Admin, Admin veya Satınalma Direktörü
-    admin_roles = ["super_admin", "admin", "satinalma_direktoru"]
-    if current_user.role not in admin_roles:
+    # Yetki kontrol: global rol veya projeye atanmış satın alma sorumlusu
+    is_project_member = any(p.id == project_id for p in current_user.projects)
+    if not _is_global_supplier_manager(current_user) and not is_project_member:
         raise HTTPException(
             status_code=403,
-            detail=f"Yetkiniz yok. Gerekli rol: {', '.join(admin_roles)}. Mevcut rol: {current_user.role}",
+            detail=f"Yetkiniz yok. Gerekli rol: {', '.join(sorted(GLOBAL_PROCUREMENT_MANAGER_ROLES))}. Mevcut rol: {current_role}",
         )
 
     assigned_count = 0
@@ -945,10 +1514,13 @@ def add_suppliers_to_project(
 
     for supplier_id in supplier_ids:
         print(f"[ENDPOINT] Processing supplier_id={supplier_id}")
-        supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
-        if not supplier:
-            print(f"[ENDPOINT] Supplier {supplier_id} not found")
-            continue
+        supplier = _get_visible_supplier_or_404(
+            db,
+            supplier_id,
+            current_user,
+            detail="Bu tedarikciyi projeye ekleme yetkiniz yok",
+            allow_platform_network_for_tenant=True,
+        )
 
         print(f"[ENDPOINT] Found supplier: {supplier.company_name} ({supplier.email})")
 
@@ -979,7 +1551,7 @@ def add_suppliers_to_project(
         else:
             # Zaten atanmış, ama tekrar davet gönderebiliriz
             print(
-                f"[ENDPOINT] Supplier already assigned to project - will resend invitation"
+                "[ENDPOINT] Supplier already assigned to project - will resend invitation"
             )
             project_supplier = existing
 
@@ -1015,7 +1587,7 @@ def add_suppliers_to_project(
                 # Continue anyway, email server might still work
         else:
             # User zaten var - magic token'ı refresh edelim (tekrar davet için)
-            print(f"[ENDPOINT] SupplierUser exists - refreshing magic token")
+            print("[ENDPOINT] SupplierUser exists - refreshing magic token")
             if not supplier_user.password_set:
                 # Henüz password set etmemiş, token'ı yenile
                 magic_token = secrets.token_urlsafe(32)
@@ -1025,12 +1597,10 @@ def add_suppliers_to_project(
                 ) + timedelta(hours=24)
                 db.commit()
                 db.refresh(supplier_user)
-                print(f"[ENDPOINT] ✓ Magic token refreshed")
+                print("[ENDPOINT] ✓ Magic token refreshed")
             else:
                 # Password set edilmiş - tekrar davet yollanamazız
-                print(
-                    f"[ENDPOINT] ⚠️  User already registered, cannot resend magic link"
-                )
+                print("[ENDPOINT] ⚠️  User already registered, cannot resend magic link")
 
         # STEP 3: Email gönder (şifre durumuna göre different email)
         try:
@@ -1039,19 +1609,20 @@ def add_suppliers_to_project(
             # Şifre set edilmiş mi kontrol et
             if not supplier_user.password_set:
                 # Password set edilmemiş - magic link gönder
-                print(f"[EMAIL] Password not set - sending magic link email")
+                print("[EMAIL] Password not set - sending magic link email")
                 result = email_service.send_magic_link(
                     to_email=supplier_user.email,
                     supplier_name=supplier.company_name,
                     supplier_user_name=supplier_user.name,
                     magic_token=supplier_user.magic_token,
                     company_name="ProcureFlow",
+                    owner_user_id=supplier.created_by_id,
                 )
                 email_type = "📝 Magic Link (Registration)"
             else:
                 # Password set edilmiş - normal davet gönder
                 print(
-                    f"[EMAIL] Password already set - sending normal project invitation"
+                    "[EMAIL] Password already set - sending normal project invitation"
                 )
                 result = email_service.send_project_invitation(
                     to_email=supplier.email,
@@ -1112,9 +1683,8 @@ def get_project_suppliers(
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
 
     # Yetki kontrol
-    admin_roles = {"super_admin", "admin", "satinalma_direktoru"}
     is_project_member = any(p.id == project_id for p in current_user.projects)
-    if current_user.role not in admin_roles and not is_project_member:
+    if not _is_global_supplier_manager(current_user) and not is_project_member:
         raise HTTPException(status_code=403, detail="Yetkiniz yok")
 
     project_suppliers = (
@@ -1129,7 +1699,11 @@ def get_project_suppliers(
                 "supplier_id": ps.supplier_id,
                 "supplier_name": ps.supplier.company_name,
                 "supplier_email": ps.supplier.email,
+                "source_type": ps.supplier.source_type,
                 "category": ps.supplier.category,
+                "category_tags": ps.supplier.category_tags,
+                "partner_category_tags": ps.supplier.partner_category_tags,
+                "effective_category_tags": ps.supplier.effective_category_tags,
                 "is_active": ps.is_active,
                 "invitation_sent": ps.invitation_sent,
                 "invitation_sent_at": ps.invitation_sent_at,
@@ -1157,9 +1731,8 @@ def remove_supplier_from_project(
         raise HTTPException(status_code=404, detail="Atama bulunamadı")
 
     project = project_supplier.project
-    admin_roles = {"super_admin", "admin", "satinalma_direktoru"}
     is_project_member = any(p.id == project.id for p in current_user.projects)
-    if current_user.role not in admin_roles and not is_project_member:
+    if not _is_global_supplier_manager(current_user) and not is_project_member:
         raise HTTPException(status_code=403, detail="Yetkiniz yok")
 
     db.delete(project_supplier)
@@ -1182,14 +1755,18 @@ def resend_supplier_invitation(
     if not project:
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
 
-    supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
-    if not supplier:
-        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
-
     # Yetki kontrol
-    admin_roles = ["super_admin", "admin", "satinalma_direktoru"]
-    if current_user.role not in admin_roles:
+    is_project_member = any(p.id == project_id for p in current_user.projects)
+    if not _is_global_supplier_manager(current_user) and not is_project_member:
         raise HTTPException(status_code=403, detail="Yetkiniz yok")
+
+    supplier = _get_visible_supplier_or_404(
+        db,
+        supplier_id,
+        current_user,
+        detail="Bu tedarikciye davetiye yeniden gonderme yetkiniz yok",
+        allow_platform_network_for_tenant=True,
+    )
 
     # ProjectSupplier kaydı var mı?
     project_supplier = (
@@ -1200,7 +1777,6 @@ def resend_supplier_invitation(
         )
         .first()
     )
-
     if not project_supplier:
         raise HTTPException(status_code=404, detail="Bu tedarikçi bu projeye atanmamış")
 
@@ -1235,10 +1811,11 @@ def resend_supplier_invitation(
             supplier_user_name=supplier_user.name,
             magic_token=magic_token,
             company_name="ProcureFlow",
+            owner_user_id=supplier.created_by_id,
         )
     else:
         # Password set edilmiş - normal project invitation gönder
-        print(f"[RESEND] User already registered - sending project invitation")
+        print("[RESEND] User already registered - sending project invitation")
         email_type = "📧 Project Invitation"
         result = email_service.send_project_invitation(
             to_email=supplier.email,
@@ -1269,7 +1846,7 @@ def resend_supplier_invitation(
             }
     except Exception as e:
         logger.exception(f"[RESEND] Error sending email to {supplier.email}: {str(e)}")
-        return {"status": "error", "message": f"Email göndermede hata: {str(e)}"}
+        return {"status": "error", "message": "Email göndermede hata"}
 
 
 # ============ SUPPLIER REGISTRATION (Magic Link) ============
@@ -1310,7 +1887,11 @@ def verify_magic_token(data: dict, db: Session = Depends(get_db)):
 
 
 @router.post("/register")
-def register_supplier_user(data: dict, db: Session = Depends(get_db)):
+def register_supplier_user(
+    data: dict,
+    db: Session = Depends(get_db),
+    email_service=Depends(get_email_service),
+):
     """Tedarikçi kullanıcısı şifresi belirle ve active et"""
     from api.core.security import get_password_hash
 
@@ -1346,8 +1927,32 @@ def register_supplier_user(data: dict, db: Session = Depends(get_db)):
     supplier_user.magic_token = None  # Token'ı sil (bir daha kullanılamaz)
     supplier_user.magic_token_expires = None
 
+    work_mailbox_credentials = None
+    try:
+        work_mailbox_credentials = ensure_supplier_user_work_mailbox(db, supplier_user)
+    except Exception:
+        logger.exception("[SUPPLIER_REGISTER] Auto work mailbox provisioning failed")
+
     db.commit()
     db.refresh(supplier_user)
+
+    if work_mailbox_credentials is not None:
+        try:
+            email_service.send_custom_email(
+                to_email=supplier_user.email,
+                subject="ProcureFlow Is Maili Bilgileriniz",
+                body=(
+                    "Merhaba,\n\n"
+                    "Kaydiniz tamamlandi. Platform varsayilan SMTP/POP3/IMAP ayarlari icin otomatik bir is maili olusturuldu.\n\n"
+                    f"Is maili: {work_mailbox_credentials['work_email']}\n"
+                    f"Sifre: {work_mailbox_credentials['password']}\n\n"
+                    "Not: Sisteme giris her zaman uye oldugunuz kisisel e-posta ve sifreniz ile yapilir.\n"
+                    "Ozel SMTP/POP3/IMAP ayarlarinizi tanimlarsaniz mailbox islemleri bu ozel profil uzerinden calisir."
+                ),
+                owner_user_id=None,
+            )
+        except Exception:
+            logger.exception("[SUPPLIER_REGISTER] Work mailbox credential email failed")
 
     return {
         "status": "success",
@@ -1359,22 +1964,43 @@ def register_supplier_user(data: dict, db: Session = Depends(get_db)):
 # ============ SUPPLIER DASHBOARD ============
 
 
+@router.get("/my-firms", response_model=list[dict])
+def get_my_supplier_firms(
+    supplier_user: SupplierUser = Depends(get_current_supplier_user),
+    db: Session = Depends(get_db),
+):
+    """Kullanıcının yetkili olduğu tedarikçi firmalarını listele.
+    Şu an her kullanıcı bir firmaya bağlıdır; ileride çoklu firma desteği için liste döner."""
+    supplier = (
+        db.query(Supplier).filter(Supplier.id == supplier_user.supplier_id).first()
+    )
+    if not supplier:
+        return []
+    return [
+        {
+            "id": supplier.id,
+            "company_name": supplier.company_name or "",
+            "email": supplier.email,
+            "phone": supplier.phone,
+            "logo_url": supplier.logo_url,
+            "city": supplier.city,
+            "is_current": True,
+        }
+    ]
+
+
 @router.get("/dashboard/projects")
 def get_supplier_dashboard_projects(
     supplier_user: SupplierUser = Depends(get_current_supplier_user),
     db: Session = Depends(get_db),
 ):
     """Tedarikçi paneli - atanmış projeleri getir"""
-    from api.models import SupplierQuote, Quote
-
-    # Supplier user zaten authenticate edilmiş, supplier_id ve supplier_user_id var
-
     # Bu tedarikçiye atanmış projeleri getir
     project_suppliers = (
         db.query(ProjectSupplier)
         .filter(
             ProjectSupplier.supplier_id == supplier_user.supplier_id,
-            ProjectSupplier.is_active == True,
+            ProjectSupplier.is_active,
         )
         .all()
     )
@@ -1383,26 +2009,75 @@ def get_supplier_dashboard_projects(
     for ps in project_suppliers:
         project = ps.project
 
-        # Bu projede bu tedarikçinin teklifi var mı?
-        quote = (
+        supplier_quotes = (
             db.query(SupplierQuote)
+            .join(Quote, Quote.id == SupplierQuote.quote_id)
             .filter(
                 SupplierQuote.supplier_id == supplier_user.supplier_id,
-                SupplierQuote.quote_id.in_(
-                    db.query(Quote.id).filter(Quote.project_id == project.id)
-                ),
+                Quote.project_id == project.id,
             )
-            .first()
+            .order_by(Quote.created_at.desc(), SupplierQuote.created_at.desc())
+            .all()
         )
+
+        latest_supplier_quote = supplier_quotes[0] if supplier_quotes else None
+        latest_quote = latest_supplier_quote.quote if latest_supplier_quote else None
+
+        project_files = (
+            db.query(ProjectFile)
+            .filter(ProjectFile.project_id == project.id)
+            .order_by(ProjectFile.created_at.desc())
+            .all()
+        )
+
+        company = project.company
 
         projects.append(
             {
                 "id": project.id,
                 "name": project.name,
                 "description": project.description,
-                "budget": float(project.budget) if project.budget else None,
                 "status": "active" if project.is_active else "inactive",
-                "quote_submitted": quote is not None,
+                "company": {
+                    "id": company.id if company else None,
+                    "name": company.name if company else "Firma bilgisi yok",
+                    "logo_url": company.logo_url if company else None,
+                },
+                "quote": {
+                    "id": latest_quote.id if latest_quote else None,
+                    "title": latest_quote.title
+                    if latest_quote
+                    else "Teklif henüz oluşturulmadı",
+                    "description": latest_quote.description if latest_quote else None,
+                    "status": (
+                        latest_quote.status.value
+                        if latest_quote
+                        and getattr(latest_quote, "status", None) is not None
+                        and hasattr(latest_quote.status, "value")
+                        else None
+                    ),
+                },
+                "supplier_quote": {
+                    "id": latest_supplier_quote.id if latest_supplier_quote else None,
+                    "status": latest_supplier_quote.status
+                    if latest_supplier_quote
+                    else None,
+                    "submitted": bool(
+                        latest_supplier_quote
+                        and str(latest_supplier_quote.status or "").lower()
+                        == "yanıtlandı"
+                    ),
+                },
+                "project_files": [
+                    {
+                        "id": f.id,
+                        "name": f.original_filename,
+                        "size": int(f.file_size or 0),
+                        "file_type": f.file_type,
+                    }
+                    for f in project_files
+                ],
+                "quote_submitted": latest_supplier_quote is not None,
                 "assigned_at": ps.assigned_at,
             }
         )
@@ -1447,13 +2122,17 @@ async def upload_supplier_logo(
         raise HTTPException(status_code=400, detail="Logo dosyası 2MB'dan büyük olamaz")
 
     # Kayıt dizini
-    upload_dir = os.path.join("uploads", "logos")
+    upload_dir = os.path.realpath(os.path.join("uploads", "logos"))
     os.makedirs(upload_dir, exist_ok=True)
 
-    # Benzersiz dosya adı
-    ext = os.path.splitext(file.filename or "logo.png")[1].lower() or ".png"
+    # Benzersiz dosya adı — extension kaynağı file.filename değil content_type
+    _ext_map = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png",
+                "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg"}
+    ext = _ext_map.get(file.content_type or "", ".png")
     filename = f"supplier_{supplier.id}_{uuid.uuid4().hex[:8]}{ext}"
-    file_path = os.path.join(upload_dir, filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     # Eski logoyu sil
     if supplier.logo_url:
@@ -1478,11 +2157,20 @@ async def upload_supplier_logo(
 
 
 @router.get("/logo/{filename}")
-def get_supplier_logo(filename: str):
+def get_supplier_logo(filename: str, db: Session = Depends(get_db)):
     """Logo dosyasını sun - public endpoint"""
-    # Güvenlik: path traversal önle
-    safe_name = os.path.basename(filename)
-    file_path = os.path.join("uploads", "logos", safe_name)
+    safe_name = os.path.basename(filename or "")
+    if not safe_name or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name):
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    expected_url = f"/api/v1/suppliers/logo/{safe_name}"
+    supplier = db.query(Supplier).filter(Supplier.logo_url == expected_url).first()
+    if not supplier or not supplier.logo_url:
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    db_basename = os.path.basename(str(supplier.logo_url))
+    base_dir = os.path.realpath(os.path.join("uploads", "logos"))
+    file_path = os.path.realpath(os.path.join(base_dir, db_basename))
+    if os.path.commonpath([base_dir, file_path]) != base_dir:
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
     return FileResponse(file_path)
@@ -1678,6 +2366,7 @@ def _notify_expired_guarantees(
                 quote_title=subject_title,
                 deadline=deadline_text,
                 quote_url=f"{email_service.app_url}/supplier/workspace?tab=guarantees",
+                owner_user_id=getattr(admin_user, "id", None),
             )
         if admin_user and admin_user.email:
             email_service.send_quote_notification(
@@ -1686,16 +2375,18 @@ def _notify_expired_guarantees(
                 quote_title=f"Teminat Süresi Doldu - {subject_title}",
                 deadline=deadline_text,
                 quote_url=f"{email_service.app_url}/admin",
+                owner_user_id=admin_user.id,
             )
 
         if supplier and getattr(sms_service, "enabled", False):
             sms_text = f"{supplier.company_name} teminat suresi doldu: {subject_title} ({deadline_text})"
-            sms_targets = [supplier.phone]
-            if admin_user:
-                sms_targets.append(getattr(admin_user, "phone", None))
+            sms_targets: list[str] = []
+            if supplier.phone:
+                sms_targets.append(supplier.phone)
+            if admin_user and getattr(admin_user, "phone", None):
+                sms_targets.append(str(admin_user.phone))
             for target in sms_targets:
-                if target:
-                    sms_service.send_sms(target, sms_text)
+                sms_service.send_sms(target, sms_text)
 
         db.execute(
             text("""
@@ -1726,7 +2417,7 @@ def get_supplier_profile(
         db.query(SupplierUser)
         .filter(
             SupplierUser.supplier_id == supplier.id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .order_by(SupplierUser.id.asc())
         .all()
@@ -1740,6 +2431,9 @@ def get_supplier_profile(
             "phone": supplier.phone,
             "website": supplier.website,
             "category": supplier.category,
+            "category_tags": supplier.category_tags,
+            "partner_category_tags": supplier.partner_category_tags,
+            "effective_category_tags": supplier.effective_category_tags,
             "address": supplier.address,
             "city": supplier.city,
             "address_district": supplier.address_district,
@@ -1774,6 +2468,7 @@ def get_supplier_profile(
             "id": supplier_user.id,
             "name": supplier_user.name,
             "email": supplier_user.email,
+            "work_email": supplier_user.work_email,
             "phone": supplier_user.phone,
             "created_at": supplier_user.created_at,
             "email_verified": supplier_user.email_verified,
@@ -1816,11 +2511,21 @@ def update_supplier_profile(
         if value is not None:
             setattr(supplier, key, value)
 
+    if "category_tags" in update_data:
+        _set_supplier_category_fields(
+            supplier,
+            category_tags=_normalize_category_items(update_data.get("category_tags")),
+        )
+
     supplier.updated_at = datetime.now(ZoneInfo("UTC"))
 
     # SupplierUser bilgileri güncelle (name, phone)
     if "user_name" in update_data and update_data.get("user_name") is not None:
-        supplier_user.name = update_data.get("user_name")
+        supplier_user.name = str(update_data.get("user_name"))
+    if "user_work_email" in update_data:
+        supplier_user.work_email = (
+            str(update_data.get("user_work_email") or "").strip().lower() or None
+        )
     if "user_phone" in update_data and update_data.get("user_phone") is not None:
         supplier_user.phone = update_data.get("user_phone")
 
@@ -1931,7 +2636,7 @@ def update_supplier_profile_user(
         .filter(
             SupplierUser.id == user_id,
             SupplierUser.supplier_id == supplier_user.supplier_id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .first()
     )
@@ -1951,7 +2656,7 @@ def update_supplier_profile_user(
         .filter(
             SupplierUser.email == next_email,
             SupplierUser.id != target_user.id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .first()
     )
@@ -1990,7 +2695,7 @@ def delete_supplier_profile_user(
         .filter(
             SupplierUser.id == user_id,
             SupplierUser.supplier_id == supplier_user.supplier_id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .first()
     )
@@ -2053,28 +2758,26 @@ async def upload_supplier_document(
     db: Session = Depends(get_db),
 ):
     """Tedarikçi doküman yükleme (sertifika, şirket evrakı, personel evrakı)."""
-    allowed_categories = {
-        "certificates",
-        "company_docs",
-        "personnel_docs",
-        "guarantee_docs",
+    _cat_map = {
+        "certificates": "certificates",
+        "company_docs": "company_docs",
+        "personnel_docs": "personnel_docs",
+        "guarantee_docs": "guarantee_docs",
     }
-    if category not in allowed_categories:
+    safe_category = _cat_map.get(category)
+    if safe_category is None:
         raise HTTPException(status_code=400, detail="Geçersiz kategori")
 
-    allowed_content_types = {
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/webp",
+    _ext_map = {
+        "application/pdf": ".pdf",
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
     }
-    allowed_exts = {".pdf", ".jpeg", ".jpg", ".png", ".webp"}
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if (file.content_type not in allowed_content_types) and (ext not in allowed_exts):
-        raise HTTPException(
-            status_code=400,
-            detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir",
-        )
+    ext = _ext_map.get(file.content_type or "")
+    if ext is None:
+        raise HTTPException(status_code=400, detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir")
 
     supplier = (
         db.query(Supplier).filter(Supplier.id == supplier_user.supplier_id).first()
@@ -2086,16 +2789,17 @@ async def upload_supplier_document(
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    upload_dir = os.path.join("uploads", "supplier_docs", str(supplier.id), category)
+    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), safe_category))
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = os.path.splitext(file.filename or "document.bin")[1].lower() or ".bin"
     stored_filename = f"doc_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(upload_dir, stored_filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, stored_filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     with open(file_path, "wb") as f:
         f.write(content)
 
-    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={category}"
+    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={safe_category}"
 
     _ensure_supplier_documents_table(db)
     db.execute(
@@ -2111,7 +2815,7 @@ async def upload_supplier_document(
         """),
         {
             "supplier_id": supplier.id,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "stored_filename": stored_filename,
             "file_path": file_path,
@@ -2128,7 +2832,7 @@ async def upload_supplier_document(
         "status": "success",
         "document": {
             "id": row["id"] if row else None,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "file_url": file_url,
             "created_at": datetime.now(ZoneInfo("UTC")).isoformat(),
@@ -2186,12 +2890,15 @@ def delete_supplier_profile_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Doküman bulunamadı")
 
-    file_path = str(doc["file_path"] or "")
-    if file_path and os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
+    raw_path = str(doc["file_path"] or "")
+    if raw_path:
+        _uploads_root = os.path.realpath("uploads")
+        _safe_fp = os.path.realpath(raw_path)
+        if os.path.commonpath([_uploads_root, _safe_fp]) == _uploads_root and os.path.exists(_safe_fp):
+            try:
+                os.remove(_safe_fp)
+            except Exception:
+                pass
 
     db.execute(
         text("""
@@ -2216,12 +2923,11 @@ def list_supplier_documents_admin(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Bu tedarikçi dokümanlarını görüntüleme yetkiniz yok",
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi dokümanlarını görüntüleme yetkiniz yok",
+    )
 
     _ensure_supplier_documents_table(db)
     sql = """
@@ -2253,49 +2959,48 @@ async def upload_supplier_document_admin(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçi için doküman yükleme yetkiniz yok"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi için doküman yükleme yetkiniz yok",
+    )
 
-    allowed_categories = {
-        "certificates",
-        "company_docs",
-        "personnel_docs",
-        "guarantee_docs",
+    _cat_map = {
+        "certificates": "certificates",
+        "company_docs": "company_docs",
+        "personnel_docs": "personnel_docs",
+        "guarantee_docs": "guarantee_docs",
     }
-    if category not in allowed_categories:
+    safe_category = _cat_map.get(category)
+    if safe_category is None:
         raise HTTPException(status_code=400, detail="Geçersiz kategori")
 
-    allowed_content_types = {
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/webp",
+    _ext_map = {
+        "application/pdf": ".pdf",
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
     }
-    allowed_exts = {".pdf", ".jpeg", ".jpg", ".png", ".webp"}
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if (file.content_type not in allowed_content_types) and (ext not in allowed_exts):
-        raise HTTPException(
-            status_code=400,
-            detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir",
-        )
+    ext = _ext_map.get(file.content_type or "")
+    if ext is None:
+        raise HTTPException(status_code=400, detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir")
 
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    upload_dir = os.path.join("uploads", "supplier_docs", str(supplier.id), category)
+    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), safe_category))
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = os.path.splitext(file.filename or "document.bin")[1].lower() or ".bin"
     stored_filename = f"doc_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(upload_dir, stored_filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, stored_filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     with open(file_path, "wb") as f:
         f.write(content)
 
-    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={category}"
+    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={safe_category}"
 
     _ensure_supplier_documents_table(db)
     db.execute(
@@ -2311,7 +3016,7 @@ async def upload_supplier_document_admin(
         """),
         {
             "supplier_id": supplier.id,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "stored_filename": stored_filename,
             "file_path": file_path,
@@ -2327,7 +3032,7 @@ async def upload_supplier_document_admin(
         "status": "success",
         "document": {
             "id": row["id"] if row else None,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "file_url": file_url,
             "created_at": datetime.now(ZoneInfo("UTC")).isoformat(),
@@ -2347,11 +3052,11 @@ def delete_supplier_document_admin(
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçi dokümanlarını silme yetkiniz yok"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi dokümanlarını silme yetkiniz yok",
+    )
 
     _ensure_supplier_documents_table(db)
     doc = (
@@ -2370,12 +3075,15 @@ def delete_supplier_document_admin(
     if not doc:
         raise HTTPException(status_code=404, detail="Doküman bulunamadı")
 
-    file_path = str(doc["file_path"] or "")
-    if file_path and os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
+    raw_path = str(doc["file_path"] or "")
+    if raw_path:
+        _uploads_root = os.path.realpath("uploads")
+        _safe_fp = os.path.realpath(raw_path)
+        if os.path.commonpath([_uploads_root, _safe_fp]) == _uploads_root and os.path.exists(_safe_fp):
+            try:
+                os.remove(_safe_fp)
+            except Exception:
+                pass
 
     db.execute(
         text("""
@@ -2398,61 +3106,20 @@ async def send_supplier_contact_email_admin(
     attachments: list[UploadFile] | None = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    email_service=Depends(get_email_service),
 ):
     """Admin panelinden tedarikçiye e-posta gönder (opsiyonel eklerle)."""
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Bu tedarikçi için e-posta gönderme yetkiniz yok",
-            )
-
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    sender_email = os.getenv("SENDER_EMAIL", "noreply@procureflow.local")
-    sender_password = os.getenv("SENDER_PASSWORD", "")
-    use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
-
-    if not sender_email or not sender_password:
-        raise HTTPException(
-            status_code=500,
-            detail="SMTP ayarları eksik, lütfen yöneticinizle iletişime geçin",
-        )
-
-    cleaned_subject = " ".join((subject or "").split()) or "Bilgilendirme"
-    if not cleaned_subject.startswith("[ProcureFlow]"):
-        cleaned_subject = f"[ProcureFlow] {cleaned_subject}"
-
-    plain_body = (body or "").strip() or (
-        "Merhaba,\n\n"
-        "Bu ileti ProcureFlow sisteminden gonderilmistir.\n\n"
-        "Iyi calismalar."
-    )
-    html_body = (
-        '<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">'
-        + "<p>"
-        + escape(plain_body).replace("\n", "<br>")
-        + "</p>"
-        + "</body></html>"
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi için e-posta gönderme yetkiniz yok",
     )
 
-    msg = EmailMessage()
-    msg["Subject"] = cleaned_subject
-    msg["From"] = f"ProcureFlow <{sender_email}>"
-    msg["To"] = to_email
-    if cc:
-        msg["Cc"] = cc
-    msg["Date"] = formatdate(localtime=True)
-    msg["Message-ID"] = make_msgid(domain=sender_email.split("@")[-1])
-    msg["X-Mailer"] = "ProcureFlow"
-    msg["Content-Language"] = "tr-TR"
-    msg.set_content(plain_body, subtype="plain", charset="utf-8")
-    msg.add_alternative(html_body, subtype="html", charset="utf-8")
-
+    payload_attachments: list[tuple[str, str, bytes]] = []
     total_size = 0
     for upload in attachments or []:
         content = await upload.read()
@@ -2461,31 +3128,19 @@ async def send_supplier_contact_email_admin(
             raise HTTPException(
                 status_code=400, detail="Toplam ek boyutu 20MB sınırını aşamaz"
             )
-
         filename = (upload.filename or "ek").strip() or "ek"
         content_type = upload.content_type or "application/octet-stream"
-        maintype, subtype = (content_type.split("/", 1) + ["octet-stream"])[:2]
-        msg.add_attachment(
-            content, maintype=maintype, subtype=subtype, filename=filename
-        )
+        payload_attachments.append((filename, content_type, content))
 
-    recipients = [to_email]
-    if cc:
-        recipients.extend([r.strip() for r in cc.split(",") if r.strip()])
-
-    try:
-        if smtp_port == 465:
-            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=12)
-        else:
-            server = smtplib.SMTP(smtp_server, smtp_port, timeout=12)
-            if use_tls:
-                server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg, from_addr=sender_email, to_addrs=recipients)
-        server.quit()
-    except Exception as exc:
-        logger.exception("Tedarikçi e-postası gönderimi başarısız")
-        raise HTTPException(status_code=500, detail=f"E-posta gönderilemedi: {exc}")
+    email_sent = email_service.send_custom_email(
+        to_email=to_email,
+        subject=subject,
+        body=body,
+        cc=cc,
+        attachments=payload_attachments,
+    )
+    if not email_sent:
+        raise HTTPException(status_code=500, detail="E-posta gönderilemedi")
 
     return {"status": "success", "message": "E-posta gönderildi"}
 
@@ -2499,18 +3154,46 @@ def download_supplier_document_file_admin(
     db: Session = Depends(get_db),
 ):
     """Admin tarafından supplier doküman dosyasını indir/aç."""
+    if supplier_id <= 0:
+        raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
+
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
 
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Bu dosyaya erişim izniniz yok")
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu dosyaya erişim izniniz yok",
+    )
 
-    safe_name = os.path.basename(filename)
-    base_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
-    file_path = os.path.realpath(os.path.join(base_dir, category, safe_name))
-    if os.path.commonpath([base_dir, file_path]) != base_dir:
+    _ensure_supplier_documents_table(db)
+    row = db.execute(
+        text(
+            "SELECT stored_filename, category FROM supplier_documents"
+            " WHERE supplier_id = :sid AND stored_filename = :fn LIMIT 1"
+        ),
+        {"sid": supplier.id, "fn": filename or ""},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+
+    db_stored = row[0]
+    db_category = row[1]
+
+    docs_root = os.path.realpath(
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "uploads",
+            "supplier_docs",
+        )
+    )
+    base_dir = os.path.realpath(os.path.join(docs_root, str(supplier.id)))
+    file_path = os.path.realpath(os.path.join(base_dir, db_category, db_stored))
+    if (
+        os.path.commonpath([docs_root, base_dir]) != docs_root
+        or os.path.commonpath([base_dir, file_path]) != base_dir
+    ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Dosya bulunamadı")
@@ -2523,14 +3206,30 @@ def download_supplier_document_file(
     supplier_id: int,
     category: str,
     supplier_user: SupplierUser = Depends(get_current_supplier_user),
+    db: Session = Depends(get_db),
 ):
     """Supplier doküman dosyasını güvenli şekilde indir."""
     if supplier_user.supplier_id != supplier_id:
         raise HTTPException(status_code=403, detail="Bu dosyaya erişim izniniz yok")
 
-    safe_name = os.path.basename(filename)
-    base_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
-    file_path = os.path.realpath(os.path.join(base_dir, category, safe_name))
+    _ensure_supplier_documents_table(db)
+    row = db.execute(
+        text(
+            "SELECT stored_filename, category FROM supplier_documents"
+            " WHERE supplier_id = :sid AND stored_filename = :fn LIMIT 1"
+        ),
+        {"sid": supplier_user.supplier_id, "fn": filename or ""},
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+
+    db_stored = row[0]
+    db_category = row[1]
+
+    base_dir = os.path.realpath(
+        os.path.join("uploads", "supplier_docs", str(supplier_user.supplier_id))
+    )
+    file_path = os.path.realpath(os.path.join(base_dir, db_category, db_stored))
     if os.path.commonpath([base_dir, file_path]) != base_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     if not os.path.exists(file_path):
@@ -2558,7 +3257,7 @@ def list_supplier_contracts(
                 "quote_id": c.quote_id,
                 "contract_number": c.contract_number,
                 "status": c.status,
-                "final_amount": float(c.final_amount)
+                "final_amount": _num_to_float(c.final_amount)
                 if c.final_amount is not None
                 else None,
                 "created_at": c.created_at,
@@ -2569,111 +3268,122 @@ def list_supplier_contracts(
 
 
 def _ensure_supplier_finance_tables(db: Session) -> None:
-    if _is_postgresql(db):
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_finance_invoices (
-                id BIGSERIAL PRIMARY KEY,
-                supplier_id INTEGER NOT NULL,
-                contract_id INTEGER,
-                title TEXT NOT NULL,
-                invoice_number TEXT,
-                invoice_date TEXT,
-                amount DOUBLE PRECISION NOT NULL,
-                currency TEXT DEFAULT 'TRY',
-                file_path TEXT,
-                file_url TEXT,
-                notes TEXT,
-                created_by_user_id INTEGER,
-                created_at TIMESTAMPTZ DEFAULT NOW()
+    global _SUPPLIER_FINANCE_SCHEMA_READY
+
+    if _SUPPLIER_FINANCE_SCHEMA_READY:
+        return
+
+    with _SUPPLIER_FINANCE_SCHEMA_LOCK:
+        if _SUPPLIER_FINANCE_SCHEMA_READY:
+            return
+
+        if _is_postgresql(db):
+            db.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS supplier_finance_invoices (
+                    id BIGSERIAL PRIMARY KEY,
+                    supplier_id INTEGER NOT NULL,
+                    contract_id INTEGER,
+                    title TEXT NOT NULL,
+                    invoice_number TEXT,
+                    invoice_date TEXT,
+                    amount DOUBLE PRECISION NOT NULL,
+                    currency TEXT DEFAULT 'TRY',
+                    file_path TEXT,
+                    file_url TEXT,
+                    notes TEXT,
+                    created_by_user_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
             )
-        """)
-        )
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_finance_payments (
-                id BIGSERIAL PRIMARY KEY,
-                supplier_id INTEGER NOT NULL,
-                contract_id INTEGER,
-                title TEXT NOT NULL,
-                payment_date TEXT,
-                amount DOUBLE PRECISION NOT NULL,
-                currency TEXT DEFAULT 'TRY',
-                method TEXT,
-                notes TEXT,
-                created_by_user_id INTEGER,
-                created_at TIMESTAMPTZ DEFAULT NOW()
+            db.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS supplier_finance_payments (
+                    id BIGSERIAL PRIMARY KEY,
+                    supplier_id INTEGER NOT NULL,
+                    contract_id INTEGER,
+                    title TEXT NOT NULL,
+                    payment_date TEXT,
+                    amount DOUBLE PRECISION NOT NULL,
+                    currency TEXT DEFAULT 'TRY',
+                    method TEXT,
+                    notes TEXT,
+                    created_by_user_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
             )
-        """)
-        )
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_finance_photos (
-                id BIGSERIAL PRIMARY KEY,
-                supplier_id INTEGER NOT NULL,
-                contract_id INTEGER,
-                title TEXT NOT NULL,
-                file_path TEXT NOT NULL,
-                file_url TEXT NOT NULL,
-                description TEXT,
-                created_by_user_id INTEGER,
-                created_at TIMESTAMPTZ DEFAULT NOW()
+            db.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS supplier_finance_photos (
+                    id BIGSERIAL PRIMARY KEY,
+                    supplier_id INTEGER NOT NULL,
+                    contract_id INTEGER,
+                    title TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    file_url TEXT NOT NULL,
+                    description TEXT,
+                    created_by_user_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
             )
-        """)
-        )
-    else:
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_finance_invoices (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                supplier_id INTEGER NOT NULL,
-                contract_id INTEGER,
-                title TEXT NOT NULL,
-                invoice_number TEXT,
-                invoice_date TEXT,
-                amount REAL NOT NULL,
-                currency TEXT DEFAULT 'TRY',
-                file_path TEXT,
-                file_url TEXT,
-                notes TEXT,
-                created_by_user_id INTEGER,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        else:
+            db.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS supplier_finance_invoices (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    supplier_id INTEGER NOT NULL,
+                    contract_id INTEGER,
+                    title TEXT NOT NULL,
+                    invoice_number TEXT,
+                    invoice_date TEXT,
+                    amount REAL NOT NULL,
+                    currency TEXT DEFAULT 'TRY',
+                    file_path TEXT,
+                    file_url TEXT,
+                    notes TEXT,
+                    created_by_user_id INTEGER,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
             )
-        """)
-        )
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_finance_payments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                supplier_id INTEGER NOT NULL,
-                contract_id INTEGER,
-                title TEXT NOT NULL,
-                payment_date TEXT,
-                amount REAL NOT NULL,
-                currency TEXT DEFAULT 'TRY',
-                method TEXT,
-                notes TEXT,
-                created_by_user_id INTEGER,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            db.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS supplier_finance_payments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    supplier_id INTEGER NOT NULL,
+                    contract_id INTEGER,
+                    title TEXT NOT NULL,
+                    payment_date TEXT,
+                    amount REAL NOT NULL,
+                    currency TEXT DEFAULT 'TRY',
+                    method TEXT,
+                    notes TEXT,
+                    created_by_user_id INTEGER,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
             )
-        """)
-        )
-        db.execute(
-            text("""
-            CREATE TABLE IF NOT EXISTS supplier_finance_photos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                supplier_id INTEGER NOT NULL,
-                contract_id INTEGER,
-                title TEXT NOT NULL,
-                file_path TEXT NOT NULL,
-                file_url TEXT NOT NULL,
-                description TEXT,
-                created_by_user_id INTEGER,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            db.execute(
+                text("""
+                CREATE TABLE IF NOT EXISTS supplier_finance_photos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    supplier_id INTEGER NOT NULL,
+                    contract_id INTEGER,
+                    title TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    file_url TEXT NOT NULL,
+                    description TEXT,
+                    created_by_user_id INTEGER,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
             )
-        """)
-        )
-    db.commit()
+
+        db.commit()
+        _SUPPLIER_FINANCE_SCHEMA_READY = True
 
 
 def _build_supplier_finance_summary(db: Session, supplier_id: int) -> dict:
@@ -2733,7 +3443,7 @@ def _build_supplier_finance_summary(db: Session, supplier_id: int) -> dict:
         .all()
     )
 
-    contract_total = float(sum(float(c.final_amount or 0) for c in signed_contracts))
+    contract_total = sum(_num_to_float(c.final_amount) for c in signed_contracts)
     invoice_total = float(sum(float(r["amount"] or 0) for r in invoices))
     payment_total = float(sum(float(r["amount"] or 0) for r in payments))
 
@@ -2752,7 +3462,7 @@ def _build_supplier_finance_summary(db: Session, supplier_id: int) -> dict:
                 "quote_id": c.quote_id,
                 "contract_number": c.contract_number,
                 "status": c.status,
-                "final_amount": float(c.final_amount)
+                "final_amount": _num_to_float(c.final_amount)
                 if c.final_amount is not None
                 else 0,
                 "signed_at": c.signed_at,
@@ -2815,11 +3525,11 @@ def _require_supplier_access_for_finance(
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
-    if current_user.role != "super_admin":
-        if supplier.created_by_id and supplier.created_by_id != current_user.id:
-            raise HTTPException(
-                status_code=403, detail="Bu tedarikçi için yetkiniz yok"
-            )
+    _ensure_supplier_creator_access(
+        supplier,
+        current_user,
+        detail="Bu tedarikçi için yetkiniz yok",
+    )
     return supplier
 
 
@@ -2875,13 +3585,18 @@ async def create_supplier_finance_invoice(
         content = await file.read()
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
-        ext = os.path.splitext(file.filename or "invoice.bin")[1].lower() or ".bin"
-        folder = os.path.join(
-            "uploads", "supplier_finance", str(supplier_user.supplier_id), "invoices"
-        )
+        _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                        "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+        ext = _fin_ext_map.get(file.content_type or "", ".bin")
+        _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+        folder = os.path.realpath(os.path.join(_base, str(supplier_user.supplier_id), "invoices"))
+        if os.path.commonpath([_base, folder]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         os.makedirs(folder, exist_ok=True)
         stored = f"invoice_{supplier_user.supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-        file_path = os.path.join(folder, stored)
+        file_path = os.path.realpath(os.path.join(folder, stored))
+        if os.path.commonpath([_base, file_path]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         with open(file_path, "wb") as out:
             out.write(content)
         file_url = (
@@ -2967,13 +3682,18 @@ async def create_supplier_finance_photo(
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
-    folder = os.path.join(
-        "uploads", "supplier_finance", str(supplier_user.supplier_id), "photos"
-    )
+    _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                    "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    ext = _fin_ext_map.get(file.content_type or "", ".bin")
+    _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+    folder = os.path.realpath(os.path.join(_base, str(supplier_user.supplier_id), "photos"))
+    if os.path.commonpath([_base, folder]) != _base:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     os.makedirs(folder, exist_ok=True)
     stored = f"photo_{supplier_user.supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(folder, stored)
+    file_path = os.path.realpath(os.path.join(folder, stored))
+    if os.path.commonpath([_base, file_path]) != _base:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     with open(file_path, "wb") as out:
         out.write(content)
     file_url = f"/uploads/supplier_finance/{supplier_user.supplier_id}/photos/{stored}"
@@ -3047,7 +3767,7 @@ async def create_supplier_finance_invoice_admin(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    _require_supplier_access_for_finance(db, supplier_id, current_user)
+    supplier = _require_supplier_access_for_finance(db, supplier_id, current_user)
 
     _ensure_supplier_finance_tables(db)
     if amount <= 0:
@@ -3059,16 +3779,21 @@ async def create_supplier_finance_invoice_admin(
         content = await file.read()
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
-        ext = os.path.splitext(file.filename or "invoice.bin")[1].lower() or ".bin"
-        folder = os.path.join(
-            "uploads", "supplier_finance", str(supplier_id), "invoices"
-        )
+        _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                        "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+        ext = _fin_ext_map.get(file.content_type or "", ".bin")
+        _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+        folder = os.path.realpath(os.path.join(_base, str(supplier.id), "invoices"))
+        if os.path.commonpath([_base, folder]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         os.makedirs(folder, exist_ok=True)
-        stored = f"invoice_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-        file_path = os.path.join(folder, stored)
+        stored = f"invoice_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
+        file_path = os.path.realpath(os.path.join(folder, stored))
+        if os.path.commonpath([_base, file_path]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         with open(file_path, "wb") as out:
             out.write(content)
-        file_url = f"/uploads/supplier_finance/{supplier_id}/invoices/{stored}"
+        file_url = f"/uploads/supplier_finance/{supplier.id}/invoices/{stored}"
 
     db.execute(
         text("""
@@ -3148,21 +3873,32 @@ async def create_supplier_finance_photo_admin(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    _require_supplier_access_for_finance(db, supplier_id, current_user)
+    if supplier_id <= 0:
+        raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
+    supplier = _require_supplier_access_for_finance(db, supplier_id, current_user)
 
-    _ensure_supplier_finance_tables(db)
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
+        raise HTTPException(status_code=400, detail="Dosya boyutu 20MB'ı geçemez")
+    _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                    "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    ext = _fin_ext_map.get(file.content_type or "", ".bin")
+    base_upload_dir = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+    folder = os.path.realpath(
+        os.path.join(base_upload_dir, str(supplier.id), "photos")
+    )
+    if os.path.commonpath([base_upload_dir, folder]) != base_upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
-    ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
-    folder = os.path.join("uploads", "supplier_finance", str(supplier_id), "photos")
     os.makedirs(folder, exist_ok=True)
-    stored = f"photo_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(folder, stored)
+    stored = f"photo_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
+    file_path = os.path.realpath(os.path.join(folder, stored))
+    if os.path.commonpath([base_upload_dir, file_path]) != base_upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
+
     with open(file_path, "wb") as out:
         out.write(content)
-    file_url = f"/uploads/supplier_finance/{supplier_id}/photos/{stored}"
+    file_url = f"/uploads/supplier_finance/{supplier.id}/photos/{stored}"
 
     db.execute(
         text("""
@@ -3497,9 +4233,10 @@ def list_finance_mismatches_for_dashboard(
     current_user: User = Depends(get_current_user),
 ):
     _ensure_supplier_finance_tables(db)
-    suppliers_q = db.query(Supplier).filter(Supplier.is_active == True)
-    if current_user.role != "super_admin":
-        suppliers_q = suppliers_q.filter(Supplier.created_by_id == current_user.id)
+    suppliers_q = _apply_supplier_visibility_filter(
+        db.query(Supplier).filter(Supplier.is_active),
+        current_user,
+    )
 
     suppliers = suppliers_q.order_by(Supplier.id.desc()).limit(200).all()
     rows: list[dict] = []
@@ -3627,7 +4364,7 @@ def request_supplier_email_change(
         .filter(
             SupplierUser.email == new_email_raw,
             SupplierUser.id != supplier_user.id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .first()
     )
@@ -3740,7 +4477,7 @@ def confirm_supplier_email_change(
         .filter(
             SupplierUser.email == new_email,
             SupplierUser.id != supplier_user.id,
-            SupplierUser.is_active == True,
+            SupplierUser.is_active,
         )
         .first()
     )

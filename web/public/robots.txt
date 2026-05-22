@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /quotes/
+Disallow: /supplier/
+
+Sitemap: https://buyerasistans.com.tr/sitemap.xml

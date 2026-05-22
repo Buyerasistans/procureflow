@@ -1,0 +1,141 @@
+.dashboard-page {
+  font-family: Arial, sans-serif;
+}
+
+.dashboard-page__container {
+  max-width: 1080px;
+  margin: 8px auto;
+  padding: 16px;
+}
+
+.dashboard-page__section {
+  margin-bottom: 20px;
+}
+
+.dashboard-page__section-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #991b1b;
+}
+
+.dashboard-page__mismatch-list {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-page__mismatch-card {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dashboard-page__mismatch-main {
+  min-width: 0;
+}
+
+.dashboard-page__mismatch-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #991b1b;
+}
+
+.dashboard-page__mismatch-link {
+  color: #991b1b;
+  text-decoration: underline;
+}
+
+.dashboard-page__mismatch-alerts {
+  font-size: 12px;
+  color: #7f1d1d;
+  margin-top: 2px;
+}
+
+.dashboard-page__mismatch-totals {
+  font-size: 11px;
+  color: #b91c1c;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.dashboard-page__channel {
+  margin-bottom: 18px;
+}
+
+.dashboard-page__channel-banner {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a8a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.dashboard-page__metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.dashboard-page__metric-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.dashboard-page__metric-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.dashboard-page__metric-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 4px;
+}
+
+.dashboard-page__howto {
+  margin-top: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px;
+}
+
+.dashboard-page__howto-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.dashboard-page__howto-text {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.dashboard-page__inline-link {
+  color: #1d4ed8;
+}
+
+@media (max-width: 640px) {
+  .dashboard-page__container {
+    padding: 12px;
+  }
+
+  .dashboard-page__mismatch-card {
+    flex-direction: column;
+  }
+
+  .dashboard-page__mismatch-totals {
+    text-align: left;
+  }
+}

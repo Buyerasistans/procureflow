@@ -1,0 +1,146 @@
+{
+  "wiki_root": "wiki",
+  "required_frontmatter_keys": [
+    "title",
+    "owned_by",
+    "last_verified_at",
+    "confidence",
+    "stale_after_days",
+    "source_files"
+  ],
+  "check_paths": [
+    "wiki/domains",
+    "wiki/flows",
+    "wiki/components",
+    "wiki/adr",
+    "wiki/index"
+  ],
+  "domain_rules": [
+    {
+      "name": "quote-approval",
+      "patterns": [
+        "api/routers/quotes.py",
+        "api/routers/quote_router.py",
+        "api/routers/approval_router.py",
+        "api/services/quote_service.py",
+        "api/services/quote_approval_service.py",
+        "api/services/quote_transition_service.py",
+        "web/src/pages/Quote",
+        "web/src/components/Quote",
+        "web/src/components/SupplierQuotesGroupedView.tsx",
+        "web/src/services/quote.service.ts",
+        "web/src/services/quotes.service.ts"
+      ],
+      "wiki_file": "wiki/domains/quote-approval.md"
+    },
+    {
+      "name": "auth-permission",
+      "patterns": [
+        "api/routers/auth.py",
+        "api/services/auth_service.py",
+        "web/src/components/ProtectedRoute.tsx",
+        "web/src/components/RequirePermission.tsx",
+        "web/src/components/PermissionGuard.tsx",
+        "web/src/services/auth.service.ts",
+        "web/src/services/auth.ts",
+        "web/src/permissions.ts"
+      ],
+      "wiki_file": "wiki/domains/auth-permission.md"
+    },
+    {
+      "name": "onboarding-saas",
+      "patterns": [
+        "api/routers/onboarding_router.py",
+        "api/routers/onboarding_saas.py",
+        "api/services/onboarding_saas_service.py",
+        "web/src/components/OnboardingSaaSWizard",
+        "web/src/pages/OnboardingPage.tsx"
+      ],
+      "wiki_file": "wiki/domains/onboarding-saas.md"
+    },
+    {
+      "name": "payment-billing",
+      "patterns": [
+        "api/routers/payment.py",
+        "api/routers/payment_admin.py",
+        "api/routers/billing_router.py",
+        "api/services/billing_service.py",
+        "api/services/subscription_service.py",
+        "api/services/payment/",
+        "web/src/services/payment.service.ts"
+      ],
+      "wiki_file": "wiki/domains/payment-billing.md"
+    },
+    {
+      "name": "supplier-portal",
+      "patterns": [
+        "api/routers/supplier_router.py",
+        "api/routers/supplier_portal.py",
+        "api/routers/supplier_response_router.py",
+        "web/src/pages/Supplier",
+        "web/src/components/Supplier",
+        "web/src/pages/AdminSupplier",
+        "web/src/components/SupplierResponsePortal.tsx"
+      ],
+      "wiki_file": "wiki/domains/supplier-portal.md"
+    },
+    {
+      "name": "admin-governance",
+      "patterns": [
+        "api/routers/admin.py",
+        "api/routers/admin_deployment.py",
+        "api/routers/advanced_settings_router.py",
+        "api/routers/support_ticket_router.py",
+        "api/routers/mail_center_router.py",
+        "api/routers/system_email_router.py",
+        "web/src/pages/admin/",
+        "web/src/components/admin/",
+        "web/src/pages/AdminPage.tsx",
+        "web/src/pages/AdminQuoteManagementPage.tsx",
+        "web/src/services/admin.service.ts",
+        "web/src/services/advanced-settings.service.ts",
+        "web/src/services/system-email.service.ts",
+        "web/src/services/mail-center.service.ts"
+      ],
+      "wiki_file": "wiki/domains/admin-governance.md"
+    },
+    {
+      "name": "public-content-seo",
+      "patterns": [
+        "api/routers/public_assets.py",
+        "api/routers/public_locale.py",
+        "api/routers/public_showcase.py",
+        "api/routers/public_telemetry.py",
+        "api/routers/public_translations.py",
+        "web/src/components/PublicSeoManager.tsx",
+        "web/src/components/PublicTelemetryManager.tsx",
+        "web/src/pages/PublicHomePage.tsx",
+        "web/src/pages/PublicMarketplacePage.tsx",
+        "web/src/pages/PricingPage.tsx",
+        "web/src/pages/PricingPlansPage.tsx",
+        "web/src/pages/KnowledgeLandingPage.tsx",
+        "web/src/pages/ReferralLandingPage.tsx",
+        "web/src/lib/public-intent.ts"
+      ],
+      "wiki_file": "wiki/domains/public-content-seo.md"
+    }
+  ],
+  "diff_ignore_prefixes": [
+    ".restore_safety_",
+    "local_cleanup_archives/",
+    "backups/",
+    "tmp/",
+    "node_modules/",
+    "web/node_modules/",
+    "web/dist/",
+    "api/.venv/",
+    "__pycache__/",
+    ".mypy_cache/",
+    ".ruff_cache/"
+  ],
+  "rollout": {
+    "mode": "bootstrap",
+    "bootstrap_min_coverage": 0.20,
+    "strict_min_coverage": 1.00
+  }
+}

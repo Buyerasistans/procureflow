@@ -47,13 +47,13 @@ describe("SmartFallbackRedirect", () => {
     expect(await screen.findByText("Login Page")).toBeInTheDocument();
   });
 
-  it("admin kullanıcıyı varsayılan rota olan /dashboard'a yönlendirir", async () => {
+  it("admin kullanıcıyı varsayılan rota olan /admin'e yönlendirir", async () => {
     renderWithAuth(
       <Routes>
         <Route path="/" element={<SmartFallbackRedirect />} />
-        <Route path="/dashboard" element={<div>Dashboard Page</div>} />
+        <Route path="/admin" element={<div>Dashboard Page</div>} />
       </Routes>,
-      { route: "/", user: { id: 1, email: "admin@test.com", role: "admin" }, loading: false }
+      { route: "/", user: { id: 1, email: "admin@test.com", role: "admin", system_role: "tenant_admin" }, loading: false }
     );
 
     expect(await screen.findByText("Dashboard Page")).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("SmartFallbackRedirect", () => {
         <Route path="/" element={<SmartFallbackRedirect />} />
         <Route path="/dashboard" element={<div>Dashboard Page</div>} />
       </Routes>,
-      { route: "/", user: { id: 2, email: "manager@test.com", role: "manager" }, loading: false }
+      { route: "/", user: { id: 2, email: "manager@test.com", role: "manager", system_role: "tenant_member" }, loading: false }
     );
 
     expect(await screen.findByText("Dashboard Page")).toBeInTheDocument();
@@ -77,10 +77,73 @@ describe("SmartFallbackRedirect", () => {
         <Route path="/" element={<SmartFallbackRedirect />} />
         <Route path="/dashboard" element={<div>Dashboard Page</div>} />
       </Routes>,
-      { route: "/", user: { id: 3, email: "buyer@test.com", role: "buyer" }, loading: false }
+      { route: "/", user: { id: 3, email: "buyer@test.com", role: "buyer", system_role: "tenant_member" }, loading: false }
     );
 
     expect(await screen.findByText("Dashboard Page")).toBeInTheDocument();
+  });
+
+  it("platform support kullanicisini /admin'e yönlendirir", async () => {
+    renderWithAuth(
+      <Routes>
+        <Route path="/" element={<SmartFallbackRedirect />} />
+        <Route path="/admin" element={<div>Admin Page</div>} />
+      </Routes>,
+      {
+        route: "/",
+        user: {
+          id: 4,
+          email: "support@test.com",
+          role: "user",
+          system_role: "platform_support",
+        },
+        loading: false,
+      }
+    );
+
+    expect(await screen.findByText("Admin Page")).toBeInTheDocument();
+  });
+
+  it("tenant owner kullanicisini /admin'e yönlendirir", async () => {
+    renderWithAuth(
+      <Routes>
+        <Route path="/" element={<SmartFallbackRedirect />} />
+        <Route path="/admin" element={<div>Admin Page</div>} />
+      </Routes>,
+      {
+        route: "/",
+        user: {
+          id: 5,
+          email: "owner@test.com",
+          role: "user",
+          system_role: "tenant_owner",
+        },
+        loading: false,
+      }
+    );
+
+    expect(await screen.findByText("Admin Page")).toBeInTheDocument();
+  });
+
+  it("super admin kullanicisini /admin'e yönlendirir", async () => {
+    renderWithAuth(
+      <Routes>
+        <Route path="/" element={<SmartFallbackRedirect />} />
+        <Route path="/admin" element={<div>Admin Page</div>} />
+      </Routes>,
+      {
+        route: "/",
+        user: {
+          id: 6,
+          email: "super@test.com",
+          role: "super_admin",
+          system_role: "super_admin",
+        },
+        loading: false,
+      }
+    );
+
+    expect(await screen.findByText("Admin Page")).toBeInTheDocument();
   });
 
   it("loading true iken fallback bileşeni içerik render etmez", () => {

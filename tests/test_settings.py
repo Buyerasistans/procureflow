@@ -2,9 +2,10 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from api.main import app
-from api.database import get_db
+from api.database import Base, get_db, engine
 from api.models import User, SystemSettings
 from api.core.security import get_password_hash
 
@@ -13,19 +14,53 @@ from api.core.security import get_password_hash
 client = TestClient(app)
 
 
+def _upsert_user(
+    db_session,
+    *,
+    email: str,
+    password: str,
+    full_name: str,
+    role: str,
+    system_role: str,
+) -> User:
+    user = db_session.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(
+            email=email,
+            hashed_password=get_password_hash(password),
+            full_name=full_name,
+            role=role,
+            system_role=system_role,
+            is_active=True,
+        )
+        db_session.add(user)
+    else:
+        user.hashed_password = get_password_hash(password)
+        user.full_name = full_name
+        user.role = role
+        user.system_role = system_role
+        user.is_active = True
+
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
 @pytest.fixture
 def db_session():
     """Test database session"""
+    Base.metadata.create_all(bind=engine)
+
     from api.database import SessionLocal
 
     db = SessionLocal()
-    db.query(SystemSettings).delete()
-    db.commit()
 
     app.dependency_overrides[get_db] = lambda: db
 
     yield db
 
+    db.query(SystemSettings).delete()
+    db.commit()
     app.dependency_overrides.pop(get_db, None)
     db.close()
 
@@ -33,46 +68,67 @@ def db_session():
 @pytest.fixture
 def admin_user(db_session):
     """Super admin kullanıcı oluştur"""
-    admin = db_session.query(User).filter(User.email == "admin@test.com").first()
-    if not admin:
-        admin = User(
-            email="admin@test.com",
-            hashed_password=get_password_hash("AdminPass123!"),
-            full_name="Admin User",
-            role="super_admin",
-            is_active=True,
-        )
-        db_session.add(admin)
-    else:
-        admin.hashed_password = get_password_hash("AdminPass123!")
-        admin.full_name = "Admin User"
-        admin.role = "super_admin"
-        admin.is_active = True
-    db_session.commit()
-    db_session.refresh(admin)
+    admin = _upsert_user(
+        db_session,
+        email="admin@test.com",
+        password="AdminPass123!",
+        full_name="Admin User",
+        role="super_admin",
+        system_role="super_admin",
+    )
     return admin
 
 
 @pytest.fixture
 def regular_user(db_session):
     """Normal kullanıcı oluştur"""
-    user = db_session.query(User).filter(User.email == "user@test.com").first()
-    if not user:
-        user = User(
-            email="user@test.com",
-            hashed_password=get_password_hash("RegularPass123!"),
-            full_name="Regular User",
-            role="procurement_officer",
-            is_active=True,
-        )
-        db_session.add(user)
-    else:
-        user.hashed_password = get_password_hash("RegularPass123!")
-        user.full_name = "Regular User"
-        user.role = "procurement_officer"
-        user.is_active = True
-    db_session.commit()
-    db_session.refresh(user)
+    user = _upsert_user(
+        db_session,
+        email="user@test.com",
+        password="RegularPass123!",
+        full_name="Regular User",
+        role="procurement_officer",
+        system_role="tenant_member",
+    )
+    return user
+
+
+@pytest.fixture
+def tenant_admin_user(db_session):
+    user = _upsert_user(
+        db_session,
+        email="tenant-admin@test.com",
+        password="TenantAdmin123!",
+        full_name="Tenant Admin User",
+        role="admin",
+        system_role="tenant_admin",
+    )
+    return user
+
+
+@pytest.fixture
+def tenant_owner_user(db_session):
+    user = _upsert_user(
+        db_session,
+        email="tenant-owner@test.com",
+        password="TenantOwner123!",
+        full_name="Tenant Owner User",
+        role="admin",
+        system_role="tenant_owner",
+    )
+    return user
+
+
+@pytest.fixture
+def platform_support_user(db_session):
+    user = _upsert_user(
+        db_session,
+        email="platform-support@test.com",
+        password="PlatformSupport123!",
+        full_name="Platform Support User",
+        role="user",
+        system_role="platform_support",
+    )
     return user
 
 
@@ -106,6 +162,48 @@ def regular_token(regular_user):
     return data["access_token"]
 
 
+@pytest.fixture
+def tenant_admin_token(tenant_admin_user):
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "tenant-admin@test.com",
+            "password": "TenantAdmin123!",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    return data["access_token"]
+
+
+@pytest.fixture
+def tenant_owner_token(tenant_owner_user):
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "tenant-owner@test.com",
+            "password": "TenantOwner123!",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    return data["access_token"]
+
+
+@pytest.fixture
+def platform_support_token(platform_support_user):
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "platform-support@test.com",
+            "password": "PlatformSupport123!",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    return data["access_token"]
+
+
 class TestSettingsGet:
     """GET /api/v1/settings Testleri"""
 
@@ -127,11 +225,22 @@ class TestSettingsGet:
             headers={"Authorization": f"Bearer {regular_token}"},
         )
         assert response.status_code == 403
+        data = response.json()
+        assert "permission" in data["detail"]
 
     def test_get_settings_no_token(self):
         """Token olmadan erişim başarısız"""
         response = client.get("/api/v1/settings")
         assert response.status_code == 401
+
+    def test_get_settings_platform_support_success(self, platform_support_token):
+        response = client.get(
+            "/api/v1/settings",
+            headers={"Authorization": f"Bearer {platform_support_token}"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["app_name"] == "ProcureFlow"
 
 
 class TestSettingsUpdate:
@@ -158,15 +267,16 @@ class TestSettingsUpdate:
             "/api/v1/settings",
             headers={"Authorization": f"Bearer {admin_token}"},
             json={
-                "app_name": "Partial Update",
+                "smtp_enabled": True,
             },
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["app_name"] == "Partial Update"
+        assert data["app_name"] == "ProcureFlow"  # unchanged
+        assert data["smtp_enabled"] is True
 
     def test_update_settings_disabled_mode(self, db_session, admin_token):
-        """SMTP aktiflik bayrağını kapatma"""
+        """Maintenance modunu disable etme"""
         # Önce enable et
         client.put(
             "/api/v1/settings",
@@ -193,7 +303,37 @@ class TestSettingsUpdate:
         )
         assert response.status_code == 403
         data = response.json()
-        assert "Only administrators" in data["detail"]
+        assert "Only tenant owners or super admins" in data["detail"]
+
+    def test_update_settings_tenant_admin_forbidden(self, tenant_admin_token):
+        response = client.put(
+            "/api/v1/settings",
+            headers={"Authorization": f"Bearer {tenant_admin_token}"},
+            json={"app_name": "Tenant Admin Update"},
+        )
+        assert response.status_code == 403
+        data = response.json()
+        assert "Only tenant owners or super admins" in data["detail"]
+
+    def test_update_settings_tenant_owner_success(self, tenant_owner_token):
+        response = client.put(
+            "/api/v1/settings",
+            headers={"Authorization": f"Bearer {tenant_owner_token}"},
+            json={"app_name": "Tenant Owner Update"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["app_name"] == "Tenant Owner Update"
+
+    def test_update_settings_platform_support_forbidden(self, platform_support_token):
+        response = client.put(
+            "/api/v1/settings",
+            headers={"Authorization": f"Bearer {platform_support_token}"},
+            json={"app_name": "Platform Support Update"},
+        )
+        assert response.status_code == 403
+        data = response.json()
+        assert "Only tenant owners or super admins" in data["detail"]
 
     def test_update_settings_no_token(self):
         """Token olmadan update başarısız"""

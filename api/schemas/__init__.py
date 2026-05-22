@@ -1,6 +1,16 @@
 # api/schemas/__init__.py
 from .auth import LogoutRequest, MessageResponse, TokenPairResponse, TokenRefreshRequest
-from .quote import MessageOut, QuoteCreate, QuoteListOut, QuoteOut, QuoteUpdate
+from .quote import (
+    MessageOut,
+    QuoteCreate,
+    QuoteListOut,
+    QuoteOut,
+    QuoteUpdate,
+    RfqCreate,
+    RfqListOut,
+    RfqOut,
+    RfqUpdate,
+)
 
 __all__ = [
     "TokenRefreshRequest",
@@ -12,4 +22,8 @@ __all__ = [
     "QuoteOut",
     "QuoteListOut",
     "MessageOut",
+    "RfqCreate",
+    "RfqUpdate",
+    "RfqOut",
+    "RfqListOut",
 ]

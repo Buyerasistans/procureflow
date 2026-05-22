@@ -1,30 +1,43 @@
 // web/src/components/ProjectsTab.tsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getProjects, deleteProject } from "../services/project.service";
 import { getCompanies } from "../services/admin.service";
-import { ProjectCreateModal } from "./ProjectCreateModal";
-import type { Project } from "../types/project";
+import { deleteProject, getProjects } from "../services/project.service";
 import type { Company } from "../services/admin.service";
+import type { Project } from "../types/project";
+import { getShortCompanyName } from "../utils/companyDisplay";
+import { ProjectCreateModal } from "./ProjectCreateModal";
+import "./ProjectsTab.css";
 
-export function ProjectsTab() {
+interface ProjectsTabProps {
+  readOnly?: boolean;
+  initialSearchTerm?: string;
+}
+
+type ProjectGroup = Record<number, Project[]>;
+type ColorVariant = "blue" | "emerald" | "violet" | "amber" | "rose" | "cyan" | "slate";
+
+export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: ProjectsTabProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
+  const [groupByCompany, setGroupByCompany] = useState(true);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(initialSearchTerm);
+  }, [initialSearchTerm]);
 
   async function loadData() {
     try {
       setLoading(true);
-      const [projectsData, companiesData] = await Promise.all([
-        getProjects(),
-        getCompanies()
-      ]);
+      const [projectsData, companiesData] = await Promise.all([getProjects(), getCompanies()]);
       setProjects(projectsData);
       setCompanies(companiesData);
     } catch (error) {
@@ -36,208 +49,195 @@ export function ProjectsTab() {
 
   async function handleDelete(id: number) {
     if (!confirm("Projeyi silmek istediğinize emin misiniz?")) return;
+
     try {
       await deleteProject(id);
-      setProjects(projects.filter((p) => p.id !== id));
+      setProjects((currentProjects) => currentProjects.filter((project) => project.id !== id));
     } catch (error) {
       console.error("Proje silme hatası:", error);
     }
   }
 
   const getCompanyName = (companyId?: number) => {
-    return companies.find((c) => c.id === companyId)?.name || "Firma yok";
+    const company = companies.find((item) => item.id === companyId);
+    if (!company) return "Firma yok";
+    return getShortCompanyName(company);
   };
 
-  const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.code.toLowerCase().includes(searchTerm.toLowerCase())
+  const getCompanyVariant = (companyId?: number): ColorVariant => {
+    const variants: ColorVariant[] = ["blue", "emerald", "violet", "amber", "rose", "cyan", "slate"];
+    if (!companyId) return "blue";
+    return variants[Math.abs(companyId) % variants.length];
+  };
+
+  const renderProjectRow = (project: Project) => (
+    <div key={project.id} className="projects-tab__row">
+      <div>
+        <span
+          className={`projects-tab__company-badge projects-tab__company-badge--${getCompanyVariant(
+            project.company_id,
+          )}`}
+        >
+          {getCompanyName(project.company_id)}
+        </span>
+      </div>
+
+      <div>
+        <p className="projects-tab__project-name">{project.name}</p>
+        <p className="projects-tab__project-code">Kod: {project.code}</p>
+      </div>
+
+      <div>
+        <span
+          className={`projects-tab__project-type ${
+            project.project_type === "franchise"
+              ? "projects-tab__project-type--franchise"
+              : "projects-tab__project-type--center"
+          }`}
+        >
+          {project.project_type === "franchise" ? "🍕 Franchise" : "🏢 Merkez"}
+        </span>
+      </div>
+
+      <div className="projects-tab__manager">
+        <span className="projects-tab__manager-name">{project.manager_name || "-"}</span>
+        {project.manager_phone && (
+          <a
+            href={`tel:${project.manager_phone}`}
+            className="projects-tab__manager-phone"
+            title={project.manager_phone}
+          >
+            ☎️
+          </a>
+        )}
+      </div>
+
+      <div className="projects-tab__actions">
+        <Link to={`/admin/projects/${project.id}`} className="projects-tab__action projects-tab__action--details">
+          Detaylar
+        </Link>
+        <button
+          type="button"
+          onClick={() => void handleDelete(project.id)}
+          disabled={readOnly}
+          className="projects-tab__action projects-tab__action--delete"
+        >
+          🗑️
+        </button>
+      </div>
+    </div>
   );
 
-  if (loading) return <div style={{ textAlign: "center", padding: "32px" }}>Yükleniyor...</div>;
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCompany = selectedCompanyId === null || project.company_id === selectedCompanyId;
+    return matchesSearch && matchesCompany;
+  });
+
+  if (loading) {
+    return <div className="projects-tab__loading">Yükleniyor...</div>;
+  }
+
+  const groupedProjects = filteredProjects.reduce((accumulator, project) => {
+    const companyId = project.company_id || 0;
+    if (!accumulator[companyId]) {
+      accumulator[companyId] = [];
+    }
+    accumulator[companyId].push(project);
+    return accumulator;
+  }, {} as ProjectGroup);
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", gap: "12px" }}>
+    <div className="projects-tab">
+      {readOnly && (
+        <div className="projects-tab__read-only-note">
+          Platform personeli proje portfoyunu inceleyebilir; yeni proje ekleme ve silme aksiyonlari bu yuzeyde kapatildi.
+        </div>
+      )}
+
+      <div className="projects-tab__filters">
+        <div className="projects-tab__company-filter">
+          <select
+            value={selectedCompanyId === null ? "" : selectedCompanyId}
+            onChange={(event) =>
+              setSelectedCompanyId(event.target.value === "" ? null : Number(event.target.value))
+            }
+            className="projects-tab__select"
+            aria-label="Firma filtresi"
+            title="Firma filtresi"
+          >
+            <option value="">Tüm Firmalar</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {getShortCompanyName(company)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <label className="projects-tab__group-toggle">
+          <input
+            type="checkbox"
+            checked={groupByCompany}
+            onChange={(event) => setGroupByCompany(event.target.checked)}
+            className="projects-tab__group-toggle-input"
+          />
+          Firmaya Göre Grupla
+        </label>
+      </div>
+
+      <div className="projects-tab__header">
         <input
           type="text"
           placeholder="Proje adı veya kodu ara..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            flex: "1",
-            padding: "10px 12px",
-            border: "1px solid #d1d5db",
-            borderRadius: "6px",
-            fontSize: "14px"
-          }}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          className="projects-tab__search"
         />
         <button
+          type="button"
           onClick={() => setShowCreateModal(true)}
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            fontSize: "14px"
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#2563eb"}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#3b82f6"}
+          disabled={readOnly}
+          className="projects-tab__create-button"
         >
           ➕ Yeni Proje
         </button>
       </div>
 
-      {/* Proje Listesi */}
       {filteredProjects.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-          {filteredProjects.map((project) => (
-            <div
-              key={project.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "150px 1fr 120px 150px auto",
-                gap: "16px",
-                padding: "16px",
-                alignItems: "center",
-                borderBottom: "1px solid #e5e7eb",
-                backgroundColor: "#fff",
-                transition: "background-color 0.2s"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
-            >
-              {/* Firma (Renklı Badge) */}
-              <div>
-                <span
-                  style={{
-                    display: "inline-block",
-                    backgroundColor: companies.find((c) => c.id === project.company_id)?.color || "#3b82f6",
-                    color: "white",
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    wordBreak: "break-word"
-                  }}
+        <div className="projects-tab__list">
+          {groupByCompany ? (
+            Object.entries(groupedProjects).map(([companyId, companyProjects]) => (
+              <div key={companyId} className="projects-tab__group">
+                <div
+                  className={`projects-tab__group-header projects-tab__group-header--${getCompanyVariant(
+                    Number(companyId),
+                  )}`}
                 >
-                  {getCompanyName(project.company_id)}
-                </span>
-              </div>
+                  <span>{getCompanyName(Number(companyId))}</span>
+                  <span className="projects-tab__group-count">({companyProjects.length} proje)</span>
+                </div>
 
-              {/* Proje Adı */}
-              <div>
-                <p style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#1f2937", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {project.name}
-                </p>
-                <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#6b7280" }}>Kod: {project.code}</p>
+                {companyProjects.map((project) => renderProjectRow(project))}
               </div>
-
-              {/* Türü */}
-              <div>
-                <span
-                  style={{
-                    display: "inline-block",
-                    backgroundColor: project.project_type === "franchise" ? "#f3e8ff" : "#dcfce7",
-                    color: project.project_type === "franchise" ? "#9333ea" : "#16a34a",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    fontWeight: "600"
-                  }}
-                >
-                  {project.project_type === "franchise" ? "🍕 Franchise" : "🏢 Merkez"}
-                </span>
-              </div>
-
-              {/* Yetkilisi */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-                <span style={{ fontSize: "13px", color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: "1" }}>
-                  {project.manager_name || "-"}
-                </span>
-                {project.manager_phone && (
-                  <a
-                    href={`tel:${project.manager_phone}`}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: "#22c55e",
-                      color: "white",
-                      borderRadius: "4px",
-                      textDecoration: "none",
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      border: "none",
-                      flexShrink: 0,
-                      transition: "background-color 0.2s"
-                    }}
-                    title={project.manager_phone}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#16a34a"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#22c55e"}
-                  >
-                    ☎️
-                  </a>
-                )}
-              </div>
-
-              {/* İşlemler */}
-              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                <Link
-                  to={`/admin/projects/${project.id}`}
-                  style={{
-                    padding: "6px 12px",
-                    backgroundColor: "#3b82f6",
-                    color: "white",
-                    textDecoration: "none",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#2563eb"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#3b82f6"}
-                >
-                  Detaylar
-                </Link>
-                <button
-                  onClick={() => handleDelete(project.id)}
-                  style={{
-                    padding: "6px 12px",
-                    backgroundColor: "#ef4444",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#dc2626"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#ef4444"}
-                >
-                  🗑️
-                </button>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            filteredProjects.map((project) => renderProjectRow(project))
+          )}
         </div>
       ) : (
-        <div style={{ textAlign: "center", padding: "32px", color: "#6b7280", backgroundColor: "#f3f4f6", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+        <div className="projects-tab__empty">
           {searchTerm ? "Sonuç bulunamadı" : "Henüz proje oluşturulmamış"}
         </div>
       )}
 
-      {/* Create Modal */}
       <ProjectCreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={() => {
-          loadData();
+          void loadData();
           setShowCreateModal(false);
         }}
       />

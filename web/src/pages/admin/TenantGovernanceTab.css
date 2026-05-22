@@ -1,0 +1,528 @@
+.tenantGovernanceTab {
+  display: grid;
+  gap: 16px;
+}
+
+.tenantGovernanceTab__heroGrid {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 16px;
+}
+
+.tenantGovernanceTab__card,
+.tenantGovernanceTab__portfolioCard {
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+.tenantGovernanceTab__card {
+  padding: 22px;
+}
+
+.tenantGovernanceTab__card--stacked {
+  display: grid;
+  gap: 12px;
+}
+
+.tenantGovernanceTab__eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #8a5b2b;
+}
+
+.tenantGovernanceTab__title {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.tenantGovernanceTab__warning {
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.tenantGovernanceTab__infoPanel {
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.tenantGovernanceTab__infoPanelTitle {
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.tenantGovernanceTab__infoPanelText,
+.tenantGovernanceTab__modalDescription,
+.tenantGovernanceTab__portfolioDescription,
+.tenantGovernanceTab__summaryText,
+.tenantGovernanceTab__statusCardText,
+.tenantGovernanceTab__tenantMeta,
+.tenantGovernanceTab__ownerEmail,
+.tenantGovernanceTab__lockNote,
+.tenantGovernanceTab__emptyState {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.tenantGovernanceTab__message {
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.tenantGovernanceTab__buttonRow,
+.tenantGovernanceTab__actionRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tenantGovernanceTab__actionRow--end {
+  justify-content: flex-end;
+}
+
+.tenantGovernanceTab__actionRow--wrap {
+  align-items: center;
+}
+
+.tenantGovernanceTab__button {
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.tenantGovernanceTab__button:disabled,
+.tenantGovernanceTab__pillButton:disabled,
+.tenantGovernanceTab__categoryChip:disabled,
+.tenantGovernanceTab__select:disabled {
+  cursor: not-allowed;
+}
+
+.tenantGovernanceTab__button--primary {
+  padding: 12px 16px;
+  border: none;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.tenantGovernanceTab__button--secondary,
+.tenantGovernanceTab__button--close {
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 700;
+}
+
+.tenantGovernanceTab__button--close {
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.tenantGovernanceTab__button--small {
+  padding: 8px 12px;
+  border: none;
+}
+
+.tenantGovernanceTab__button--edit {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.tenantGovernanceTab__button--danger {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.tenantGovernanceTab__button--success {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.tenantGovernanceTab__button--delete {
+  background: #111827;
+  color: #ffffff;
+}
+
+.tenantGovernanceTab__button--disabledGrey {
+  background: #e2e8f0;
+  color: #94a3b8;
+}
+
+.tenantGovernanceTab__button--disabledDark {
+  background: #cbd5e1;
+  color: #ffffff;
+}
+
+.tenantGovernanceTab__button:hover:not(:disabled),
+.tenantGovernanceTab__pillButton:hover:not(:disabled),
+.tenantGovernanceTab__categoryChip:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.tenantGovernanceTab__modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 80;
+}
+
+.tenantGovernanceTab__modalCard {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #dbe3ee;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
+  padding: 22px;
+}
+
+.tenantGovernanceTab__form {
+  display: grid;
+  gap: 12px;
+}
+
+.tenantGovernanceTab__modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tenantGovernanceTab__input,
+.tenantGovernanceTab__select {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #dbe3ee;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.tenantGovernanceTab__input:disabled,
+.tenantGovernanceTab__select:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.tenantGovernanceTab__splitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tenantGovernanceTab__sectionLabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #8a5b2b;
+  margin-top: 4px;
+}
+
+.tenantGovernanceTab__portfolioCard {
+  overflow: hidden;
+}
+
+.tenantGovernanceTab__portfolioHeader {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.tenantGovernanceTab__filtersRow {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tenantGovernanceTab__pillGroup,
+.tenantGovernanceTab__categoryWrap,
+.tenantGovernanceTab__chipWrap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tenantGovernanceTab__pillButton {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #dbe3ee;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tenantGovernanceTab__pillButton--selected {
+  border-color: #1d4ed8;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tenantGovernanceTab__selectGroup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tenantGovernanceTab__selectLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tenantGovernanceTab__summaryGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.tenantGovernanceTab__summaryCard {
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid transparent;
+}
+
+.tenantGovernanceTab__summaryCard--blue {
+  border-color: #dbeafe;
+  background: #eff6ff;
+}
+
+.tenantGovernanceTab__summaryCard--green {
+  border-color: #d1fae5;
+  background: #ecfdf5;
+}
+
+.tenantGovernanceTab__summaryCard--amber {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.tenantGovernanceTab__summaryEyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.tenantGovernanceTab__summaryCard--blue .tenantGovernanceTab__summaryEyebrow,
+.tenantGovernanceTab__summaryCard--blue .tenantGovernanceTab__summaryValue {
+  color: #1d4ed8;
+}
+
+.tenantGovernanceTab__summaryCard--green .tenantGovernanceTab__summaryEyebrow,
+.tenantGovernanceTab__summaryCard--green .tenantGovernanceTab__summaryValue {
+  color: #15803d;
+}
+
+.tenantGovernanceTab__summaryCard--amber .tenantGovernanceTab__summaryEyebrow,
+.tenantGovernanceTab__summaryCard--amber .tenantGovernanceTab__summaryValue {
+  color: #b45309;
+}
+
+.tenantGovernanceTab__summaryValue {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.tenantGovernanceTab__categoryWrap {
+  margin-top: 12px;
+}
+
+.tenantGovernanceTab__categoryChip {
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid #dbe3ee;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.tenantGovernanceTab__categoryChip--selected {
+  border-color: #0f766e;
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.tenantGovernanceTab__tableWrap {
+  overflow-x: auto;
+}
+
+.tenantGovernanceTab__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tenantGovernanceTab__tableHeadRow {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tenantGovernanceTab__tableHeader {
+  padding: 14px;
+  text-align: left;
+}
+
+.tenantGovernanceTab__tableRow {
+  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+}
+
+.tenantGovernanceTab__tableRow--pressure {
+  background: #fffbeb;
+}
+
+.tenantGovernanceTab__tableRow--breach {
+  background: #fff7f7;
+}
+
+.tenantGovernanceTab__cell {
+  padding: 14px;
+}
+
+.tenantGovernanceTab__cell--muted {
+  color: #334155;
+}
+
+.tenantGovernanceTab__tenantName,
+.tenantGovernanceTab__ownerName,
+.tenantGovernanceTab__statusCardTitle {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tenantGovernanceTab__tenantMeta {
+  margin-top: 4px;
+}
+
+.tenantGovernanceTab__chip {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.tenantGovernanceTab__chip--teal {
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.tenantGovernanceTab__chip--slate {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.tenantGovernanceTab__chip--green {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.tenantGovernanceTab__chip--orange {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.tenantGovernanceTab__metricChip--calm {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.tenantGovernanceTab__metricChip--pressure {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tenantGovernanceTab__metricChip--breach {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tenantGovernanceTab__statusBadge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.tenantGovernanceTab__statusBadge--active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tenantGovernanceTab__statusBadge--inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tenantGovernanceTab__statusBadge--breach {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tenantGovernanceTab__statusNote {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tenantGovernanceTab__statusNote--breach {
+  color: #b91c1c;
+}
+
+.tenantGovernanceTab__statusNote--pressure {
+  color: #92400e;
+}
+
+.tenantGovernanceTab__ownerStack {
+  display: grid;
+  gap: 8px;
+}
+
+.tenantGovernanceTab__select--owner {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #dbe3ee;
+  color: #334155;
+}
+
+.tenantGovernanceTab__select--owner:disabled {
+  background: #f8fafc;
+}
+
+.tenantGovernanceTab__emptyState {
+  padding: 18px;
+  text-align: center;
+}

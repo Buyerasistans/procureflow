@@ -55,6 +55,8 @@ describe("auth session flows", () => {
     await waitFor(() =>
       expect(screen.getByTestId("email").textContent).toBe("admin@procureflow.dev")
     );
+    expect(sessionStorage.getItem("pf_user")).toContain('"business_role":"admin"');
+    expect(sessionStorage.getItem("pf_user")).toContain('"system_role":"tenant_admin"');
   });
 
   test("logout: token + user temizlenir", async () => {
@@ -108,5 +110,30 @@ describe("auth session flows", () => {
     );
 
     await waitFor(() => expect(screen.getByText("Login")).toBeInTheDocument());
+  });
+
+  test("legacy cache kaydi varsa normalize edilmis user ile restore edilir", async () => {
+    vi.spyOn(tokenLib, "getAccessToken").mockReturnValue("token");
+    sessionStorage.setItem("pf_user", JSON.stringify({ id: 9, email: "cached@procureflow.dev", role: "admin" }));
+    vi.mocked(http.get).mockResolvedValueOnce({
+      data: { id: 9, email: "cached@procureflow.dev", role: "admin" },
+    } as never);
+
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/dashboard"]}>
+          <Routes>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<AppShell />} />
+            </Route>
+            <Route path="/login" element={<div>Login</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(sessionStorage.getItem("pf_user")).toContain('"system_role":"tenant_admin"')
+    );
   });
 });

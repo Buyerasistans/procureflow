@@ -7,6 +7,12 @@ import ForbiddenPage from "../pages/ForbiddenPage"
 import { AuthContext } from "../context/auth-context"
 import type { AuthContextType } from "../context/auth-context"
 
+vi.mock("../hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: null,
+  }),
+}))
+
 const mockNavigate = vi.fn()
 
 vi.mock("react-router-dom", async () => {
@@ -46,9 +52,9 @@ describe("ForbiddenPage", () => {
       </AuthContext.Provider>,
     )
 
-    const btn = screen.getByRole("button")
+    const btn = screen.getByRole("button", { name: /geri dön/i })
     await user.click(btn)
 
-    expect(mockNavigate).toHaveBeenCalled()
+    expect(mockNavigate).toHaveBeenCalledWith(-1)
   })
 })

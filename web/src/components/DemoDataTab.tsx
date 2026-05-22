@@ -47,7 +47,7 @@ export const DemoDataTab: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Demo Verileri Yönet</h2>
         <p className="mt-1 text-sm text-gray-600">
-          Sistem test verileriyle doldurulabilir. Yeni veriler eklenirse buraya eklenir.
+          Scope bazli demo omurgasi, rol, departman ve ornek hesap seti bu ekrandan tek akista yuklenir.
         </p>
       </div>
 
@@ -72,16 +72,16 @@ export const DemoDataTab: React.FC = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-blue-900">👤 Personel</h3>
+                <h3 className="font-semibold text-blue-900">👤 Hesaplar</h3>
                 <p className="text-sm text-blue-700 mt-1">
-                  5 satın alma personeli<br/>
-                  (Uzman, Yönetici, Müdür, Direktör)
+                  Platform, partner, supplier ve channel<br/>
+                  profilleri birlikte yuklenir
                 </p>
               </div>
-              <span className="text-3xl">5</span>
+              <span className="text-3xl">16+</span>
             </div>
             <p className="text-xs text-blue-600 mt-3">
-              🔐 Şifre: Test123!
+              🔐 Tum hesaplar icin sifre: Aa1234!!
             </p>
           </div>
 
@@ -91,11 +91,11 @@ export const DemoDataTab: React.FC = () => {
               <div>
                 <h3 className="font-semibold text-purple-900">🏢 Departmanlar</h3>
                 <p className="text-sm text-purple-700 mt-1">
-                  5 departman<br/>
-                  (Personel rolleriyle eşleştirilmiş)
+                  Partner kurulumu icin 4 ana departman<br/>
+                  rol atamalariyla birlikte gelir
                 </p>
               </div>
-              <span className="text-3xl">5</span>
+              <span className="text-3xl">4</span>
             </div>
           </div>
 
@@ -103,13 +103,13 @@ export const DemoDataTab: React.FC = () => {
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-yellow-900">🏭 Firmalar</h3>
+                <h3 className="font-semibold text-yellow-900">🏭 Partner Omurgasi</h3>
                 <p className="text-sm text-yellow-700 mt-1">
-                  5 firma ile renkli kodlar<br/>
-                  (Mor, Mavi, Sarı, Yeşil, Kırmızı)
+                  1 stratejik partner tenant ve 2 firma<br/>
+                  assignment yapisiyla kurulur
                 </p>
               </div>
-              <span className="text-3xl">5</span>
+              <span className="text-3xl">3</span>
             </div>
           </div>
 
@@ -117,22 +117,22 @@ export const DemoDataTab: React.FC = () => {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-green-900">📊 Projeler</h3>
+                <h3 className="font-semibold text-green-900">🔐 Alanlar</h3>
                 <p className="text-sm text-green-700 mt-1">
-                  25 proje (5 per firma)<br/>
-                  @ 5.500.000 TL bütçe
+                  @buyerasistans.com.tr uzantili demo mailler<br/>
+                  supplier portal kullanicilariyla birlikte gelir
                 </p>
               </div>
-              <span className="text-3xl">25</span>
+              <span className="text-3xl">4</span>
             </div>
           </div>
         </div>
 
         {/* More Info */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 space-y-2">
-          <p>✅ <strong>Tedarikçiler:</strong> 6 örnek tedarikçi (kategorileriyle)</p>
-          <p>✅ <strong>SMTP Ayarları:</strong> olimposyapi.com:465 (SSL)</p>
-          <p>✅ <strong>Proje Sorumlusu E-mail:</strong> serkaneryilmazz@gmail.com</p>
+          <p>✅ <strong>Platform:</strong> Super admin, portal admini, destek ve finans hesaplari</p>
+          <p>✅ <strong>Partner:</strong> Owner, admin, satin alma, teknik, denetim ve ozel rol personelleri</p>
+          <p>✅ <strong>Supplier / Channel:</strong> Supplier portal ve channel demo hesaplari birlikte yuklenir</p>
         </div>
 
         {/* Confirmation Dialog */}
@@ -143,18 +143,17 @@ export const DemoDataTab: React.FC = () => {
               disabled={loading}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {loading ? "Yükleniyor..." : "📥 Demo Verileri Yükle"}
+              {loading ? "Yükleniyor..." : "📥 Scope Demo Omurgasini Yükle"}
             </button>
             <p className="mt-2 text-xs text-gray-600">
-              Bu işlem mevcut verileri etkilemeyecektir. Zaten mevcut kayıtlar atlanacaktır.
+              Islem idempotent calisir. Eksik kayitlar eklenir, mevcut kayitlar guncellenir.
             </p>
           </div>
         ) : (
           <div className="border-t pt-4 bg-red-50 p-4 rounded-lg space-y-3">
             <p className="font-semibold text-red-700">⚠️ Onay Gereklidir</p>
             <p className="text-sm text-gray-700">
-              Demo verilerini yükleyeceksiniz. Bu işlem hızlı ve güvenlidir. 
-              Zaten mevcut olan kayıtlar yeniden oluşturulmayacaktır.
+              Scope bazli demo omurgasini yukleyeceksiniz. Tum hesaplar icin ortak sifre Aa1234!! olarak ayarlanir ve gereken rol, departman, firma ve atamalar kurulmus olur.
             </p>
             <div className="flex gap-3">
               <button
@@ -180,10 +179,10 @@ export const DemoDataTab: React.FC = () => {
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm">
         <p className="font-semibold text-amber-900">💡 Nasıl Kullanılır?</p>
         <ul className="mt-2 text-amber-800 space-y-1 list-disc list-inside">
-          <li>Yeni demo veri eklemek istediğinizde: <code className="bg-amber-100 px-1 rounded">create_projects_only.py</code> gibi scripte ekleyin</li>
-          <li>Scripti yazın ve buraya ekleyin</li>
-          <li>Backend endpointi <code className="bg-amber-100 px-1 rounded">/admin/load-demo-data</code>'ya entegre edin</li>
-          <li>Hesap ve şifreler: test@example.com / Test1234!</li>
+          <li>Yeni scope profili eklenirse scope demo bootstrap servisine ekleyin</li>
+          <li>Roller ve departmanlar partner kurulumuyla birlikte yuklenir</li>
+          <li>Backend endpointi /admin/load-demo-data yeni bootstrap servisini cagirir</li>
+          <li>Hesap uzantisi: @buyerasistans.com.tr ve ortak sifre: Aa1234!!</li>
         </ul>
       </div>
     </div>

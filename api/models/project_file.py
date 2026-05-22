@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 # models/project_file.py
 from datetime import datetime
+from typing import TYPE_CHECKING
 from sqlalchemy import String, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.database import Base
 from api.core.time import utcnow
+
+if TYPE_CHECKING:
+    from api.models.project import Project
 
 
 class ProjectFile(Base):

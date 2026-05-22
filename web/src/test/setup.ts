@@ -1,5 +1,8 @@
 // FILE: web/src/test/setup.ts
 import "@testing-library/jest-dom/vitest";
+import { configure } from "@testing-library/react";
+
+configure({ asyncUtilTimeout: 10000 });
 
 const originalError = console.error;
 

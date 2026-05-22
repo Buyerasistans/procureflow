@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-04-16",
+  "source_files": [
+    "api/core/authz.py",
+    "api/routers/admin.py",
+    "api/services/user_department_service.py",
+    "api/models/assignment.py",
+    "web/src/auth/permissions.ts"
+  ],
+  "role_model": {
+    "layers": [
+      {
+        "name": "system_role",
+        "purpose": "Yonetim erisim kapsami (platform/tenant seviyesi)",
+        "values": [
+          "super_admin",
+          "platform_support",
+          "platform_operator",
+          "tenant_owner",
+          "tenant_admin",
+          "tenant_member"
+        ]
+      },
+      {
+        "name": "business_role",
+        "purpose": "Operasyonel satin alma akisi ve onay davranisi",
+        "values": [
+          "satinalma_direktoru",
+          "satinalma_yoneticisi",
+          "satinalma_uzmani",
+          "satinalmaci",
+          "admin",
+          "super_admin"
+        ]
+      }
+    ]
+  },
+  "critical_rules": [
+    {
+      "rule": "Tenant governance write",
+      "result": "Sadece super_admin",
+      "code_hint": "can_manage_tenant_governance"
+    },
+    {
+      "rule": "Tenant governance read",
+      "result": "super_admin + platform_support + platform_operator",
+      "code_hint": "require_tenant_governance_reader"
+    },
+    {
+      "rule": "Support workflow update",
+      "result": "governance_reader kapsaminda (platform destek/operator dahil)",
+      "code_hint": "/tenants/{tenant_id}/support-workflow"
+    },
+    {
+      "rule": "Admin panel write istekleri",
+      "result": "Backend tarafinda can_access_admin_surface zorunlu (super_admin ve tenant admin/owner)",
+      "code_hint": "require_admin_user"
+    }
+  ],
+  "department_model": {
+    "user_primary_department": "users.department_id",
+    "effective_department_resolution": [
+      "department_id varsa onu kullan",
+      "yoksa user_departments[0]",
+      "hala yoksa aktif departman adi ile user full_name eslesmesi"
+    ],
+    "company_assignment": {
+      "table": "company_roles",
+      "fields": [
+        "user_id",
+        "company_id",
+        "role_id",
+        "department_id (opsiyonel)",
+        "sub_items_json"
+      ]
+    },
+    "tenant_consistency": "Kullanici + firma + rol + departman ayni tenant kapsaminda olmali"
+  },
+  "default_approval_limits": {
+    "satinalmaci": 100000,
+    "satinalma_uzmani": 200000,
+    "satinalma_yoneticisi": 300000,
+    "satinalma_direktoru": 1000000
+  },
+  "notes": [
+    "UI helper fonksiyonlari platform_support/operator icin admin yuzeyi acik kabul ediyor.",
+    "Backend write guard'lari platform rollerini admin write kapsaminda kabul etmiyor.",
+    "Bu fark, ekranda gorunen ama yazilamayan alan algisi yaratabilir."
+  ]
+}

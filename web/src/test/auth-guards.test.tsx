@@ -4,10 +4,20 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute, { SupplierRoute } from "../components/ProtectedRoute";
 import RequirePermission from "../components/RequirePermission";
 import { AuthContext } from "../context/auth-context";
 import type { AuthContextType, AuthUser } from "../context/auth-types";
+
+vi.mock("../lib/session", async () => {
+  const actual = await vi.importActual<typeof import("../lib/session")>("../lib/session");
+  return {
+    ...actual,
+    shouldUseSupplierSession: vi.fn(),
+  };
+});
+
+import { shouldUseSupplierSession } from "../lib/session";
 
 function renderWithAuth(
   ui: ReactNode,
@@ -36,6 +46,10 @@ function renderWithAuth(
 }
 
 describe("Route Guards", () => {
+  beforeEach(() => {
+    vi.mocked(shouldUseSupplierSession).mockReturnValue(false);
+  });
+
   it("anon kullanıcıyı /login'e yönlendirir (ProtectedRoute)", async () => {
     renderWithAuth(
       <Routes>
@@ -122,5 +136,42 @@ describe("Route Guards", () => {
     );
 
     expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
+  });
+
+  it("supplier route supplier session yoksa /supplier/login'e yönlendirir", async () => {
+    renderWithAuth(
+      <Routes>
+        <Route element={<SupplierRoute />}>
+          <Route path="/supplier/dashboard" element={<div>Supplier Dashboard</div>} />
+        </Route>
+        <Route path="/supplier/login" element={<div>Supplier Login</div>} />
+      </Routes>,
+      {
+        route: "/supplier/dashboard",
+        user: null,
+        loading: false,
+      }
+    );
+
+    expect(await screen.findByText("Supplier Login")).toBeInTheDocument();
+  });
+
+  it("supplier route supplier session varsa içeriği gösterir", async () => {
+    vi.mocked(shouldUseSupplierSession).mockReturnValue(true);
+
+    renderWithAuth(
+      <Routes>
+        <Route element={<SupplierRoute />}>
+          <Route path="/supplier/dashboard" element={<div>Supplier Dashboard</div>} />
+        </Route>
+      </Routes>,
+      {
+        route: "/supplier/dashboard",
+        user: null,
+        loading: false,
+      }
+    );
+
+    expect(await screen.findByText("Supplier Dashboard")).toBeInTheDocument();
   });
 });

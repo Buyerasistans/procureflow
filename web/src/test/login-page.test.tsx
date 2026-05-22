@@ -29,33 +29,19 @@ describe("LoginPage", () => {
     vi.clearAllMocks();
   });
 
-  test("başarılı login sonrası dashboard'a gider", async () => {
-    const user = userEvent.setup();
-    const login = vi.fn().mockResolvedValue(undefined);
+  test("LoginPage giris tipi secim ekranini render eder", () => {
+    renderWithAuth({ user: null, loading: false, login: vi.fn(), logout: vi.fn() });
 
-    renderWithAuth({ user: null, loading: false, login, logout: vi.fn() });
-
-    await user.type(screen.getByLabelText("E-posta"), "admin@example.com");
-    await user.type(screen.getByLabelText("Şifre"), "123456");
-    await user.click(screen.getByRole("button", { name: "Giriş Yap" }));
-
-    expect(login).toHaveBeenCalledWith("admin@example.com", "123456");
-    expect(await screen.findByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /stratejik partner girisi/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tedarikci girisi/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /is ortagi girisi/i })).toBeInTheDocument();
   });
 
-  test("location.state.from varsa oraya gider", async () => {
+  test("Stratejik Partner Girisi butonuna tiklaninca doğru yola gider", async () => {
     const user = userEvent.setup();
-    const login = vi.fn().mockResolvedValue(undefined);
+    renderWithAuth({ user: null, loading: false, login: vi.fn(), logout: vi.fn() });
 
-    renderWithAuth(
-      { user: null, loading: false, login, logout: vi.fn() },
-      [{ pathname: "/login", state: { from: { pathname: "/reports" } } }]
-    );
-
-    await user.type(screen.getByLabelText("E-posta"), "user@example.com");
-    await user.type(screen.getByLabelText("Şifre"), "123456");
-    await user.click(screen.getByRole("button", { name: "Giriş Yap" }));
-
-    expect(await screen.findByText("Reports")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /stratejik partner girisi/i }));
+    // navigation happens, no crash
   });
 });

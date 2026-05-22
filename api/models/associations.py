@@ -1,7 +1,7 @@
 # models/associations.py
 """Association tables for many-to-many relationships"""
 
-from sqlalchemy import Table, Column, Integer, ForeignKey, String, Boolean
+from sqlalchemy import Table, Column, Integer, ForeignKey
 from api.database import Base
 
 # User-Company M2M

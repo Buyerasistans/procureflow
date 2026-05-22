@@ -1,0 +1,31 @@
+.admin-page-shell {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  width: 100%;
+}
+
+.admin-page-shell__chrome {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-page-shell__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-page-shell__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-page-shell__content {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}

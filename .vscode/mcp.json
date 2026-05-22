@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "D:\\Projects\\procureflow",
+        "D:\\Projects\\procureflow\\api",
+        "D:\\Projects\\procureflow\\api\\routers"
+      ]
+    }
+  }
+}

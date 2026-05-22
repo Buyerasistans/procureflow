@@ -3,14 +3,24 @@ import React, { useState, useEffect } from "react";
 import { useSettings } from "../hooks/useSettings";
 import { AdvancedSettingsTab } from "./AdvancedSettingsTab";
 import { DemoDataTab } from "./DemoDataTab";
+import PremiumFeaturePurchasePanel from "./PremiumFeaturePurchasePanel";
 import type { SettingsUpdatePayload } from "../services/settings.service";
 import { getQuotePriceRules, updateQuotePriceRules, type QuotePriceRules } from "../services/admin.service";
+import { getMyTenantPremiumPurchaseContext, type TenantPremiumPurchaseContext } from "../services/payment.service";
+import { useAuth } from "../hooks/useAuth";
+import { canManageTenantIdentitySettings, getUserScopeType, isTenantOwnerUser } from "../auth/permissions";
 
-type TabType = "basic" | "advanced" | "demo" | "price_rules";
+type TabType = "basic" | "advanced" | "demo" | "price_rules" | "premium";
 
 export const SettingsTab: React.FC = () => {
+  const { user } = useAuth();
   const { settings, loading, error, updateSettings } = useSettings();
-  const [activeTab, setActiveTab] = useState<TabType>("basic");
+  const isChannelWorkspace = getUserScopeType(user) === "channel";
+  const isTenantOwner = isTenantOwnerUser(user);
+  const [activeTab, setActiveTab] = useState<TabType>(isChannelWorkspace ? "advanced" : "basic");
+  const canEditTenantIdentity = canManageTenantIdentitySettings(user);
+  
+  const [premiumContext, setPremiumContext] = useState<TenantPremiumPurchaseContext | null>(null);
   
   const [formData, setFormData] = useState({
     app_name: "",
@@ -39,6 +49,15 @@ export const SettingsTab: React.FC = () => {
     }
   }, [settings]);
 
+  // Premium context yükle (sadece tenant owner için)
+  useEffect(() => {
+    if (isTenantOwner && !premiumContext) {
+      void getMyTenantPremiumPurchaseContext()
+        .then((ctx) => setPremiumContext(ctx))
+        .catch(() => {/* ignore */});
+    }
+  }, [isTenantOwner, premiumContext]);
+
   // Fiyat kuralları yükle
   useEffect(() => {
     if (activeTab === "price_rules" && !priceRules && !priceRulesLoading) {
@@ -49,6 +68,12 @@ export const SettingsTab: React.FC = () => {
         .finally(() => setPriceRulesLoading(false));
     }
   }, [activeTab, priceRules, priceRulesLoading]);
+
+  useEffect(() => {
+    if (isChannelWorkspace && activeTab !== "advanced") {
+      setActiveTab("advanced");
+    }
+  }, [activeTab, isChannelWorkspace]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -128,24 +153,31 @@ export const SettingsTab: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Sistem Ayarları</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{isChannelWorkspace ? "E-posta Ayarlari" : "Sistem Ayarları"}</h2>
         <p className="mt-1 text-sm text-gray-600">
-          Uygulamanın ayarlarını yönetin
+          {isChannelWorkspace ? "Mail gonderim profilinizi ve sistem mailbox ayarlarinizi yonetin" : "Uygulamanın ayarlarını yönetin"}
         </p>
+        {!isChannelWorkspace && !canEditTenantIdentity && (
+          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Bu alanda tenant kimliği ve temel ayarlar salt okunur gösterilir. Değişiklik yapmak için tenant owner veya super admin hesabı gerekir.
+          </div>
+        )}
       </div>
 
       {/* Tab Navigation */}
       <div className="flex gap-3 border-b-2 border-gray-200 pb-3 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab("basic")}
-          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-            activeTab === "basic"
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          ⚙️ Temel Ayarlar
-        </button>
+        {!isChannelWorkspace && (
+          <button
+            onClick={() => setActiveTab("basic")}
+            className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
+              activeTab === "basic"
+                ? "bg-blue-600 text-white"
+                : "bg-transparent text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            ⚙️ Temel Ayarlar
+          </button>
+        )}
         <button
           onClick={() => setActiveTab("advanced")}
           className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
@@ -154,28 +186,44 @@ export const SettingsTab: React.FC = () => {
               : "bg-transparent text-gray-600 hover:text-gray-900"
           }`}
         >
-          🔧 Gelişmiş Ayarlar
+          {isChannelWorkspace ? "📧 E-posta Ayarlari" : "🔧 Gelişmiş Ayarlar"}
         </button>
-        <button
-          onClick={() => setActiveTab("demo")}
-          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-            activeTab === "demo"
-              ? "bg-green-600 text-white"
-              : "bg-transparent text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          📥 Demo Verileri
-        </button>
-        <button
-          onClick={() => setActiveTab("price_rules")}
-          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-            activeTab === "price_rules"
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          💰 Teklif Fiyat Kuralları
-        </button>
+        {!isChannelWorkspace && (
+          <>
+            <button
+              onClick={() => setActiveTab("demo")}
+              className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
+                activeTab === "demo"
+                  ? "bg-green-600 text-white"
+                  : "bg-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              📥 Demo Verileri
+            </button>
+            <button
+              onClick={() => setActiveTab("price_rules")}
+              className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
+                activeTab === "price_rules"
+                  ? "bg-blue-600 text-white"
+                  : "bg-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              💰 Teklif Fiyat Kuralları
+            </button>
+          </>
+        )}
+        {isTenantOwner && (
+          <button
+            onClick={() => setActiveTab("premium")}
+            className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
+              activeTab === "premium"
+                ? "bg-purple-600 text-white"
+                : "bg-transparent text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            ⭐ Premium Özellikler
+          </button>
+        )}
       </div>
 
       {/* Basic Settings Tab */}
@@ -207,7 +255,7 @@ export const SettingsTab: React.FC = () => {
                 id="app_name"
                 value={formData.app_name}
                 onChange={handleInputChange}
-                disabled={saving}
+                disabled={saving || !canEditTenantIdentity}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                 placeholder="ProcureFlow"
               />
@@ -225,7 +273,7 @@ export const SettingsTab: React.FC = () => {
                   id="maintenance_mode"
                   checked={formData.maintenance_mode}
                   onChange={handleInputChange}
-                  disabled={saving}
+                  disabled={saving || !canEditTenantIdentity}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer disabled:opacity-60"
                 />
                 <label htmlFor="maintenance_mode" className="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">
@@ -268,7 +316,7 @@ export const SettingsTab: React.FC = () => {
                       type="button"
                       onClick={() => setFormData((prev) => ({ ...prev, vat_rates: prev.vat_rates.filter((r) => r !== rate) }))}
                       className="text-red-600 font-bold"
-                      disabled={formData.vat_rates.length <= 1}
+                      disabled={formData.vat_rates.length <= 1 || !canEditTenantIdentity}
                       title="KDV oranını sil"
                     >
                       ×
@@ -283,11 +331,13 @@ export const SettingsTab: React.FC = () => {
                   step={0.01}
                   value={newVatRate}
                   onChange={(e) => setNewVatRate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md w-40"
+                  disabled={!canEditTenantIdentity}
+                  className="px-3 py-2 border border-gray-300 rounded-md w-40 disabled:bg-gray-100"
                   placeholder="Örn: 8"
                 />
                 <button
                   type="button"
+                  disabled={!canEditTenantIdentity}
                   onClick={() => {
                     const parsed = Number(newVatRate);
                     if (!Number.isFinite(parsed) || parsed < 0) return;
@@ -297,7 +347,7 @@ export const SettingsTab: React.FC = () => {
                     });
                     setNewVatRate("");
                   }}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-md"
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   KDV Ekle
                 </button>
@@ -311,14 +361,14 @@ export const SettingsTab: React.FC = () => {
             <div className="flex gap-3 pt-4 border-t">
               <button
                 type="submit"
-                disabled={saving || loading}
+                disabled={saving || loading || !canEditTenantIdentity}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
               </button>
               <button
                 type="button"
-                disabled={saving || loading}
+                disabled={saving || loading || !canEditTenantIdentity}
                 onClick={() => {
                   if (settings) {
                     setFormData({
@@ -341,10 +391,10 @@ export const SettingsTab: React.FC = () => {
       {activeTab === "advanced" && <AdvancedSettingsTab />}
 
       {/* Demo Data Tab */}
-      {activeTab === "demo" && <DemoDataTab />}
+      {!isChannelWorkspace && activeTab === "demo" && <DemoDataTab />}
 
       {/* Price Rules Tab */}
-      {activeTab === "price_rules" && (
+      {!isChannelWorkspace && activeTab === "price_rules" && (
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Teklif Fiyat Kontrol Kuralları</h3>
@@ -371,6 +421,9 @@ export const SettingsTab: React.FC = () => {
                     value={priceRules.max_markup_percent}
                     onChange={(e) => setPriceRules({ ...priceRules, max_markup_percent: parseFloat(e.target.value) || 0 })}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label="Maksimum artış yüzdesi"
+                    title="Maksimum artış yüzdesi"
+                    placeholder="Örn: 25"
                   />
                   <p className="text-xs text-gray-500 mt-1">Baz fiyatın en fazla bu kadar üzerinde teklif verilebilir.</p>
                 </div>
@@ -384,6 +437,9 @@ export const SettingsTab: React.FC = () => {
                     value={priceRules.max_discount_percent}
                     onChange={(e) => setPriceRules({ ...priceRules, max_discount_percent: parseFloat(e.target.value) || 0 })}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label="Maksimum indirim yüzdesi"
+                    title="Maksimum indirim yüzdesi"
+                    placeholder="Örn: 10"
                   />
                   <p className="text-xs text-gray-500 mt-1">Baz fiyatın en fazla bu kadar altında teklif verilebilir.</p>
                 </div>
@@ -396,6 +452,9 @@ export const SettingsTab: React.FC = () => {
                     value={priceRules.tolerance_amount}
                     onChange={(e) => setPriceRules({ ...priceRules, tolerance_amount: parseFloat(e.target.value) || 0 })}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    aria-label="Tolerans tutarı"
+                    title="Tolerans tutarı"
+                    placeholder="Örn: 1000"
                   />
                   <p className="text-xs text-gray-500 mt-1">Yüzde sınırına ek olarak sabit para birimi toleransı.</p>
                 </div>
@@ -431,6 +490,28 @@ export const SettingsTab: React.FC = () => {
               </div>
             </form>
           )}
+        </div>
+      )}
+
+      {/* Premium Features Tab */}
+      {isTenantOwner && activeTab === "premium" && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Premium Özellikler</h3>
+            {premiumContext && <p className="text-sm text-gray-600 mt-1">{premiumContext.tenant_name}</p>}
+          </div>
+          {premiumContext && <PremiumFeaturePurchasePanel tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]} buyerName="" buyerEmail="" />}
+        </div>
+      )}
+
+      {/* Premium Features always visible for tenant owner */}
+      {isTenantOwner && premiumContext && activeTab !== "premium" && (
+        <div className="space-y-4 mt-6 border-t pt-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Premium Özellikler</h3>
+            <p className="text-sm text-gray-600 mt-1">{premiumContext.tenant_name}</p>
+          </div>
+          <PremiumFeaturePurchasePanel tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]} buyerName="" buyerEmail="" />
         </div>
       )}
     </div>

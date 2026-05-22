@@ -1,8 +1,12 @@
 // FILE: web/src/test/smoke-ui.test.tsx
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import PageLoader from "../components/PageLoader";
 import ReportsPage from "../pages/ReportsPage";
+
+vi.mock("../hooks/useAuth", () => ({
+  useAuth: () => ({ user: null, loading: false }),
+}));
 
 describe("smoke ui", () => {
   it("PageLoader render edilir", () => {
@@ -13,7 +17,7 @@ describe("smoke ui", () => {
   it("ReportsPage render edilir", () => {
     render(<ReportsPage />);
     expect(
-      screen.getByRole("heading", { name: /raporlar/i })
-    ).toBeInTheDocument();
+      screen.getAllByRole("heading", { name: /raporlar/i }).length
+    ).toBeGreaterThan(0);
   });
 });

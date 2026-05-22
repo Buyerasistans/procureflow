@@ -2,12 +2,19 @@
 
 ## 1) Proje Özeti
 
-**ProcureFlow** — Tedarik zinciri yönetimi için teklif (RFQ), tedarikçi yönetimi, ve onay workflow'u sistemi.
+**ProcureFlow** — Tedarik zinciri yönetimi için teklif (RFQ),
+tedarikçi yönetimi, ve onay workflow'u sistemi.
 
 - **Frontend**: React 19 + TypeScript + Vite
 - **Backend**: FastAPI (Python) + SQLAlchemy ORM + PostgreSQL
 - **Email**: SMTP (olimposyapi.com) SPF/DKIM/DMARC ile hardened
 - **Auth**: JWT tokens + refresh tokens + magic links (tedarikçi)
+
+Ek donusum referansi:
+
+- Tenant-SaaS hedef mimarisi ve uygulama adimlari icin
+  [TENANT_SAAS_TRANSFORMATION_PLAN.md](TENANT_SAAS_TRANSFORMATION_PLAN.md)
+  dosyasini kullanin.
 
 ---
 
@@ -15,7 +22,7 @@
 
 ### 2.1 Backend: `/api`
 
-```
+``
 api/
 ├── main.py                      # FastAPI app entry point
 ├── alembic/                     # Database migrations
@@ -29,7 +36,7 @@ api/
 ├── db/
 │   └── session.py               # SQLAlchemy engine + SessionLocal
 ├── models/                      # SQLAlchemy ORM models
-│   ├── __init__.py              # ✅ MUST import all models here for Alembic
+│   ├── _init_.py              # ✅ MUST import all models here for Alembic
 │   ├── user.py                  # User, Role, Permission
 │   ├── quote.py                 # Quote, QuoteItem, QuoteApproval
 │   ├── supplier.py              # Supplier, SupplierUser, SupplierQuote, SupplierQuoteItem
@@ -39,7 +46,7 @@ api/
 │   ├── backup_settings.py       # Backup scheduling config
 │   └── ... (others)
 ├── schemas/                     # Pydantic request/response validation
-│   ├── __init__.py              # ✅ Export commonly used schemas
+│   ├── _init_.py              # ✅ Export commonly used schemas
 │   ├── quote.py
 │   ├── supplier.py
 │   ├── user.py
@@ -48,7 +55,6 @@ api/
 │   ├── health.py                # GET /health
 │   ├── auth.py                  # POST /login, /refresh, /logout
 │   ├── quotes.py                # Quote CRUD + status transitions
-│   ├── quote_router.py          # Alias/legacy (consolidate)
 │   ├── supplier_router.py       # Supplier management
 │   ├── supplier_response_router.py  # SupplierQuote submit/draft
 │   ├── supplier_portal.py       # Supplier workspace view
@@ -60,9 +66,10 @@ api/
 │   ├── files.py                 # File upload/download
 │   ├── report_router.py         # Reports & exports
 │   ├── contract_router.py       # Contract management
-│   └── __init__.py
+│   └── _init_.py
 ├── services/                    # Business logic (stateless, testable)
-│   ├── email_service.py         # ✅ SMTP + hardened headers (Date, Message-ID, plain+html)
+│   ├── email_service.py         # ✅ SMTP + hardened headers
+(Date, Message-ID, plain+html)
 │   ├── quote_service.py         # Quote state machine, revisions
 │   ├── auth_service.py          # Login, refresh, token validation
 │   ├── user_department_service.py # Department resolution
@@ -82,12 +89,12 @@ api/
 ├── database.py                  # SQLAlchemy Base + engine setup
 ├── requirements.txt             # pip dependencies
 ├── alembic.ini                  # Alembic config
-└── __init__.py
-```
+└── _init_.py
+``
 
 ### 2.2 Frontend: `/web`
 
-```
+``
 web/
 ├── src/
 │   ├── main.tsx                 # Vite entry point
@@ -130,11 +137,11 @@ web/
 ├── package.json
 ├── .gitignore
 └── eslint.config.js             # ESLint rules
-```
+``
 
 ### 2.3 Root Level
 
-```
+``
 procureflow/
 ├── api/                         # Backend (see 2.1)
 ├── web/                         # Frontend (see 2.2)
@@ -159,7 +166,7 @@ procureflow/
 ├── ARCHITECTURE.md              # This file
 ├── pytest.ini                   # pytest configuration
 └── requirements-lock.txt        # Locked dependency versions (pip freeze output)
-```
+``
 
 ---
 
@@ -168,6 +175,7 @@ procureflow/
 ### 3.1 Neler Git'e Girilmemeli
 
 | Kategori | Pattern | Açıklama |
+
 |---|---|---|
 | **IDE/Editor** | `.vscode/`, `.idea/`, `.idea/`, `*.swp`, `*.swo` | IDE-specific configs |
 | **Python env** | `.venv/`, `venv/`, `env/`, `.mypy_cache/`, `.ruff_cache/` | Virtual environments & caches |
@@ -200,7 +208,7 @@ git status --porcelain
 
 ### 4.1 Katmanlar (Layered Architecture)
 
-```
+``
 ┌─────────────────────────────────────────────────────────┐
 │ FRONTEND (React/TypeScript)                              │
 │  ├─ Pages (screens, routing)                            │
@@ -231,23 +239,23 @@ git status --porcelain
 │ DATABASE (PostgreSQL)                                   │
 │  └─ Migrations (alembic/versions/*)                    │
 └─────────────────────────────────────────────────────────┘
-```
+``
 
 ### 4.2 Veri Akışı — Teklif Süreci Örneği
 
-```
+``
 Admin → /api/v1/quotes (POST)
   ↓
 [Router: quotes.py::create_quote()]
   ├─ Validate: QuoteCreate schema
-  ├─ Permission: _ensure_admin(current_user)
+  ├─ Permission:_ensure_admin(current_user)
   ├─ Logic: Quote model instantiate
   ├─ DB: db.add(quote) + db.commit()
   └─ Return: QuoteOut schema (serialize)
 ↓
 Admin → /api/v1/quotes/{id}/submit (POST)
   ├─ Logic: QuoteService.submit_quote() — status: draft → sent
-  ├─ Domain: _domain_events.append(QuoteStatusChanged(...))
+  ├─ Domain:_domain_events.append(QuoteStatusChanged(...))
   ├─ Email: email_service.send_new_quote_to_supplier()
   │   └─ Headers: Date, Message-ID, X-Mailer, Content-Language
   │   └─ Body: plain text + HTML multipart/alternative
@@ -298,31 +306,33 @@ Admin → /api/v1/quotes/{id}/approve (POST)
   │   └─ SupplierQuote.status: * → kapatıldı_yüksek_fiyat
   ├─ Event: QuoteStatusChanged (approved, ...)
   └─ Return: QuoteOut (updated)
-```
+``
 
 ### 4.3 Durum Makinesi Kuralları (State Machine)
 
-**Quote (main teklif)**
+**Quote (main teklif)
 
 | From | To | Kurallar |
+
 |---|---|---|
 | draft | sent | Admin `submit` (zorunlu)  |
 | sent | approved | Admin `approve` (admin-only) |
 | sent | rejected | Admin `reject` (admin-only) |
-| approved | * | Bloklı (terminal state) |
-| rejected | * | Bloklı (terminal state) |
+| approved |*| Bloklı (terminal state) |
+| rejected |*| Bloklı (terminal state) |
 
-**SupplierQuote (tedarikçi yanıtları)**
+**SupplierQuote (tedarikçi yanıtları)
 
 | From | To | Kurallar |
+
 |---|---|---|
 | tasarı | gönderilen | Tedarikçi `submit` (fiyat + kalemler gerekli) |
 | gönderilen | revize_edildi | Admin `request-revision` (reason gerekli) |
 | revize_edildi | yanıtlandı | Tedarikçi `submit` (yeni fiyatlar) |
-| gönderilen | kapatıldı_yüksek_fiyat | Otomatik (Quote.approve → other suppliers) |
+| gönderilen | kapatıldı_yüksek_fiyat | Otomatik (Quote.approve → other suppliers)|
 | * | reddedildi | Otomatik (Quote.reject → all suppliers) |
 
-**Geçersiz Geçişler → HTTP 422**
+**Geçersiz Geçişler → HTTP 422
 
 ```python
 # api/routers/quotes.py
@@ -332,13 +342,16 @@ _ensure_transition(row.status, {"sent"})  # Only from 'sent' allowed
 ### 4.4 Email Hardening — DNS + SMTP + Headers
 
 **DNS Records (gerekli):**
+
 - SPF: `v=spf1 a mx ip4:213.238.191.177 -all`
 - DKIM: `default._domainkey TXT v=DKIM1; p=MIIBIjA...` (public key)
 - DMARC: `_dmarc TXT v=DMARC1; p=quarantine; adkim=s; aspf=s; rua=...`
 - PTR: `177.191.238.213 → mail.olimposyapi.com`
 
 **Code Rules (email_service.py):**
+
 ```python
+
 msg["Date"] = formatdate(localtime=True)
 msg["Message-ID"] = make_msgid(domain="olimposyapi.com")
 msg["X-Mailer"] = "ProcureFlow"
@@ -350,6 +363,7 @@ msg.attach(MIMEText(html_body, "html", "utf-8"))
 ```
 
 **Subject Line Consistency:**
+
 ```python
 # All transactional emails MUST have [ProcureFlow] prefix
 "[ProcureFlow] New Quote: Teklifim-001"
@@ -362,11 +376,15 @@ msg.attach(MIMEText(html_body, "html", "utf-8"))
 ### 4.5 Sorumluluk Ayrılığı (Separation of Concerns)
 
 | Layer | Sorumluluk | NOT Sorumluluk |
+
 |---|---|---|
-| **Router** | HTTP validation, auth check, response decoration | Business logic, DB queries |
-| **Service** | State transitions, email templates, price rules | Database I/O (directly) |
+| **Router** | HTTP validation, auth check, response decoration | Business logic,
+DB queries |
+| **Service** | State transitions, email templates, price rules | Database I/O
+(directly) |
 | **Domain** | State rules, event definitions | Implementation, Framework |
-| **Model** | ORM mapping, relationships, schema | Business rules (move to Service) |
+| **Model** | ORM mapping, relationships, schema | Business rules (move to
+Service) |
 | **Form/Schema** | Pydantic validation, serialization | Domain logic |
 
 ---
@@ -375,7 +393,7 @@ msg.attach(MIMEText(html_body, "html", "utf-8"))
 
 ### 5.1 Backend
 
-- **Routers**: `<domain>_router.py` (e.g., `quote_router.py`, `supplier_router.py`)
+- **Routers**: domain-odakli dosya adlari kullanilir (e.g., `quotes.py`, `supplier_router.py`)
   - Exception: Health check → `health.py`, Auth → `auth.py`
 - **Services**: `<domain>_service.py` (e.g., `email_service.py`, `quote_service.py`)
 - **Models**: `<entity>.py` (e.g., `user.py`, `quote.py`, `supplier.py`)
@@ -464,8 +482,9 @@ npm run test
 ## 9) Geçiş Notları (Legacy)
 
 | Obsolete | Replacement | Status |
+
 |---|---|---|
-| `quote_router.py` | `quotes.py` | Consolidate |
+| Legacy quote router | `quotes.py` | ✅ Consolidated |
 | `settings_router.py` | `advanced_settings_router.py` | Consolidate |
 | Direct `EmailMessage()` in routers | Use `email_service` | ✅ Done |
 | `schemas.py` (root) | `schemas/<domain>.py` | ✅ Migrated |

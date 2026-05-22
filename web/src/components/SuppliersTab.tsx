@@ -1,8 +1,14 @@
 // web/src/components/SuppliersTab.tsx
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { http } from "../lib/http";
+import { isPlatformStaffUser } from "../auth/permissions";
+import { useAuth } from "../hooks/useAuth";
+import { getMailCenterAccounts, type MailCenterAccount } from "../services/mail-center.service";
+import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
+import { getCityNames, getDistricts } from "../data/turkey-cities";
+import { CategorySelectionModal } from "./CategorySelectionModal";
 import type { Supplier, SupplierUser } from "../types/supplier";
 
 function getErrorMessage(err: unknown, fallback: string): string {
@@ -127,6 +133,20 @@ const Input = styled.input`
   }
 `;
 
+const Select = styled.select`
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #fff;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+`;
+
 const TextArea = styled.textarea`
   padding: 8px;
   border: 1px solid #d1d5db;
@@ -209,27 +229,29 @@ const ErrorMessage = styled.div`
 `;
 
 export function SuppliersTab() {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const readOnly = isPlatformStaffUser(user);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [mailAccounts, setMailAccounts] = useState<MailCenterAccount[]>([]);
+  const [sourceFilter, setSourceFilter] = useState<"all" | "private" | "platform_network">("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Form state
   const [showForm, setShowForm] = useState(false);
+  const [showPartnerCategoryModal, setShowPartnerCategoryModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [formData, setFormData] = useState({
     company_name: "",
-    company_title: "",
-    tax_number: "",
     phone: "",
     email: "",
-    website: "",
-    address: "",
     city: "",
-    postal_code: "",
+    address_district: "",
     notes: "",
     category: "",
+    partner_category_tags: [] as string[],
   });
 
 
@@ -237,6 +259,27 @@ export function SuppliersTab() {
   const [selectedSupplier] = useState<Supplier | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void getMailCenterAccounts()
+      .then((data) => {
+        if (mounted) setMailAccounts(data);
+      })
+      .catch(() => {
+        if (mounted) setMailAccounts([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const getUnreadCountForEmail = useCallback(
+    (email?: string | null) => mailAccounts.find((account) => String(account.email || "").trim().toLowerCase() === String(email || "").trim().toLowerCase())?.unread_count || 0,
+    [mailAccounts],
+  );
+
+  const totalUnreadMailCount = useMemo(() => mailAccounts.reduce((sum, account) => sum + (account.unread_count || 0), 0), [mailAccounts]);
   
   const [supplierUsers, setSupplierUsers] = useState<SupplierUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -266,6 +309,22 @@ export function SuppliersTab() {
     notes: "",
   });
 
+  const cityOptions = useMemo(() => getCityNames(), []);
+  const districtOptions = useMemo(() => getDistricts(formData.city), [formData.city]);
+
+  const resetInviteForm = useCallback(() => {
+    setFormData({
+      company_name: "",
+      phone: "",
+      email: "",
+      city: "",
+      address_district: "",
+      notes: "",
+      category: "",
+      partner_category_tags: [],
+    });
+  }, []);
+
   const resolveLogoUrl = (logoUrl?: string) => {
     if (!logoUrl) return null;
     if (logoUrl.startsWith("http")) return logoUrl;
@@ -279,7 +338,9 @@ export function SuppliersTab() {
       setLoading(true);
       setError(null);
       console.log("[SuppliersTab] Loading suppliers...");
-      const response = await http.get("/suppliers");
+      const response = await http.get("/suppliers", {
+        params: sourceFilter === "all" ? undefined : { source_type: sourceFilter },
+      });
       console.log("[SuppliersTab] Suppliers loaded:", response.data);
       setSuppliers(response.data);
     } catch (err: unknown) {
@@ -289,7 +350,7 @@ export function SuppliersTab() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sourceFilter]);
 
   useEffect(() => {
     console.log("[SuppliersTab] Component mounted, loading suppliers...");
@@ -396,21 +457,9 @@ export function SuppliersTab() {
       setFormLoading(true);
       await http.post("/suppliers", formData);
 
-      setSuccess("Tedarikçi başarıyla eklendi");
+      setSuccess("Tedarikçi daveti oluşturuldu. Magic link e-postası gönderilmeye çalışıldı.");
       setShowForm(false);
-      setFormData({
-        company_name: "",
-        company_title: "",
-        tax_number: "",
-        phone: "",
-        email: "",
-        website: "",
-        address: "",
-        city: "",
-        postal_code: "",
-        notes: "",
-        category: "",
-      });
+      resetInviteForm();
       
       // Reload suppliers
       loadSuppliers();
@@ -525,170 +574,194 @@ export function SuppliersTab() {
 
   if (loading) return <Container style={{ textAlign: "center", padding: "40px", color: "#666" }}>⏳ Tedarikçiler yükleniyor...</Container>;
 
+  const formatSupplierCategories = (supplier: Supplier) => {
+    const tags = supplier.effective_category_tags?.length
+      ? supplier.effective_category_tags
+      : supplier.category
+        ? [supplier.category]
+        : [];
+    return tags.length > 0 ? tags.join(", ") : "-";
+  };
+
+  const supplierSourceSummary = {
+    all: suppliers.length,
+    private: suppliers.filter((supplier) => (supplier.source_type || "private") === "private").length,
+    platform_network: suppliers.filter((supplier) => (supplier.source_type || "private") === "platform_network").length,
+  };
+
+  const visibleSuppliers = suppliers.filter((supplier) => {
+    if (sourceFilter === "all") return true;
+    return (supplier.source_type || "private") === sourceFilter;
+  });
+
   return (
     <Container>
       {error && <ErrorMessage>❌ {error}</ErrorMessage>}
       {success && <SuccessMessage>✅ {success}</SuccessMessage>}
+      {readOnly && (
+        <ErrorMessage>
+          Platform personeli tedarikçi portfoyunu inceleyebilir; yeni tedarikçi, düzenleme, silme ve tedarikçi kullanıcısı yönetimi bu yüzeyde kapatıldı.
+        </ErrorMessage>
+      )}
 
       <Header>
         <h2>Tedarikçiler</h2>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "İptal" : "+ Yeni Tedarikçi"}
+        <Button onClick={() => setShowForm(true)} disabled={readOnly}>
+          + Yeni Tedarikçi
         </Button>
       </Header>
 
-      {showForm && (
-        <Form onSubmit={handleAddSupplier}>
-          <FormGroup style={{ gridColumn: "1 / -1" }}>
-            <Label>Şirket Adı</Label>
-            <Input
-              type="text"
-              required
-              value={formData.company_name}
-              onChange={(e) =>
-                setFormData({ ...formData, company_name: e.target.value })
-              }
-            />
-          </FormGroup>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "16px" }}>
+        {[
+          { key: "all", label: "Tum Kaynaklar", value: supplierSourceSummary.all, color: "#0f172a" },
+          { key: "private", label: "Private Supplier", value: supplierSourceSummary.private, color: "#7c3aed" },
+          { key: "platform_network", label: "Platform Agi", value: supplierSourceSummary.platform_network, color: "#0f766e" },
+        ].map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setSourceFilter(item.key as "all" | "private" | "platform_network")}
+            style={{ borderRadius: "16px", border: sourceFilter === item.key ? `2px solid ${item.color}` : "1px solid #e5e7eb", background: "white", padding: "14px 16px", textAlign: "left", cursor: "pointer" }}
+          >
+            <div style={{ fontSize: "12px", fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: item.color }}>{item.label}</div>
+            <div style={{ marginTop: "8px", fontSize: "28px", fontWeight: 900, color: item.color }}>{item.value}</div>
+          </button>
+        ))}
+      </div>
 
-          <FormGroup>
-            <Label>Ünvanı</Label>
-            <Input
-              type="text"
-              value={formData.company_title}
-              onChange={(e) =>
-                setFormData({ ...formData, company_title: e.target.value })
-              }
-            />
-          </FormGroup>
+      {!readOnly && showForm && (
+        <Modal onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowForm(false);
+            resetInviteForm();
+          }
+        }}>
+          <ModalContent>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Hızlı Tedarikçi Daveti</h3>
+                <div style={{ marginTop: 6, color: "#64748b", fontSize: 13 }}>
+                  Stratejik partner burada sadece temel davet bilgisini girer. Geri kalan firma detaylarını tedarikçi magic link ile kendi tamamlar.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  resetInviteForm();
+                }}
+                style={{ background: "none", border: "none", fontSize: 24, color: "#64748b", cursor: "pointer" }}
+              >
+                ×
+              </button>
+            </div>
 
-          <FormGroup>
-            <Label>Vergi Numarası</Label>
-            <Input
-              type="text"
-              value={formData.tax_number}
-              onChange={(e) =>
-                setFormData({ ...formData, tax_number: e.target.value })
-              }
-            />
-          </FormGroup>
+            <Form onSubmit={handleAddSupplier} style={{ marginBottom: 0 }}>
+              <FormGroup style={{ gridColumn: "1 / -1" }}>
+                <Label>Şirket Adı *</Label>
+                <Input
+                  type="text"
+                  aria-label="Şirket Adı"
+                  required
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                />
+              </FormGroup>
 
-          <FormGroup>
-            <Label>Telefon *</Label>
-            <Input
-              type="tel"
-              required
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label>Telefon *</Label>
+                <Input
+                  type="tel"
+                  aria-label="Telefon"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </FormGroup>
 
-          <FormGroup>
-            <Label>E-mail *</Label>
-            <Input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label>E-posta *</Label>
+                <Input
+                  type="email"
+                  aria-label="E-posta"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </FormGroup>
 
-          <FormGroup>
-            <Label>Web Sitesi</Label>
-            <Input
-              type="url"
-              value={formData.website}
-              onChange={(e) =>
-                setFormData({ ...formData, website: e.target.value })
-              }
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label>İl *</Label>
+                <Select
+                  aria-label="İl *"
+                  required
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value, address_district: "" })}
+                >
+                  <option value="">İl seçin</option>
+                  {cityOptions.map((city) => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </Select>
+              </FormGroup>
 
-          <FormGroup style={{ gridColumn: "1 / -1" }}>
-            <Label>Adres</Label>
-            <TextArea
-              rows={3}
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-            />
-          </FormGroup>
+              <FormGroup>
+                <Label>İlçe *</Label>
+                <Select
+                  aria-label="İlçe *"
+                  required
+                  value={formData.address_district}
+                  onChange={(e) => setFormData({ ...formData, address_district: e.target.value })}
+                  disabled={!formData.city}
+                >
+                  <option value="">İlçe seçin</option>
+                  {districtOptions.map((district) => (
+                    <option key={district} value={district}>{district}</option>
+                  ))}
+                </Select>
+              </FormGroup>
 
-          <FormGroup>
-            <Label>Şehir</Label>
-            <Input
-              type="text"
-              value={formData.city}
-              onChange={(e) =>
-                setFormData({ ...formData, city: e.target.value })
-              }
-            />
-          </FormGroup>
+              <FormGroup style={{ gridColumn: "1 / -1" }}>
+                <Label>Stratejik Partner Kategorileri</Label>
+                <Button type="button" onClick={() => setShowPartnerCategoryModal(true)}>
+                  Kategori Seç
+                </Button>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+                  {formData.partner_category_tags.length > 0 ? formData.partner_category_tags.map((item) => (
+                    <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontSize: 12, fontWeight: 700 }}>{item}</span>
+                  )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Henüz kategori atanmadı</span>}
+                </div>
+              </FormGroup>
 
-          <FormGroup>
-            <Label>Posta Kodu</Label>
-            <Input
-              type="text"
-              value={formData.postal_code}
-              onChange={(e) =>
-                setFormData({ ...formData, postal_code: e.target.value })
-              }
-            />
-          </FormGroup>
+              <FormGroup style={{ gridColumn: "1 / -1" }}>
+                <Label>Notlar</Label>
+                <TextArea
+                  aria-label="Notlar"
+                  rows={3}
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="İlk temas notu, özel yönlendirme veya eşleşme bilgisi"
+                />
+              </FormGroup>
 
-          <FormGroup>
-            <Label>Kategori</Label>
-            <select
-              value={formData.category}
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
-              style={{
-                padding: "8px",
-                border: "1px solid #d1d5db",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
-            >
-              <option value="">-- Seç --</option>
-              <option value="Yazılım">💻 Yazılım</option>
-              <option value="Donanım">🖥️ Donanım</option>
-              <option value="Hizmet">🔧 Hizmet</option>
-              <option value="Danışmanlık">📋 Danışmanlık</option>
-              <option value="Muhasebe">📊 Muhasebe</option>
-              <option value="İnsan Kaynakları">👥 İnsan Kaynakları</option>
-            </select>
-          </FormGroup>
-
-          <FormGroup style={{ gridColumn: "1 / -1" }}>
-            <Label>Notlar</Label>
-            <TextArea
-              rows={3}
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-            />
-          </FormGroup>
-
-          <FormActions>
-            <Button type="submit" disabled={formLoading}>
-              {formLoading ? "Ekleniyor..." : "Tedarikçi Ekle"}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setShowForm(false)}
-              style={{ backgroundColor: "#6b7280" }}
-            >
-              İptal
-            </Button>
-          </FormActions>
-        </Form>
+              <FormActions>
+                <Button type="submit" disabled={formLoading}>
+                  {formLoading ? "Davet oluşturuluyor..." : "Davet Oluştur"}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    resetInviteForm();
+                  }}
+                  style={{ backgroundColor: "#6b7280" }}
+                >
+                  İptal
+                </Button>
+              </FormActions>
+            </Form>
+          </ModalContent>
+        </Modal>
       )}
 
       <Table>
@@ -706,7 +779,7 @@ export function SuppliersTab() {
           </tr>
         </thead>
         <tbody>
-          {suppliers.map((supplier) => (
+          {visibleSuppliers.map((supplier) => (
             <tr key={supplier.id}>
               <td>
                 <LogoThumb>
@@ -718,10 +791,15 @@ export function SuppliersTab() {
                 </LogoThumb>
               </td>
               <td>{supplier.company_name}</td>
-              <td>{supplier.email}</td>
+              <td>
+                <div>{supplier.email}</div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: supplier.source_type === "platform_network" ? "#0f766e" : "#7c3aed" }}>
+                  {supplier.source_type === "platform_network" ? "Platform Havuzu" : "Firma Tedarikçisi"}
+                </div>
+              </td>
               <td>{supplier.phone}</td>
-              <td>{supplier.category || "-"}</td>
-              <td>{supplier.city || "-"}</td>
+              <td>{formatSupplierCategories(supplier)}</td>
+              <td>{[supplier.city, supplier.address_district].filter(Boolean).join(" / ") || "-"}</td>
               <td>⭐ {supplier.reference_score || "0"}</td>
               <td>{supplier.is_verified ? "✅ Doğrulanmış" : "⏳ Beklemede"}</td>
               <td>
@@ -733,19 +811,43 @@ export function SuppliersTab() {
                 </ActionButton>
                 {" "}
                 <ActionButton
-                  variant="danger"
-                  onClick={() => handleDeleteSupplier(supplier.id)}
+                  variant="success"
+                  onClick={() => navigate(`/admin?${new URLSearchParams({ tab: "mail", mailComposeTo: supplier.email || "" }).toString()}`)}
+                  style={{ backgroundColor: "#2563eb", marginRight: "5px" }}
                 >
-                  Sil
+                  Mail Merkezi {getUnreadCountForEmail(supplier.email) > 0 ? `(${getUnreadCountForEmail(supplier.email)})` : ""}
                 </ActionButton>
+                {" "}
+                {!readOnly && (
+                  <ActionButton
+                    variant="danger"
+                    onClick={() => handleDeleteSupplier(supplier.id)}
+                  >
+                    Sil
+                  </ActionButton>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </Table>
 
+      <CategorySelectionModal
+        isOpen={showPartnerCategoryModal}
+        title="Stratejik Partner Kategorileri"
+        subtitle="Bu alan partner panelinde hızlı arama ve eşleme için kullanılır. Tedarikçi kendi profilinde ayrıca bulunmak istediği kategorileri düzenler."
+        availableOptions={COMPANY_CATEGORY_OPTIONS}
+        value={formData.partner_category_tags}
+        maxSelectionCount={5}
+        onClose={() => setShowPartnerCategoryModal(false)}
+        onSave={(value) => {
+          setFormData((prev) => ({ ...prev, partner_category_tags: value, category: value[0] || prev.category || "" }));
+          setShowPartnerCategoryModal(false);
+        }}
+      />
+
       {/* Edit Supplier Modal */}
-      {showEditModal && selectedSupplier && (
+      {!readOnly && showEditModal && selectedSupplier && (
         <Modal onClick={(e) => {
           if (e.target === e.currentTarget) {
             setShowEditModal(false);
@@ -924,9 +1026,14 @@ export function SuppliersTab() {
             <div style={{ marginTop: "30px", paddingTop: "20px", borderTop: "1px solid #ddd" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                 <h4 style={{ margin: 0 }}>Firma Kullanıcıları ({supplierUsers.length})</h4>
-                <Button onClick={() => setShowUserModal(true)} style={{ padding: "6px 12px", fontSize: "12px" }}>
-                  + Kullanıcı Ekle
-                </Button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <Button onClick={() => navigate("/admin?tab=mail")} style={{ padding: "6px 12px", fontSize: "12px", backgroundColor: "#2563eb" }}>
+                    Mail Merkezi {totalUnreadMailCount > 0 ? `(${totalUnreadMailCount})` : ""}
+                  </Button>
+                  <Button onClick={() => setShowUserModal(true)} style={{ padding: "6px 12px", fontSize: "12px" }}>
+                    + Kullanıcı Ekle
+                  </Button>
+                </div>
               </div>
 
               {usersLoading ? (
@@ -988,7 +1095,7 @@ export function SuppliersTab() {
       )}
 
       {/* Add User Modal */}
-      {showUserModal && selectedSupplier && (
+      {!readOnly && showUserModal && selectedSupplier && (
         <Modal onClick={(e) => {
           if (e.target === e.currentTarget) {
             setShowUserModal(false);
@@ -1071,7 +1178,7 @@ export function SuppliersTab() {
       )}
 
       {/* Edit Supplier User Modal */}
-      {showUserEditModal && selectedSupplier && selectedSupplierUser && (
+      {!readOnly && showUserEditModal && selectedSupplier && selectedSupplierUser && (
         <Modal onClick={(e) => {
           if (e.target === e.currentTarget) {
             setShowUserEditModal(false);

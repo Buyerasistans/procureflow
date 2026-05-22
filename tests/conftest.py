@@ -6,9 +6,10 @@ from pathlib import Path
 import pytest
 from dotenv import dotenv_values, load_dotenv
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.schema import DropTable
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -18,7 +19,7 @@ ENV_FILE_VALUES = dotenv_values(ROOT_DIR / "api" / ".env")
 
 
 def _build_test_database_url() -> str:
-    explicit = os.getenv("TEST_DATABASE_URL") or ENV_FILE_VALUES.get("TEST_DATABASE_URL")
+    explicit = ENV_FILE_VALUES.get("TEST_DATABASE_URL")
     if explicit:
         return str(explicit)
 
@@ -70,6 +71,7 @@ def _prepare_test_database_url() -> str:
         SQLITE_TEST_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         return f"sqlite:///{SQLITE_TEST_DB_PATH.as_posix()}"
 
+
 # 1) Test DB
 os.environ["DATABASE_URL"] = _prepare_test_database_url()
 
@@ -82,16 +84,35 @@ from api.models.user import User
 from api.core.security import get_password_hash
 
 
+def _drop_all_test_tables() -> None:
+    if engine.dialect.name != "sqlite":
+        with engine.begin() as connection:
+            table_names = inspect(connection).get_table_names()
+            for table_name in table_names:
+                connection.exec_driver_sql(
+                    f'DROP TABLE IF EXISTS "{table_name}" CASCADE'
+                )
+        return
+
+    with engine.begin() as connection:
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        for table in reversed(list(Base.metadata.tables.values())):
+            connection.execute(DropTable(table, if_exists=True))
+        connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
     # temiz başlangıç
-    Base.metadata.drop_all(bind=engine)
+    _drop_all_test_tables()
     Base.metadata.create_all(bind=engine)
 
     # admin + user seed
     db = SessionLocal()
     try:
-        department = db.query(Department).filter(Department.name == "Test Department").first()
+        department = (
+            db.query(Department).filter(Department.name == "Test Department").first()
+        )
         if not department:
             department = Department(
                 name="Test Department",
@@ -111,59 +132,60 @@ def setup_test_db():
                 project_type="merkez",
             )
             db.add(project)
+            db.flush()
 
         admin = db.query(User).filter(User.email == "admin@procureflow.dev").first()
         if not admin:
             admin = User(
                 email="admin@procureflow.dev",
-                hashed_password="",
-                full_name="",
+                hashed_password=get_password_hash("Admin123!"),
+                full_name="Admin User",
                 role="admin",
+                system_role="tenant_admin",
                 is_active=True,
             )
             db.add(admin)
-        admin.hashed_password = get_password_hash("Admin123!")
-        admin.full_name = "Admin User"
-        admin.role = "admin"
-        admin.is_active = True
-        admin.department_id = department.id
+        else:
+            admin.system_role = "tenant_admin"
 
         user = db.query(User).filter(User.email == "user@procureflow.dev").first()
         if not user:
             user = User(
                 email="user@procureflow.dev",
-                hashed_password="",
-                full_name="",
-                role="satinalmaci",
+                hashed_password=get_password_hash("User123!"),
+                full_name="Normal User",
+                role="user",
+                system_role="tenant_member",
                 is_active=True,
             )
             db.add(user)
-        user.hashed_password = get_password_hash("User123!")
-        user.full_name = "Normal User"
-        user.role = "satinalmaci"
-        user.is_active = True
+        else:
+            user.system_role = "tenant_member"
         user.department_id = department.id
 
         other = db.query(User).filter(User.email == "other@procureflow.dev").first()
         if not other:
             other = User(
                 email="other@procureflow.dev",
-                hashed_password="",
-                full_name="",
+                hashed_password=get_password_hash("Other123!"),
+                full_name="Other User",
                 role="user",
+                system_role="tenant_member",
                 is_active=True,
             )
             db.add(other)
-        other.hashed_password = get_password_hash("Other123!")
-        other.full_name = "Other User"
-        other.role = "user"
-        other.is_active = True
+        else:
+            other.system_role = "tenant_member"
         other.department_id = department.id
 
         db.flush()
-        for member in (admin, user):
-            if member not in project.personnel:
-                project.personnel.append(member)
+
+        for seeded_user in (admin, user):
+            if all(
+                existing_project.id != project.id
+                for existing_project in seeded_user.projects
+            ):
+                seeded_user.projects.append(project)
 
         db.commit()
     finally:
@@ -172,7 +194,7 @@ def setup_test_db():
     yield
 
     # test sonrası temizlik
-    Base.metadata.drop_all(bind=engine)
+    _drop_all_test_tables()
 
 
 @pytest.fixture(scope="session")
@@ -186,7 +208,11 @@ def admin_auth_headers(client):
     payload = {"email": "admin@procureflow.dev", "password": "Admin123!"}
     r = client.post("/api/v1/auth/login", json=payload)
     assert r.status_code == 200, r.text
-    token = r.json()["access_token"]
+    body = r.json()
+    assert body["user"]["role"] == "admin"
+    assert body["user"]["business_role"] == "admin"
+    assert body["user"]["system_role"] == "tenant_admin"
+    token = body["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -195,7 +221,11 @@ def user_auth_headers(client):
     payload = {"email": "user@procureflow.dev", "password": "User123!"}
     r = client.post("/api/v1/auth/login", json=payload)
     assert r.status_code == 200, r.text
-    token = r.json()["access_token"]
+    body = r.json()
+    assert body["user"]["role"] == "user"
+    assert body["user"]["business_role"] == "user"
+    assert body["user"]["system_role"] == "tenant_member"
+    token = body["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -210,5 +240,25 @@ def other_user_auth_headers(client):
     payload = {"email": "other@procureflow.dev", "password": "Other123!"}
     r = client.post("/api/v1/auth/login", json=payload)
     assert r.status_code == 200, r.text
-    token = r.json()["access_token"]
+    body = r.json()
+    assert body["user"]["role"] == "user"
+    assert body["user"]["business_role"] == "user"
+    assert body["user"]["system_role"] == "tenant_member"
+    token = body["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def quote_payload():
+    def _build(title: str, *, description: str | None = None) -> dict:
+        return {
+            "project_id": 1,
+            "title": title,
+            "description": description or f"{title} description",
+            "company_name": "ProcureFlow Test Company",
+            "company_contact_name": "Test Contact",
+            "company_contact_phone": "+905551112233",
+            "company_contact_email": "contact@procureflow.test",
+        }
+
+    return _build

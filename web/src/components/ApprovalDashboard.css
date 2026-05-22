@@ -1,0 +1,21 @@
+.approval-dashboard__company-name {
+  margin: 5px 0 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.approval-dashboard__cancel-button {
+  background-color: #6b7280;
+}
+
+.approval-dashboard__decision-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #1f2937;
+}

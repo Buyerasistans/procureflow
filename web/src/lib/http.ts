@@ -3,8 +3,18 @@ import type { InternalAxiosRequestConfig } from "axios";
 import { clearToken, getToken, isSupplierLoggedIn } from "./session";
 import { getRefreshToken, setAccessToken, setRefreshToken } from "./token";
 
+function normalizeApiBaseUrl(rawValue: string | undefined): string {
+  const trimmed = String(rawValue || "").trim();
+  if (!trimmed) return "";
+  let normalized = trimmed.replace(/\/+$|\\/g, "");
+  if (!normalized.endsWith("/api/v1")) {
+    normalized = `${normalized}/api/v1`;
+  }
+  return normalized;
+}
+
 // API Base URL - env'den al, yoksa relative path kullan
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 export const http = axios.create({
   baseURL: API_BASE_URL,
@@ -50,14 +60,16 @@ http.interceptors.request.use((config) => {
   // Eğer baseURL varsa, URL'ye /api/v1 eklemeye gerek yok
   // Yoksa local path olduğu için /api/v1 ekle
   if (!API_BASE_URL && config.url && !config.url?.startsWith('/api')) {
-    config.url = `/api/v1${config.url}`;
+    config.url = config.url.startsWith('/') ? `/api/v1${config.url}` : `/api/v1/${config.url}`;
   }
   
   // Public endpoints - token gönderme (auth gerekmiyor)
   const isPublicEndpoint = 
     config.url?.includes("/auth/login") ||
+    config.url?.includes("/auth/activate") ||
     config.url?.includes("/supplier/register") ||
-    config.url?.includes("/supplier/login");
+    config.url?.includes("/supplier/login") ||
+    config.url?.includes("/onboarding/commercial-requests");
   
   if (isPublicEndpoint) {
     console.log(`[HTTP] Public endpoint detected - NOT adding token`);
@@ -86,7 +98,7 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (res) => {
-    console.log(`[HTTP] ✅ ${res.status} ${res.config.url}`, res.data);
+    console.log(`[HTTP] ✅ ${res?.status ?? "-"} ${res?.config?.url ?? ""}`, res?.data);
     return res;
   },
   async (error) => {
@@ -103,8 +115,21 @@ http.interceptors.response.use(
     });
 
     if (status === 401) {
+      const isSupplierMailCenterEndpoint =
+        url.includes("/mail-center/") ||
+        url.includes("/api/v1/mail-center/");
+      const isSupplierAdvancedSettingsEndpoint =
+        url.includes("/advanced-settings/") ||
+        url.includes("/api/v1/advanced-settings/");
+
+      // Supplier panelinde mail-center yetki dalgalanmasi oturum dusurmesin.
+      if (isSupplierLoggedIn() && (isSupplierMailCenterEndpoint || isSupplierAdvancedSettingsEndpoint)) {
+        return Promise.reject(error);
+      }
+
       const isAuthEndpoint =
         url.includes("/auth/login") ||
+        url.includes("/auth/activate") ||
         url.includes("/auth/me") ||
         url.includes("/auth/refresh") ||
         url.includes("/auth/logout") ||
@@ -133,7 +158,14 @@ http.interceptors.response.use(
       localStorage.removeItem("pf_user");
 
       const isOnSupplierPage = window.location.pathname.includes("/supplier/");
-      const isOnLoginPage = window.location.pathname === "/login" || window.location.pathname === "/supplier/login";
+      const isOnLoginPage =
+        window.location.pathname === "/login" ||
+        window.location.pathname === "/platform-login" ||
+        window.location.pathname === "/strategic-partner-login" ||
+        window.location.pathname === "/channel/login" ||
+        window.location.pathname === "/supplier/login" ||
+        window.location.pathname === "/supplier/register" ||
+        window.location.pathname === "/activate-account";
 
       // Auth endpoint çağrıları için tekrar redirect yapma (loop önleme)
       // Supplier sayfalarında supplier login'e yönlendir, admin pages'te admin login'e yönlendir

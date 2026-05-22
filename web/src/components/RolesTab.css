@@ -1,0 +1,422 @@
+.roles-tab {
+  display: grid;
+  gap: 20px;
+  color: #111827;
+}
+
+.roles-tab__loading {
+  padding: 20px;
+  text-align: center;
+  color: #475569;
+}
+
+.roles-tab__panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+}
+
+.roles-tab__panel--queue {
+  border-color: #e2e8f0;
+  background: #ffffff;
+}
+
+.roles-tab__panel--readonly {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.roles-tab__eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.roles-tab__eyebrow--primary {
+  color: #1d4ed8;
+}
+
+.roles-tab__eyebrow--secondary {
+  color: #7c3aed;
+}
+
+.roles-tab__headline {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.roles-tab__subtext {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+}
+
+.roles-tab__input-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.roles-tab__input,
+.roles-tab__textarea,
+.roles-tab__select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+}
+
+.roles-tab__textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+.roles-tab__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.roles-tab__button--primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.roles-tab__button--success {
+  background: #10b981;
+  color: #fff;
+}
+
+.roles-tab__button--ghost {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+.roles-tab__button--info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.roles-tab__button--danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.roles-tab__button--approve {
+  background: #166534;
+  color: #fff;
+}
+
+.roles-tab__button--reject {
+  background: #b91c1c;
+  color: #fff;
+}
+
+.roles-tab__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.roles-tab__queue-list {
+  display: grid;
+  gap: 8px;
+}
+
+.roles-tab__queue-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.roles-tab__queue-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.roles-tab__queue-title {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.roles-tab__queue-description {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.roles-tab__queue-status {
+  font-size: 12px;
+  color: #475569;
+}
+
+.roles-tab__queue-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.roles-tab__error {
+  padding: 12px;
+  margin-bottom: 20px;
+  background: #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+}
+
+.roles-tab__toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.roles-tab__toolbar--spaced {
+  justify-content: space-between;
+}
+
+.roles-tab__section {
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.roles-tab__section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.roles-tab__section-title--spaced {
+  margin-bottom: 16px;
+}
+
+.roles-tab__empty {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.roles-tab__form {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.roles-tab__form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.roles-tab__label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.roles-tab__permission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.roles-tab__permission-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.roles-tab__permission-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.roles-tab__permission-body {
+  flex: 1;
+  font-size: 13px;
+}
+
+.roles-tab__permission-name {
+  font-weight: 700;
+  color: #333;
+}
+
+.roles-tab__permission-tooltip {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #666;
+}
+
+.roles-tab__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.roles-tab__tree {
+  display: grid;
+  gap: 4px;
+}
+
+.roles-tab__tree-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  margin-bottom: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+.roles-tab__tree-node--active {
+  background: #f9fafb;
+  border-left: 4px solid #3b82f6;
+}
+
+.roles-tab__tree-node--inactive {
+  background: #fee2e2;
+  border-left: 4px solid #dc2626;
+}
+
+.roles-tab__toggle {
+  width: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.roles-tab__spacer {
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.roles-tab__tree-content {
+  flex: 1;
+}
+
+.roles-tab__tree-name {
+  font-weight: 700;
+  color: #333;
+}
+
+.roles-tab__tree-description {
+  font-size: 12px;
+  color: #666;
+}
+
+.roles-tab__tree-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #475569;
+}
+
+.roles-tab__status {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.roles-tab__status--active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.roles-tab__status--inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.roles-tab__tree-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.roles-tab__tree-button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #fff;
+}
+
+.roles-tab__tree-button--edit {
+  background: #3b82f6;
+}
+
+.roles-tab__tree-button--delete {
+  background: #ef4444;
+}
+
+@media (max-width: 900px) {
+  .roles-tab__input-grid,
+  .roles-tab__form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roles-tab__queue-item,
+  .roles-tab__tree-node {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .roles-tab {
+    gap: 16px;
+  }
+
+  .roles-tab__panel,
+  .roles-tab__form {
+    padding: 14px;
+  }
+
+  .roles-tab__permission-grid {
+    grid-template-columns: 1fr;
+  }
+}

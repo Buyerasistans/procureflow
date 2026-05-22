@@ -1,6 +1,6 @@
 """Backup Configuration Model"""
 
-from sqlalchemy import String, Boolean, Integer
+from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.database import Base

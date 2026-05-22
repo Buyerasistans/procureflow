@@ -10,7 +10,7 @@ class DepartmentBase(BaseModel):
 
 
 class DepartmentCreate(DepartmentBase):
-    pass
+    tenant_id: int | None = None
 
 
 class DepartmentUpdate(BaseModel):
@@ -21,6 +21,9 @@ class DepartmentUpdate(BaseModel):
 
 class DepartmentOut(DepartmentBase):
     id: int
+    tenant_id: int | None = None
+    created_by_id: int | None = None
     created_at: datetime
     updated_at: datetime
+    sub_items: list[dict[str, int | str]] = []
     model_config = ConfigDict(from_attributes=True)

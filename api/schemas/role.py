@@ -10,6 +10,7 @@ class RoleBase(BaseModel):
 class RoleCreate(RoleBase):
     parent_id: int | None = None
     permission_ids: list[int] = Field(default_factory=list)
+    tenant_id: int | None = None
 
 
 class RoleUpdate(BaseModel):
@@ -22,7 +23,9 @@ class RoleUpdate(BaseModel):
 
 class RoleOut(RoleBase):
     id: int
+    tenant_id: int | None = None
     is_active: bool
+    created_by_id: int | None = None
     hierarchy_level: int
     parent_id: int | None = None
     permissions: list[PermissionOut] = []

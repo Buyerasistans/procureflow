@@ -1,53 +1,81 @@
-# Uploaded/runtime files
+# ============================================
+# SECURITY: Environment & Secrets (KRİTİK)
+# ============================================
+.env
+.env.*
+!.env.example
+!.env.sample
+**/.env
+**/.env.local
+**/.env.production
+
+# Secret keys & credentials
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+credentials/
+*_secret.json
+*_credentials.json
+/token.txt
+
+# SSH keys
+id_rsa*
+id_ed25519*
+*.ppk
+
+# ============================================
+# Uploaded / Runtime Files
+# ============================================
 uploads/
 api/uploads/
 
-# Databases and backup artifacts (DEV ONLY)
+# ============================================
+# Databases & Backups (DEV ONLY)
+# ============================================
 backups/
-
-# Temporary import sheets under api root
-api/*.csv
-api/*.xlsx
-
-# virtualenv
-.venv/
-api/.venv/
-
-# python cache
-__pycache__/
-*.pyc
-*.py[cod]
-
-# pytest cache
-.pytest_cache/
-
-.mypy_cache/
-.coverage
-htmlcov/
 *.db
 *.sqlite3
 test.db
 api/procureflow.db
 
-# env files
-.env
-.env.*
-!.env.example
+# Temporary import sheets
+api/*.csv
+api/*.xlsx
 
-# Web artifacts
+# ============================================
+# Python
+# ============================================
+.venv/
+api/.venv/
+__pycache__/
+*.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ============================================
+# Web / Frontend
+# ============================================
 web/coverage/
 web/.vite/
+web/node_modules/
+web/dist/
 
 # Accidental Node artifacts under Python API folder
 api/node_modules/
 api/node_modules-all-files.txt
 api/node_modules-new-files.txt
 
-# Temporary root-level diagnostics and restore artifacts
+# ============================================
+# Diagnostic / Restore Artifacts
+# ============================================
 /api_debug.log
 /history_restore_plan.txt
 /history_restore_result.txt
-/token.txt
 /check_*.py
 /create_*.py
 /debug_*.py
@@ -62,3 +90,76 @@ api/node_modules-new-files.txt
 /test_*.py
 /settings.json
 /settings_default.json
+
+# ============================================
+# IDE / OS
+# ============================================
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+_deploy_extract_tmp/
+_deploy_extract_tmp/**
+node_modules
+
+# ============================================
+# Local deploy packages / extracted copies
+# ============================================
+Hostinge_Deploy/
+Hostinge_Deploy_extracted/
+Hostinge_Yukle/
+Hostinge_Yükle/
+Hostinge_*.zip
+
+# ============================================
+# Generated diagnostics and audit outputs
+# ============================================
+tmp/
+tmp/**
+*.log
+tsc_out*.txt
+tsc_typecheck_out.txt
+typecheck_hostinge_out.txt
+web/tsc_*.txt
+.tmp_*.txt
+.tmp_*.tsx
+debug-output.txt
+governance-*.txt
+test-output.txt
+test-after-*.txt
+test-tdzfix*.txt
+test[0-9]*.txt
+audit-*.csv
+audit-*.json
+approval-*.csv
+approval-*.json
+org-catalog-*.csv
+org-catalog-*.json
+db-*.csv
+db-*.json
+public-content-similarity-audit.json
+
+# ============================================
+# Local admin/debug utilities
+# ============================================
+adminer.php
+adminer_core.php
+adminer.php.bak
+*.bak
+*.bak-*
+/deploy_payload.json
+/test.dxf
+/c
+"local_cleanup_archives/" 
+
+# local safety snapshots
+local_backups/
+
+
+# agent runtime files
+tools/agent/SESSION_CONTEXT.md
+

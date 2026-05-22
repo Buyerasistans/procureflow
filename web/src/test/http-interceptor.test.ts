@@ -20,7 +20,7 @@ describe("http interceptor", () => {
 
   test("401 + auth dışı endpoint -> token temizlenir ve istek reject olur", async () => {
     const clearSpy = vi.spyOn(sessionLib, "clearToken").mockImplementation(() => {});
-    mock.onGet("/api/v1/quotes").reply(401);
+    mock.onGet("/quotes").reply(401);
 
     await expect(http.get("/quotes")).rejects.toBeTruthy();
     expect(clearSpy).toHaveBeenCalledTimes(1);
@@ -28,7 +28,7 @@ describe("http interceptor", () => {
 
   test("401 + /auth/login endpoint -> token temizlenir ve istek reject olur", async () => {
     const clearSpy = vi.spyOn(sessionLib, "clearToken").mockImplementation(() => {});
-    mock.onPost("/api/v1/auth/login").reply(401);
+    mock.onPost("/auth/login").reply(401);
 
     await expect(http.post("/auth/login", { email: "a", password: "b" })).rejects.toBeTruthy();
     expect(clearSpy).toHaveBeenCalledTimes(1);

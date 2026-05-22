@@ -1,0 +1,131 @@
+﻿company_id,company_name,tenant_id,department_name,role_name,user_id,full_name,email,user_role,system_role,is_active
+1,YÖRPAŞ AŞ.,2,Yonetim ve Organizasyon,?zel Stratejik Partner Rol?,137,YÖRPAŞ AŞ. ?zel Stratejik Partner Rol?,c1.zel-stratejik-partner-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Yonetim ve Organizasyon,Partner Ana Y?netici,128,YÖRPAŞ AŞ. Partner Ana Y?netici,c1.partner-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Finans ve Denetim,Partner Denet?i / Finans ?zleyici,138,YÖRPAŞ AŞ. Partner Denet?i / Finans ?zleyici,c1.partner-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Yonetim ve Organizasyon,Partner Y?neticisi,129,YÖRPAŞ AŞ. Partner Y?neticisi,c1.partner-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Sat?n Alma Y?netimi,Sat?n Alma Direkt?r?,130,YÖRPAŞ AŞ. Sat?n Alma Direkt?r?,c1.sat-n-alma-direkt-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Stratejik Sourcing,Sat?n Alma K?demli Uzman?,134,YÖRPAŞ AŞ. Sat?n Alma K?demli Uzman?,c1.sat-n-alma-k-demli-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r Yard?mc?s?,132,YÖRPAŞ AŞ. Sat?n Alma M?d?r Yard?mc?s?,c1.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r?,131,YÖRPAŞ AŞ. Sat?n Alma M?d?r?,c1.sat-n-alma-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Stratejik Sourcing,Sat?n Alma Uzman?,135,YÖRPAŞ AŞ. Sat?n Alma Uzman?,c1.sat-n-alma-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Sat?n Alma Y?netimi,Sat?n Alma Y?neticisi,133,YÖRPAŞ AŞ. Sat?n Alma Y?neticisi,c1.sat-n-alma-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+1,YÖRPAŞ AŞ.,2,TİCARİ SATIN ALMA,Satın Alma Direktörü,83,Yorpas Satin Alma Direktoru,yorpas.direktor@buyerasistans.com.tr,satinalma_direktoru,tenant_member,True
+1,YÖRPAŞ AŞ.,2,Teknik Ofis ve ?artname,Teknik Uzman ve Mimar,136,YÖRPAŞ AŞ. Teknik Uzman ve Mimar,c1.teknik-uzman-ve-mimar@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+2,KOMAGENE,2,Yonetim ve Organizasyon,?zel Stratejik Partner Rol?,148,KOMAGENE ?zel Stratejik Partner Rol?,c2.zel-stratejik-partner-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Yonetim ve Organizasyon,Partner Ana Y?netici,139,KOMAGENE Partner Ana Y?netici,c2.partner-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Finans ve Denetim,Partner Denet?i / Finans ?zleyici,149,KOMAGENE Partner Denet?i / Finans ?zleyici,c2.partner-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Yonetim ve Organizasyon,Partner Y?neticisi,140,KOMAGENE Partner Y?neticisi,c2.partner-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Sat?n Alma Y?netimi,Sat?n Alma Direkt?r?,141,KOMAGENE Sat?n Alma Direkt?r?,c2.sat-n-alma-direkt-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Stratejik Sourcing,Sat?n Alma K?demli Uzman?,145,KOMAGENE Sat?n Alma K?demli Uzman?,c2.sat-n-alma-k-demli-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+2,KOMAGENE,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r Yard?mc?s?,143,KOMAGENE Sat?n Alma M?d?r Yard?mc?s?,c2.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r?,142,KOMAGENE Sat?n Alma M?d?r?,c2.sat-n-alma-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,Stratejik Sourcing,Sat?n Alma Uzman?,146,KOMAGENE Sat?n Alma Uzman?,c2.sat-n-alma-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+2,KOMAGENE,2,Sat?n Alma Y?netimi,Sat?n Alma Y?neticisi,144,KOMAGENE Sat?n Alma Y?neticisi,c2.sat-n-alma-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+2,KOMAGENE,2,,Satin Alma Admin,51,Admin 51,admin-51@buyerasistans.com.tr,admin,tenant_admin,True
+2,KOMAGENE,2,,Satin Alma Admin,73,Admin 73,admin-73@buyerasistans.com.tr,admin,tenant_admin,True
+2,KOMAGENE,2,TİCARİ SATIN ALMA,Satın Alma Yöneticisi,84,Komagene Satin Alma Yoneticisi,komagene.yonetici@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+2,KOMAGENE,2,Teknik Ofis ve ?artname,Teknik Uzman ve Mimar,147,KOMAGENE Teknik Uzman ve Mimar,c2.teknik-uzman-ve-mimar@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+3,PİZZA MAX,2,Yonetim ve Organizasyon,?zel Stratejik Partner Rol?,159,PİZZA MAX ?zel Stratejik Partner Rol?,c3.zel-stratejik-partner-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Yonetim ve Organizasyon,Partner Ana Y?netici,150,PİZZA MAX Partner Ana Y?netici,c3.partner-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Finans ve Denetim,Partner Denet?i / Finans ?zleyici,160,PİZZA MAX Partner Denet?i / Finans ?zleyici,c3.partner-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Yonetim ve Organizasyon,Partner Y?neticisi,151,PİZZA MAX Partner Y?neticisi,c3.partner-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Sat?n Alma Y?netimi,Sat?n Alma Direkt?r?,152,PİZZA MAX Sat?n Alma Direkt?r?,c3.sat-n-alma-direkt-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Stratejik Sourcing,Sat?n Alma K?demli Uzman?,156,PİZZA MAX Sat?n Alma K?demli Uzman?,c3.sat-n-alma-k-demli-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+3,PİZZA MAX,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r Yard?mc?s?,154,PİZZA MAX Sat?n Alma M?d?r Yard?mc?s?,c3.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r?,153,PİZZA MAX Sat?n Alma M?d?r?,c3.sat-n-alma-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,Stratejik Sourcing,Sat?n Alma Uzman?,157,PİZZA MAX Sat?n Alma Uzman?,c3.sat-n-alma-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+3,PİZZA MAX,2,Sat?n Alma Y?netimi,Sat?n Alma Y?neticisi,155,PİZZA MAX Sat?n Alma Y?neticisi,c3.sat-n-alma-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+3,PİZZA MAX,2,,Satin Alma Admin,1,Admin 1,admin-1@buyerasistans.com.tr,admin,tenant_admin,True
+3,PİZZA MAX,2,,Satın Alma Direktörü,14,Satin Alma Direktoru 14,satinalma-direktoru-14@buyerasistans.com.tr,satinalma_direktoru,tenant_member,True
+3,PİZZA MAX,2,,Satın Alma Direktörü,15,Satin Alma Direktoru 15,satinalma-direktoru-15@buyerasistans.com.tr,satinalma_direktoru,tenant_member,True
+3,PİZZA MAX,2,TİCARİ SATIN ALMA,Satın Alma Müdürü,85,Pizza Max Satin Alma Muduru,pizzamax.mudur@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+3,PİZZA MAX,2,Teknik Ofis ve ?artname,Teknik Uzman ve Mimar,158,PİZZA MAX Teknik Uzman ve Mimar,c3.teknik-uzman-ve-mimar@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+4,BEREKET DÖNER,2,Yonetim ve Organizasyon,?zel Stratejik Partner Rol?,170,BEREKET DÖNER ?zel Stratejik Partner Rol?,c4.zel-stratejik-partner-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Yonetim ve Organizasyon,Partner Ana Y?netici,161,BEREKET DÖNER Partner Ana Y?netici,c4.partner-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Finans ve Denetim,Partner Denet?i / Finans ?zleyici,171,BEREKET DÖNER Partner Denet?i / Finans ?zleyici,c4.partner-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Yonetim ve Organizasyon,Partner Y?neticisi,162,BEREKET DÖNER Partner Y?neticisi,c4.partner-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Sat?n Alma Y?netimi,Sat?n Alma Direkt?r?,163,BEREKET DÖNER Sat?n Alma Direkt?r?,c4.sat-n-alma-direkt-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Stratejik Sourcing,Sat?n Alma K?demli Uzman?,167,BEREKET DÖNER Sat?n Alma K?demli Uzman?,c4.sat-n-alma-k-demli-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+4,BEREKET DÖNER,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r Yard?mc?s?,165,BEREKET DÖNER Sat?n Alma M?d?r Yard?mc?s?,c4.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r?,164,BEREKET DÖNER Sat?n Alma M?d?r?,c4.sat-n-alma-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,Stratejik Sourcing,Sat?n Alma Uzman?,168,BEREKET DÖNER Sat?n Alma Uzman?,c4.sat-n-alma-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+4,BEREKET DÖNER,2,Sat?n Alma Y?netimi,Sat?n Alma Y?neticisi,166,BEREKET DÖNER Sat?n Alma Y?neticisi,c4.sat-n-alma-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+4,BEREKET DÖNER,2,,Satin Alma Admin,10,Admin 10,admin-10@buyerasistans.com.tr,admin,tenant_admin,True
+4,BEREKET DÖNER,2,HAMMADDE SATIN ALMA,Satın Alma Uzmanı,86,Bereket Doner Satin Alma Uzmani,bereket.uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+4,BEREKET DÖNER,2,Teknik Ofis ve ?artname,Teknik Uzman ve Mimar,169,BEREKET DÖNER Teknik Uzman ve Mimar,c4.teknik-uzman-ve-mimar@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Yonetim ve Organizasyon,?zel Stratejik Partner Rol?,181,SCHBİTZEL LANDMANN ?zel Stratejik Partner Rol?,c5.zel-stratejik-partner-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Yonetim ve Organizasyon,Partner Ana Y?netici,172,SCHBİTZEL LANDMANN Partner Ana Y?netici,c5.partner-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Finans ve Denetim,Partner Denet?i / Finans ?zleyici,182,SCHBİTZEL LANDMANN Partner Denet?i / Finans ?zleyici,c5.partner-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Yonetim ve Organizasyon,Partner Y?neticisi,173,SCHBİTZEL LANDMANN Partner Y?neticisi,c5.partner-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Sat?n Alma Y?netimi,Sat?n Alma Direkt?r?,174,SCHBİTZEL LANDMANN Sat?n Alma Direkt?r?,c5.sat-n-alma-direkt-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Stratejik Sourcing,Sat?n Alma K?demli Uzman?,178,SCHBİTZEL LANDMANN Sat?n Alma K?demli Uzman?,c5.sat-n-alma-k-demli-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r Yard?mc?s?,176,SCHBİTZEL LANDMANN Sat?n Alma M?d?r Yard?mc?s?,c5.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Sat?n Alma Y?netimi,Sat?n Alma M?d?r?,175,SCHBİTZEL LANDMANN Sat?n Alma M?d?r?,c5.sat-n-alma-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Stratejik Sourcing,Sat?n Alma Uzman?,179,SCHBİTZEL LANDMANN Sat?n Alma Uzman?,c5.sat-n-alma-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Sat?n Alma Y?netimi,Sat?n Alma Y?neticisi,177,SCHBİTZEL LANDMANN Sat?n Alma Y?neticisi,c5.sat-n-alma-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,,Satin Alma Admin,17,Admin 17,admin-17@buyerasistans.com.tr,admin,tenant_admin,True
+5,SCHBİTZEL LANDMANN,2,Endirek Satin Alma,Satin Alma Uzman Yardimcisi,87,Schbitzel Landmann Satin Almaci,schbitzel.satinalmaci@buyerasistans.com.tr,satinalmaci,tenant_member,True
+5,SCHBİTZEL LANDMANN,2,Teknik Ofis ve ?artname,Teknik Uzman ve Mimar,180,SCHBİTZEL LANDMANN Teknik Uzman ve Mimar,c5.teknik-uzman-ve-mimar@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Yonetim ve Organizasyon,?zel Stratejik Partner Rol?,103,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. ?zel Stratejik Partner Rol?,c8.zel-stratejik-partner-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Yonetim ve Organizasyon,Partner Ana Y?netici,94,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Partner Ana Y?netici,c8.partner-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Finans ve Denetim,Partner Denet?i / Finans ?zleyici,104,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Partner Denet?i / Finans ?zleyici,c8.partner-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Yonetim ve Organizasyon,Partner Y?neticisi,95,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Partner Y?neticisi,c8.partner-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Sat?n Alma Y?netimi,Sat?n Alma Direkt?r?,96,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Sat?n Alma Direkt?r?,c8.sat-n-alma-direkt-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Stratejik Sourcing,Sat?n Alma K?demli Uzman?,100,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Sat?n Alma K?demli Uzman?,c8.sat-n-alma-k-demli-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Sat?n Alma Y?netimi,Sat?n Alma M?d?r Yard?mc?s?,98,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Sat?n Alma M?d?r Yard?mc?s?,c8.sat-n-alma-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Sat?n Alma Y?netimi,Sat?n Alma M?d?r?,97,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Sat?n Alma M?d?r?,c8.sat-n-alma-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Stratejik Sourcing,Sat?n Alma Uzman?,101,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Sat?n Alma Uzman?,c8.sat-n-alma-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Sat?n Alma Y?netimi,Sat?n Alma Y?neticisi,99,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Sat?n Alma Y?neticisi,c8.sat-n-alma-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Hammadde Satın Alma,Satın Alma Admin,42,Ahmet YILMAZ,olimposdanismanlik@gmail.com,admin,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,,Satın Alma Yöneticisi,46,Satin Alma Yoneticisi 46,satinalma-yoneticisi-46@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,,Satın Alma Yöneticisi,47,Satin Alma Yoneticisi 47,satinalma-yoneticisi-47@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,,Satın Alma Yöneticisi,48,Satin Alma Yoneticisi 48,satinalma-yoneticisi-48@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,,Satın Alma Yöneticisi,49,Satin Alma Yoneticisi 49,satinalma-yoneticisi-49@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Hammadde Satın Alma,Satın Alma Yöneticisi,45,Serkan ERYILMAZ,serkaneryilmazz@gmail.com,satinalma_yoneticisi,tenant_member,True
+8,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ.,14,Teknik Ofis ve ?artname,Teknik Uzman ve Mimar,102,OLİMPOS TEKNOLOJİ DANIŞ. GERİ DÖN. ENERJİ VE YAPI SİS. İTH.İHR.SAN.TİC.LTD.ŞTİ. Teknik Uzman ve Mimar,c8.teknik-uzman-ve-mimar@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+11,BUYER ASISTANS PLATFORM,,"Risk, Denetim ve Uyum",Platform Denetim ve Uyum Uzman?,189,BUYER ASISTANS PLATFORM Platform Denetim ve Uyum Uzman?,c11.platform-denetim-ve-uyum-uzman@buyerasistans.com.tr,admin,platform_operator,True
+11,BUYER ASISTANS PLATFORM,,Platform Destek,Platform Destek Uzman?,186,BUYER ASISTANS PLATFORM Platform Destek Uzman?,c11.platform-destek-uzman@buyerasistans.com.tr,admin,platform_support,True
+11,BUYER ASISTANS PLATFORM,,Platform Destek,Platform Destek Y?neticisi,185,BUYER ASISTANS PLATFORM Platform Destek Y?neticisi,c11.platform-destek-y-neticisi@buyerasistans.com.tr,admin,platform_support,True
+11,BUYER ASISTANS PLATFORM,,Platform Finans,Platform Finans Uzman?,188,BUYER ASISTANS PLATFORM Platform Finans Uzman?,c11.platform-finans-uzman@buyerasistans.com.tr,admin,finance_officer,True
+11,BUYER ASISTANS PLATFORM,,Platform Finans,Platform Finans Y?neticisi,187,BUYER ASISTANS PLATFORM Platform Finans Y?neticisi,c11.platform-finans-y-neticisi@buyerasistans.com.tr,admin,finance_officer,True
+11,BUYER ASISTANS PLATFORM,,Bilgi G?venli?i,Platform G?venlik Uzman?,190,BUYER ASISTANS PLATFORM Platform G?venlik Uzman?,c11.platform-g-venlik-uzman@buyerasistans.com.tr,admin,platform_operator,True
+11,BUYER ASISTANS PLATFORM,,Platform Operasyon,Platform Operasyon Uzman?,184,BUYER ASISTANS PLATFORM Platform Operasyon Uzman?,c11.platform-operasyon-uzman@buyerasistans.com.tr,admin,platform_operator,True
+11,BUYER ASISTANS PLATFORM,,Platform Operasyon,Platform Operasyon Y?neticisi,183,BUYER ASISTANS PLATFORM Platform Operasyon Y?neticisi,c11.platform-operasyon-y-neticisi@buyerasistans.com.tr,admin,platform_operator,True
+11,BUYER ASISTANS PLATFORM,,Raporlama ve Analitik,Platform Raporlama Analisti,191,BUYER ASISTANS PLATFORM Platform Raporlama Analisti,c11.platform-raporlama-analisti@buyerasistans.com.tr,admin,platform_operator,True
+11,BUYER ASISTANS PLATFORM,,,Satin Alma Admin,74,Admin 74,admin-74@buyerasistans.com.tr,admin,tenant_admin,True
+11,BUYER ASISTANS PLATFORM,,,Satin Alma Admin,76,Admin 76,admin-76@buyerasistans.com.tr,admin,tenant_admin,True
+11,BUYER ASISTANS PLATFORM,,,Satın Alma Admin,43,DENEME POSEYDON,poseydonteknoloji@gmail.com,admin,tenant_admin,True
+11,BUYER ASISTANS PLATFORM,,,Super Admin,4,Super Admin,superadmin@buyerasistans.com.tr,super_admin,super_admin,True
+12,BA Demo Merkez,17,Sat?? Operasyon,?zel Tedarik?i Rol?,113,BA Demo Merkez ?zel Tedarik?i Rol?,c12.zel-tedarik-i-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Finans ve Denetim,Denetci ve Finansal Izleyici,66,Partner Denetci Demo,partner.audit.demo@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Pazarlama ve Teklif Y?netimi,K?demli Pazarlama Uzman?,110,BA Demo Merkez K?demli Pazarlama Uzman?,c12.k-demli-pazarlama-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+12,BA Demo Merkez,17,Yonetim ve Organizasyon,Partner Ana Yonetici,60,Partner Ana Yonetici Demo,partner.owner.demo@buyerasistans.com.tr,admin,tenant_owner,True
+12,BA Demo Merkez,17,Yonetim ve Organizasyon,Partner Yoneticisi,61,Partner Yonetici Demo,partner.admin.demo@buyerasistans.com.tr,admin,tenant_admin,True
+12,BA Demo Merkez,17,Pazarlama ve Teklif Y?netimi,Pazarlama M?d?r Yard?mc?s?,108,BA Demo Merkez Pazarlama M?d?r Yard?mc?s?,c12.pazarlama-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Pazarlama ve Teklif Y?netimi,Pazarlama M?d?r?,107,BA Demo Merkez Pazarlama M?d?r?,c12.pazarlama-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Pazarlama ve Teklif Y?netimi,Pazarlama Uzman?,111,BA Demo Merkez Pazarlama Uzman?,c12.pazarlama-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+12,BA Demo Merkez,17,Pazarlama ve Teklif Y?netimi,Pazarlama Y?neticisi,109,BA Demo Merkez Pazarlama Y?neticisi,c12.pazarlama-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Satin Alma Operasyonlari,Satin Alma Muduru,62,Satin Alma Muduru Demo 1,partner.procurement.lead1@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+12,BA Demo Merkez,17,Yonetim ve Organizasyon,Tedarik?i Ana Y?netici,105,BA Demo Merkez Tedarik?i Ana Y?netici,c12.tedarik-i-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Finans ve Tahsilat,Tedarik?i Denet?i / Finans ?zleyici,114,BA Demo Merkez Tedarik?i Denet?i / Finans ?zleyici,c12.tedarik-i-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,Yonetim ve Organizasyon,Tedarik?i Y?neticisi,106,BA Demo Merkez Tedarik?i Y?neticisi,c12.tedarik-i-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+12,BA Demo Merkez,17,M??teri Ba?ar? / ?hale Takip,Teklif Uzman?,112,BA Demo Merkez Teklif Uzman?,c12.teklif-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+12,BA Demo Merkez,17,Teknik Ofis ve Sartname,Teknik Uzman ve Mimar,65,Teknik Uzman Demo 2,partner.tech.demo2@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+13,BA Demo Proje Ofisi,17,Sat?? Operasyon,?zel Tedarik?i Rol?,123,BA Demo Proje Ofisi ?zel Tedarik?i Rol?,c13.zel-tedarik-i-rol@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Pazarlama ve Teklif Y?netimi,K?demli Pazarlama Uzman?,120,BA Demo Proje Ofisi K?demli Pazarlama Uzman?,c13.k-demli-pazarlama-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+13,BA Demo Proje Ofisi,17,Satin Alma Operasyonlari,Ozel Partner Rolu,67,Ozel Partner Rol Demo,partner.custom.demo@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Pazarlama ve Teklif Y?netimi,Pazarlama M?d?r Yard?mc?s?,118,BA Demo Proje Ofisi Pazarlama M?d?r Yard?mc?s?,c13.pazarlama-m-d-r-yard-mc-s@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Pazarlama ve Teklif Y?netimi,Pazarlama M?d?r?,117,BA Demo Proje Ofisi Pazarlama M?d?r?,c13.pazarlama-m-d-r@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Pazarlama ve Teklif Y?netimi,Pazarlama Uzman?,121,BA Demo Proje Ofisi Pazarlama Uzman?,c13.pazarlama-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+13,BA Demo Proje Ofisi,17,Pazarlama ve Teklif Y?netimi,Pazarlama Y?neticisi,119,BA Demo Proje Ofisi Pazarlama Y?neticisi,c13.pazarlama-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Satin Alma Operasyonlari,Satin Alma Muduru,63,Satin Alma Muduru Demo 2,partner.procurement.lead2@buyerasistans.com.tr,satinalma_yoneticisi,tenant_member,True
+13,BA Demo Proje Ofisi,17,Yonetim ve Organizasyon,Tedarik?i Ana Y?netici,115,BA Demo Proje Ofisi Tedarik?i Ana Y?netici,c13.tedarik-i-ana-y-netici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Finans ve Tahsilat,Tedarik?i Denet?i / Finans ?zleyici,124,BA Demo Proje Ofisi Tedarik?i Denet?i / Finans ?zleyici,c13.tedarik-i-denet-i-finans-zleyici@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,Yonetim ve Organizasyon,Tedarik?i Y?neticisi,116,BA Demo Proje Ofisi Tedarik?i Y?neticisi,c13.tedarik-i-y-neticisi@buyerasistans.com.tr,satinalmaci,tenant_member,True
+13,BA Demo Proje Ofisi,17,M??teri Ba?ar? / ?hale Takip,Teklif Uzman?,122,BA Demo Proje Ofisi Teklif Uzman?,c13.teklif-uzman@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+13,BA Demo Proje Ofisi,17,Teknik Ofis ve Sartname,Teknik Uzman ve Mimar,64,Teknik Uzman Demo 1,partner.tech.demo1@buyerasistans.com.tr,satinalma_uzmani,tenant_member,True
+14,Kanal Ana Yonetici Demo Workspace,18,Kanal Denetim,Kanal Denet?isi,127,Kanal Ana Yonetici Demo Workspace Kanal Denet?isi,c14.kanal-denet-isi@buyerasistans.com.tr,channel_agent,tenant_member,True
+14,Kanal Ana Yonetici Demo Workspace,18,Operasyon,Kanal Ekip Lideri,78,Kanal Ekip Lideri,channel.kanal-ana-yonetici-demo-kisisel-is-ortagi-workspace.lead@buyerasistans.com.tr,channel_agent,tenant_member,True
+14,Kanal Ana Yonetici Demo Workspace,18,Kanal Finans,Kanal Finans G?r?nt?leyici,126,Kanal Ana Yonetici Demo Workspace Kanal Finans G?r?nt?leyici,c14.kanal-finans-g-r-nt-leyici@buyerasistans.com.tr,channel_agent,tenant_member,True
+14,Kanal Ana Yonetici Demo Workspace,18,Kanal Operasyon,Kanal Hesap Sahibi,125,Kanal Ana Yonetici Demo Workspace Kanal Hesap Sahibi,c14.kanal-hesap-sahibi@buyerasistans.com.tr,channel_owner,tenant_owner,True
+14,Kanal Ana Yonetici Demo Workspace,18,,Kanal Temsilcisi,79,Kanal Temsilcisi,channel.kanal-ana-yonetici-demo-kisisel-is-ortagi-workspace.agent@buyerasistans.com.tr,channel_agent,tenant_member,True

@@ -1,6 +1,7 @@
 """Tedarikçi Portal - Kaydolma ve Giriş (Açık Endpoint'ler)"""
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -108,7 +109,7 @@ def register_supplier_user(
 ):
     """Tedarikçi kullanıcı kaydı tamamla (Şifre belirle)"""
 
-    print(f"[REGISTER] POST /supplier/register called")
+    print("[REGISTER] POST /supplier/register called")
     print(f"[REGISTER] Token from request: {register_data.token[:30]}...")
 
     supplier_user = (
@@ -156,12 +157,6 @@ def register_supplier_user(
     db.commit()
     db.refresh(supplier_user)
 
-    print(f"[REGISTER] SupplierUser after update:")
-    print(f"  Email: {supplier_user.email}")
-    print(f"  is_active: {supplier_user.is_active}")
-    print(f"  password_set: {supplier_user.password_set}")
-    print(f"  email_verified: {supplier_user.email_verified}")
-
     # JWT token oluştur (otomatik giriş)
     access_token = create_access_token(sub=str(supplier_user.email), role="supplier")
 
@@ -178,6 +173,7 @@ def register_supplier_user(
             "id": supplier_user.id,
             "name": supplier_user.name,
             "email": supplier_user.email,
+            "work_email": supplier_user.work_email,
             "supplier_id": supplier_user.supplier_id,
             "supplier_name": supplier.company_name if supplier else None,
             "email_verified": supplier_user.email_verified,
@@ -189,9 +185,13 @@ def register_supplier_user(
 def supplier_login(login_data: SupplierLoginRequest, db: Session = Depends(get_db)):
     """Tedarikçi giriş"""
 
+    normalized_email = login_data.email.strip().lower()
+
     supplier_user = (
         db.query(SupplierUser)
-        .filter(SupplierUser.email == login_data.email, SupplierUser.is_active == True)
+        .filter(
+            func.lower(SupplierUser.email) == normalized_email, SupplierUser.is_active
+        )
         .first()
     )
 
@@ -201,6 +201,10 @@ def supplier_login(login_data: SupplierLoginRequest, db: Session = Depends(get_d
         )
 
     # Password verify
+    if not supplier_user.hashed_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="E-mail veya şifre hatalı"
+        )
     if not verify_password(login_data.password, supplier_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="E-mail veya şifre hatalı"
@@ -220,6 +224,7 @@ def supplier_login(login_data: SupplierLoginRequest, db: Session = Depends(get_d
             "id": supplier_user.id,
             "name": supplier_user.name,
             "email": supplier_user.email,
+            "work_email": supplier_user.work_email,
             "supplier_id": supplier_user.supplier_id,
             "supplier_name": supplier.company_name if supplier else None,
             "email_verified": supplier_user.email_verified,

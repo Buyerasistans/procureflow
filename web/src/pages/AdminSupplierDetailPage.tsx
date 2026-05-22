@@ -7,6 +7,7 @@ import {
   deleteAdminSupplierGuarantee,
   deleteAdminSupplierUser,
   getAdminSupplierManagementDetail,
+  resendAdminSupplierMagicLink,
   sendAdminSupplierEmail,
   setAdminSupplierDefaultUser,
   updateAdminSupplierGuarantee,
@@ -16,7 +17,9 @@ import {
   type AdminSupplierPaymentAccount,
   type AdminSupplierUser,
 } from "../services/admin.service";
+import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
+import { CategorySelectionModal } from "../components/CategorySelectionModal";
 
 const Page = styled.div`
   display: grid;
@@ -109,6 +112,32 @@ const Message = styled.div<{ $error?: boolean }>`
   font-size: 14px;
   color: ${(p) => (p.$error ? "#991b1b" : "#065f46")};
   background: ${(p) => (p.$error ? "#fee2e2" : "#d1fae5")};
+`;
+
+const StatusBadge = styled.span<{ $tone: "neutral" | "success" | "warning" | "info" }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: ${(p) =>
+    p.$tone === "success"
+      ? "#dcfce7"
+      : p.$tone === "warning"
+        ? "#fef3c7"
+        : p.$tone === "info"
+          ? "#dbeafe"
+          : "#e5e7eb"};
+  color: ${(p) =>
+    p.$tone === "success"
+      ? "#166534"
+      : p.$tone === "warning"
+        ? "#92400e"
+        : p.$tone === "info"
+          ? "#1d4ed8"
+          : "#475569"};
 `;
 
 const SectionHeader = styled.button`
@@ -267,8 +296,6 @@ const BANKS = [
   { key: "denizbank", name: "DenizBank" },
 ];
 
-const CATEGORIES = ["Yazılım", "Donanım", "Hizmet", "Danışmanlık", "Muhasebe", "İnsan Kaynakları"];
-
 type GuaranteeEditState = {
   title: string;
   guarantee_type: string;
@@ -304,6 +331,9 @@ function defaultSupplierForm(data: AdminSupplierManagementResponse["supplier"]) 
     tax_office: data.tax_office || "",
     notes: data.notes || "",
     category: data.category || "",
+    category_tags: data.category_tags || [],
+    partner_category_tags: data.partner_category_tags || [],
+    effective_category_tags: data.effective_category_tags || [],
     accepts_checks: !!data.accepts_checks,
     preferred_check_term: data.preferred_check_term || "",
     payment_accounts: data.payment_accounts || [],
@@ -348,6 +378,7 @@ export default function AdminSupplierDetailPage() {
 
   const [showFirmMap, setShowFirmMap] = useState(true);
   const [showInvoiceMap, setShowInvoiceMap] = useState(true);
+  const [showPartnerCategoryModal, setShowPartnerCategoryModal] = useState(false);
 
   const [userQuery, setUserQuery] = useState("");
   const [userFilter, setUserFilter] = useState<"all" | "verified" | "unverified">("all");
@@ -373,6 +404,7 @@ export default function AdminSupplierDetailPage() {
   const [emailBody, setEmailBody] = useState("");
   const [emailFiles, setEmailFiles] = useState<File[]>([]);
   const [emailSending, setEmailSending] = useState(false);
+  const [resendingMagicUserId, setResendingMagicUserId] = useState<number | null>(null);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     invoice: false,
     users: true,
@@ -404,6 +436,19 @@ export default function AdminSupplierDetailPage() {
   const defaultContact = useMemo(() => {
     if (!detail) return null;
     return detail.users.find((u) => u.is_default) || detail.users[0] || null;
+  }, [detail]);
+
+  const supplierInviteStatus = useMemo(() => {
+    if (!detail) return { label: "Durum bilinmiyor", tone: "neutral" as const };
+    const hasRegisteredUser = detail.users.some((user) => Boolean(user.password_set));
+    const hasVerifiedUser = detail.users.some((user) => Boolean(user.email_verified));
+    if (hasRegisteredUser && hasVerifiedUser) {
+      return { label: "Profil erişimi aktif", tone: "success" as const };
+    }
+    if (detail.users_count > 0) {
+      return { label: "Davet gönderildi, kayıt bekleniyor", tone: "warning" as const };
+    }
+    return { label: "Henüz davetli yetkili yok", tone: "neutral" as const };
   }, [detail]);
 
   const getMapLink = (address: string, district: string, city: string) => {
@@ -582,6 +627,25 @@ export default function AdminSupplierDetailPage() {
     }
   }
 
+
+async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
+  if (!id) return;
+  try {
+    setResendingMagicUserId(teamUser.id);
+    const result = await resendAdminSupplierMagicLink(Number(id), teamUser.id);
+    if (result.magic_link_sent) {
+      setSuccess(`Magic link tekrar gonderildi: ${teamUser.email}`);
+      setError(null);
+    } else {
+      setError(result.message || "Magic link yenilendi ancak e-posta gonderilemedi");
+    }
+    await load();
+  } catch (e) {
+    setError(e instanceof Error ? e.message : "Magic link tekrar gonderilemedi");
+  } finally {
+    setResendingMagicUserId(null);
+  }
+}
   function shareOnWhatsapp() {
     if (!form) return;
     const mapLink = getMapLink(form.address, form.address_district, form.city);
@@ -676,6 +740,19 @@ export default function AdminSupplierDetailPage() {
           <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
             <div style={{ fontWeight: 700, color: "#1e293b" }}>{form.company_name || "-"}</div>
             <div style={{ color: "#64748b", fontSize: 13 }}>Logoyu tedarikçi kendi profilinden günceller.</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <StatusBadge $tone={supplierInviteStatus.tone}>{supplierInviteStatus.label}</StatusBadge>
+              <StatusBadge $tone={detail.supplier.address_district || detail.supplier.city ? "info" : "neutral"}>
+                {detail.supplier.address_district || detail.supplier.city
+                  ? `Konum: ${[detail.supplier.city, detail.supplier.address_district].filter(Boolean).join(" / ")}`
+                  : "Konum bilgisi davet seviyesinde"}
+              </StatusBadge>
+              <StatusBadge $tone={detail.supplier.partner_category_tags.length > 0 ? "info" : "neutral"}>
+                {detail.supplier.partner_category_tags.length > 0
+                  ? `${detail.supplier.partner_category_tags.length} partner kategorisi`
+                  : "Partner kategorisi bekleniyor"}
+              </StatusBadge>
+            </div>
             <ActionInline>
               <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=certificates`)}>Sertifika Yükle</GhostButton>
               <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=company_docs`)}>Şirket Evrakları</GhostButton>
@@ -706,11 +783,21 @@ export default function AdminSupplierDetailPage() {
           </Label>
           <Label>Web Sitesi<Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></Label>
           <Label>
-            Kategori
-            <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-              <option value="">Seçiniz</option>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </Select>
+            Stratejik Partner Kategorileri
+            <GhostButton type="button" onClick={() => setShowPartnerCategoryModal(true)}>Kategori Seç</GhostButton>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+              {form.partner_category_tags.length > 0 ? form.partner_category_tags.map((item) => (
+                <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: 12 }}>{item}</span>
+              )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Henüz partner kategorisi atanmadı</span>}
+            </div>
+          </Label>
+          <Label>
+            Tedarikçinin Kendi Kategorileri
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+              {detail.supplier.category_tags.length > 0 ? detail.supplier.category_tags.map((item) => (
+                <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#ecfeff", color: "#0f766e", fontWeight: 700, fontSize: 12 }}>{item}</span>
+              )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Tedarikçi kendi görünürlük kategorilerini henüz eklemedi</span>}
+            </div>
           </Label>
 
           <Label style={{ gridColumn: "1 / -1" }}>Adres<TextArea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Label>
@@ -747,6 +834,20 @@ export default function AdminSupplierDetailPage() {
           </div>
         )}
       </Card>
+
+      <CategorySelectionModal
+        isOpen={showPartnerCategoryModal}
+        title="Stratejik Partner Kategorileri"
+        subtitle="Bu kategoriler tedarikçiyi partner panelinde hızlı eşleme ve listeleme için etiketler."
+        availableOptions={COMPANY_CATEGORY_OPTIONS}
+        value={form.partner_category_tags}
+        maxSelectionCount={5}
+        onClose={() => setShowPartnerCategoryModal(false)}
+        onSave={(value) => {
+          setForm((prev) => prev ? { ...prev, partner_category_tags: value, category: value[0] || prev.category } : prev);
+          setShowPartnerCategoryModal(false);
+        }}
+      />
 
       <Card>
         <SectionHeader onClick={() => toggleSection("users")}>
@@ -810,11 +911,25 @@ export default function AdminSupplierDetailPage() {
                       ) : (
                         <>
                           {teamUser.email}
-                          <div style={{ fontSize: 11, color: teamUser.email_verified ? "#166534" : "#92400e", marginTop: 2 }}>
-                            {teamUser.email_verified ? "Onaylı" : "Onay Bekliyor"}
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+                            <StatusBadge $tone={teamUser.password_set ? "success" : "warning"}>
+                              {teamUser.password_set ? "Kayıt tamamlandı" : "Magic link bekleniyor"}
+                            </StatusBadge>
+                            <StatusBadge $tone={teamUser.email_verified ? "success" : "neutral"}>
+                              {teamUser.email_verified ? "E-posta onaylı" : "E-posta onayı bekliyor"}
+                            </StatusBadge>
                           </div>
                           <ActionInline>
                             <MailBtn type="button" onClick={() => openEmailComposer(teamUser.email)}>Mail Gönder</MailBtn>
+                            {(!teamUser.password_set || !teamUser.email_verified) && (
+                              <MailBtn
+                                type="button"
+                                onClick={() => void handleResendUserMagicLink(teamUser)}
+                                disabled={resendingMagicUserId === teamUser.id}
+                              >
+                                {resendingMagicUserId === teamUser.id ? "Gonderiliyor..." : "Magic Link Tekrar Gonder"}
+                              </MailBtn>
+                            )}
                           </ActionInline>
                         </>
                       )}

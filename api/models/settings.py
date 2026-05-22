@@ -30,6 +30,25 @@ class SystemSettings(Base):
     vat_rates_json: Mapped[str] = mapped_column(
         Text, default="[1,10,20]", nullable=False
     )
+    public_pricing_json: Mapped[str] = mapped_column(
+        Text,
+        default='{"strategic_partner":{"plans":[]},"supplier":{"plans":[]}}',
+        nullable=False,
+    )
+    workspace_panels_json: Mapped[str] = mapped_column(
+        Text,
+        default='{"version":1,"profiles":[]}',
+        nullable=False,
+    )
+    platform_primary_company_id: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )
+    commercial_request_webhook_url: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+    commercial_request_webhook_secret: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
 
     # Audit
     created_at: Mapped[datetime] = mapped_column(

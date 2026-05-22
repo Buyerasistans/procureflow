@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProjectFiles, deleteProjectFile, getProjects } from "../services/project.service";
 import { getCompanies } from "../services/admin.service";
+import { isPlatformStaffUser } from "../auth/permissions";
+import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
 import type { ProjectFile, Project } from "../types/project";
 import type { Company } from "../services/admin.service";
@@ -9,7 +11,9 @@ import type { Company } from "../services/admin.service";
 export default function ProjectFilesPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const projectId = parseInt(id || "0");
+  const readOnly = isPlatformStaffUser(user);
 
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [project, setProject] = useState<Project | null>(null);
@@ -42,6 +46,7 @@ export default function ProjectFilesPage() {
   }, [loadData]);
 
   async function handleDeleteFile(fileId: number) {
+    if (readOnly) return;
     if (!confirm("Dosyayı silmek istediğinize emin misiniz?")) return;
 
     try {
@@ -163,6 +168,11 @@ export default function ProjectFilesPage() {
 
   return (
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+      {readOnly && (
+        <div style={{ marginBottom: "16px", padding: "12px", borderRadius: "12px", background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa" }}>
+          Bu dosya portfoyu platform personeli icin salt okunur durumdadir.
+        </div>
+      )}
       {/* Header */}
       <button
         onClick={() => navigate(`/admin/projects/${projectId}`)}
@@ -262,22 +272,24 @@ export default function ProjectFilesPage() {
                         >
                           ⬇️ İndir
                         </button>
-                        <button
-                          onClick={() => handleDeleteFile(file.id)}
-                          style={{
-                            flex: "1",
-                            padding: "6px",
-                            backgroundColor: "#f44336",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          🗑️ Sil
-                        </button>
+                        {!readOnly && (
+                          <button
+                            onClick={() => handleDeleteFile(file.id)}
+                            style={{
+                              flex: "1",
+                              padding: "6px",
+                              backgroundColor: "#f44336",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            🗑️ Sil
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -357,22 +369,22 @@ export default function ProjectFilesPage() {
                         >
                           ⬇️ İndir
                         </button>
-                        <button
-                          onClick={() => handleDeleteFile(file.id)}
-                          style={{
-                            padding: "6px 12px",
-                            backgroundColor: "#f44336",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          🗑️ Sil
-                        </button>
+                        {!readOnly && (
+                          <button
+                            onClick={() => handleDeleteFile(file.id)}
+                            style={{
+                              padding: "6px 12px",
+                              backgroundColor: "#ef4444",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            🗑️ Sil
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -493,27 +505,29 @@ export default function ProjectFilesPage() {
               >
                 ⬇️ İndir
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm("Dosyayı silmek istediğinize emin misiniz?")) {
-                    handleDeleteFile(selectedImage.id);
-                    setSelectedImage(null);
-                  }
-                }}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-              >
-                🗑️ Sil
-              </button>
+              {!readOnly && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm("Dosyayı silmek istediğinize emin misiniz?")) {
+                      handleDeleteFile(selectedImage.id);
+                      setSelectedImage(null);
+                    }
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#f44336",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  🗑️ Sil
+                </button>
+              )}
             </div>
           </div>
         </div>

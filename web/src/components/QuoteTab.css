@@ -1,0 +1,123 @@
+.quote-tab {
+  padding: 20px;
+}
+
+.quote-tab__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.quote-tab__header-title {
+  margin: 0;
+}
+
+.quote-tab__button {
+  padding: 8px 16px;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.quote-tab__button--primary {
+  background-color: #3b82f6;
+}
+
+.quote-tab__button--primary:hover {
+  background-color: #2563eb;
+}
+
+.quote-tab__button--danger {
+  background-color: #ef4444;
+}
+
+.quote-tab__button--danger:hover {
+  background-color: #dc2626;
+}
+
+.quote-tab__button--success {
+  background-color: #10b981;
+}
+
+.quote-tab__button--info {
+  background-color: #3b82f6;
+}
+
+.quote-tab__button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.quote-tab__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.quote-tab__table th,
+.quote-tab__table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quote-tab__table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.quote-tab__table tr:hover {
+  background-color: #f9fafb;
+}
+
+.quote-tab__status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.quote-tab__empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+}
+
+.quote-tab__quote-title {
+  font-weight: 600;
+}
+
+.quote-tab__quote-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.quote-tab__quote-warning {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #991b1b;
+}
+
+.quote-tab__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .quote-tab__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .quote-tab__table {
+    display: block;
+    overflow-x: auto;
+  }
+}

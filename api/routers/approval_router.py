@@ -1,21 +1,35 @@
 """Approval Workflow Endpoints"""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from datetime import datetime, UTC
 from enum import Enum
-from pydantic import BaseModel
 
-from api.database import get_db
-from api.models import Quote, QuoteApproval, User, Role
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from api.core.authz import is_admin_like
 from api.core.deps import get_current_user
-from api.schemas.quote import QuoteApprovalCreate, QuoteApprovalOut
+from api.database import get_db
+from api.models import Quote, QuoteApproval, User
 from api.services.email_service import get_email_service
+from api.services.quote_approval_service import (
+    approve_submission_quote,
+    build_approval_role_contract,
+    ensure_submission_approvals,
+    get_business_role_label,
+    get_quote_level_approvals,
+    get_role_label,
+    list_project_business_role_approvers,
+    normalize_user_business_role,
+    pending_approval_matches_business_role,
+    reject_submission_quote,
+    resolve_required_business_role,
+)
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 
 
-# ============ SCHEMAS ============
+def _current_tenant_id(current_user: User) -> int | None:
+    return getattr(current_user, "tenant_id", None)
 
 
 class ApprovalAction(str, Enum):
@@ -37,7 +51,28 @@ class ApprovalRejectRequest(BaseModel):
     comment: str
 
 
-# ============ ENDPOINTS ============
+def _get_quote_or_404(db: Session, quote_id: int) -> Quote:
+    quote = db.query(Quote).filter(Quote.id == quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    return quote
+
+
+def _ensure_quote_scope(quote: Quote, current_user: User) -> None:
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is not None and quote.tenant_id != tenant_id:
+        raise HTTPException(status_code=403, detail="Bu teklif üzerinde yetkiniz yok")
+
+
+def _require_quote_tenant_scope(quote: Quote, current_user: User) -> None:
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is None:
+        return
+    if quote.tenant_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Tenant kapsamı eksik quote için approval akışı başlatılamaz. Önce tenant backfill akışını tamamlayın.",
+        )
 
 
 @router.get("/user/pending")
@@ -46,39 +81,38 @@ def get_user_pending_approvals(
 ):
     """Kullanıcının onaylaması gereken teklifleri getir"""
 
-    user_role = current_user.role if current_user.role else None
-
+    user_role = normalize_user_business_role(current_user)
     if not user_role:
         return []
 
-    # Bu role ait beklemede onaylar
-    pending_approvals = (
-        db.query(QuoteApproval)
-        .filter(
-            QuoteApproval.required_role == user_role,
-            QuoteApproval.status == "beklemede",
-        )
-        .all()
+    query = db.query(QuoteApproval).filter(
+        QuoteApproval.supplier_quote_id.is_(None),
+        QuoteApproval.status == "beklemede",
     )
-
-    result = []
-    for approval in pending_approvals:
-        quote = approval.quote
-        result.append(
-            {
-                "approval_id": approval.id,
-                "quote_id": quote.id,
-                "quote_title": quote.title,
-                "quote_status": quote.status,
-                "total_amount": float(quote.total_amount or 0),
-                "company_name": quote.company_name,
-                "approval_level": approval.approval_level,
-                "requested_at": approval.requested_at,
-                "created_at": quote.created_at,
-            }
+    if _current_tenant_id(current_user) is not None:
+        query = query.filter(
+            QuoteApproval.tenant_id == _current_tenant_id(current_user)
         )
+    if not is_admin_like(current_user):
+        query = query.filter(pending_approval_matches_business_role(user_role))
 
-    return result
+    pending_approvals = query.all()
+
+    return [
+        {
+            "approval_id": approval.id,
+            "quote_id": approval.quote.id,
+            "quote_title": approval.quote.title,
+            "quote_status": approval.quote.status,
+            "total_amount": float(approval.quote.total_amount or 0),
+            "company_name": approval.quote.company_name,
+            "approval_level": approval.approval_level,
+            **build_approval_role_contract(approval),
+            "requested_at": approval.requested_at,
+            "created_at": approval.quote.created_at,
+        }
+        for approval in pending_approvals
+    ]
 
 
 @router.post("/{quote_id}/request-approvals")
@@ -88,88 +122,50 @@ def request_approvals(
     current_user: User = Depends(get_current_user),
     email_service=Depends(get_email_service),
 ):
-    """Teklif için onay isteklerini oluştur (Quote gönderilirken çağrılır)"""
+    """Teklif için gönderim onay kayıtlarını oluşturur."""
 
-    # Quote'u al
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-
-    # Sadece creator tarafından istek açılabilir
+    quote = _get_quote_or_404(db, quote_id)
+    _ensure_quote_scope(quote, current_user)
+    _require_quote_tenant_scope(quote, current_user)
     if quote.created_by_id != current_user.id:
         raise HTTPException(
             status_code=403, detail="Sadece oluşturan kişi onay talep edebilir"
         )
 
     try:
-        # Yönetici rol ID'sini bulunacak
-        yonetici_role = db.query(Role).filter(Role.name == "Yönetici").first()
-        direktor_role = db.query(Role).filter(Role.name == "Direktör").first()
-
-        if not yonetici_role or not direktor_role:
-            raise HTTPException(
-                status_code=500, detail="Sistem rolleri yapılandırılmamış"
-            )
-
-        # Mevcut onayları temizle (varsa)
-        existing = (
-            db.query(QuoteApproval).filter(QuoteApproval.quote_id == quote_id).all()
-        )
-        for app in existing:
-            if app.status == "beklemede":
-                db.delete(app)
-
-        # Level 1: Yönetici Onayı
-        approval_level1 = QuoteApproval(
-            quote_id=quote_id,
-            approval_level=1,
-            required_role="Yönetici",
-            status="beklemede",
-            requested_at=datetime.now(UTC),
-        )
-        db.add(approval_level1)
-        db.flush()
-
-        # Level 2: Direktör Onayı
-        approval_level2 = QuoteApproval(
-            quote_id=quote_id,
-            approval_level=2,
-            required_role="Direktör",
-            status="beklemede",
-            requested_at=datetime.now(UTC),
-        )
-        db.add(approval_level2)
+        approvals = ensure_submission_approvals(db, quote)
         db.commit()
 
-        # Email gönder - Yöneticilere
-        yonetici_users = (
-            db.query(User)
-            .join(User.role_obj)
-            .filter(User.role_obj.has(Role.name == "Yönetici"))
-            .all()
-        )
-
-        for yonetici in yonetici_users:
-            if yonetici.email:
-                email_service.send_approval_request(
-                    to_email=yonetici.email,
-                    approver_name=yonetici.full_name or yonetici.email,
-                    quote_title=quote.title,
-                    total_amount=float(quote.total_amount or 0),
-                    approval_level="Yönetici Onayı",
-                    approval_url=f"http://localhost:5177/approvals?quote_id={quote.id}",
-                    company_name="ProcureFlow",
-                )
+        if approvals:
+            first_approval = approvals[0]
+            first_business_role = resolve_required_business_role(first_approval)
+            first_business_role_label = get_business_role_label(first_business_role)
+            approvers = list_project_business_role_approvers(
+                db, quote, first_business_role
+            )
+            for approver in approvers:
+                if approver.email:
+                    email_service.send_approval_request(
+                        to_email=approver.email,
+                        approver_name=approver.full_name or approver.email,
+                        quote_title=quote.title,
+                        total_amount=float(quote.total_amount or 0),
+                        approval_level=f"{first_business_role_label} Onayı",
+                        approval_url=f"{email_service.app_url}/approvals?quote_id={quote.id}",
+                        company_name="ProcureFlow",
+                        owner_user_id=quote.created_by_id,
+                    )
 
         return {
             "status": "success",
-            "message": "Onay istekleri oluşturuldu",
-            "approvals": 2,
+            "message": "Onay istekleri oluşturuldu"
+            if approvals
+            else "Bu teklif için ek gönderim onayı gerekmiyor",
+            "approvals": len(approvals),
         }
-
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/{quote_id}/pending")
@@ -180,29 +176,24 @@ def get_pending_approvals(
 ):
     """Teklif için beklemede olan onayları getir"""
 
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-
-    approvals = (
-        db.query(QuoteApproval)
-        .filter(QuoteApproval.quote_id == quote_id)
-        .order_by(QuoteApproval.approval_level)
-        .all()
-    )
+    quote = _get_quote_or_404(db, quote_id)
+    _ensure_quote_scope(quote, current_user)
+    approvals = get_quote_level_approvals(db, quote_id)
 
     return [
         {
-            "id": a.id,
-            "level": a.approval_level,
-            "required_role": a.required_role,
-            "status": a.status,
-            "requested_at": a.requested_at,
-            "completed_at": a.completed_at,
-            "approver_name": a.approved_by.full_name if a.approved_by else None,
-            "comment": a.comment,
+            "id": approval.id,
+            "level": approval.approval_level,
+            **build_approval_role_contract(approval),
+            "status": approval.status,
+            "requested_at": approval.requested_at,
+            "completed_at": approval.completed_at,
+            "approver_name": approval.approved_by.full_name
+            if approval.approved_by
+            else None,
+            "comment": approval.comment,
         }
-        for a in approvals
+        for approval in approvals
     ]
 
 
@@ -214,110 +205,66 @@ def approve_quote(
     current_user: User = Depends(get_current_user),
     email_service=Depends(get_email_service),
 ):
-    """Teklifi onayla"""
+    """Teklifin gönderim onayını tamamlar."""
 
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-
-    # Kullanıcının rolü belirle
-    user_role = current_user.role_obj.name if current_user.role_obj else None
-
-    # Beklemede olan onay bul
-    pending_approval = (
-        db.query(QuoteApproval)
-        .filter(QuoteApproval.quote_id == quote_id, QuoteApproval.status == "beklemede")
-        .order_by(QuoteApproval.approval_level)
-        .first()
-    )
-
-    if not pending_approval:
-        raise HTTPException(
-            status_code=400, detail="Bu teklif için beklemede onay bulunmamaktadır"
-        )
-
-    # Kullanıcının yetki kontrolü
-    if pending_approval.required_role not in ["*", user_role]:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Sadece {pending_approval.required_role} bu onayı yapabilir",
-        )
+    quote = _get_quote_or_404(db, quote_id)
+    _ensure_quote_scope(quote, current_user)
 
     try:
-        # Onayı tamamla
-        pending_approval.approved_by_id = current_user.id
-        pending_approval.status = "onaylandı"
-        pending_approval.completed_at = datetime.now(UTC)
-        pending_approval.comment = request.comment
+        result = approve_submission_quote(db, quote, current_user, request.comment)
 
-        # Bir sonraki onay var mı kontrol et
-        next_approval = (
-            db.query(QuoteApproval)
-            .filter(
-                QuoteApproval.quote_id == quote_id,
-                QuoteApproval.approval_level == pending_approval.approval_level + 1,
+        if result.next_approval:
+            approvers = list_project_business_role_approvers(
+                db, quote, resolve_required_business_role(result.next_approval)
             )
-            .first()
-        )
-
-        if next_approval:
-            # Sonraki seviyeye git
-            quote.status = "PENDING"  # Hala beklemede
-
-            # Email gönder - Sonraki seviye onaylayana
-            if next_approval.required_role == "Direktör":
-                direktor_users = (
-                    db.query(User)
-                    .join(User.role_obj)
-                    .filter(User.role_obj.has(Role.name == "Direktör"))
-                    .all()
-                )
-
-                for direktor in direktor_users:
-                    if direktor.email:
-                        email_service.send_approval_request(
-                            to_email=direktor.email,
-                            approver_name=direktor.full_name or direktor.email,
-                            quote_title=quote.title,
-                            total_amount=float(quote.total_amount or 0),
-                            approval_level="Direktör Onayı",
-                            approval_url=f"http://localhost:5177/approvals?quote_id={quote.id}",
-                            company_name="ProcureFlow",
-                        )
-        else:
-            # Tüm onaylar tamamlandı
-            quote.status = "APPROVED"
-
-            # Email gönder - Teklifin onaylandı bilgisi
-            if quote.created_by.email:
-                email_service._send_smtp(
-                    to_email=quote.created_by.email,
-                    subject=f"✅ {quote.title} - Teklif Onaylandı",
-                    html_content=f"""
-                    <html>
-                        <body style="font-family: Arial, sans-serif;">
-                            <h2>Teklif Onaylandı</h2>
-                            <p><strong>{quote.title}</strong> teklifini tüm seviyelerde onaylayan kişiler tarafından onaylandı.</p>
-                            <p><strong>Toplam Tutar:</strong> ₺{float(quote.total_amount or 0):,.2f}</p>
-                            <p>Tedarikçilere gönderme işlemini başlatabilirsiniz.</p>
-                        </body>
-                    </html>
-                    """,
-                )
+            for approver in approvers:
+                if approver.email:
+                    email_service.send_approval_request(
+                        to_email=approver.email,
+                        approver_name=approver.full_name or approver.email,
+                        quote_title=quote.title,
+                        total_amount=float(quote.total_amount or 0),
+                        approval_level=f"{get_business_role_label(resolve_required_business_role(result.next_approval))} Onayı",
+                        approval_url=f"{email_service.app_url}/approvals?quote_id={quote.id}",
+                        company_name="ProcureFlow",
+                        owner_user_id=quote.created_by_id,
+                    )
+        elif quote.created_by_user and quote.created_by_user.email:
+            email_service._send_smtp(
+                to_email=quote.created_by_user.email,
+                subject=f"{quote.title} - Gönderim Onayı Tamamlandı",
+                html_content=f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif;">
+                        <h2>Gönderim Onayı Tamamlandı</h2>
+                        <p><strong>{quote.title}</strong> için gerekli gönderim onayları tamamlandı.</p>
+                        <p><strong>Toplam Tutar:</strong> ₺{float(quote.total_amount or 0):,.2f}</p>
+                        <p>Artık tedarikçilere gönderim yapabilirsiniz.</p>
+                    </body>
+                </html>
+                """,
+                owner_user_id=quote.created_by_id,
+            )
 
         db.commit()
-
         return {
             "status": "success",
-            "message": "Teklif onaylandı",
-            "next_step": "Direktöre gönderiliyor"
-            if next_approval
-            else "Onay tamamlandı",
+            "message": "Gönderim onayı kaydedildi",
+            "approval_level": result.pending_approval.approval_level,
+            "workflow_completed": result.workflow_completed,
+            "next_step": (
+                f"Sıradaki onay: {get_business_role_label(resolve_required_business_role(result.next_approval))}"
+                if result.next_approval
+                else "Tedarikçiye gönderime hazır"
+            ),
         }
-
-    except Exception as e:
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/{quote_id}/reject")
@@ -328,78 +275,30 @@ def reject_quote(
     current_user: User = Depends(get_current_user),
     email_service=Depends(get_email_service),
 ):
-    """Teklifi reddet"""
+    """Teklifi gözden geçirme için iade eder."""
 
     if not request.comment:
         raise HTTPException(status_code=400, detail="Red nedeni yazmanız gerekir")
 
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-
-    # Kullanıcının rolü
-    user_role = current_user.role_obj.name if current_user.role_obj else None
-
-    # Beklemede olan onay bul
-    pending_approval = (
-        db.query(QuoteApproval)
-        .filter(QuoteApproval.quote_id == quote_id, QuoteApproval.status == "beklemede")
-        .order_by(QuoteApproval.approval_level)
-        .first()
-    )
-
-    if not pending_approval:
-        raise HTTPException(
-            status_code=400, detail="Bu teklif için beklemede onay bulunmamaktadır"
-        )
-
-    # Yetki kontrolü
-    if pending_approval.required_role not in ["*", user_role]:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Sadece {pending_approval.required_role} bu kararı verebilir",
-        )
+    quote = _get_quote_or_404(db, quote_id)
+    _ensure_quote_scope(quote, current_user)
 
     try:
-        # Onayı reddet
-        pending_approval.approved_by_id = current_user.id
-        pending_approval.status = "reddedildi"
-        pending_approval.completed_at = datetime.now(UTC)
-        pending_approval.comment = request.comment
+        result = reject_submission_quote(db, quote, current_user, request.comment)
 
-        # Tüm diğer onayları iptal et
-        other_approvals = (
-            db.query(QuoteApproval)
-            .filter(
-                QuoteApproval.quote_id == quote_id,
-                QuoteApproval.id != pending_approval.id,
-            )
-            .all()
-        )
-
-        for other in other_approvals:
-            if other.status == "beklemede":
-                other.status = "iptal"
-
-        # Quote'u reddet
-        quote.status = "REJECTED"
-
-        # Email gönder - Oluşturucuya
-        if quote.created_by.email:
+        if quote.created_by_user and quote.created_by_user.email:
             email_service._send_smtp(
-                to_email=quote.created_by.email,
-                subject=f"❌ {quote.title} - Teklif Reddedildi",
+                to_email=quote.created_by_user.email,
+                subject=f"{quote.title} - Teklif Gözden Geçirme İçin İade Edildi",
                 html_content=f"""
                 <html>
                     <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-                        <h2>Teklif Reddedildi</h2>
-                        <p><strong>{quote.title}</strong> teklifini {current_user.full_name or 'Yönetici'} tarafından reddedildi.</p>
-                        
+                        <h2>Hata ve Eksikler Var</h2>
+                        <p><strong>{quote.title}</strong> teklifi {current_user.full_name or 'Yetkili'} tarafından gözden geçirme için iade edildi.</p>
                         <div style="background-color: #fee2e2; padding: 15px; border-radius: 5px; margin: 15px 0;">
-                            <strong>Red Nedeni:</strong><br>
+                            <strong>Açıklama:</strong><br>
                             {request.comment}
                         </div>
-                        
                         <p>Teklifi düzenleyerek tekrar gönderebilirsiniz.</p>
                     </body>
                 </html>
@@ -407,13 +306,17 @@ def reject_quote(
             )
 
         db.commit()
-
         return {
             "status": "success",
-            "message": "Teklif reddedildi",
+            "message": "Hata ve eksikler var, teklif gözden geçirme için iade edildi",
+            "approval_level": result.pending_approval.approval_level,
+            "quote_status": result.quote_status,
             "reason": request.comment,
         }
-
-    except Exception as e:
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

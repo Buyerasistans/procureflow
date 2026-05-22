@@ -1,6 +1,7 @@
 // FILE: web\src\components\PermissionGuard.tsx
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { normalizedBusinessRole } from "../auth/permissions";
 
 type PermissionGuardProps = {
   allow: string[]; // örn: ["admin"] veya ["admin", "manager"]
@@ -19,7 +20,7 @@ export default function PermissionGuard({ allow, children }: PermissionGuardProp
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const role = user.role?.toLowerCase?.() ?? "";
+  const role = normalizedBusinessRole(user);
   const allowed = allow.map((r) => r.toLowerCase()).includes(role);
 
   if (!allowed) {

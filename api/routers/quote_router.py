@@ -1,12 +1,19 @@
 """Quote ve Teklif İsteği (RFQ) API Endpoints"""
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import timedelta
 from io import BytesIO
+from typing import Any
+import openpyxl
 from decimal import Decimal
 
 from api.database import get_db
+from api.core.authz import (
+    is_admin_like,
+    is_global_procurement_manager,
+    is_platform_staff,
+)
 from api.models import (
     Quote,
     QuoteItem,
@@ -25,14 +32,82 @@ from api.schemas.quote import (
     QuoteUpdate,
     QuoteItemCreate,
     QuoteItemOut,
+    RfqOut,
 )
-from api.schemas.supplier import SupplierCreate, SupplierOut, SupplierQuoteOut
 from api.core.deps import get_current_user
 from api.core.time import utcnow
 from api.services.user_department_service import resolve_effective_department_id
 from api.services.email_service import get_email_service
+from api.services.quote_approval_service import has_completed_submission_approvals
+from api.routers.supplier_router import _get_visible_supplier_or_404
+from api.services.quote_transition_service import ensure_model_quote_transition
+from api.app.domain.quote.permissions import QuotePermission
+from api.app.domain.quote.policy import QuotePolicyError
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
+
+
+def _can_manage_supplier_dispatch(current_user: User) -> bool:
+    return is_global_procurement_manager(current_user)
+
+
+def _current_tenant_id(current_user: User) -> int | None:
+    return getattr(current_user, "tenant_id", None)
+
+
+def _ensure_quote_scope(quote: Quote, current_user: User) -> None:
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is not None and quote.tenant_id != tenant_id:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+
+
+def _ensure_project_scope(project: Project, current_user: User) -> None:
+    tenant_id = _current_tenant_id(current_user)
+    if tenant_id is not None and project.tenant_id != tenant_id:
+        raise HTTPException(status_code=403, detail="Bu proje üzerinde yetkiniz yok")
+
+
+def _get_scoped_project_or_404(
+    project_id: int,
+    db: Session,
+    current_user: User,
+) -> Project:
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Proje bulunamadı")
+    _ensure_project_scope(project, current_user)
+    return project
+
+
+def _get_scoped_quote_or_404(
+    quote_id: int,
+    db: Session,
+    current_user: User,
+) -> Quote:
+    quote = db.query(Quote).filter(Quote.id == quote_id).first()
+    if not quote:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    _ensure_quote_scope(quote, current_user)
+    return quote
+
+
+def _ensure_quote_transition(current: QuoteStatus, target: QuoteStatus) -> None:
+    try:
+        ensure_model_quote_transition(
+            current=current,
+            target=target,
+            actor_permissions={QuotePermission.QUOTE_TRANSITION},
+        )
+    except QuotePolicyError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+def _ensure_quote_write_access(current_user: User) -> None:
+    if is_platform_staff(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Platform staff quote alaninda salt-okunur erisime sahiptir",
+        )
 
 
 def _to_float(value):
@@ -56,137 +131,23 @@ def _to_float(value):
         return None
 
 
-# ============ QUOTE CRUDS ============
-
-
-@router.post("", response_model=QuoteOut)
-def create_quote(
-    quote_data: QuoteCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Yeni teklif isteği (RFQ) oluştur"""
-    # Proje var mı kontrol et
-    project = db.query(Project).filter(Project.id == quote_data.project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Proje bulunamadı")
-
-    quote = Quote(
-        project_id=quote_data.project_id,
-        created_by_id=current_user.id,
-        title=quote_data.title,
-        description=quote_data.description,
-        company_name=quote_data.company_name,
-        company_contact_name=quote_data.company_contact_name,
-        company_contact_phone=quote_data.company_contact_phone,
-        company_contact_email=quote_data.company_contact_email,
-        status=QuoteStatus.DRAFT,
-    )
-
-    db.add(quote)
-    db.commit()
-    db.refresh(quote)
-    return quote
-
-
-@router.get("")
-def list_quotes(
-    page: int = 1,
-    size: int = 10,
-    status_filter: str = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Kullanıcının tekliflerini listele"""
-    query = db.query(Quote).filter(
-        Quote.created_by_id == current_user.id, Quote.is_active == True
-    )
-
-    if status_filter:
-        query = query.filter(Quote.status == status_filter.upper())
-
-    total = query.count()
-    quotes = (
-        query.order_by(Quote.created_at.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-        .all()
-    )
-
-    # Pydantic modelle serialize et
-    from api.schemas.quote import QuoteOut
-
-    return {
-        "items": [QuoteOut.model_validate(q) for q in quotes],
-        "total": total,
-        "page": page,
-        "size": size,
-    }
-
-
-@router.get("/{quote_id}", response_model=QuoteOut)
-def get_quote(
-    quote_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Teklif detayını getir"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-    return quote
-
-
-@router.get("/project/{project_id}", response_model=list[QuoteOut])
+@router.get("/project/{project_id}", response_model=list[RfqOut])
 def get_project_quotes(
     project_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Proje tekliflerini listele"""
-    quotes = (
-        db.query(Quote)
-        .filter(
-            Quote.project_id == project_id,
-            Quote.is_active == True,
-            Quote.deleted_at.is_(None),
-        )
-        .order_by(Quote.created_at.desc())
-        .all()
+    _get_scoped_project_or_404(project_id, db, current_user)
+    query = db.query(Quote).filter(
+        Quote.project_id == project_id,
+        Quote.is_active,
+        Quote.deleted_at.is_(None),
     )
+    if _current_tenant_id(current_user) is not None:
+        query = query.filter(Quote.tenant_id == _current_tenant_id(current_user))
+    quotes = query.order_by(Quote.created_at.desc()).all()
     return quotes
-
-
-@router.put("/{quote_id}", response_model=QuoteOut)
-def update_quote(
-    quote_id: int,
-    quote_data: QuoteUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Teklifi güncelle (taslak durumda)"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-
-    if quote.status != QuoteStatus.DRAFT:
-        raise HTTPException(
-            status_code=400, detail="Sadece taslak teklifler güncellenebilir"
-        )
-
-    if quote.created_by_id != current_user.id:
-        raise HTTPException(
-            status_code=403, detail="Sadece oluşturan kişi güncelleyebilir"
-        )
-
-    for field, value in quote_data.dict(exclude_unset=True).items():
-        if hasattr(quote, field):
-            setattr(quote, field, value)
-
-    quote.updated_at = utcnow()
-    db.commit()
-    db.refresh(quote)
-    return quote
 
 
 # ============ QUOTE ITEM CRUD ============
@@ -200,9 +161,9 @@ def add_quote_item(
     current_user: User = Depends(get_current_user),
 ):
     """Teklif kalemleri ekle"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    _ensure_quote_write_access(current_user)
+
+    quote = _get_scoped_quote_or_404(quote_id, db, current_user)
 
     if quote.created_by_id != current_user.id:
         raise HTTPException(status_code=403, detail="Yetkisiz")
@@ -226,9 +187,7 @@ def get_quote_items(
     current_user: User = Depends(get_current_user),
 ):
     """Teklifin kalemlerini getir"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    quote = _get_scoped_quote_or_404(quote_id, db, current_user)
 
     items = (
         db.query(QuoteItem)
@@ -257,41 +216,35 @@ def import_quote_from_excel(
     Excel dosyasından teklif oluştur
     Dosya PİZZAMAX_TEKLİF_ formatında olmalı
     """
-    if not file.filename.endswith((".xlsx", ".xlsm")):
+    _ensure_quote_write_access(current_user)
+
+    if not file.filename or not file.filename.endswith((".xlsx", ".xlsm")):
         raise HTTPException(
             status_code=400, detail="Sadece Excel dosyaları yükleneebilir"
         )
 
-    project = db.query(Project).filter(Project.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Proje bulunamadı")
+    project = _get_scoped_project_or_404(project_id, db, current_user)
 
     effective_department_id = current_user.department_id
-    if current_user.role not in {"admin", "super_admin"}:
+    if not is_admin_like(current_user):
         effective_department_id = resolve_effective_department_id(db, current_user)
 
-    if (
-        current_user.role not in {"admin", "super_admin"}
-        and effective_department_id is None
-    ):
+    if not is_admin_like(current_user) and effective_department_id is None:
         raise HTTPException(status_code=422, detail="Kullaniciya departman atanmamis")
 
     try:
-        try:
-            import openpyxl
-        except ModuleNotFoundError:
-            raise HTTPException(
-                status_code=500,
-                detail="Excel import ozelligi icin openpyxl paketi gerekli",
-            )
-
         # Excel dosyasını oku
         excel_data = file.file.read()
         wb = openpyxl.load_workbook(BytesIO(excel_data))
         ws = wb.active
+        if ws is None:
+            raise HTTPException(
+                status_code=400, detail="Excel çalışma sayfası bulunamadı"
+            )
 
         # Quote oluştur
         quote = Quote(
+            tenant_id=project.tenant_id,
             project_id=project_id,
             created_by_id=current_user.id,
             title=f"{project.name} - Teklif İsteği",
@@ -327,7 +280,7 @@ def import_quote_from_excel(
                     continue
 
                 # POZ (Column C = index 2)
-                category_code = row[2].value or ""
+                row[2].value or ""
 
                 # YAPILACAK İŞLER (Columns D-H = indices 3-7)
                 description = row[4].value or ""  # Column E
@@ -339,7 +292,6 @@ def import_quote_from_excel(
                 quantity = row[9].value
 
                 # BİRİM FİYAT (Column K = index 10) - RFQ aşamasında tedarikçi doldurur
-                unit_price = 0
 
                 # Grup başlığı satırı (ör: 1 ALÇIPAN İŞLERİ ... toplam)
                 line_as_text = str(line_number)
@@ -374,7 +326,7 @@ def import_quote_from_excel(
                     category_name="",
                     description=str(description),
                     unit=str(unit),
-                    quantity=float(quantity),
+                    quantity=float(str(quantity)),
                     unit_price=0,
                     vat_rate=20,
                     group_key=str(line_number).split(".")[0]
@@ -424,11 +376,18 @@ def send_quote_to_supplier(
     email_service=Depends(get_email_service),
 ):
     """Teklifi tedarikçilere gönder"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    _ensure_quote_write_access(current_user)
 
-    if quote.created_by_id != current_user.id:
+    quote = _get_scoped_quote_or_404(quote_id, db, current_user)
+
+    is_project_member = any(
+        project.id == quote.project_id for project in current_user.projects
+    )
+    if (
+        quote.created_by_id != current_user.id
+        and not _can_manage_supplier_dispatch(current_user)
+        and not is_project_member
+    ):
         raise HTTPException(status_code=403, detail="Yetkisiz")
 
     if not quote.items:
@@ -436,24 +395,49 @@ def send_quote_to_supplier(
             status_code=400, detail="Gönderim için teklifte en az bir kalem olmalıdır"
         )
 
+    quote_status = (
+        quote.status.value
+        if isinstance(quote.status, QuoteStatus)
+        else str(quote.status).lower()
+    )
+
+    if quote_status != "submitted":
+        raise HTTPException(
+            status_code=409,
+            detail="Teklif önce onaya gönderilip gerekli onayları tamamlamalıdır",
+        )
+
+    if not has_completed_submission_approvals(db, quote):
+        raise HTTPException(
+            status_code=409,
+            detail="Gönderim onayı tamamlanmadan tedarikçilere gönderim yapılamaz",
+        )
+
     try:
         created_count = 0
+        skipped_supplier_ids: list[int] = []
+        created_supplier_ids: list[int] = []
 
         for supplier_id in supplier_ids:
-            supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
-            if not supplier:
-                continue
+            supplier = _get_visible_supplier_or_404(
+                db,
+                supplier_id,
+                current_user,
+                detail="Bu tedarikciye gonderim yetkiniz yok",
+                allow_platform_network_for_tenant=True,
+            )
 
             existing_supplier_quote = (
                 db.query(SupplierQuote)
                 .filter(
                     SupplierQuote.quote_id == quote_id,
                     SupplierQuote.supplier_id == supplier_id,
-                    SupplierQuote.is_revised_version == False,
+                    SupplierQuote.is_revised_version.is_(False),
                 )
                 .first()
             )
             if existing_supplier_quote:
+                skipped_supplier_ids.append(supplier_id)
                 continue
 
             supplier_quote = SupplierQuote(
@@ -480,8 +464,8 @@ def send_quote_to_supplier(
                 )
 
             created_count += 1
+            created_supplier_ids.append(supplier_id)
 
-        quote.status = QuoteStatus.SENT
         quote.sent_at = utcnow()
         quote.deadline = utcnow() + timedelta(days=deadline_days)
 
@@ -490,15 +474,19 @@ def send_quote_to_supplier(
         # Tedarikçilere email bildirimi gönder
         workspace_url = email_service.app_url + "/supplier/workspace"
         for supplier_id in supplier_ids:
-            supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
-            if not supplier:
-                continue
+            supplier = _get_visible_supplier_or_404(
+                db,
+                supplier_id,
+                current_user,
+                detail="Bu tedarikciye gonderim yetkiniz yok",
+                allow_platform_network_for_tenant=True,
+            )
             # Tedarikçiye bağlı tüm aktif kullanıcılara mail gönder
             supplier_users = (
                 db.query(SupplierUser)
                 .filter(
                     SupplierUser.supplier_id == supplier_id,
-                    SupplierUser.is_active == True,
+                    SupplierUser.is_active,
                 )
                 .all()
             )
@@ -516,8 +504,14 @@ def send_quote_to_supplier(
 
         return {
             "status": "success",
-            "message": f"Teklif {created_count} tedarikçiye gönderilmiştir",
+            "message": (
+                f"Teklif {created_count} yeni tedarikçiye gönderildi"
+                if created_count
+                else "Seçilen tedarikçilerin tamamına daha önce gönderim yapılmış"
+            ),
             "deadline": quote.deadline,
+            "created_supplier_ids": created_supplier_ids,
+            "skipped_supplier_ids": skipped_supplier_ids,
         }
     except HTTPException:
         raise
@@ -540,14 +534,22 @@ def select_supplier(
     current_user: User = Depends(get_current_user),
 ):
     """Tedarikçi seçimi yap ve satın alma emri oluştur"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    _ensure_quote_write_access(current_user)
+
+    quote = _get_scoped_quote_or_404(quote_id, db, current_user)
 
     if quote.created_by_id != current_user.id:
         raise HTTPException(status_code=403, detail="Yetkisiz")
 
     # Seçili tedarikçinin yanıtını bul
+    _get_visible_supplier_or_404(
+        db,
+        supplier_id,
+        current_user,
+        detail="Bu tedarikciyi secme yetkiniz yok",
+        allow_platform_network_for_tenant=True,
+    )
+
     supplier_quote = (
         db.query(SupplierQuote)
         .filter(
@@ -560,6 +562,7 @@ def select_supplier(
         raise HTTPException(status_code=404, detail="Tedarikçi yanıtı bulunamadı")
 
     # Quote'un statusunu güncelle
+    _ensure_quote_transition(quote.status, QuoteStatus.APPROVED)
     quote.status = QuoteStatus.APPROVED
     quote.selected_supplier_id = supplier_id
     quote.approved_at = utcnow()
@@ -580,9 +583,9 @@ def select_supplier(
 
     return {
         "status": "success",
-        "message": f"Tedarikçi başarıyla seçildi",
+        "message": "Tedarikçi başarıyla seçildi",
         "supplier_id": supplier_id,
-        "supplier_name": supplier_quote.supplier.name,
+        "supplier_name": supplier_quote.supplier.company_name,
         "final_amount": supplier_quote.final_amount,
         "order_date": utcnow().isoformat(),
     }
@@ -598,22 +601,21 @@ def get_quote_history(
     current_user: User = Depends(get_current_user),
 ):
     """Teklifin geçmiş ve durum değişikliklerini al"""
-    quote = db.query(Quote).filter(Quote.id == quote_id).first()
-    if not quote:
-        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    quote = _get_scoped_quote_or_404(quote_id, db, current_user)
 
     # Quote history
-    history = {
+    timeline: list[dict[str, Any]] = [
+        {
+            "event": "Teklif Oluşturuldu",
+            "timestamp": quote.created_at.isoformat() if quote.created_at else None,
+            "details": f"Tarafından: {quote.created_by_user.full_name if quote.created_by_user else 'Sistem'}",
+        }
+    ]
+    history: dict[str, Any] = {
         "quote_id": quote.id,
         "title": quote.title,
         "created_at": quote.created_at.isoformat() if quote.created_at else None,
-        "timeline": [
-            {
-                "event": "Teklif Oluşturuldu",
-                "timestamp": quote.created_at.isoformat() if quote.created_at else None,
-                "details": f"Tarafından: {quote.created_by.full_name if quote.created_by else 'Sistem'}",
-            }
-        ],
+        "timeline": timeline,
     }
 
     # Gönderme tarihi
@@ -676,7 +678,7 @@ def get_quote_history(
                 {
                     "event": "Tedarikçi Yanıtı Alındı",
                     "timestamp": sq.submitted_at.isoformat(),
-                    "details": f"Tedarikçi: {sq.supplier.name}",
+                    "details": f"Tedarikçi: {sq.supplier.company_name}",
                     "amount": float(sq.final_amount),
                     "status": "Gönderildi",
                 }
@@ -686,7 +688,7 @@ def get_quote_history(
                 {
                     "event": "Tedarikçi Yanıtı Bekleniyor",
                     "timestamp": sq.created_at.isoformat(),
-                    "details": f"Tedarikçi: {sq.supplier.name}",
+                    "details": f"Tedarikçi: {sq.supplier.company_name}",
                     "status": "Beklemede",
                 }
             )
@@ -697,7 +699,7 @@ def get_quote_history(
             {
                 "event": "Tedarikçi Seçildi",
                 "timestamp": quote.approved_at.isoformat(),
-                "details": f"Seçilen Tedarikçi: {quote.selected_supplier.name if quote.selected_supplier else 'Silinmiş'}",
+                "details": f"Seçilen Tedarikçi: {quote.selected_supplier.company_name if quote.selected_supplier else 'Silinmiş'}",
             }
         )
 

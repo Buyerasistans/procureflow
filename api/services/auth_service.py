@@ -9,6 +9,7 @@ from api.core.security import (
     create_refresh_token,
     decode_refresh_token,
 )
+from api.core.authz import normalized_system_role
 from api.models.refresh_token import RefreshToken
 from api.models.user import User
 import hashlib
@@ -22,7 +23,6 @@ def refresh_tokens(db: Session, raw_refresh_token: str) -> dict:
     payload = decode_refresh_token(raw_refresh_token)
 
     user_id = int(payload["sub"])
-    role = payload.get("role", "user")
     old_jti = payload["jti"]
     old_jti_hash = hash_jti(old_jti)
 
@@ -31,6 +31,9 @@ def refresh_tokens(db: Session, raw_refresh_token: str) -> dict:
         raise ValueError("User not found")
     if hasattr(user, "is_active") and not user.is_active:
         raise ValueError("User inactive")
+
+    role = getattr(user, "role", None) or payload.get("role", "user")
+    system_role = normalized_system_role(user)
 
     token_row = (
         db.query(RefreshToken)
@@ -44,7 +47,9 @@ def refresh_tokens(db: Session, raw_refresh_token: str) -> dict:
 
     token_row.revoked_at = datetime.now(timezone.utc)
 
-    new_refresh = create_refresh_token(sub=str(user.id), role=role)
+    new_refresh = create_refresh_token(
+        sub=str(user.id), role=role, system_role=system_role
+    )
     new_payload = decode_refresh_token(new_refresh)
     new_jti_hash = hash_jti(new_payload["jti"])
 
@@ -60,7 +65,9 @@ def refresh_tokens(db: Session, raw_refresh_token: str) -> dict:
 
     db.commit()
 
-    new_access = create_access_token(sub=str(user.id), role=role)
+    new_access = create_access_token(
+        sub=str(user.id), role=role, system_role=system_role
+    )
 
     return {
         "access_token": new_access,

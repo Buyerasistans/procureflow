@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { http } from "../lib/http";
+import type { Supplier as SupplierRecord } from "../types/supplier";
 
 const Backdrop = styled.div`
   position: fixed;
@@ -190,14 +191,12 @@ const SuccessMessage = styled.div`
   margin-bottom: 15px;
 `;
 
-interface Supplier {
-  id: number;
-  company_name: string;
-  email: string;
-  phone: string;
-  category?: string;
-  is_active: boolean;
-}
+type SupplierSourceType = "all" | "private" | "platform_network";
+
+type Supplier = Pick<
+  SupplierRecord,
+  "id" | "company_name" | "email" | "phone" | "category" | "category_tags" | "partner_category_tags" | "effective_category_tags" | "is_active" | "source_type"
+>;
 
 interface ProjectSuppliersModalProps {
   projectId: number;
@@ -205,14 +204,15 @@ interface ProjectSuppliersModalProps {
   onSuccess?: () => void;
 }
 
-const CATEGORIES = [
-  "Yazılım",
-  "Donanım",
-  "Hizmet",
-  "Danışmanlık",
-  "Muhasebe",
-  "İnsan Kaynakları",
-];
+function getSupplierCategories(supplier: Supplier): string[] {
+  if (supplier.effective_category_tags && supplier.effective_category_tags.length > 0) {
+    return supplier.effective_category_tags;
+  }
+  if (supplier.category) {
+    return [supplier.category];
+  }
+  return [];
+}
 
 export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: ProjectSuppliersModalProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -222,17 +222,20 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSourceType, setSelectedSourceType] = useState<SupplierSourceType>("all");
 
   useEffect(() => {
-    loadSuppliers();
-  }, []);
+    void loadSuppliers(selectedSourceType);
+  }, [selectedSourceType]);
 
-  const loadSuppliers = async () => {
+  const loadSuppliers = async (sourceType: SupplierSourceType) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await http.get("/suppliers");
-      const data = await response.data;
+      const response = await http.get("/suppliers", {
+        params: sourceType === "all" ? undefined : { source_type: sourceType },
+      });
+      const data = response.data;
       setSuppliers(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Tedarikçiler yüklenemedi: " + String(err));
@@ -241,9 +244,19 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
     }
   };
 
+  const categories = Array.from(
+    new Set(suppliers.flatMap((supplier) => getSupplierCategories(supplier))),
+  ).sort((a, b) => a.localeCompare(b, "tr"));
+
   const filteredSuppliers = selectedCategory
-    ? suppliers.filter((s) => s.category === selectedCategory && s.is_active)
+    ? suppliers.filter((s) => getSupplierCategories(s).includes(selectedCategory) && s.is_active)
     : suppliers.filter((s) => s.is_active);
+
+  const sourceSummary = {
+    all: suppliers.filter((s) => s.is_active).length,
+    private: suppliers.filter((s) => s.is_active && (s.source_type || "private") === "private").length,
+    platform_network: suppliers.filter((s) => s.is_active && (s.source_type || "private") === "platform_network").length,
+  };
 
   const handleSelectSupplier = (supplierId: number) => {
     setSelectedSuppliers((prev) =>
@@ -289,6 +302,28 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
         {error && <ErrorMessage>{error}</ErrorMessage>}
         {success && <SuccessMessage>{success}</SuccessMessage>}
 
+        <h3>Kaynak Seç</h3>
+        <FilterSection>
+          <button
+            className={selectedSourceType === "all" ? "active" : ""}
+            onClick={() => setSelectedSourceType("all")}
+          >
+            Tümü ({sourceSummary.all})
+          </button>
+          <button
+            className={selectedSourceType === "private" ? "active" : ""}
+            onClick={() => setSelectedSourceType("private")}
+          >
+            Private Supplier ({sourceSummary.private})
+          </button>
+          <button
+            className={selectedSourceType === "platform_network" ? "active" : ""}
+            onClick={() => setSelectedSourceType("platform_network")}
+          >
+            Platform Ağı ({sourceSummary.platform_network})
+          </button>
+        </FilterSection>
+
         <h3>Kategori Seç (Opsiyonel)</h3>
         <FilterSection>
           <button
@@ -297,13 +332,13 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
           >
             Tümü ({suppliers.filter((s) => s.is_active).length})
           </button>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               className={selectedCategory === cat ? "active" : ""}
               onClick={() => setSelectedCategory(cat)}
             >
-              {cat} ({suppliers.filter((s) => s.category === cat && s.is_active).length})
+              {cat} ({suppliers.filter((s) => getSupplierCategories(s).includes(cat) && s.is_active).length})
             </button>
           ))}
         </FilterSection>
@@ -330,7 +365,12 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
                   <div className="details">
                     <div>📧 {supplier.email}</div>
                     <div>📞 {supplier.phone}</div>
-                    {supplier.category && <div>📂 {supplier.category}</div>}
+                    {getSupplierCategories(supplier).length > 0 && <div>📂 {getSupplierCategories(supplier).join(", ")}</div>}
+                    <div>
+                      {supplier.source_type === "platform_network"
+                        ? "🌐 Platform Ağı"
+                        : "🏢 Private Supplier"}
+                    </div>
                   </div>
                 </SupplierInfo>
               </SupplierItem>

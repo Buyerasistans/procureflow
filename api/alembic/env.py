@@ -7,6 +7,11 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from dotenv import load_dotenv
 
+# ✅ alembic.ini'nin yanındaki .env'i yükle
+_env_file = Path(__file__).resolve().parent.parent / "api" / ".env"
+if _env_file.exists():
+    load_dotenv(str(_env_file), override=True)
+
 # --- Paths ---
 # .../procureflow/api/alembic/env.py
 API_DIR = Path(__file__).resolve().parents[1]  # .../procureflow/api
