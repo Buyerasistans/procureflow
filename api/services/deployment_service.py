@@ -366,13 +366,13 @@ class DeploymentService:
 
     def _resolve_domain_profile(self, domain: str) -> str:
         normalized = (domain or "").strip().lower()
-        if normalized.endswith("buyerasistans.com.tr"):
+        if normalized == "buyerasistans.com.tr" or normalized.endswith(".buyerasistans.com.tr"):
             return "primary"
-        if normalized.endswith("buyerasistans.com"):
+        if normalized == "buyerasistans.com" or normalized.endswith(".buyerasistans.com"):
             return "global"
-        if normalized.endswith("buyerasistans.info"):
+        if normalized == "buyerasistans.info" or normalized.endswith(".buyerasistans.info"):
             return "knowledge"
-        if normalized.endswith("buyerasistans.online"):
+        if normalized == "buyerasistans.online" or normalized.endswith(".buyerasistans.online"):
             return "campaign"
         return "primary"
 

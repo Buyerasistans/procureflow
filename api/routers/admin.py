@@ -5061,12 +5061,14 @@ async def upload_company_logo(
     if len(content) > 2 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Logo dosyası 2MB'dan büyük olamaz")
 
-    upload_dir = os.path.join("uploads", "company_logos")
+    upload_dir = os.path.realpath(os.path.join("uploads", "company_logos"))
     os.makedirs(upload_dir, exist_ok=True)
 
     ext = os.path.splitext(file.filename or "logo.png")[1].lower() or ".png"
     filename = f"company_{company_id}_{uuid.uuid4().hex[:8]}{ext}"
-    file_path = os.path.join(upload_dir, filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     if db_company.logo_url:
         old_file = os.path.basename(str(db_company.logo_url))

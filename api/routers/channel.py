@@ -333,10 +333,10 @@ def _resolve_referral_owner_user_id(db: Session, current_user: User) -> int:
 
 
 def _parse_period_days(period_value: str) -> int:
-    matched = re.fullmatch(r"(\d+)d", str(period_value or "30d").strip().lower())
-    if not matched:
-        return 30
-    return max(1, min(int(matched.group(1)), 365))
+    s = str(period_value or "30d").strip().lower()
+    if s.endswith("d") and len(s) > 1 and s[:-1].isdigit():
+        return max(1, min(int(s[:-1]), 365))
+    return 30
 
 
 def _build_public_referral_url(

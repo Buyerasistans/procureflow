@@ -2126,13 +2126,15 @@ async def upload_supplier_logo(
         raise HTTPException(status_code=400, detail="Logo dosyası 2MB'dan büyük olamaz")
 
     # Kayıt dizini
-    upload_dir = os.path.join("uploads", "logos")
+    upload_dir = os.path.realpath(os.path.join("uploads", "logos"))
     os.makedirs(upload_dir, exist_ok=True)
 
     # Benzersiz dosya adı
     ext = os.path.splitext(file.filename or "logo.png")[1].lower() or ".png"
     filename = f"supplier_{supplier.id}_{uuid.uuid4().hex[:8]}{ext}"
-    file_path = os.path.join(upload_dir, filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     # Eski logoyu sil
     if supplier.logo_url:
@@ -2782,12 +2784,14 @@ async def upload_supplier_document(
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    upload_dir = os.path.join("uploads", "supplier_docs", str(supplier.id), category)
+    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), category))
     os.makedirs(upload_dir, exist_ok=True)
 
     ext = os.path.splitext(file.filename or "document.bin")[1].lower() or ".bin"
     stored_filename = f"doc_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(upload_dir, stored_filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, stored_filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     with open(file_path, "wb") as f:
         f.write(content)
 
@@ -2981,12 +2985,14 @@ async def upload_supplier_document_admin(
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    upload_dir = os.path.join("uploads", "supplier_docs", str(supplier.id), category)
+    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), category))
     os.makedirs(upload_dir, exist_ok=True)
 
     ext = os.path.splitext(file.filename or "document.bin")[1].lower() or ".bin"
     stored_filename = f"doc_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(upload_dir, stored_filename)
+    file_path = os.path.realpath(os.path.join(upload_dir, stored_filename))
+    if os.path.commonpath([upload_dir, file_path]) != upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     with open(file_path, "wb") as f:
         f.write(content)
 
@@ -3564,12 +3570,15 @@ async def create_supplier_finance_invoice(
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
         ext = os.path.splitext(file.filename or "invoice.bin")[1].lower() or ".bin"
-        folder = os.path.join(
-            "uploads", "supplier_finance", str(supplier_user.supplier_id), "invoices"
-        )
+        _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+        folder = os.path.realpath(os.path.join(_base, str(supplier_user.supplier_id), "invoices"))
+        if os.path.commonpath([_base, folder]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         os.makedirs(folder, exist_ok=True)
         stored = f"invoice_{supplier_user.supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-        file_path = os.path.join(folder, stored)
+        file_path = os.path.realpath(os.path.join(folder, stored))
+        if os.path.commonpath([_base, file_path]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         with open(file_path, "wb") as out:
             out.write(content)
         file_url = (
@@ -3656,12 +3665,15 @@ async def create_supplier_finance_photo(
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
     ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
-    folder = os.path.join(
-        "uploads", "supplier_finance", str(supplier_user.supplier_id), "photos"
-    )
+    _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+    folder = os.path.realpath(os.path.join(_base, str(supplier_user.supplier_id), "photos"))
+    if os.path.commonpath([_base, folder]) != _base:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     os.makedirs(folder, exist_ok=True)
     stored = f"photo_{supplier_user.supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(folder, stored)
+    file_path = os.path.realpath(os.path.join(folder, stored))
+    if os.path.commonpath([_base, file_path]) != _base:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     with open(file_path, "wb") as out:
         out.write(content)
     file_url = f"/uploads/supplier_finance/{supplier_user.supplier_id}/photos/{stored}"
@@ -3748,12 +3760,15 @@ async def create_supplier_finance_invoice_admin(
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
         ext = os.path.splitext(file.filename or "invoice.bin")[1].lower() or ".bin"
-        folder = os.path.join(
-            "uploads", "supplier_finance", str(supplier_id), "invoices"
-        )
+        _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+        folder = os.path.realpath(os.path.join(_base, str(supplier_id), "invoices"))
+        if os.path.commonpath([_base, folder]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         os.makedirs(folder, exist_ok=True)
         stored = f"invoice_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-        file_path = os.path.join(folder, stored)
+        file_path = os.path.realpath(os.path.join(folder, stored))
+        if os.path.commonpath([_base, file_path]) != _base:
+            raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         with open(file_path, "wb") as out:
             out.write(content)
         file_url = f"/uploads/supplier_finance/{supplier_id}/invoices/{stored}"

@@ -157,12 +157,6 @@ def register_supplier_user(
     db.commit()
     db.refresh(supplier_user)
 
-    print("[REGISTER] SupplierUser after update:")
-    print(f"  Email: {supplier_user.email}")
-    print(f"  is_active: {supplier_user.is_active}")
-    print(f"  password_set: {supplier_user.password_set}")
-    print(f"  email_verified: {supplier_user.email_verified}")
-
     # JWT token oluştur (otomatik giriş)
     access_token = create_access_token(sub=str(supplier_user.email), role="supplier")
 

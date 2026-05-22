@@ -808,9 +808,7 @@ async def get_email_signature_image(filename: str):
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
 
     file_path = (base_dir / safe_name).resolve()
-    try:
-        file_path.relative_to(base_dir)
-    except ValueError:
+    if os.path.commonpath([str(base_dir), str(file_path)]) != str(base_dir):
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
 
     if not file_path.exists() or not file_path.is_file():
