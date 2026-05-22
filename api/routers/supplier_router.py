@@ -2508,9 +2508,10 @@ def download_supplier_document_file_admin(
             raise HTTPException(status_code=403, detail="Bu dosyaya erişim izniniz yok")
 
     safe_name = os.path.basename(filename)
-    file_path = os.path.join(
-        "uploads", "supplier_docs", str(supplier_id), category, safe_name
-    )
+    base_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
+    file_path = os.path.realpath(os.path.join(base_dir, category, safe_name))
+    if os.path.commonpath([base_dir, file_path]) != base_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     return FileResponse(file_path)
@@ -2528,9 +2529,10 @@ def download_supplier_document_file(
         raise HTTPException(status_code=403, detail="Bu dosyaya erişim izniniz yok")
 
     safe_name = os.path.basename(filename)
-    file_path = os.path.join(
-        "uploads", "supplier_docs", str(supplier_id), category, safe_name
-    )
+    base_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
+    file_path = os.path.realpath(os.path.join(base_dir, category, safe_name))
+    if os.path.commonpath([base_dir, file_path]) != base_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     return FileResponse(file_path)
