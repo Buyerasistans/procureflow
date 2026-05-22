@@ -264,20 +264,28 @@ async def payment_webhook(
                 .first()
             )
             if txn:
-                txn.status = (
-                    "succeeded" if result.get("status") == "success" else "failed"
-                )
-                txn.completed_at = utcnow()
                 event.linked_transaction_id = txn.id
                 if txn.status == "succeeded":
-                    activate_premium_features_for_payment(db, txn)
-                    activate_subscription_addons_for_payment(db, txn)
-                    _append_onboarding_timeline_for_payment(
-                        db,
-                        txn.id,
-                        action="payment_succeeded",
-                        note="Odeme basariyla tamamlandi",
+                    # Idempotency: already processed, skip re-activation
+                    logger.info(
+                        "Webhook for provider_transaction_id=%s skipped — already succeeded",
+                        txn_pid,
                     )
+                    event.event_type = "duplicate_ignored"
+                else:
+                    txn.status = (
+                        "succeeded" if result.get("status") == "success" else "failed"
+                    )
+                    txn.completed_at = utcnow()
+                    if txn.status == "succeeded":
+                        activate_premium_features_for_payment(db, txn)
+                        activate_subscription_addons_for_payment(db, txn)
+                        _append_onboarding_timeline_for_payment(
+                            db,
+                            txn.id,
+                            action="payment_succeeded",
+                            note="Odeme basariyla tamamlandi",
+                        )
 
     db.commit()
     return {"received": True}
