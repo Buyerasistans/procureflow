@@ -1,0 +1,6 @@
+# Agent critical files
+/tools/agent/AI_BRIEFING.md @Olimpos
+/tools/agent/SESSION_CONTEXT.md @Olimpos
+/tools/agent/STATE.md @Olimpos
+/tools/agent/* @Olimpos
+/.githooks/* @Olimpos

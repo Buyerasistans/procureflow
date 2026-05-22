@@ -1,3 +1,18 @@
 #!/usr/bin/env bash
 set -e
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".githooks/pre-commit.ps1"
+
+protected_files=(
+  "tools/agent/SESSION_CONTEXT.md"
+  "tools/agent/AI_BRIEFING.md"
+)
+
+for f in "${protected_files[@]}"; do
+  if git diff --cached --name-status | grep -E "^D[[:space:]]+$f$" >/dev/null; then
+    echo "ERROR: Protected file cannot be deleted: $f"
+    echo "If intentional, use: ALLOW_AGENT_FILE_DELETE=1 git commit ..."
+    if [ "$ALLOW_AGENT_FILE_DELETE" != "1" ]; then
+      exit 1
+    fi
+  fi
+done
