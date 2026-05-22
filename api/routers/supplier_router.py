@@ -3174,6 +3174,7 @@ def download_supplier_document_file_admin(
 
     safe_name = os.path.basename((filename or "").strip())
     safe_category = (category or "").strip()
+    safe_supplier_dir = str(supplier_id).strip()
     if (
         not safe_name
         or safe_name in {".", ".."}
@@ -3183,11 +3184,18 @@ def download_supplier_document_file_admin(
         or "/" in safe_category
         or "\\" in safe_category
         or not re.fullmatch(r"[A-Za-z0-9_-]+", safe_category)
+        or not re.fullmatch(r"[1-9][0-9]*", safe_supplier_dir)
     ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
-    docs_root = os.path.realpath(os.path.join("uploads", "supplier_docs"))
-    base_dir = os.path.realpath(os.path.join(docs_root, str(supplier_id)))
+    docs_root = os.path.realpath(
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "uploads",
+            "supplier_docs",
+        )
+    )
+    base_dir = os.path.realpath(os.path.join(docs_root, safe_supplier_dir))
     file_path = os.path.realpath(
         os.path.join(base_dir, safe_category, safe_name)
     )
