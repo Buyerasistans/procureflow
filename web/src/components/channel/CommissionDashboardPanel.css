@@ -1,9 +1,9 @@
-.commission-dashboard-panel__refresh-button {
+﻿.commission-dashboard-panel__refresh-button {
   font-size: 12px;
   padding: 3px 10px;
   border-radius: 6px;
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
+  border: 1px solid var(--pf-green-200);
+  background: var(--pf-color-success-light);
   cursor: pointer;
 }
 
@@ -28,15 +28,15 @@
 }
 
 .commission-dashboard-panel__amount--approved {
-  color: #16a34a;
+  color: var(--pf-color-success);
 }
 
 .commission-dashboard-panel__amount--paid {
-  color: #2563eb;
+  color: var(--pf-color-primary);
 }
 
 .commission-dashboard-panel__amount--cancelled {
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .commission-dashboard-panel__section-title {
@@ -61,13 +61,13 @@
 }
 
 .commission-dashboard-panel__table-head-row--org {
-  background: #dcfce7;
-  border-bottom: 1px solid #bbf7d0;
+  background: var(--pf-green-100);
+  border-bottom: 1px solid var(--pf-green-200);
 }
 
 .commission-dashboard-panel__table-head-row--referral {
-  background: #f0fdf4;
-  border-bottom: 1px solid #bbf7d0;
+  background: var(--pf-color-success-light);
+  border-bottom: 1px solid var(--pf-green-200);
 }
 
 .commission-dashboard-panel__th {
@@ -80,7 +80,7 @@
 }
 
 .commission-dashboard-panel__row {
-  border-bottom: 1px solid #f0fdf4;
+  border-bottom: 1px solid var(--pf-color-success-light);
 }
 
 .commission-dashboard-panel__row--referral {
@@ -102,21 +102,21 @@
 
 .commission-dashboard-panel__cell--approved {
   text-align: right;
-  color: #16a34a;
+  color: var(--pf-color-success);
 }
 
 .commission-dashboard-panel__cell--paid {
   text-align: right;
-  color: #2563eb;
+  color: var(--pf-color-primary);
 }
 
 .commission-dashboard-panel__cell--cancelled {
   text-align: right;
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .commission-dashboard-panel__empty {
-  color: #94a3b8;
+  color: var(--pf-slate-400);
   font-size: 13px;
   margin: 0;
 }
@@ -134,11 +134,11 @@
 
 .commission-dashboard-panel__referral-cell--link {
   font-weight: 700;
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .commission-dashboard-panel__referral-cell--commission {
   text-align: right;
-  color: #166534;
+  color: var(--pf-green-800);
   font-weight: 700;
 }

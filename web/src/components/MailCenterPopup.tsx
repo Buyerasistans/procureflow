@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import { Archive, ArrowLeft, BadgeAlert, Bell, Download, ExternalLink, MailOpen, Paperclip, Reply, Search, ShieldAlert, Star, Trash2 } from "lucide-react";
 import { diagnoseMailCenterAccount, fetchMailCenterAttachment, getMailCenterAccounts, getMailCenterMessages, sendMailCenterTest, syncMailCenterInbox, updateMailCenterMessage, type MailCenterAccount, type MailCenterAccountDiagnosis, type MailCenterMessage } from "../services/mail-center.service";
 import { useAuth } from "../hooks/useAuth";
@@ -554,7 +555,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
                     <div style={{ display: "grid", gap: 8 }}>
                       <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", fontWeight: 800 }}>Mesaj İçeriği</div>
                       <div style={{ lineHeight: 1.6, color: "#0f172a", padding: 16, borderRadius: 18, background: "#fff", border: "1px solid #e2e8f0", minHeight: 96 }}>
-                        {selectedMessage.body_html ? <div dangerouslySetInnerHTML={{ __html: selectedMessage.body_html }} /> : <div style={{ whiteSpace: "pre-wrap" }}>{selectedMessage.body_text || selectedMessage.snippet || "Mesaj gövdesi alınmadı."}</div>}
+                        {selectedMessage.body_html ? <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body_html, { FORCE_BODY: true }) }} /> : <div style={{ whiteSpace: "pre-wrap" }}>{selectedMessage.body_text || selectedMessage.snippet || "Mesaj gövdesi alınmadı."}</div>}
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>

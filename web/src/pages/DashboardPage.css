@@ -1,4 +1,4 @@
-.dashboard-page {
+﻿.dashboard-page {
   font-family: Arial, sans-serif;
 }
 
@@ -15,7 +15,7 @@
 .dashboard-page__section-title {
   margin: 0 0 10px;
   font-size: 15px;
-  color: #991b1b;
+  color: var(--pf-red-800);
 }
 
 .dashboard-page__mismatch-list {
@@ -24,7 +24,7 @@
 }
 
 .dashboard-page__mismatch-card {
-  background: #fef2f2;
+  background: var(--pf-red-50);
   border: 1px solid #fca5a5;
   border-radius: 8px;
   padding: 10px 14px;
@@ -41,11 +41,11 @@
 .dashboard-page__mismatch-name {
   font-weight: 600;
   font-size: 14px;
-  color: #991b1b;
+  color: var(--pf-red-800);
 }
 
 .dashboard-page__mismatch-link {
-  color: #991b1b;
+  color: var(--pf-red-800);
   text-decoration: underline;
 }
 
@@ -57,7 +57,7 @@
 
 .dashboard-page__mismatch-totals {
   font-size: 11px;
-  color: #b91c1c;
+  color: var(--pf-red-700);
   text-align: right;
   flex-shrink: 0;
 }
@@ -67,8 +67,8 @@
 }
 
 .dashboard-page__channel-banner {
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  border: 1px solid var(--pf-blue-200);
+  background: var(--pf-color-primary-light);
   color: #1e3a8a;
   border-radius: 10px;
   padding: 10px 14px;
@@ -83,47 +83,47 @@
 }
 
 .dashboard-page__metric-card {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   border-radius: 10px;
   padding: 12px;
-  background: #fff;
+  background: var(--pf-surface);
 }
 
 .dashboard-page__metric-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .dashboard-page__metric-value {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   margin-top: 4px;
 }
 
 .dashboard-page__howto {
   margin-top: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   border-radius: 10px;
-  background: #fff;
+  background: var(--pf-surface);
   padding: 12px;
 }
 
 .dashboard-page__howto-title {
   font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   margin-bottom: 8px;
 }
 
 .dashboard-page__howto-text {
   font-size: 12px;
-  color: #475569;
+  color: var(--pf-slate-600);
   line-height: 1.7;
 }
 
 .dashboard-page__inline-link {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 @media (max-width: 640px) {

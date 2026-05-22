@@ -1,4 +1,4 @@
-.platform-analytics-tab {
+﻿.platform-analytics-tab {
   display: grid;
   gap: 24px;
   padding: 24px 0;
@@ -8,7 +8,7 @@
   margin: 0 0 20px;
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-analytics-tab__section {
@@ -36,7 +36,7 @@
 }
 
 .platform-analytics-tab__metric-card--green {
-  background: #ecfdf5;
+  background: var(--pf-green-50);
   border-color: rgba(5, 150, 105, 0.18);
 }
 
@@ -71,7 +71,7 @@
 }
 
 .platform-analytics-tab__metric-card--rose {
-  background: #fef2f2;
+  background: var(--pf-red-50);
   border-color: rgba(153, 27, 27, 0.18);
 }
 
@@ -82,7 +82,7 @@
 
 .platform-analytics-tab__metric-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
   margin-top: 2px;
 }
 
@@ -93,23 +93,23 @@
 }
 
 .platform-analytics-tab__panel {
-  background: #f9fafb;
+  background: var(--pf-gray-50);
   border-radius: 10px;
   padding: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
   display: grid;
   gap: 10px;
 }
 
 .platform-analytics-tab__panel--white {
-  background: #ffffff;
+  background: var(--pf-surface);
 }
 
 .platform-analytics-tab__panel-title {
   font-weight: 700;
   font-size: 14px;
   margin: 0;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-analytics-tab__panel-title--small {
@@ -121,7 +121,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pf-border-color);
   font-size: 13px;
 }
 
@@ -142,8 +142,8 @@
 }
 
 .platform-analytics-tab__detail-panel {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
   border-radius: 12px;
   padding: 16px;
   display: grid;
@@ -156,18 +156,18 @@
   gap: 16px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
 }
 
 .platform-analytics-tab__detail-row-title {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-analytics-tab__detail-row-subtitle {
   font-size: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .platform-analytics-tab__detail-row-value {
@@ -177,12 +177,12 @@
 .platform-analytics-tab__detail-row-value-number {
   font-size: 20px;
   font-weight: 800;
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .platform-analytics-tab__detail-row-value-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .platform-analytics-tab__filter-bar {
@@ -196,16 +196,16 @@
   display: grid;
   gap: 4px;
   font-size: 12px;
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .platform-analytics-tab__input,
 .platform-analytics-tab__select {
   padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
   font: inherit;
 }
 
@@ -220,22 +220,22 @@
 .platform-analytics-tab__button {
   padding: 8px 12px;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
   font-weight: 700;
   cursor: pointer;
 }
 
 .platform-analytics-tab__button:hover {
-  background: #f8fafc;
+  background: var(--pf-slate-50);
 }
 
 .platform-analytics-tab__empty-state {
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--pf-slate-50);
   padding: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
 }
 
@@ -250,25 +250,25 @@
   gap: 12px;
   align-items: center;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #f8fafc;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-slate-50);
   padding: 10px 12px;
 }
 
 .platform-analytics-tab__telemetry-host {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-analytics-tab__telemetry-text {
   font-size: 12px;
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .platform-analytics-tab__telemetry-count {
   text-align: right;
   font-weight: 800;
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 @media (max-width: 48rem) {

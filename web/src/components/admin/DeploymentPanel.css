@@ -1,4 +1,4 @@
-.custom-scrollbar::-webkit-scrollbar {
+﻿.custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
 
@@ -7,11 +7,11 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--pf-slate-700);
   border-radius: 10px;
-  border: 2px solid #0f172a;
+  border: 2px solid var(--pf-slate-900);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--pf-slate-600);
 }

@@ -31,6 +31,49 @@
   --pf-slate-800:  #1e293b;
   --pf-slate-900:  #0f172a;
 
+  /* ── Neutral Palette (Gray) ──────────────────────── */
+  --pf-gray-50:  #f9fafb;
+  --pf-gray-100: #f3f4f6;
+  --pf-gray-300: #d1d5db;
+  --pf-gray-400: #9ca3af;
+  --pf-gray-500: #6b7280;
+  --pf-gray-700: #374151;
+  --pf-gray-800: #1f2937;
+  --pf-gray-900: #111827;
+
+  /* ── Blue Scale ──────────────────────────────────── */
+  --pf-blue-100: #dbeafe;
+  --pf-blue-200: #bfdbfe;
+  --pf-blue-500: #3b82f6;
+
+  /* ── Red Scale ───────────────────────────────────── */
+  --pf-red-50:  #fef2f2;
+  --pf-red-100: #fee2e2;
+  --pf-red-500: #ef4444;
+  --pf-red-600: #dc2626;
+  --pf-red-700: #b91c1c;
+  --pf-red-800: #991b1b;
+
+  /* ── Green Scale ─────────────────────────────────── */
+  --pf-green-50:  #ecfdf5;
+  --pf-green-100: #dcfce7;
+  --pf-green-200: #bbf7d0;
+  --pf-green-500: #10b981;
+  --pf-green-700: #15803d;
+  --pf-green-800: #166534;
+
+  /* ── Teal ────────────────────────────────────────── */
+  --pf-teal-700: #0f766e;
+
+  /* ── Amber / Orange ──────────────────────────────── */
+  --pf-amber-400:  #f59e0b;
+  --pf-amber-800:  #92400e;
+  --pf-orange-200: #fed7aa;
+  --pf-orange-800: #9a3412;
+
+  /* ── Violet ──────────────────────────────────────── */
+  --pf-violet-600: #7c3aed;
+
   /* ── Surface / Background ────────────────────────── */
   --pf-surface:         #ffffff;
   --pf-surface-raised:  #f8fafc;

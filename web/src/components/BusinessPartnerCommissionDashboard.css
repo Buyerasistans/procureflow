@@ -1,4 +1,4 @@
-.business-partner-commission-dashboard {
+﻿.business-partner-commission-dashboard {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -13,26 +13,26 @@
 }
 
 .business-partner-commission-dashboard__loading {
-  background-color: #f3f4f6;
-  color: #6b7280;
+  background-color: var(--pf-gray-100);
+  color: var(--pf-gray-500);
 }
 
 .business-partner-commission-dashboard__error {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--pf-red-100);
+  color: var(--pf-red-800);
   font-size: 14px;
 }
 
 .business-partner-commission-dashboard__header-title {
   margin: 0 0 8px 0;
-  color: #1f2937;
+  color: var(--pf-gray-800);
   font-size: 24px;
   font-weight: 700;
 }
 
 .business-partner-commission-dashboard__header-description {
   margin: 0;
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 14px;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .business-partner-commission-dashboard__summary-card--blue {
-  background-color: #dbeafe;
+  background-color: var(--pf-blue-100);
   border-color: #7dd3fc;
 }
 
@@ -59,8 +59,8 @@
 }
 
 .business-partner-commission-dashboard__summary-card--green {
-  background-color: #f0fdf4;
-  border-color: #bbf7d0;
+  background-color: var(--pf-color-success-light);
+  border-color: var(--pf-green-200);
 }
 
 .business-partner-commission-dashboard__summary-label {
@@ -75,11 +75,11 @@
 }
 
 .business-partner-commission-dashboard__summary-label--amber {
-  color: #92400e;
+  color: var(--pf-amber-800);
 }
 
 .business-partner-commission-dashboard__summary-label--green {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .business-partner-commission-dashboard__summary-value {
@@ -93,17 +93,17 @@
 }
 
 .business-partner-commission-dashboard__summary-value--amber {
-  color: #b45309;
+  color: var(--pf-color-warning);
 }
 
 .business-partner-commission-dashboard__summary-value--green {
-  color: #16a34a;
+  color: var(--pf-color-success);
 }
 
 .business-partner-commission-dashboard__tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pf-border-color);
 }
 
 .business-partner-commission-dashboard__tab {
@@ -115,24 +115,24 @@
   font-size: 14px;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-  background-color: #f3f4f6;
-  color: #6b7280;
+  background-color: var(--pf-gray-100);
+  color: var(--pf-gray-500);
 }
 
 .business-partner-commission-dashboard__tab--active {
-  background-color: #ffffff;
+  background-color: var(--pf-surface);
   color: #4f46e5;
   border-bottom-color: #4f46e5;
   font-weight: 600;
 }
 
 .business-partner-commission-dashboard__tab--inactive:hover {
-  background-color: #e5e7eb;
+  background-color: var(--pf-border-color);
 }
 
 .business-partner-commission-dashboard__section-title {
   margin: 0 0 12px 0;
-  color: #1f2937;
+  color: var(--pf-gray-800);
   font-size: 16px;
   font-weight: 600;
 }
@@ -148,7 +148,7 @@
 }
 
 .business-partner-commission-dashboard__thead {
-  background-color: #f3f4f6;
+  background-color: var(--pf-gray-100);
 }
 
 .business-partner-commission-dashboard__th,
@@ -159,8 +159,8 @@
 .business-partner-commission-dashboard__th {
   text-align: left;
   font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
+  color: var(--pf-gray-700);
+  border-bottom: 1px solid var(--pf-border-color);
 }
 
 .business-partner-commission-dashboard__th--right,
@@ -174,34 +174,34 @@
 }
 
 .business-partner-commission-dashboard__row {
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #ffffff;
+  border-bottom: 1px solid var(--pf-border-color);
+  background-color: var(--pf-surface);
 }
 
 .business-partner-commission-dashboard__row:hover {
-  background-color: #f9fafb;
+  background-color: var(--pf-gray-50);
 }
 
 .business-partner-commission-dashboard__date {
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .business-partner-commission-dashboard__supplier {
-  color: #1f2937;
+  color: var(--pf-gray-800);
   font-weight: 500;
 }
 
 .business-partner-commission-dashboard__rate {
-  color: #1f2937;
+  color: var(--pf-gray-800);
   font-weight: 600;
 }
 
 .business-partner-commission-dashboard__amount {
-  color: #1f2937;
+  color: var(--pf-gray-800);
 }
 
 .business-partner-commission-dashboard__earned {
-  color: #16a34a;
+  color: var(--pf-color-success);
   font-weight: 600;
 }
 
@@ -214,13 +214,13 @@
 }
 
 .business-partner-commission-dashboard__status--paid {
-  background-color: #ecfdf5;
-  color: #15803d;
+  background-color: var(--pf-green-50);
+  color: var(--pf-green-700);
 }
 
 .business-partner-commission-dashboard__status--pending {
   background-color: #fef3c7;
-  color: #92400e;
+  color: var(--pf-amber-800);
 }
 
 .business-partner-commission-dashboard__status--processing {
@@ -230,9 +230,9 @@
 
 .business-partner-commission-dashboard__report {
   padding: 16px;
-  background-color: #f9fafb;
+  background-color: var(--pf-gray-50);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
 }
 
 .business-partner-commission-dashboard__report-grid {
@@ -244,14 +244,14 @@
 
 .business-partner-commission-dashboard__report-card {
   padding: 12px;
-  background-color: #ffffff;
+  background-color: var(--pf-surface);
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
 }
 
 .business-partner-commission-dashboard__report-card--green {
-  background-color: #f0fdf4;
-  border-color: #bbf7d0;
+  background-color: var(--pf-color-success-light);
+  border-color: var(--pf-green-200);
 }
 
 .business-partner-commission-dashboard__report-label {
@@ -259,32 +259,32 @@
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .business-partner-commission-dashboard__report-label--green {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .business-partner-commission-dashboard__report-value {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--pf-gray-800);
 }
 
 .business-partner-commission-dashboard__report-value--green {
-  color: #16a34a;
+  color: var(--pf-color-success);
 }
 
 .business-partner-commission-dashboard__report-breakdown {
   padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--pf-border-color);
 }
 
 .business-partner-commission-dashboard__report-breakdown-title {
   margin: 0 0 12px 0;
-  color: #1f2937;
+  color: var(--pf-gray-800);
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
@@ -304,31 +304,31 @@
 }
 
 .business-partner-commission-dashboard__report-breakdown-label {
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .business-partner-commission-dashboard__report-breakdown-value {
-  color: #1f2937;
+  color: var(--pf-gray-800);
   font-weight: 500;
 }
 
 .business-partner-commission-dashboard__report-breakdown-value--green {
-  color: #16a34a;
+  color: var(--pf-color-success);
   font-weight: 600;
 }
 
 .business-partner-commission-dashboard__report-breakdown-row--total {
   padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--pf-border-color);
   font-weight: 600;
 }
 
 .business-partner-commission-dashboard__report-breakdown-label--total {
-  color: #1f2937;
+  color: var(--pf-gray-800);
 }
 
 .business-partner-commission-dashboard__report-breakdown-value--total {
-  color: #16a34a;
+  color: var(--pf-color-success);
 }
 
 .business-partner-commission-dashboard__month-filter {
@@ -339,14 +339,14 @@
 }
 
 .business-partner-commission-dashboard__month-label {
-  color: #374151;
+  color: var(--pf-gray-700);
   font-weight: 500;
   font-size: 14px;
 }
 
 .business-partner-commission-dashboard__month-input {
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pf-gray-300);
   border-radius: 6px;
   font-size: 14px;
 }

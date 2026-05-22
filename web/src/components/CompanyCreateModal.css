@@ -1,4 +1,4 @@
-.company-create-modal__backdrop {
+﻿.company-create-modal__backdrop {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -14,7 +14,7 @@
   max-width: 760px;
   max-height: 90vh;
   overflow: auto;
-  background: #fff;
+  background: var(--pf-surface);
   border-radius: 10px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
@@ -58,9 +58,9 @@
 }
 
 .company-create-modal__notice--info {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1d4ed8;
+  background: var(--pf-color-primary-light);
+  border: 1px solid var(--pf-blue-200);
+  color: var(--pf-color-primary-dark);
 }
 
 .company-create-modal__notice--error {
@@ -94,11 +94,11 @@
   border-radius: 10px;
   text-decoration: none;
   font-weight: 700;
-  color: #fff;
+  color: var(--pf-surface);
 }
 
 .company-create-modal__cta-button--upgrade {
-  background: #991b1b;
+  background: var(--pf-red-800);
 }
 
 .company-create-modal__cta-button--addon {
@@ -117,13 +117,13 @@
   width: 110px;
   height: 110px;
   border-radius: 16px;
-  border: 2px solid #e2e8f0;
-  background: #f8fafc;
+  border: 2px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--pf-slate-400);
   font-size: 12px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
@@ -143,10 +143,10 @@
   border-radius: 8px;
   border: 2px dashed #93c5fd;
   cursor: pointer;
-  color: #2563eb;
+  color: var(--pf-color-primary);
   font-weight: 600;
   font-size: 13px;
-  background: #eff6ff;
+  background: var(--pf-color-primary-light);
 }
 
 .company-create-modal__file-input {
@@ -155,7 +155,7 @@
 
 .company-create-modal__file-name {
   font-size: 11px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .company-create-modal__two-column,
@@ -199,8 +199,8 @@
   border-radius: 4px;
   font-family: inherit;
   font-size: 14px;
-  background: #fff;
-  color: #111827;
+  background: var(--pf-surface);
+  color: var(--pf-gray-900);
 }
 
 .company-create-modal__textarea {
@@ -219,8 +219,8 @@
   height: 38px;
   cursor: pointer;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid var(--pf-gray-300);
+  background: var(--pf-surface);
   padding: 0;
 }
 
@@ -233,16 +233,16 @@
 .company-create-modal__toggle-button {
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid var(--pf-gray-300);
+  background: var(--pf-surface);
   cursor: pointer;
   font-weight: 600;
-  color: #334155;
+  color: var(--pf-slate-700);
 }
 
 .company-create-modal__map-frame {
   margin-bottom: 16px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--pf-border-color-alt);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -266,7 +266,7 @@
   gap: 8px;
   font-size: 13px;
   cursor: pointer;
-  color: #334155;
+  color: var(--pf-slate-700);
 }
 
 .company-create-modal__checkbox-input {
@@ -295,12 +295,12 @@
 
 .company-create-modal__primary-button {
   background: #2196f3;
-  color: #fff;
+  color: var(--pf-surface);
 }
 
 .company-create-modal__primary-button--disabled {
   background: #ccc;
-  color: #fff;
+  color: var(--pf-surface);
   cursor: not-allowed;
 }
 

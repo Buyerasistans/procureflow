@@ -1,7 +1,7 @@
-.channel-section-card {
-  border: 1px solid #e5e7eb;
+﻿.channel-section-card {
+  border: 1px solid var(--pf-border-color);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--pf-surface);
   padding: 16px;
 }
 
@@ -23,20 +23,20 @@
 
 .channel-section-header__title {
   margin: 0;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   font-size: 18px;
   font-weight: 800;
 }
 
 .channel-stat-card {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   border-radius: 12px;
   background: transparent;
   padding: 12px;
 }
 
 .channel-stat-card__label {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
   font-weight: 700;
 }
@@ -44,23 +44,23 @@
 .channel-stat-card__value {
   display: block;
   margin-top: 4px;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .channel-border--green {
-  border-color: #bbf7d0;
+  border-color: var(--pf-green-200);
 }
 
 .channel-border--soft-green {
-  border-color: #dcfce7;
+  border-color: var(--pf-green-100);
 }
 
 .channel-border--slate {
-  border-color: #e2e8f0;
+  border-color: var(--pf-slate-200);
 }
 
 .channel-border--blue {
-  border-color: #dbeafe;
+  border-color: var(--pf-blue-100);
 }
 
 .channel-border--amber {
@@ -68,35 +68,35 @@
 }
 
 .channel-border--red {
-  border-color: #fecaca;
+  border-color: var(--pf-color-danger-border);
 }
 
 .channel-border--sky {
-  border-color: #bfdbfe;
+  border-color: var(--pf-blue-200);
 }
 
 .channel-border--orange {
-  border-color: #fed7aa;
+  border-color: var(--pf-orange-200);
 }
 
 .channel-border--gray {
-  border-color: #e5e7eb;
+  border-color: var(--pf-border-color);
 }
 
 .channel-bg--white {
-  background: #ffffff;
+  background: var(--pf-surface);
 }
 
 .channel-bg--green {
-  background: #f0fdf4;
+  background: var(--pf-color-success-light);
 }
 
 .channel-bg--slate {
-  background: #f8fafc;
+  background: var(--pf-slate-50);
 }
 
 .channel-bg--blue {
-  background: #eff6ff;
+  background: var(--pf-color-primary-light);
 }
 
 .channel-bg--amber {
@@ -104,11 +104,11 @@
 }
 
 .channel-bg--red {
-  background: #fef2f2;
+  background: var(--pf-red-50);
 }
 
 .channel-bg--orange {
-  background: #fff7ed;
+  background: var(--pf-color-warning-light);
 }
 
 .channel-bg--yellow {
@@ -124,11 +124,11 @@
 }
 
 .channel-text--slate {
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .channel-text--dark-slate {
-  color: #334155;
+  color: var(--pf-slate-700);
 }
 
 .channel-text--amber {
@@ -148,5 +148,5 @@
 }
 
 .channel-text--orange {
-  color: #9a3412;
+  color: var(--pf-orange-800);
 }

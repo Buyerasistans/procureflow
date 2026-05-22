@@ -1,12 +1,12 @@
-.platform-overview-priority-panels {
+﻿.platform-overview-priority-panels {
   display: grid;
   gap: 16px;
 }
 
 .platform-overview-priority-panels__card {
   border-radius: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
   padding: 22px;
   display: grid;
   gap: 10px;
@@ -24,7 +24,7 @@
   margin-top: 8px;
   font-size: 22px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-overview-priority-panels__list {
@@ -35,10 +35,10 @@
 
 .platform-overview-priority-panels__item {
   border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
   padding: 12px 14px;
-  color: #334155;
+  color: var(--pf-slate-700);
   display: grid;
   gap: 6px;
 }
@@ -53,11 +53,11 @@
 
 .platform-overview-priority-panels__item-title {
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-overview-priority-panels__item-meta {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
 }
 
@@ -71,16 +71,16 @@
   display: inline-flex;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--pf-slate-200);
+  color: var(--pf-slate-700);
   font-size: 11px;
   font-weight: 700;
 }
 
 .platform-overview-priority-panels__empty {
   border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
   padding: 12px 14px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }

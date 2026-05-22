@@ -1,4 +1,4 @@
-.platform-overview-summary-section {
+﻿.platform-overview-summary-section {
   display: grid;
   gap: 12px;
 }
@@ -11,8 +11,8 @@
 
 .platform-overview-summary-section__card {
   border-radius: 20px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
   padding: 18px;
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
   display: grid;
@@ -24,7 +24,7 @@
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .platform-overview-summary-section__value {
@@ -38,7 +38,7 @@
 }
 
 .platform-overview-summary-section__value--blue {
-  color: #2563eb;
+  color: var(--pf-color-primary);
 }
 
 .platform-overview-summary-section__value--green {
@@ -46,27 +46,27 @@
 }
 
 .platform-overview-summary-section__value--amber {
-  color: #b45309;
+  color: var(--pf-color-warning);
 }
 
 .platform-overview-summary-section__value--violet {
-  color: #7c3aed;
+  color: var(--pf-violet-600);
 }
 
 .platform-overview-summary-section__value--slate {
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .platform-overview-summary-section__value--red {
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .platform-overview-summary-section__value--teal {
-  color: #0f766e;
+  color: var(--pf-teal-700);
 }
 
 .platform-overview-summary-section__note {
   margin-top: 8px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
 }

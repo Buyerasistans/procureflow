@@ -1,37 +1,37 @@
-.social-share-panel {
+﻿.social-share-panel {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .social-share-panel__empty {
-  color: #9ca3af;
+  color: var(--pf-gray-400);
   font-size: 13px;
   margin: 0;
 }
 
 .social-share-panel__summary {
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--pf-slate-300);
   border-radius: 8px;
   padding: 10px;
-  background-color: #f8fafc;
+  background-color: var(--pf-slate-50);
 }
 
 .social-share-panel__summary-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   margin-bottom: 4px;
 }
 
 .social-share-panel__summary-message {
   font-size: 13px;
-  color: #334155;
+  color: var(--pf-slate-700);
   margin-bottom: 6px;
 }
 
 .social-share-panel__summary-link {
   font-size: 12px;
-  color: #0f766e;
+  color: var(--pf-teal-700);
   word-break: break-all;
 }
 
@@ -44,14 +44,14 @@
 .social-share-panel__link {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   border-radius: 8px;
   padding: 7px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: #334155;
+  color: var(--pf-slate-700);
   text-decoration: none;
-  background-color: #fff;
+  background-color: var(--pf-surface);
 }
 
 .social-share-panel__copy-button {
@@ -61,6 +61,6 @@
   font-size: 12px;
   font-weight: 700;
   color: #065f46;
-  background-color: #ecfdf5;
+  background-color: var(--pf-green-50);
   cursor: pointer;
 }

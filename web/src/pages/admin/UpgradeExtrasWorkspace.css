@@ -1,4 +1,4 @@
-.upgrade-extras-workspace {
+﻿.upgrade-extras-workspace {
   display: grid;
   gap: 14px;
 }
@@ -6,8 +6,8 @@
 .upgrade-extras-workspace__hero {
   margin-top: 24px;
   border-radius: 20px;
-  border: 1px solid #dbeafe;
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+  border: 1px solid var(--pf-blue-100);
+  background: linear-gradient(135deg, var(--pf-color-primary-light) 0%, var(--pf-surface) 100%);
   padding: 18px;
   display: grid;
   gap: 12px;
@@ -31,17 +31,17 @@
   font-weight: 800;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .upgrade-extras-workspace__title {
   font-size: 24px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .upgrade-extras-workspace__description {
-  color: #475569;
+  color: var(--pf-slate-600);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -53,8 +53,8 @@
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid #93c5fd;
-  background: #ffffff;
-  color: #1d4ed8;
+  background: var(--pf-surface);
+  color: var(--pf-color-primary-dark);
   text-decoration: none;
   font-weight: 800;
 }
@@ -69,8 +69,8 @@
 
 .upgrade-extras-workspace__panel {
   border-radius: 24px;
-  border: 1px solid #e5e7eb;
-  background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%);
+  border: 1px solid var(--pf-border-color);
+  background: linear-gradient(180deg, var(--pf-surface) 0%, #fcfcfd 100%);
   padding: 22px;
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
   display: grid;
@@ -78,7 +78,7 @@
 }
 
 .upgrade-extras-workspace__panel--accent {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  background: linear-gradient(180deg, var(--pf-surface) 0%, #f8fbff 100%);
 }
 
 .upgrade-extras-workspace__panel--focused {
@@ -98,11 +98,11 @@
   margin-top: 8px;
   font-size: 24px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .upgrade-extras-workspace__panel-description {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -116,8 +116,8 @@
 
 .upgrade-extras-workspace__service-card {
   border-radius: 18px;
-  border: 1px solid #dbe3ee;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid var(--pf-border-color-alt);
+  background: linear-gradient(180deg, var(--pf-slate-50) 0%, var(--pf-surface) 100%);
   padding: 16px;
   display: grid;
   gap: 10px;
@@ -127,13 +127,13 @@
 .upgrade-extras-workspace__addon-title,
 .upgrade-extras-workspace__package-title {
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .upgrade-extras-workspace__service-note,
 .upgrade-extras-workspace__addon-description,
 .upgrade-extras-workspace__package-description {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -153,29 +153,29 @@
 }
 
 .upgrade-extras-workspace__pill--green {
-  background: #ecfdf5;
-  color: #166534;
+  background: var(--pf-green-50);
+  color: var(--pf-green-800);
 }
 
 .upgrade-extras-workspace__pill--amber {
-  background: #fff7ed;
-  color: #9a3412;
+  background: var(--pf-color-warning-light);
+  color: var(--pf-orange-800);
 }
 
 .upgrade-extras-workspace__pill--blue {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--pf-color-primary-light);
+  color: var(--pf-color-primary-dark);
 }
 
 .upgrade-extras-workspace__pill--red {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--pf-red-50);
+  color: var(--pf-red-600);
 }
 
 .upgrade-extras-workspace__addon-section {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pf-slate-200);
   display: grid;
   gap: 12px;
 }
@@ -189,7 +189,7 @@
 }
 
 .upgrade-extras-workspace__section-copy {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -201,15 +201,15 @@
 
 .upgrade-extras-workspace__addon-card {
   border-radius: 18px;
-  border: 1px solid #dbe3ee;
-  background: linear-gradient(180deg, #fffaf0 0%, #ffffff 100%);
+  border: 1px solid var(--pf-border-color-alt);
+  background: linear-gradient(180deg, #fffaf0 0%, var(--pf-surface) 100%);
   padding: 16px;
   display: grid;
   gap: 8px;
 }
 
 .upgrade-extras-workspace__addon-card--selected {
-  border-color: #f59e0b;
+  border-color: var(--pf-amber-400);
   box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
 }
 
@@ -228,8 +228,8 @@
   display: inline-flex;
   padding: 5px 10px;
   border-radius: 999px;
-  background: #fff7ed;
-  color: #b45309;
+  background: var(--pf-color-warning-light);
+  color: var(--pf-color-warning);
   font-size: 12px;
   font-weight: 800;
 }
@@ -248,13 +248,13 @@
 }
 
 .upgrade-extras-workspace__addon-cta {
-  border: 1px solid #fed7aa;
-  background: #ffffff;
-  color: #9a3412;
+  border: 1px solid var(--pf-orange-200);
+  background: var(--pf-surface);
+  color: var(--pf-orange-800);
 }
 
 .upgrade-extras-workspace__addon-increment {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
   font-size: 12px;
   font-weight: 800;
 }
@@ -266,18 +266,18 @@
 
 .upgrade-extras-workspace__detail-item {
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   padding: 8px 10px;
-  color: #334155;
+  color: var(--pf-slate-700);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .upgrade-extras-workspace__upgrade-panel {
   border-radius: 24px;
-  border: 1px solid #e5e7eb;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid var(--pf-border-color);
+  background: linear-gradient(180deg, var(--pf-surface) 0%, #f8fbff 100%);
   padding: 22px;
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
   display: grid;
@@ -296,19 +296,19 @@
   margin-top: 8px;
   font-size: 24px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .upgrade-extras-workspace__package-description {
   margin-top: 8px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   line-height: 1.6;
 }
 
 .upgrade-extras-workspace__current-package {
   border-radius: 18px;
   padding: 16px;
-  background: #eff6ff;
+  background: var(--pf-color-primary-light);
   border: 1px solid #93c5fd;
   display: grid;
   gap: 8px;
@@ -324,7 +324,7 @@
 
 .upgrade-extras-workspace__current-package-name {
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   font-size: 22px;
 }
 
@@ -332,15 +332,15 @@
   display: inline-flex;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--pf-blue-100);
+  color: var(--pf-color-primary-dark);
   font-size: 11px;
   font-weight: 800;
 }
 
 .upgrade-extras-workspace__current-package-price,
 .upgrade-extras-workspace__package-price {
-  color: #0f766e;
+  color: var(--pf-teal-700);
   font-weight: 800;
   font-size: 13px;
 }
@@ -353,19 +353,19 @@
 .upgrade-extras-workspace__highlight-item {
   border-radius: 12px;
   padding: 8px 10px;
-  background: #ffffff;
-  border: 1px solid #bfdbfe;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-blue-200);
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: var(--pf-slate-700);
 }
 
 .upgrade-extras-workspace__package-card {
   border-radius: 16px;
   padding: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #334155;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
+  color: var(--pf-slate-700);
   display: grid;
   gap: 10px;
 }
@@ -377,17 +377,17 @@
 
 .upgrade-extras-workspace__package-name {
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .upgrade-extras-workspace__package-meta {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
   margin-top: 4px;
 }
 
 .upgrade-extras-workspace__package-card-description {
-  color: #475569;
+  color: var(--pf-slate-600);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -397,15 +397,15 @@
 }
 
 .upgrade-extras-workspace__package-cta {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--pf-color-primary) 0%, var(--pf-color-primary-dark) 100%);
+  color: var(--pf-surface);
   box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
 }
 
 .upgrade-extras-workspace__package-secondary-cta {
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
 }
 
 .upgrade-extras-workspace__footer {
@@ -418,8 +418,8 @@
   justify-content: center;
   padding: 11px 16px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--pf-color-primary) 0%, var(--pf-color-primary-dark) 100%);
+  color: var(--pf-surface);
   text-decoration: none;
   font-weight: 800;
   box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);

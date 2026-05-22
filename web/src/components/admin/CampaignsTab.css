@@ -1,4 +1,4 @@
-.campaigns-admin-tab {
+﻿.campaigns-admin-tab {
   display: grid;
   gap: 18px;
   padding: 24px 0;
@@ -19,22 +19,22 @@
 }
 
 .campaigns-admin-tab__description {
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 13px;
   margin: 6px 0 0;
 }
 
 .campaigns-admin-tab__error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
+  background: var(--pf-red-50);
+  border: 1px solid var(--pf-color-danger-border);
+  color: var(--pf-red-700);
   border-radius: 10px;
   padding: 12px;
 }
 
 .campaigns-admin-tab__section {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
   border-radius: 12px;
   padding: 16px;
 }
@@ -60,7 +60,7 @@
 
 .campaigns-admin-tab__provider-card {
   text-align: left;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
   border-radius: 10px;
   padding: 12px;
   background: #fcfcfd;
@@ -68,7 +68,7 @@
 }
 
 .campaigns-admin-tab__provider-card--selected {
-  border-color: #0f766e;
+  border-color: var(--pf-teal-700);
   background: #f0fdfa;
 }
 
@@ -99,21 +99,21 @@
 }
 
 .campaigns-admin-tab__badge--ready {
-  background: #ecfdf5;
+  background: var(--pf-green-50);
   color: #047857;
   border-color: #a7f3d0;
 }
 
 .campaigns-admin-tab__badge--pending {
-  background: #fff7ed;
-  color: #b45309;
-  border-color: #fed7aa;
+  background: var(--pf-color-warning-light);
+  color: var(--pf-color-warning);
+  border-color: var(--pf-orange-200);
 }
 
 .campaigns-admin-tab__provider-meta {
   margin-top: 4px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .campaigns-admin-tab__provider-supports {
@@ -127,20 +127,20 @@
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 11px;
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-gray-100);
+  color: var(--pf-gray-700);
+  border: 1px solid var(--pf-border-color);
 }
 
 .campaigns-admin-tab__settings-panel {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
   border-radius: 10px;
   padding: 14px;
-  background: #fff;
+  background: var(--pf-surface);
 }
 
 .campaigns-admin-tab__settings-empty {
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .campaigns-admin-tab__settings-content {
@@ -160,7 +160,7 @@
 }
 
 .campaigns-admin-tab__settings-code {
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 12px;
 }
 
@@ -173,7 +173,7 @@
 }
 
 .campaigns-admin-tab__note {
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 12px;
 }
 
@@ -191,18 +191,18 @@
 .campaigns-admin-tab__label {
   font-size: 12px;
   font-weight: 700;
-  color: #111827;
+  color: var(--pf-gray-900);
 }
 
 .campaigns-admin-tab__input,
 .campaigns-admin-tab__select,
 .campaigns-admin-tab__textarea {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pf-gray-300);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;
-  background: #fff;
+  background: var(--pf-surface);
 }
 
 .campaigns-admin-tab__textarea {
@@ -219,14 +219,14 @@
 }
 
 .campaigns-admin-tab__button--primary {
-  background: #0f766e;
-  color: #fff;
+  background: var(--pf-teal-700);
+  color: var(--pf-surface);
 }
 
 .campaigns-admin-tab__button--secondary {
-  background: #fff;
-  color: #0f172a;
-  border: 1px solid #cbd5e1;
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
+  border: 1px solid var(--pf-slate-300);
 }
 
 .campaigns-admin-tab__campaign-grid {
@@ -236,8 +236,8 @@
 }
 
 .campaigns-admin-tab__campaign-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
   border-radius: 12px;
   padding: 16px;
 }
@@ -251,13 +251,13 @@
 
 .campaigns-admin-tab__campaign-meta {
   margin-top: 4px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 12px;
 }
 
 .campaigns-admin-tab__campaign-description {
   margin-top: 8px;
-  color: #374151;
+  color: var(--pf-gray-700);
   font-size: 13px;
 }
 
@@ -275,7 +275,7 @@
 .campaigns-admin-tab__column-title {
   font-weight: 700;
   font-size: 12px;
-  color: #111827;
+  color: var(--pf-gray-900);
   margin-bottom: 8px;
 }
 
@@ -285,7 +285,7 @@
 }
 
 .campaigns-admin-tab__mini-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 12px;
@@ -293,7 +293,7 @@
 }
 
 .campaigns-admin-tab__empty {
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 12px;
 }
 
@@ -342,7 +342,7 @@
 }
 
 .campaigns-admin-tab__summary-text {
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 12px;
   margin: 0;
 }

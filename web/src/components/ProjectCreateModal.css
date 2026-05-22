@@ -1,4 +1,4 @@
-.project-create-modal__backdrop {
+﻿.project-create-modal__backdrop {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -14,7 +14,7 @@
   max-width: 840px;
   max-height: 90vh;
   overflow: auto;
-  background: #fff;
+  background: var(--pf-surface);
   border-radius: 10px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
@@ -32,7 +32,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: var(--pf-gray-900);
 }
 
 .project-create-modal__close-button {
@@ -55,10 +55,10 @@
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--pf-color-danger-border);
   border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--pf-red-50);
+  color: var(--pf-red-700);
 }
 
 .project-create-modal__error-actions {
@@ -76,11 +76,11 @@
   border-radius: 10px;
   text-decoration: none;
   font-weight: 700;
-  color: #fff;
+  color: var(--pf-surface);
 }
 
 .project-create-modal__cta--upgrade {
-  background: #991b1b;
+  background: var(--pf-red-800);
 }
 
 .project-create-modal__cta--addon {
@@ -121,8 +121,8 @@
   padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background: #fff;
-  color: #111827;
+  background: var(--pf-surface);
+  color: var(--pf-gray-900);
   font-family: inherit;
   font-size: 14px;
 }
@@ -135,16 +135,16 @@
 .project-create-modal__helper-text {
   margin-bottom: 8px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .project-create-modal__people-box {
   max-height: 140px;
   overflow-y: auto;
   padding: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pf-gray-300);
   border-radius: 6px;
-  background: #fff;
+  background: var(--pf-surface);
 }
 
 .project-create-modal__checkbox-row {
@@ -154,7 +154,7 @@
   margin-bottom: 6px;
   cursor: pointer;
   font-size: 13px;
-  color: #334155;
+  color: var(--pf-slate-700);
 }
 
 .project-create-modal__checkbox-input {
@@ -165,7 +165,7 @@
 
 .project-create-modal__empty-state {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .project-create-modal__map-shell {
@@ -204,12 +204,12 @@
 
 .project-create-modal__primary-button {
   background: #2196f3;
-  color: #fff;
+  color: var(--pf-surface);
 }
 
 .project-create-modal__primary-button--disabled {
   background: #ccc;
-  color: #fff;
+  color: var(--pf-surface);
   cursor: not-allowed;
 }
 

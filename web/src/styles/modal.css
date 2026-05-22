@@ -1,0 +1,148 @@
+.ms-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--pf-overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--pf-z-top);
+  padding: 20px;
+}
+
+.ms-container {
+  background: var(--pf-surface);
+  border-radius: var(--pf-radius-sm);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.ms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--pf-gray-300);
+  background: var(--pf-gray-100);
+}
+
+.ms-title {
+  margin: 0;
+  font-size: var(--pf-text-xl);
+  font-weight: var(--pf-font-bold);
+}
+
+.ms-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--pf-gray-500);
+  line-height: 1;
+}
+
+.ms-content {
+  padding: 20px;
+}
+
+.ms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pf-space-3);
+  margin-bottom: var(--pf-space-3);
+}
+
+.ms-full-width {
+  margin-bottom: var(--pf-space-3);
+}
+
+.ms-label {
+  display: block;
+  font-size: var(--pf-text-base);
+  font-weight: 600;
+  margin-bottom: var(--pf-space-1);
+  color: #333;
+}
+
+.ms-input,
+.ms-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: var(--pf-radius-sm);
+  font-size: var(--pf-text-md);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.ms-textarea {
+  resize: none;
+}
+
+.ms-error {
+  background: #ffebee;
+  border: 1px solid #ff6b6b;
+  color: #d32f2f;
+  padding: var(--pf-space-3);
+  border-radius: var(--pf-radius-sm);
+  margin-bottom: var(--pf-space-4);
+  font-size: var(--pf-text-base);
+}
+
+.ms-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  font-size: var(--pf-text-base);
+}
+
+.ms-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.ms-footer {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid var(--pf-gray-300);
+  padding-top: 16px;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.ms-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--pf-radius-sm);
+  cursor: pointer;
+  font-weight: var(--pf-font-bold);
+  font-size: var(--pf-text-md);
+}
+
+.ms-btn--auto-flex {
+  flex: 0 1 auto;
+}
+
+.ms-btn--primary {
+  background: #2196f3;
+  color: var(--pf-surface);
+}
+
+.ms-btn--primary:disabled,
+.ms-btn--primary.ms-btn--disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.ms-btn--secondary {
+  background: var(--pf-gray-300);
+  color: #333;
+}
+
+.ms-btn--danger {
+  background: #f44336;
+  color: var(--pf-surface);
+}
