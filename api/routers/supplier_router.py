@@ -3838,30 +3838,24 @@ async def create_supplier_finance_photo_admin(
 ):
     _require_supplier_access_for_finance(db, supplier_id, current_user)
 
+    content = await file.read()
+    if len(content) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Dosya boyutu 20MB'ı geçemez")
+
     base_upload_dir = os.path.realpath(os.path.join("uploads", "supplier_finance"))
     folder = os.path.realpath(
         os.path.join(base_upload_dir, str(supplier_id), "photos")
     )
     if os.path.commonpath([base_upload_dir, folder]) != base_upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
-    uploads_root = os.path.abspath("uploads")
-    folder = os.path.abspath(
-        os.path.normpath(
-            os.path.join(uploads_root, "supplier_finance", str(supplier_id), "photos")
-        )
-    )
-    if os.path.commonpath([uploads_root, folder]) != uploads_root:
-        raise HTTPException(status_code=400, detail="Geçersiz yükleme yolu")
-    if len(content) > 20 * 1024 * 1024:
+
+    ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
+    os.makedirs(folder, exist_ok=True)
+    stored = f"photo_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
     file_path = os.path.realpath(os.path.join(folder, stored))
     if os.path.commonpath([base_upload_dir, file_path]) != base_upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
-    ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
-    folder = os.path.join("uploads", "supplier_finance", str(supplier_id), "photos")
-    os.makedirs(folder, exist_ok=True)
-    stored = f"photo_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(folder, stored)
     with open(file_path, "wb") as out:
         out.write(content)
     file_url = f"/uploads/supplier_finance/{supplier_id}/photos/{stored}"
