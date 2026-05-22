@@ -228,7 +228,7 @@ class EmailService:
         except smtplib.SMTPAuthenticationError as e:
             logger.error(f"[EMAIL] ❌ Kimlik doğrulama hatası: {str(e)}")
             logger.error(
-                f"[EMAIL] SMTP_USERNAME={self.smtp_username or from_email}, FROM_EMAIL={from_email}, PWD={(self.sender_password[:3] + '***') if self.sender_password else 'EMPTY'}"
+                f"[EMAIL] SMTP_USERNAME={self.smtp_username or from_email}, FROM_EMAIL={from_email}, PASSWORD_SET={'yes' if self.sender_password else 'no'}"
             )
             return False
         except smtplib.SMTPException as e:
