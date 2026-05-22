@@ -860,21 +860,26 @@ async def test_email_settings(
     }
 
     # Provider-specific SSL/TLS override
-    smtp_host_lower = str(effective_settings["smtp_host"] or "").lower().strip()
-    if "smtp.gmail.com" in smtp_host_lower:
+    smtp_host_lower = str(effective_settings["smtp_host"] or "").lower().strip().rstrip(".")
+
+    def _host_matches(candidate_host: str, expected_host: str) -> bool:
+        return candidate_host == expected_host or candidate_host.endswith(f".{expected_host}")
+
+    if _host_matches(smtp_host_lower, "smtp.gmail.com"):
         effective_settings["use_ssl"] = True
         effective_settings["use_tls"] = False
         if effective_settings["smtp_port"] != 465:
             effective_settings["smtp_port"] = 465
-    elif any(
-        token in smtp_host_lower
-        for token in ["smtp-mail.outlook.com", "smtp.office365.com"]
+    elif _host_matches(smtp_host_lower, "smtp-mail.outlook.com") or _host_matches(
+        smtp_host_lower, "smtp.office365.com"
     ):
         effective_settings["use_ssl"] = False
         effective_settings["use_tls"] = True
         if effective_settings["smtp_port"] != 587:
             effective_settings["smtp_port"] = 587
-    elif "smtp.yandex.com" in smtp_host_lower or "smtp.yahoo.com" in smtp_host_lower:
+    elif _host_matches(smtp_host_lower, "smtp.yandex.com") or _host_matches(
+        smtp_host_lower, "smtp.yahoo.com"
+    ):
         effective_settings["use_ssl"] = True
         effective_settings["use_tls"] = False
         if effective_settings["smtp_port"] != 465:
