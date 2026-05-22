@@ -13,6 +13,7 @@ from sqlalchemy import create_engine, text
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+MIN_BACKUP_BYTES = 5_000_000  # 5 MB — backup_postgres_sql.ps1 ile senkron
 SCRIPT_PATH = PROJECT_ROOT / "scripts" / "auto_full_backup.ps1"
 SQL_BACKUP_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "backup_postgres_sql.ps1"
 DEFAULT_BACKUP_ROOT = PROJECT_ROOT.parent / "procureflow_full_backups" / "scheduled"
@@ -160,8 +161,36 @@ def main() -> int:
         )
         if sql_result.stdout:
             print(sql_result.stdout.strip())
-        if sql_result.returncode != 0 and sql_result.stderr:
+        if sql_result.stderr:
             print(sql_result.stderr.strip(), file=sys.stderr)
+        if sql_result.returncode != 0:
+            return sql_result.returncode
+
+        # Boyut doğrulaması: PS1'den FILE= ve SIZE= satırlarını parse et
+        _file_path: str | None = None
+        _size: int = -1
+        for line in (sql_result.stdout or "").splitlines():
+            if line.startswith("FILE="):
+                _file_path = line[5:].strip()
+            elif line.startswith("SIZE="):
+                try:
+                    _size = int(line[5:].strip())
+                except ValueError:
+                    pass
+
+        if _size < 0 and _file_path:
+            try:
+                _size = Path(_file_path).stat().st_size
+            except OSError:
+                pass
+
+        if 0 <= _size < MIN_BACKUP_BYTES:
+            print(
+                f"BACKUP_SIZE_ALERT: {_file_path} yalnizca {_size} bytes "
+                f"(minimum beklenen: {MIN_BACKUP_BYTES}). Veri kaybi sinyali!",
+                file=sys.stderr,
+            )
+            return 2
 
     cleanup_old_backups(backup_root)
 

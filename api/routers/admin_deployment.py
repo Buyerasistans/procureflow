@@ -27,23 +27,24 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# Production Guard — Bu router sadece local/dev ortamında çalışır
+# Deployment Guard — deny-by-default allowlist
 # ============================================================
+
+_ALLOWED_ENVS: frozenset[str] = frozenset({"development", "dev", "local"})
 
 
 def _require_local_env() -> None:
     """
-    Deployment endpoint'leri production ortamında tamamen devre dışıdır.
-    Sunucudaki .env dosyasında APP_ENV=production olduğunda tüm
-    deployment işlemleri 403 döner.
+    Deny-by-default: APP_ENV açıkça allowlist'te yoksa (boş dahil) 403.
+    Allowlist: development | dev | local
     """
-    app_env = os.getenv("APP_ENV", "development").strip().lower()
-    if app_env == "production":
+    app_env = os.getenv("APP_ENV", "").strip().lower()
+    if app_env not in _ALLOWED_ENVS:
         raise HTTPException(
             status_code=403,
             detail=(
-                "Deployment paneli production ortaminda devre disidir. "
-                "Bu islemler yalnizca local gelistirme ortaminda kullanilabilir."
+                "Deployment paneli yalnizca local/dev ortaminda kullanilabilir "
+                "(APP_ENV=development|dev|local zorunlu)."
             ),
         )
 

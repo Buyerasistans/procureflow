@@ -56,8 +56,19 @@ TEST_USERS = [
 ]
 
 CANONICAL_SUPER_ADMIN_EMAIL = "superadmin@buyerasistans.com.tr"
-CANONICAL_SUPER_ADMIN_PASSWORD = "Aa1234!!"
 LEGACY_SUPER_ADMIN_EMAILS = ("superadmin@procureflow.com",)
+
+
+def _get_super_admin_password() -> str:
+    """SUPER_ADMIN_PASSWORD env zorunlu — boş veya eksikse uygulama başlamaz."""
+    pwd = os.environ.get("SUPER_ADMIN_PASSWORD", "").strip()
+    if not pwd:
+        raise RuntimeError(
+            "SUPER_ADMIN_PASSWORD ortam degiskeni zorunludur. "
+            "api/.env dosyasina SUPER_ADMIN_PASSWORD=<guclu-sifre> ekleyip "
+            "uygulamayi yeniden baslatin."
+        )
+    return pwd
 
 
 def ensure_runtime_super_admin(db: Session) -> None:
@@ -79,7 +90,7 @@ def ensure_runtime_super_admin(db: Session) -> None:
             email=CANONICAL_SUPER_ADMIN_EMAIL,
             work_email=CANONICAL_SUPER_ADMIN_EMAIL,
             full_name="Super Admin",
-            hashed_password=get_password_hash(CANONICAL_SUPER_ADMIN_PASSWORD),
+            hashed_password=get_password_hash(_get_super_admin_password()),
             role="super_admin",
             system_role="super_admin",
             approval_limit=999999999,
@@ -92,7 +103,7 @@ def ensure_runtime_super_admin(db: Session) -> None:
         user.email = CANONICAL_SUPER_ADMIN_EMAIL
         user.work_email = CANONICAL_SUPER_ADMIN_EMAIL
         user.full_name = "Super Admin"
-        user.hashed_password = get_password_hash(CANONICAL_SUPER_ADMIN_PASSWORD)
+        user.hashed_password = get_password_hash(_get_super_admin_password())
         user.role = "super_admin"
         user.system_role = "super_admin"
         user.approval_limit = 999999999
