@@ -3879,14 +3879,16 @@ async def create_supplier_finance_photo_admin(
         raise HTTPException(status_code=400, detail="Dosya boyutu 20MB'ı geçemez")
     raw_ext = os.path.splitext(file.filename or "photo.bin")[1].lower()
     ext = raw_ext if re.fullmatch(r"\.[a-z0-9]{1,10}", raw_ext or "") else ".bin"
+    supplier_segment = str(supplier_id)
+    if not re.fullmatch(r"[0-9]+", supplier_segment):
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     base_upload_dir = os.path.realpath(os.path.join("uploads", "supplier_finance"))
     folder = os.path.realpath(
-        os.path.join(base_upload_dir, str(supplier_id), "photos")
+        os.path.join(base_upload_dir, supplier_segment, "photos")
     )
     if os.path.commonpath([base_upload_dir, folder]) != base_upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
-    ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
     os.makedirs(folder, exist_ok=True)
     stored = f"photo_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
     file_path = os.path.realpath(os.path.join(folder, stored))
@@ -3895,7 +3897,7 @@ async def create_supplier_finance_photo_admin(
 
     with open(file_path, "wb") as out:
         out.write(content)
-    file_url = f"/uploads/supplier_finance/{supplier_id}/photos/{stored}"
+    file_url = f"/uploads/supplier_finance/{supplier_segment}/photos/{stored}"
 
     db.execute(
         text("""
