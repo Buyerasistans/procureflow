@@ -806,14 +806,14 @@ async def get_email_signature_image(filename: str):
     if not match:
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
 
-    safe_stem = match.group(1)
-    allowed_exts = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg")
-    for ext in allowed_exts:
-        candidate = base_dir.joinpath(f"{safe_stem}{ext}").resolve(strict=False)
-        if candidate.parent != base_dir:
-            continue
-        if candidate.exists() and candidate.is_file():
-            return FileResponse(candidate)
+    candidate = base_dir.joinpath(filename).resolve(strict=False)
+    try:
+        candidate.relative_to(base_dir)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+
+    if candidate.exists() and candidate.is_file():
+        return FileResponse(candidate)
 
     raise HTTPException(status_code=404, detail="Görsel bulunamadı")
 
