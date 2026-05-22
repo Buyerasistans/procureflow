@@ -615,7 +615,7 @@ def list_suppliers(
         print(f"[ERROR] GET /suppliers error: {str(e)}")
         traceback.print_exc()
         raise HTTPException(
-            status_code=500, detail=f"Tedarikçiler yüklenirken hata: {str(e)}"
+            status_code=500, detail="Tedarikçiler yüklenirken hata"
         )
 
 
@@ -1198,12 +1198,12 @@ def create_supplier_user(
                 status_code=400,
                 detail="Bu e-mail adı zaten veritabanında kayıtlı. Lütfen silinmiş kayıtları temizleyin.",
             )
-        raise HTTPException(status_code=400, detail=f"Veritabanı hatası: {str(e)}")
+        raise HTTPException(status_code=400, detail="Veritabanı hatası")
     except Exception as e:
         db.rollback()
         print(f"[ERROR] Kullanıcı oluşturma hatası: {str(e)}")
         raise HTTPException(
-            status_code=500, detail=f"Kullanıcı oluşturma hatası: {str(e)}"
+            status_code=500, detail="Kullanıcı oluşturma hatası"
         )
 
     if _get_default_user_id(db, supplier_id) is None:
@@ -1363,7 +1363,7 @@ def delete_supplier_user(
     except Exception as e:
         db.rollback()
         print(f"[ERROR] Kullanıcı silme hatası: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Silme hatası: {str(e)}")
+        raise HTTPException(status_code=500, detail="Silme hatası")
 
 
 @router.post(
