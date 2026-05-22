@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import re
 import uuid
 import smtplib
 from decimal import Decimal
@@ -3140,6 +3141,9 @@ def download_supplier_document_file_admin(
     db: Session = Depends(get_db),
 ):
     """Admin tarafından supplier doküman dosyasını indir/aç."""
+    if supplier_id <= 0:
+        raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
+
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
     if not supplier:
         raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı")
@@ -3155,10 +3159,12 @@ def download_supplier_document_file_admin(
     if (
         not safe_name
         or safe_name in {".", ".."}
+        or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name)
         or not safe_category
         or safe_category in {".", ".."}
         or "/" in safe_category
         or "\\" in safe_category
+        or not re.fullmatch(r"[A-Za-z0-9_-]+", safe_category)
     ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
