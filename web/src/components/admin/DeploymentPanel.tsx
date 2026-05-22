@@ -1,5 +1,6 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useRef, useState } from "react";
+import "./DeploymentPanel.css";
 import { getAccessToken, getRefreshToken, setAccessToken, setRefreshToken } from "../../lib/token";
 import { refreshRequest } from "../../services/auth.service";
 
@@ -1593,15 +1594,6 @@ export function DeploymentPanel() {
 
       </div>
 
-      {/* Scrollbar stili */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 2px solid #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-      `
-      }} />
     </div>
   );
 }

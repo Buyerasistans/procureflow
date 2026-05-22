@@ -121,19 +121,19 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
     if (!selectedProfile) return "";
     return `
 .${previewScopeClass} {
-  --wpd-preview-border: ${safeCssValue(previewPalette.border)};
-  --wpd-preview-canvas: ${safeCssValue(previewPalette.canvas)};
-  --wpd-preview-hero: ${safeCssValue(previewPalette.hero)};
-  --wpd-preview-glow: ${safeCssValue(previewPalette.glowShadow)};
-  --wpd-preview-pill-bg: ${safeCssValue(previewPalette.pillBackground)};
-  --wpd-preview-pill-text: ${safeCssValue(previewPalette.pillText)};
-  --wpd-preview-link: ${safeCssValue(previewPalette.link)};
-  --wpd-header-bg: ${safeCssValue(selectedProfile.header_bg_color || "#0f172acc")};
-  --wpd-header-text: ${safeCssValue(selectedProfile.header_text_color || "#f8fafc")};
-  --wpd-footer-bg: ${safeCssValue(selectedProfile.footer_bg_color || "#0f172a99")};
-  --wpd-footer-text: ${safeCssValue(selectedProfile.footer_text_color || "#e2e8f0")};
-  --wpd-hero-text: ${safeCssValue(selectedProfile.hero_text_color || "#ffffff")};
-  --wpd-hero-muted-text: ${safeCssValue(selectedProfile.hero_muted_text_color || selectedProfile.hero_text_color || "rgba(255,255,255,0.86)")};
+  --wpd-preview-border: ${safeCssPaletteValue(previewPalette.border)};
+  --wpd-preview-canvas: ${safeCssPaletteValue(previewPalette.canvas)};
+  --wpd-preview-hero: ${safeCssPaletteValue(previewPalette.hero)};
+  --wpd-preview-glow: ${safeCssPaletteValue(previewPalette.glowShadow)};
+  --wpd-preview-pill-bg: ${safeCssPaletteValue(previewPalette.pillBackground)};
+  --wpd-preview-pill-text: ${safeCssPaletteValue(previewPalette.pillText)};
+  --wpd-preview-link: ${safeCssPaletteValue(previewPalette.link)};
+  --wpd-header-bg: ${safeCssColorValue(selectedProfile.header_bg_color || "#0f172acc")};
+  --wpd-header-text: ${safeCssColorValue(selectedProfile.header_text_color || "#f8fafc")};
+  --wpd-footer-bg: ${safeCssColorValue(selectedProfile.footer_bg_color || "#0f172a99")};
+  --wpd-footer-text: ${safeCssColorValue(selectedProfile.footer_text_color || "#e2e8f0")};
+  --wpd-hero-text: ${safeCssColorValue(selectedProfile.hero_text_color || "#ffffff")};
+  --wpd-hero-muted-text: ${safeCssColorValue(selectedProfile.hero_muted_text_color || selectedProfile.hero_text_color || "rgba(255,255,255,0.86)")};
 }`;
   }, [
     previewPalette.border,
@@ -1419,8 +1419,28 @@ function sanitizeCssClass(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "default";
 }
 
-function safeCssValue(value: string) {
-  return String(value).replace(/[{};<>]/g, "").replace(/[\r\n]+/g, " ").trim();
+// Strict whitelist: only CSS color values accepted (for user-supplied profile fields).
+// Rejects url(), expression(), @import, arbitrary CSS, etc.
+function safeCssColorValue(value: string): string {
+  const s = String(value).trim();
+  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;                  // hex: #rgb #rgba #rrggbb #rrggbbaa
+  if (/^(rgb|rgba|hsl|hsla)\([^)]{1,120}\)$/.test(s)) return s;  // functional colors
+  if (/^[a-zA-Z]{2,30}$/.test(s)) return s;                      // named: transparent, none, blue
+  return "transparent";
+}
+
+// Wider whitelist: for computed palette values that may include gradients or box-shadows.
+// These values are always built from already-validated hex inputs in getPreviewPalette().
+function safeCssPaletteValue(value: string): string {
+  const s = String(value).trim();
+  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;
+  if (/^(rgb|rgba|hsl|hsla)\([^)]{1,120}\)$/.test(s)) return s;
+  if (s === "none" || s === "transparent") return s;
+  // linear-gradient: anchored regex ensures nothing can escape the parentheses
+  if (/^linear-gradient\([^;]{1,500}\)$/.test(s)) return s;
+  // box-shadow "0 0 Npx rgba(...)" used for glowShadow
+  if (/^0 0 \d{1,3}px (rgba\([^)]{1,80}\)|#[0-9a-fA-F]{3,8})$/.test(s)) return s;
+  return "transparent";
 }
 
 function useWorkspaceDesignerDynamicStyles(cssText: string) {
