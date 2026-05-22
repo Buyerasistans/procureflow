@@ -953,7 +953,7 @@ async def test_email_settings(
             for login_name in login_candidates:
                 server: smtplib.SMTP | smtplib.SMTP_SSL | None = None
                 try:
-                    print(f"[EMAIL] SMTP deneme host={smtp_host} login={login_name}")
+                    print("[EMAIL] SMTP denemesi başlatılıyor")
                     if effective_settings["use_ssl"]:
                         server = smtplib.SMTP_SSL(
                             smtp_host,
