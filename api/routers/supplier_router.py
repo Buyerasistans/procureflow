@@ -3204,7 +3204,6 @@ def download_supplier_document_file_admin(
         or os.path.commonpath([base_dir, file_path]) != base_dir
     ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
-
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     return FileResponse(file_path)
@@ -3236,7 +3235,6 @@ def download_supplier_document_file(
     file_path = os.path.realpath(os.path.join(base_dir, safe_category, safe_name))
     if os.path.commonpath([base_dir, file_path]) != base_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
-
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     return FileResponse(file_path)
