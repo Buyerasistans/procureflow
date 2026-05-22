@@ -96,6 +96,8 @@ def build_approval_role_contract(approval: QuoteApproval) -> dict[str, str | Non
     return {
         "required_business_role": business_role or None,
         "required_business_role_label": business_role_label,
+        "required_role": business_role or None,
+        "required_role_mirror": None,
     }
 
 
