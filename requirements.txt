@@ -1,4 +1,4 @@
-﻿alembic==1.18.4
+alembic==1.18.4
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
@@ -52,7 +52,6 @@ pytest-cov==7.0.0
 python-discovery==1.2.1
 python-dotenv==1.2.2
 python-jose[cryptography]==3.3.0
-python-jose==3.5.0
 python-multipart==0.0.22
 PyYAML==6.0.3
 rsa==4.9.1
