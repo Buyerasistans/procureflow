@@ -3838,10 +3838,17 @@ async def create_supplier_finance_photo_admin(
 ):
     _require_supplier_access_for_finance(db, supplier_id, current_user)
 
-    _ensure_supplier_finance_tables(db)
+    base_upload_dir = os.path.realpath(os.path.join("uploads", "supplier_finance"))
+    folder = os.path.realpath(
+        os.path.join(base_upload_dir, str(supplier_id), "photos")
+    )
+    if os.path.commonpath([base_upload_dir, folder]) != base_upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
+    file_path = os.path.realpath(os.path.join(folder, stored))
+    if os.path.commonpath([base_upload_dir, file_path]) != base_upload_dir:
+        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
     folder = os.path.join("uploads", "supplier_finance", str(supplier_id), "photos")
