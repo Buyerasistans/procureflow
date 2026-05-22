@@ -33,15 +33,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Compile dependencies
         run: |
-          python -m pip install --upgrade pip
-          if [ -f api/requirements.txt ]; then pip install -r api/requirements.txt; fi
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install python-multipart
-          pip install openpyxl
-          pip install pandas
-          pip install pytest
+          python -m pip install --upgrade pip pip-tools
+          pip-compile api/requirements.in --no-upgrade -o api/requirements.txt
+          cp api/requirements.txt requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r api/requirements.txt
 
       - name: Run tests
         env:

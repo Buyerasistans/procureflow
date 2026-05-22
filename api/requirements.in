@@ -1,0 +1,39 @@
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+
+# ── Database ───────────────────────────────────────────────────────────────────
+sqlalchemy
+alembic
+psycopg[binary]
+psycopg2-binary
+
+# ── Data validation & settings ─────────────────────────────────────────────────
+pydantic[email]
+pydantic-settings
+
+# ── Auth ───────────────────────────────────────────────────────────────────────
+python-jose[cryptography]
+passlib[bcrypt]
+
+# ── HTTP & file handling ───────────────────────────────────────────────────────
+httpx
+python-multipart
+python-dotenv
+
+# ── Utils ──────────────────────────────────────────────────────────────────────
+openpyxl>=3.1.0
+ezdxf
+tzdata
+
+# ── Deployment / ops ──────────────────────────────────────────────────────────
+paramiko
+fabric
+
+# ── Dev & test ─────────────────────────────────────────────────────────────────
+pre-commit
+pytest
+pytest-asyncio
+pytest-cov
+coverage
+ruff
