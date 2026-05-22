@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import logging
 from pathlib import Path
 from typing import Any, Optional
 
@@ -21,6 +22,8 @@ router = APIRouter(
     prefix="/admin/deployment",
     tags=["Admin - Deployment"],
 )
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================
@@ -103,8 +106,9 @@ def _make_sse_stream(svc: DeploymentService, coro):
         try:
             result = future.result()
             yield f"data: {json.dumps({'type': 'done', 'success': result.success, 'summary': result.summary, 'errors': result.errors}, ensure_ascii=False)}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+        except Exception:
+            logger.exception("Deployment SSE stream failed while finalizing background task result.")
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Internal error occurred during deployment operation.'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         event_generator(),
