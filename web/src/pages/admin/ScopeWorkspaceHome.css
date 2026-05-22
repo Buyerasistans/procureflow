@@ -1,9 +1,9 @@
-.scope-workspace-home {
+﻿.scope-workspace-home {
   --scope-header-bg: #0f172acc;
-  --scope-header-text: #f8fafc;
+  --scope-header-text: var(--pf-slate-50);
   --scope-footer-bg: #0f172a99;
-  --scope-footer-text: #e2e8f0;
-  --scope-hero-text: #ffffff;
+  --scope-footer-text: var(--pf-slate-200);
+  --scope-hero-text: var(--pf-surface);
   --scope-hero-muted: rgba(255, 255, 255, 0.82);
   --scope-hero-bg: linear-gradient(95deg, rgba(37, 99, 235, 0.85) 0%, rgba(37, 99, 235, 0.67) 100%);
   --scope-hero-glow: 0 0 30px rgba(37, 99, 235, 0.24);
@@ -15,7 +15,7 @@
   border-radius: 28px;
   overflow: hidden;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  background: #ffffff;
+  background: var(--pf-surface);
   box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
 }
 
@@ -159,8 +159,8 @@
 
 .scope-workspace-home__metric-card {
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   padding: 16px;
   display: grid;
   gap: 6px;
@@ -180,7 +180,7 @@
 
 .scope-workspace-home__metric-card--pending .scope-workspace-home__metric-label,
 .scope-workspace-home__metric-card--pending .scope-workspace-home__metric-value {
-  color: #b45309;
+  color: var(--pf-color-warning);
 }
 
 .scope-workspace-home__metric-card--approved .scope-workspace-home__metric-label,
@@ -200,8 +200,8 @@
 
 .scope-workspace-home__panel {
   border-radius: 24px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-surface);
   padding: 20px;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
   display: grid;
@@ -212,11 +212,11 @@
   margin-top: 6px;
   font-size: 24px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .scope-workspace-home__section-copy {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -226,7 +226,7 @@
   border: 1px solid #dbeafe;
   background: #f8fbff;
   padding: 14px 16px;
-  color: #334155;
+  color: var(--pf-slate-700);
   font-size: 13px;
 }
 
@@ -238,8 +238,8 @@
 
 .scope-workspace-home__catalog-card {
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-surface);
   padding: 14px;
   display: grid;
   gap: 8px;
@@ -255,12 +255,12 @@
 
 .scope-workspace-home__catalog-card-title {
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .scope-workspace-home__catalog-card-meta {
   font-size: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .scope-workspace-home__status-pill {
@@ -287,17 +287,17 @@
 }
 
 .scope-workspace-home__catalog-card-description {
-  color: #475569;
+  color: var(--pf-slate-600);
   font-size: 13px;
   line-height: 1.6;
 }
 
 .scope-workspace-home__catalog-card-note {
   border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
   padding: 8px 10px;
-  color: #334155;
+  color: var(--pf-slate-700);
   font-size: 12px;
 }
 
@@ -324,9 +324,9 @@
 }
 
 .scope-workspace-home__secondary-button {
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
 }
 
 .scope-workspace-home__primary-button:disabled,
@@ -345,9 +345,9 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
   font: inherit;
 }
 
@@ -363,10 +363,10 @@
 
 .scope-workspace-home__info-item {
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   padding: 12px 14px;
-  color: #334155;
+  color: var(--pf-slate-700);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -379,11 +379,11 @@
 
 .scope-workspace-home__quick-link {
   border-radius: 18px;
-  border: 1px solid #dbe3ee;
-  background: #ffffff;
+  border: 1px solid var(--pf-border-color-alt);
+  background: var(--pf-surface);
   padding: 16px;
   text-decoration: none;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   display: grid;
   gap: 6px;
 }
@@ -394,7 +394,7 @@
 
 .scope-workspace-home__quick-link-description {
   font-size: 13px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   line-height: 1.6;
 }
 
@@ -406,8 +406,8 @@
 
 .scope-workspace-home__scope-panel {
   border-radius: 24px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-surface);
   padding: 20px;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
   display: grid;
@@ -419,11 +419,11 @@
   font-weight: 800;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .scope-workspace-home__scope-copy {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -435,26 +435,26 @@
 
 .scope-workspace-home__scope-item {
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   padding: 12px 14px;
-  color: #334155;
+  color: var(--pf-slate-700);
   font-size: 13px;
   line-height: 1.7;
 }
 
 .scope-workspace-home__request-empty {
   border-radius: 16px;
-  border: 1px dashed #cbd5e1;
-  background: #f8fafc;
+  border: 1px dashed var(--pf-slate-300);
+  background: var(--pf-slate-50);
   padding: 14px 16px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .scope-workspace-home__request-card {
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-surface);
   padding: 14px;
   display: grid;
   gap: 8px;
@@ -470,17 +470,17 @@
 
 .scope-workspace-home__request-card-title {
   font-weight: 900;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .scope-workspace-home__request-card-subtitle {
   margin-top: 4px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .scope-workspace-home__request-card-text {
-  color: #475569;
+  color: var(--pf-slate-600);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -490,15 +490,15 @@
   gap: 8px;
   flex-wrap: wrap;
   font-size: 12px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .scope-workspace-home__request-decision-note {
   border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
   padding: 8px 10px;
-  color: #334155;
+  color: var(--pf-slate-700);
   font-size: 12px;
 }
 
@@ -508,7 +508,7 @@
   display: grid;
   gap: 8px;
   border: 1px solid rgba(37, 99, 235, 0.2);
-  background: #eff6ff;
+  background: var(--pf-color-primary-light);
 }
 
 .scope-workspace-home__theme-card-title {
@@ -536,7 +536,7 @@
 
 .scope-workspace-home__theme-row-label {
   font-size: 12px;
-  color: #475569;
+  color: var(--pf-slate-600);
   font-weight: 700;
 }
 
@@ -547,12 +547,12 @@
 
 .scope-workspace-home__theme-card--partner {
   border-color: rgba(37, 99, 235, 0.2);
-  background: #eff6ff;
+  background: var(--pf-color-primary-light);
 }
 
 .scope-workspace-home__theme-card--partner .scope-workspace-home__theme-card-title,
 .scope-workspace-home__theme-card--partner .scope-workspace-home__theme-row-value {
-  color: #2563eb;
+  color: var(--pf-color-primary);
 }
 
 .scope-workspace-home__theme-card--supplier {
@@ -583,8 +583,8 @@
 
 .scope-workspace-home__summary-pill-card {
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   padding: 16px;
   display: grid;
   gap: 6px;
@@ -604,7 +604,7 @@
 
 .scope-workspace-home__summary-pill-card--pending .scope-workspace-home__summary-pill-label,
 .scope-workspace-home__summary-pill-card--pending .scope-workspace-home__summary-pill-value {
-  color: #b45309;
+  color: var(--pf-color-warning);
 }
 
 .scope-workspace-home__summary-pill-card--approved .scope-workspace-home__summary-pill-label,
@@ -619,7 +619,7 @@
 
 .scope-workspace-home__summary-pill-card--links .scope-workspace-home__summary-pill-label,
 .scope-workspace-home__summary-pill-card--links .scope-workspace-home__summary-pill-value {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 @media (max-width: 64rem) {
