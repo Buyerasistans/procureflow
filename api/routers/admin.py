@@ -5067,7 +5067,7 @@ async def upload_company_logo(
     _ext_map = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png",
                 "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg"}
     ext = _ext_map.get(file.content_type or "", ".png")
-    filename = f"company_{company_id}_{uuid.uuid4().hex[:8]}{ext}"
+    filename = f"company_{db_company.id}_{uuid.uuid4().hex[:8]}{ext}"
     file_path = os.path.realpath(os.path.join(upload_dir, filename))
     if os.path.commonpath([upload_dir, file_path]) != upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
@@ -5092,13 +5092,18 @@ async def upload_company_logo(
 
 
 @router.get("/company-logo/{filename}")
-async def get_company_logo(filename: str):
+async def get_company_logo(filename: str, db: Session = Depends(get_db)):
     """Firma logosunu sun"""
     safe_name = os.path.basename(filename or "")
     if not safe_name or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name):
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    expected_url = f"/api/v1/admin/company-logo/{safe_name}"
+    company = db.query(Company).filter(Company.logo_url == expected_url).first()
+    if not company or not company.logo_url:
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    db_basename = os.path.basename(str(company.logo_url))
     base_dir = os.path.realpath(os.path.join("uploads", "company_logos"))
-    file_path = os.path.realpath(os.path.join(base_dir, safe_name))
+    file_path = os.path.realpath(os.path.join(base_dir, db_basename))
     if os.path.commonpath([base_dir, file_path]) != base_dir:
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
     if not os.path.exists(file_path):

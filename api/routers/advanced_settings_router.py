@@ -797,25 +797,21 @@ async def upload_email_signature_image(
 
 
 @router.get("/email/signature-image/{filename}")
-async def get_email_signature_image(filename: str):
+async def get_email_signature_image(filename: str, db: Session = Depends(get_db)):
     base_dir = (Path("uploads") / "email_signatures").resolve()
-    match = re.fullmatch(
-        r"(signature_[0-9a-f]{16})\.(jpg|jpeg|png|gif|webp|svg)",
-        filename,
-    )
-    if not match:
+    if not re.fullmatch(r"signature_[0-9a-f]{16}\.[a-z]{2,4}", filename or ""):
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
-
-    candidate = base_dir.joinpath(filename).resolve(strict=False)
-    try:
-        candidate.relative_to(base_dir)
-    except ValueError:
+    expected_url = f"/api/v1/advanced-settings/email/signature-image/{filename}"
+    settings = db.query(EmailSettings).filter(
+        EmailSettings.signature_image_url == expected_url
+    ).first()
+    if not settings or not settings.signature_image_url:
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
-
-    if candidate.exists() and candidate.is_file():
-        return FileResponse(candidate)
-
-    raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+    db_basename = os.path.basename(str(settings.signature_image_url))
+    file_path = base_dir / db_basename
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+    return FileResponse(str(file_path))
 
 
 @router.post("/email/test", response_model=dict)
