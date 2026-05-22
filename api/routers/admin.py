@@ -4755,6 +4755,8 @@ async def update_tenant_support_workflow(
         update_data["support_resolution_reason"] = None
 
     for key, value in update_data.items():
+        if isinstance(value, datetime) and value.tzinfo is not None:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
         setattr(tenant, key, value)
 
     db.commit()
