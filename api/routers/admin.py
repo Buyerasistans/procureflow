@@ -3707,7 +3707,7 @@ async def list_tenants(
 @router.get("/subscription-catalog", response_model=SubscriptionCatalogSnapshotOut)
 async def get_subscription_catalog(
     db: Session = Depends(get_db),
-    _: User = Depends(require_admin_catalog_reader),
+    _: User = Depends(require_tenant_governance_manager),
 ):
     return build_subscription_catalog_snapshot(db)
 
