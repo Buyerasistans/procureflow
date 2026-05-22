@@ -3844,7 +3844,14 @@ async def create_supplier_finance_photo_admin(
     )
     if os.path.commonpath([base_upload_dir, folder]) != base_upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
-    content = await file.read()
+    uploads_root = os.path.abspath("uploads")
+    folder = os.path.abspath(
+        os.path.normpath(
+            os.path.join(uploads_root, "supplier_finance", str(supplier_id), "photos")
+        )
+    )
+    if os.path.commonpath([uploads_root, folder]) != uploads_root:
+        raise HTTPException(status_code=400, detail="Geçersiz yükleme yolu")
     if len(content) > 20 * 1024 * 1024:
     file_path = os.path.realpath(os.path.join(folder, stored))
     if os.path.commonpath([base_upload_dir, file_path]) != base_upload_dir:
