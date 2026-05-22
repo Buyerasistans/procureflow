@@ -782,7 +782,9 @@ async def upload_email_signature_image(
     upload_dir = Path("uploads") / "email_signatures"
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    ext = Path(file.filename or "signature.png").suffix.lower() or ".png"
+    _ext_map = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png",
+                "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg"}
+    ext = _ext_map.get(file.content_type or "", ".png")
     filename = f"signature_{secrets.token_hex(8)}{ext}"
     file_path = upload_dir / filename
     file_path.write_bytes(content)

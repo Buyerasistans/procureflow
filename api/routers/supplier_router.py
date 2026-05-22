@@ -2129,8 +2129,10 @@ async def upload_supplier_logo(
     upload_dir = os.path.realpath(os.path.join("uploads", "logos"))
     os.makedirs(upload_dir, exist_ok=True)
 
-    # Benzersiz dosya adı
-    ext = os.path.splitext(file.filename or "logo.png")[1].lower() or ".png"
+    # Benzersiz dosya adı — extension kaynağı file.filename değil content_type
+    _ext_map = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png",
+                "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg"}
+    ext = _ext_map.get(file.content_type or "", ".png")
     filename = f"supplier_{supplier.id}_{uuid.uuid4().hex[:8]}{ext}"
     file_path = os.path.realpath(os.path.join(upload_dir, filename))
     if os.path.commonpath([upload_dir, file_path]) != upload_dir:
@@ -2161,9 +2163,13 @@ async def upload_supplier_logo(
 @router.get("/logo/{filename}")
 def get_supplier_logo(filename: str):
     """Logo dosyasını sun - public endpoint"""
-    # Güvenlik: path traversal önle
-    safe_name = os.path.basename(filename)
-    file_path = os.path.join("uploads", "logos", safe_name)
+    safe_name = os.path.basename(filename or "")
+    if not safe_name or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name):
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    base_dir = os.path.realpath(os.path.join("uploads", "logos"))
+    file_path = os.path.realpath(os.path.join(base_dir, safe_name))
+    if os.path.commonpath([base_dir, file_path]) != base_dir:
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
     return FileResponse(file_path)
@@ -2886,12 +2892,15 @@ def delete_supplier_profile_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Doküman bulunamadı")
 
-    file_path = str(doc["file_path"] or "")
-    if file_path and os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
+    raw_path = str(doc["file_path"] or "")
+    if raw_path:
+        _uploads_root = os.path.realpath("uploads")
+        _safe_fp = os.path.realpath(raw_path)
+        if os.path.commonpath([_uploads_root, _safe_fp]) == _uploads_root and os.path.exists(_safe_fp):
+            try:
+                os.remove(_safe_fp)
+            except Exception:
+                pass
 
     db.execute(
         text("""
@@ -3071,12 +3080,15 @@ def delete_supplier_document_admin(
     if not doc:
         raise HTTPException(status_code=404, detail="Doküman bulunamadı")
 
-    file_path = str(doc["file_path"] or "")
-    if file_path and os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
+    raw_path = str(doc["file_path"] or "")
+    if raw_path:
+        _uploads_root = os.path.realpath("uploads")
+        _safe_fp = os.path.realpath(raw_path)
+        if os.path.commonpath([_uploads_root, _safe_fp]) == _uploads_root and os.path.exists(_safe_fp):
+            try:
+                os.remove(_safe_fp)
+            except Exception:
+                pass
 
     db.execute(
         text("""
@@ -3199,20 +3211,17 @@ def download_supplier_document_file(
 
     safe_name = os.path.basename((filename or "").strip())
     safe_category = (category or "").strip()
+    _allowed_cats = {"certificates", "company_docs", "personnel_docs", "guarantee_docs"}
     if (
         not safe_name
         or safe_name in {".", ".."}
-        or not safe_category
-        or safe_category in {".", ".."}
-        or "/" in safe_category
-        or "\\" in safe_category
+        or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name)
+        or safe_category not in _allowed_cats
     ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
-    base_dir = os.path.abspath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
-    file_path = os.path.abspath(
-        os.path.normpath(os.path.join(base_dir, safe_category, safe_name))
-    )
+    base_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
+    file_path = os.path.realpath(os.path.join(base_dir, safe_category, safe_name))
     if os.path.commonpath([base_dir, file_path]) != base_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 

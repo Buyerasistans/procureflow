@@ -5064,7 +5064,9 @@ async def upload_company_logo(
     upload_dir = os.path.realpath(os.path.join("uploads", "company_logos"))
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = os.path.splitext(file.filename or "logo.png")[1].lower() or ".png"
+    _ext_map = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png",
+                "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg"}
+    ext = _ext_map.get(file.content_type or "", ".png")
     filename = f"company_{company_id}_{uuid.uuid4().hex[:8]}{ext}"
     file_path = os.path.realpath(os.path.join(upload_dir, filename))
     if os.path.commonpath([upload_dir, file_path]) != upload_dir:
@@ -5092,8 +5094,13 @@ async def upload_company_logo(
 @router.get("/company-logo/{filename}")
 async def get_company_logo(filename: str):
     """Firma logosunu sun"""
-    safe_name = os.path.basename(filename)
-    file_path = os.path.join("uploads", "company_logos", safe_name)
+    safe_name = os.path.basename(filename or "")
+    if not safe_name or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name):
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    base_dir = os.path.realpath(os.path.join("uploads", "company_logos"))
+    file_path = os.path.realpath(os.path.join(base_dir, safe_name))
+    if os.path.commonpath([base_dir, file_path]) != base_dir:
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
     return FileResponse(file_path)
