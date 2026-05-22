@@ -3864,15 +3864,14 @@ def create_supplier_finance_payment_admin(
 async def create_supplier_finance_photo_admin(
     supplier_id: int,
     title: str = Form(...),
-    if supplier_id <= 0:
-        raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
-
     contract_id: int | None = Form(None),
     description: str | None = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if supplier_id <= 0:
+        raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
     _require_supplier_access_for_finance(db, supplier_id, current_user)
 
     content = await file.read()
