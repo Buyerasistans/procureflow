@@ -545,19 +545,10 @@ async def list_email_profiles(
 ):
     _ensure_email_settings_access(current_user)
     if not can_manage_shared_email_profiles(current_user):
-        default_settings = _get_or_create_settings(
-            db, EmailSettings, owner_user_id=None
-        )
         settings = _get_or_create_settings(
             db, EmailSettings, owner_user_id=current_user.id
         )
         return [
-            {
-                "owner_user_id": None,
-                "label": "Varsayılan Sistem SMTP (salt okunur)",
-                "kind": "default",
-                "from_email": default_settings.from_email,
-            },
             {
                 "owner_user_id": current_user.id,
                 "label": "Kendi SMTP profilim",
