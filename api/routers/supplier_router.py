@@ -3866,6 +3866,9 @@ def create_supplier_finance_payment_admin(
 async def create_supplier_finance_photo_admin(
     supplier_id: int,
     title: str = Form(...),
+    if supplier_id <= 0:
+        raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
+
     contract_id: int | None = Form(None),
     description: str | None = Form(None),
     file: UploadFile = File(...),
@@ -3877,7 +3880,8 @@ async def create_supplier_finance_photo_admin(
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya boyutu 20MB'ı geçemez")
-
+    raw_ext = os.path.splitext(file.filename or "photo.bin")[1].lower()
+    ext = raw_ext if re.fullmatch(r"\.[a-z0-9]{1,10}", raw_ext or "") else ".bin"
     base_upload_dir = os.path.realpath(os.path.join("uploads", "supplier_finance"))
     folder = os.path.realpath(
         os.path.join(base_upload_dir, str(supplier_id), "photos")
