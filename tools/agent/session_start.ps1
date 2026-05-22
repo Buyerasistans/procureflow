@@ -1,21 +1,20 @@
-param(
-  [string]$Task = "Genel geliştirme",
-  [string]$Domain = "general"
+﻿param(
+ [string]$Task = "Genel gelitirme",
+ [string]$Domain = "payment-billing"
 )
-powershell -ExecutionPolicy Bypass -File "$PSScriptRoot\local_snapshot.ps1"
 
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path "$PSScriptRoot\..\..").Path
 Set-Location $root
 
+powershell -ExecutionPolicy Bypass -File "$PSScriptRoot\local_snapshot.ps1"
+
 $env:WIKI_BASE_REF = "origin/main"
 
-# Branch bilgisi
 $branch = git rev-parse --abbrev-ref HEAD
 $now = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-
-# Bugünün changelog dosyası
 $today = Get-Date -Format "yyyy-MM-dd"
+
 $changelog = "wiki/changelog/$today.md"
 if (!(Test-Path $changelog)) {
 @"
@@ -26,9 +25,9 @@ if (!(Test-Path $changelog)) {
 "@ | Out-File -FilePath $changelog -Encoding utf8
 }
 
-# Oturum context dosyası
 $contextFile = "tools/agent/SESSION_CONTEXT.md"
 @"
+# AUTO-GENERATED. DO NOT COMMIT.
 # SESSION CONTEXT
 
 - Time: $now
@@ -50,6 +49,8 @@ $contextFile = "tools/agent/SESSION_CONTEXT.md"
 5. Never skip domain mapping check.
 "@ | Out-File -FilePath $contextFile -Encoding utf8
 
-Write-Host "✅ Session initialized"
+Write-Host "[OK] Session initialized"
 Write-Host "Context file: $contextFile"
 Write-Host "Now give this file to your AI model."
+
+
