@@ -1488,11 +1488,7 @@ def add_suppliers_to_project(
     email_service=Depends(get_email_service),
 ):
     """Projeye tedarikçileri ekle ve davet maileri gönder"""
-    print("\n[ENDPOINT] add_suppliers_to_project called")
-    print(f"[ENDPOINT] project_id={project_id}, supplier_ids={supplier_ids}")
-    print(f"[ENDPOINT] email_service={email_service}, type={type(email_service)}")
     current_role = normalized_role(current_user)
-    print(f"[ENDPOINT] current_user.role={current_role}")
 
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
@@ -2161,13 +2157,18 @@ async def upload_supplier_logo(
 
 
 @router.get("/logo/{filename}")
-def get_supplier_logo(filename: str):
+def get_supplier_logo(filename: str, db: Session = Depends(get_db)):
     """Logo dosyasını sun - public endpoint"""
     safe_name = os.path.basename(filename or "")
     if not safe_name or not re.fullmatch(r"[A-Za-z0-9._-]+", safe_name):
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    expected_url = f"/api/v1/suppliers/logo/{safe_name}"
+    supplier = db.query(Supplier).filter(Supplier.logo_url == expected_url).first()
+    if not supplier or not supplier.logo_url:
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    db_basename = os.path.basename(str(supplier.logo_url))
     base_dir = os.path.realpath(os.path.join("uploads", "logos"))
-    file_path = os.path.realpath(os.path.join(base_dir, safe_name))
+    file_path = os.path.realpath(os.path.join(base_dir, db_basename))
     if os.path.commonpath([base_dir, file_path]) != base_dir:
         raise HTTPException(status_code=404, detail="Logo bulunamadı")
     if not os.path.exists(file_path):
@@ -2757,28 +2758,26 @@ async def upload_supplier_document(
     db: Session = Depends(get_db),
 ):
     """Tedarikçi doküman yükleme (sertifika, şirket evrakı, personel evrakı)."""
-    allowed_categories = {
-        "certificates",
-        "company_docs",
-        "personnel_docs",
-        "guarantee_docs",
+    _cat_map = {
+        "certificates": "certificates",
+        "company_docs": "company_docs",
+        "personnel_docs": "personnel_docs",
+        "guarantee_docs": "guarantee_docs",
     }
-    if category not in allowed_categories:
+    safe_category = _cat_map.get(category)
+    if safe_category is None:
         raise HTTPException(status_code=400, detail="Geçersiz kategori")
 
-    allowed_content_types = {
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/webp",
+    _ext_map = {
+        "application/pdf": ".pdf",
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
     }
-    allowed_exts = {".pdf", ".jpeg", ".jpg", ".png", ".webp"}
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if (file.content_type not in allowed_content_types) and (ext not in allowed_exts):
-        raise HTTPException(
-            status_code=400,
-            detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir",
-        )
+    ext = _ext_map.get(file.content_type or "")
+    if ext is None:
+        raise HTTPException(status_code=400, detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir")
 
     supplier = (
         db.query(Supplier).filter(Supplier.id == supplier_user.supplier_id).first()
@@ -2790,10 +2789,9 @@ async def upload_supplier_document(
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), category))
+    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), safe_category))
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = os.path.splitext(file.filename or "document.bin")[1].lower() or ".bin"
     stored_filename = f"doc_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
     file_path = os.path.realpath(os.path.join(upload_dir, stored_filename))
     if os.path.commonpath([upload_dir, file_path]) != upload_dir:
@@ -2801,7 +2799,7 @@ async def upload_supplier_document(
     with open(file_path, "wb") as f:
         f.write(content)
 
-    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={category}"
+    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={safe_category}"
 
     _ensure_supplier_documents_table(db)
     db.execute(
@@ -2817,7 +2815,7 @@ async def upload_supplier_document(
         """),
         {
             "supplier_id": supplier.id,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "stored_filename": stored_filename,
             "file_path": file_path,
@@ -2834,7 +2832,7 @@ async def upload_supplier_document(
         "status": "success",
         "document": {
             "id": row["id"] if row else None,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "file_url": file_url,
             "created_at": datetime.now(ZoneInfo("UTC")).isoformat(),
@@ -2967,37 +2965,34 @@ async def upload_supplier_document_admin(
         detail="Bu tedarikçi için doküman yükleme yetkiniz yok",
     )
 
-    allowed_categories = {
-        "certificates",
-        "company_docs",
-        "personnel_docs",
-        "guarantee_docs",
+    _cat_map = {
+        "certificates": "certificates",
+        "company_docs": "company_docs",
+        "personnel_docs": "personnel_docs",
+        "guarantee_docs": "guarantee_docs",
     }
-    if category not in allowed_categories:
+    safe_category = _cat_map.get(category)
+    if safe_category is None:
         raise HTTPException(status_code=400, detail="Geçersiz kategori")
 
-    allowed_content_types = {
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/webp",
+    _ext_map = {
+        "application/pdf": ".pdf",
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
     }
-    allowed_exts = {".pdf", ".jpeg", ".jpg", ".png", ".webp"}
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if (file.content_type not in allowed_content_types) and (ext not in allowed_exts):
-        raise HTTPException(
-            status_code=400,
-            detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir",
-        )
+    ext = _ext_map.get(file.content_type or "")
+    if ext is None:
+        raise HTTPException(status_code=400, detail="Sadece PDF, JPEG, PNG ve WEBP dosyaları yüklenebilir")
 
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), category))
+    upload_dir = os.path.realpath(os.path.join("uploads", "supplier_docs", str(supplier.id), safe_category))
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = os.path.splitext(file.filename or "document.bin")[1].lower() or ".bin"
     stored_filename = f"doc_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
     file_path = os.path.realpath(os.path.join(upload_dir, stored_filename))
     if os.path.commonpath([upload_dir, file_path]) != upload_dir:
@@ -3005,7 +3000,7 @@ async def upload_supplier_document_admin(
     with open(file_path, "wb") as f:
         f.write(content)
 
-    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={category}"
+    file_url = f"/api/v1/suppliers/documents/file/{stored_filename}?supplier_id={supplier.id}&category={safe_category}"
 
     _ensure_supplier_documents_table(db)
     db.execute(
@@ -3021,7 +3016,7 @@ async def upload_supplier_document_admin(
         """),
         {
             "supplier_id": supplier.id,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "stored_filename": stored_filename,
             "file_path": file_path,
@@ -3037,7 +3032,7 @@ async def upload_supplier_document_admin(
         "status": "success",
         "document": {
             "id": row["id"] if row else None,
-            "category": category,
+            "category": safe_category,
             "original_filename": file.filename or stored_filename,
             "file_url": file_url,
             "created_at": datetime.now(ZoneInfo("UTC")).isoformat(),
@@ -3588,7 +3583,9 @@ async def create_supplier_finance_invoice(
         content = await file.read()
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
-        ext = os.path.splitext(file.filename or "invoice.bin")[1].lower() or ".bin"
+        _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                        "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+        ext = _fin_ext_map.get(file.content_type or "", ".bin")
         _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
         folder = os.path.realpath(os.path.join(_base, str(supplier_user.supplier_id), "invoices"))
         if os.path.commonpath([_base, folder]) != _base:
@@ -3683,7 +3680,9 @@ async def create_supplier_finance_photo(
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
 
-    ext = os.path.splitext(file.filename or "photo.bin")[1].lower() or ".bin"
+    _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                    "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    ext = _fin_ext_map.get(file.content_type or "", ".bin")
     _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
     folder = os.path.realpath(os.path.join(_base, str(supplier_user.supplier_id), "photos"))
     if os.path.commonpath([_base, folder]) != _base:
@@ -3766,7 +3765,7 @@ async def create_supplier_finance_invoice_admin(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    _require_supplier_access_for_finance(db, supplier_id, current_user)
+    supplier = _require_supplier_access_for_finance(db, supplier_id, current_user)
 
     _ensure_supplier_finance_tables(db)
     if amount <= 0:
@@ -3778,19 +3777,21 @@ async def create_supplier_finance_invoice_admin(
         content = await file.read()
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Dosya 20MB'dan büyük olamaz")
-        ext = os.path.splitext(file.filename or "invoice.bin")[1].lower() or ".bin"
+        _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                        "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+        ext = _fin_ext_map.get(file.content_type or "", ".bin")
         _base = os.path.realpath(os.path.join("uploads", "supplier_finance"))
-        folder = os.path.realpath(os.path.join(_base, str(supplier_id), "invoices"))
+        folder = os.path.realpath(os.path.join(_base, str(supplier.id), "invoices"))
         if os.path.commonpath([_base, folder]) != _base:
             raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         os.makedirs(folder, exist_ok=True)
-        stored = f"invoice_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
+        stored = f"invoice_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
         file_path = os.path.realpath(os.path.join(folder, stored))
         if os.path.commonpath([_base, file_path]) != _base:
             raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
         with open(file_path, "wb") as out:
             out.write(content)
-        file_url = f"/uploads/supplier_finance/{supplier_id}/invoices/{stored}"
+        file_url = f"/uploads/supplier_finance/{supplier.id}/invoices/{stored}"
 
     db.execute(
         text("""
@@ -3872,32 +3873,30 @@ async def create_supplier_finance_photo_admin(
 ):
     if supplier_id <= 0:
         raise HTTPException(status_code=400, detail="Geçersiz tedarikçi")
-    _require_supplier_access_for_finance(db, supplier_id, current_user)
+    supplier = _require_supplier_access_for_finance(db, supplier_id, current_user)
 
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya boyutu 20MB'ı geçemez")
-    raw_ext = os.path.splitext(file.filename or "photo.bin")[1].lower()
-    ext = raw_ext if re.fullmatch(r"\.[a-z0-9]{1,10}", raw_ext or "") else ".bin"
-    supplier_segment = str(supplier_id)
-    if not re.fullmatch(r"[0-9]+", supplier_segment):
-        raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
+    _fin_ext_map = {"application/pdf": ".pdf", "image/jpeg": ".jpg",
+                    "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    ext = _fin_ext_map.get(file.content_type or "", ".bin")
     base_upload_dir = os.path.realpath(os.path.join("uploads", "supplier_finance"))
     folder = os.path.realpath(
-        os.path.join(base_upload_dir, supplier_segment, "photos")
+        os.path.join(base_upload_dir, str(supplier.id), "photos")
     )
     if os.path.commonpath([base_upload_dir, folder]) != base_upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     os.makedirs(folder, exist_ok=True)
-    stored = f"photo_{supplier_id}_{uuid.uuid4().hex[:12]}{ext}"
+    stored = f"photo_{supplier.id}_{uuid.uuid4().hex[:12]}{ext}"
     file_path = os.path.realpath(os.path.join(folder, stored))
     if os.path.commonpath([base_upload_dir, file_path]) != base_upload_dir:
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     with open(file_path, "wb") as out:
         out.write(content)
-    file_url = f"/uploads/supplier_finance/{supplier_segment}/photos/{stored}"
+    file_url = f"/uploads/supplier_finance/{supplier.id}/photos/{stored}"
 
     db.execute(
         text("""
