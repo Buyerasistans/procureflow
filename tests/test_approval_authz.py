@@ -73,7 +73,6 @@ def test_pending_approvals_synthesize_required_role_when_mirror_is_null(
             QuoteApproval(
                 quote_id=quote_id,
                 approval_level=1,
-                required_role=None,
                 required_business_role="satinalma_uzmani",
                 status="beklemede",
             )
