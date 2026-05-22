@@ -2181,6 +2181,9 @@ def _ensure_common_catalog_manage_access(
     if is_super_admin(current_user):
         return
 
+    if is_tenant_admin(current_user):
+        return
+
     if _has_user_permission_override(db, current_user.id, permission_key):
         return
 
