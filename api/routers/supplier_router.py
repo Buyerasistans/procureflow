@@ -3186,11 +3186,15 @@ def download_supplier_document_file_admin(
     ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
-    base_dir = os.path.abspath(os.path.join("uploads", "supplier_docs", str(supplier_id)))
-    file_path = os.path.abspath(
-        os.path.normpath(os.path.join(base_dir, safe_category, safe_name))
+    docs_root = os.path.realpath(os.path.join("uploads", "supplier_docs"))
+    base_dir = os.path.realpath(os.path.join(docs_root, str(supplier_id)))
+    file_path = os.path.realpath(
+        os.path.join(base_dir, safe_category, safe_name)
     )
-    if os.path.commonpath([base_dir, file_path]) != base_dir:
+    if (
+        os.path.commonpath([docs_root, base_dir]) != docs_root
+        or os.path.commonpath([base_dir, file_path]) != base_dir
+    ):
         raise HTTPException(status_code=400, detail="Geçersiz dosya yolu")
 
     if not os.path.exists(file_path):
