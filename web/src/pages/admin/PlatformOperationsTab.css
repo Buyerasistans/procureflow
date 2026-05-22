@@ -23,7 +23,7 @@
   font-weight: 800;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  color: #8a5b2b;
+  color: var(--pf-amber-brown);
 }
 
 .platform-operations-tab__title {
@@ -85,7 +85,7 @@
   display: inline-flex;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #e0f2fe;
+  background: var(--pf-sky-100);
   color: var(--pf-slate-900);
   font-size: 11px;
   font-weight: 800;
@@ -137,15 +137,15 @@
 }
 
 .platform-operations-tab__button--blue {
-  border-color: #bfdbfe;
+  border-color: var(--pf-blue-200);
   background: var(--pf-color-primary-light);
   color: var(--pf-color-primary-dark);
 }
 
 .platform-operations-tab__button--amber {
-  border-color: #fed7aa;
+  border-color: var(--pf-orange-200);
   background: var(--pf-color-warning-light);
-  color: #c2410c;
+  color: var(--pf-orange-700);
 }
 
 .platform-operations-tab__button--primary {
@@ -197,15 +197,15 @@
 }
 
 .platform-operations-tab__stat-label--in_progress {
-  color: #c2410c;
+  color: var(--pf-orange-700);
 }
 
 .platform-operations-tab__stat-label--waiting_owner {
-  color: #7c3aed;
+  color: var(--pf-violet-600);
 }
 
 .platform-operations-tab__stat-label--resolved {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .platform-operations-tab__stat-value {
@@ -222,15 +222,15 @@
 }
 
 .platform-operations-tab__stat-value--in_progress {
-  color: #c2410c;
+  color: var(--pf-orange-700);
 }
 
 .platform-operations-tab__stat-value--waiting_owner {
-  color: #7c3aed;
+  color: var(--pf-violet-600);
 }
 
 .platform-operations-tab__stat-value--resolved {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .platform-operations-tab__filters {
@@ -292,19 +292,19 @@
 }
 
 .platform-operations-tab__queue-count--support_status {
-  color: #0369a1;
+  color: var(--pf-sky-700);
 }
 
 .platform-operations-tab__queue-count--owner {
-  color: #7c3aed;
+  color: var(--pf-violet-600);
 }
 
 .platform-operations-tab__queue-count--brand {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .platform-operations-tab__queue-count--onboard {
-  color: #c2410c;
+  color: var(--pf-orange-700);
 }
 
 .platform-operations-tab__queue-count--triage {
@@ -325,11 +325,11 @@
 .platform-operations-tab__priority-box {
   margin-top: 8px;
   border-radius: 10px;
-  border: 1px solid #fde68a;
-  background: #fffbeb;
+  border: 1px solid var(--pf-amber-200);
+  background: var(--pf-amber-50);
   padding: 8px 10px;
   font-size: 12px;
-  color: #92400e;
+  color: var(--pf-amber-800);
   font-weight: 700;
 }
 
@@ -413,7 +413,7 @@
 }
 
 .platform-operations-tab__badge--new {
-  background: #e0f2fe;
+  background: var(--pf-sky-100);
 }
 
 .platform-operations-tab__badge--in-progress {
@@ -425,7 +425,7 @@
 }
 
 .platform-operations-tab__badge--resolved {
-  background: #dcfce7;
+  background: var(--pf-green-100);
 }
 
 .platform-operations-tab__empty-copy {
@@ -438,7 +438,7 @@
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
-  background: #e0f2fe;
+  background: var(--pf-sky-100);
   color: var(--pf-slate-900);
 }
 
@@ -451,19 +451,19 @@
 }
 
 .platform-operations-tab__notice--success {
-  border-color: #bbf7d0;
+  border-color: var(--pf-green-200);
   background: var(--pf-color-success-light);
-  color: #166534;
+  color: var(--pf-green-800);
 }
 
 .platform-operations-tab__notice--error {
   border-color: var(--pf-color-danger-border);
-  background: #fef2f2;
-  color: #991b1b;
+  background: var(--pf-red-50);
+  color: var(--pf-red-800);
 }
 
 .platform-operations-tab__notice--info {
-  border-color: #bfdbfe;
+  border-color: var(--pf-blue-200);
   background: var(--pf-color-primary-light);
   color: var(--pf-color-primary-dark);
 }
@@ -480,10 +480,10 @@
 
 .platform-operations-tab__support-note {
   border-radius: 14px;
-  border: 1px solid #bfdbfe;
-  background: #f8fbff;
+  border: 1px solid var(--pf-blue-200);
+  background: var(--pf-blue-25);
   padding: 10px 12px;
-  color: #1e3a8a;
+  color: var(--pf-blue-900);
   font-size: 13px;
 }
 
@@ -511,9 +511,9 @@
 .platform-operations-tab__queue-footer {
   border-radius: 14px;
   background: var(--pf-color-primary-light);
-  border: 1px solid #bfdbfe;
+  border: 1px solid var(--pf-blue-200);
   padding: 10px 12px;
-  color: #1e3a8a;
+  color: var(--pf-blue-900);
   font-size: 13px;
 }
 
@@ -539,15 +539,15 @@
 }
 
 .platform-operations-tab__inline-label--orange {
-  color: #c2410c;
+  color: var(--pf-orange-700);
 }
 
 .platform-operations-tab__inline-label--green {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .platform-operations-tab__inline-label--violet {
-  color: #7c3aed;
+  color: var(--pf-violet-600);
 }
 
 .platform-operations-tab__small-text {

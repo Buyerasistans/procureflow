@@ -42,9 +42,20 @@
   --pf-gray-900: #111827;
 
   /* ── Blue Scale ──────────────────────────────────── */
+  --pf-blue-25:  #f8fbff;
   --pf-blue-100: #dbeafe;
   --pf-blue-200: #bfdbfe;
+  --pf-blue-300: #93c5fd;
+  --pf-blue-400: #60a5fa;
   --pf-blue-500: #3b82f6;
+  --pf-blue-900: #1e3a8a;
+
+  /* ── Sky Scale ───────────────────────────────────── */
+  --pf-sky-100: #e0f2fe;
+  --pf-sky-700: #0369a1;
+
+  /* ── Cyan Scale ──────────────────────────────────── */
+  --pf-cyan-50: #ecfeff;
 
   /* ── Red Scale ───────────────────────────────────── */
   --pf-red-50:  #fef2f2;
@@ -62,14 +73,36 @@
   --pf-green-700: #15803d;
   --pf-green-800: #166534;
 
+  /* ── Emerald Scale ───────────────────────────────── */
+  --pf-emerald-100: #d1fae5;
+  --pf-emerald-600: #059669;
+
   /* ── Teal ────────────────────────────────────────── */
+  --pf-teal-50:  #f0fdfa;
   --pf-teal-700: #0f766e;
 
-  /* ── Amber / Orange ──────────────────────────────── */
-  --pf-amber-400:  #f59e0b;
-  --pf-amber-800:  #92400e;
+  /* ── Amber Scale ─────────────────────────────────── */
+  --pf-amber-50:    #fffbeb;
+  --pf-amber-100:   #fef3c7;
+  --pf-amber-200:   #fde68a;
+  --pf-amber-300:   #fcd34d;
+  --pf-amber-400:   #f59e0b;
+  --pf-amber-600:   #d97706;
+  --pf-amber-800:   #92400e;
+  --pf-amber-900:   #78350f;
+  --pf-amber-brown: #8a5b2b;
+
+  /* ── Orange Scale ────────────────────────────────── */
   --pf-orange-200: #fed7aa;
+  --pf-orange-700: #c2410c;
   --pf-orange-800: #9a3412;
+
+  /* ── Indigo Scale ────────────────────────────────── */
+  --pf-indigo-50:  #eef2ff;
+  --pf-indigo-100: #e0e7ff;
+  --pf-indigo-500: #6366f1;
+  --pf-indigo-600: #4f46e5;
+  --pf-indigo-800: #3730a3;
 
   /* ── Violet ──────────────────────────────────────── */
   --pf-violet-600: #7c3aed;
@@ -130,7 +163,9 @@
   --pf-shadow-xl: 0 14px 30px rgba(15, 23, 42, 0.12);
 
   /* ── Focus Ring ──────────────────────────────────── */
-  --pf-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.28);
+  --pf-focus-ring:        0 0 0 3px rgba(37, 99, 235, 0.28);
+  --pf-focus-ring-color:  rgba(37, 99, 235, 0.28);
+  --pf-focus-ring-offset: 2px;
 
   /* ── Z-Index ─────────────────────────────────────── */
   --pf-z-modal:   9000;
@@ -170,4 +205,23 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ── Global Focus Visible (a11y — WCAG 2.2 AA) ──────── */
+:focus-visible {
+  outline: 2px solid var(--pf-color-primary);
+  outline-offset: var(--pf-focus-ring-offset);
+  box-shadow: var(--pf-focus-ring);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--pf-color-primary);
+  outline-offset: var(--pf-focus-ring-offset);
+  box-shadow: var(--pf-focus-ring);
+  border-radius: 4px;
 }

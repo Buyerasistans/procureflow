@@ -67,7 +67,7 @@
 
 .personnel-tab__cta-button {
   padding: 14px 20px;
-  background: linear-gradient(135deg, var(--pf-green-500) 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--pf-green-500) 0%, var(--pf-emerald-600) 100%);
   color: var(--pf-surface);
   border: none;
   border-radius: 14px;
@@ -134,14 +134,14 @@
 
 .personnel-tab__matrix-panel {
   border-radius: 20px;
-  border: 1px solid #fde68a;
-  background: #fffbeb;
+  border: 1px solid var(--pf-amber-200);
+  background: var(--pf-amber-50);
   overflow: hidden;
 }
 
 .personnel-tab__matrix-header {
   padding: 16px;
-  border-bottom: 1px solid #fef3c7;
+  border-bottom: 1px solid var(--pf-amber-100);
   display: grid;
   gap: 10px;
 }
@@ -163,7 +163,7 @@
 }
 
 .personnel-tab__matrix-description {
-  color: #78350f;
+  color: var(--pf-amber-900);
   font-size: 13px;
 }
 
@@ -175,18 +175,18 @@
 }
 
 .personnel-tab__matrix-button {
-  border: 1px solid #fcd34d;
+  border: 1px solid var(--pf-amber-300);
   border-radius: 10px;
   padding: 8px 12px;
   background: var(--pf-surface);
-  color: #78350f;
+  color: var(--pf-amber-900);
   font-weight: 700;
   cursor: pointer;
 }
 
 .personnel-tab__matrix-button--primary {
   border: none;
-  background: #d97706;
+  background: var(--pf-amber-600);
   color: var(--pf-surface);
 }
 
@@ -196,11 +196,11 @@
 }
 
 .personnel-tab__matrix-select {
-  border: 1px solid #fcd34d;
+  border: 1px solid var(--pf-amber-300);
   border-radius: 10px;
   padding: 8px 10px;
   background: var(--pf-surface);
-  color: #78350f;
+  color: var(--pf-amber-900);
   font-weight: 600;
 }
 
@@ -216,8 +216,8 @@
 }
 
 .personnel-tab__matrix-table thead tr {
-  background: #fffbeb;
-  border-bottom: 1px solid #fde68a;
+  background: var(--pf-amber-50);
+  border-bottom: 1px solid var(--pf-amber-200);
 }
 
 .personnel-tab__matrix-table th {
@@ -325,7 +325,7 @@
 }
 
 .personnel-tab__group-card--green {
-  border-color: #d1fae5;
+  border-color: var(--pf-emerald-100);
 }
 
 .personnel-tab__group-card--amber {
@@ -349,11 +349,11 @@
 }
 
 .personnel-tab__group-header--teal {
-  background: #ecfeff;
+  background: var(--pf-cyan-50);
 }
 
 .personnel-tab__group-header--amber {
-  background: #fffbeb;
+  background: var(--pf-amber-50);
 }
 
 .personnel-tab__group-title {
@@ -459,7 +459,7 @@
 }
 
 .personnel-tab__person-button--indigo {
-  background: #6366f1;
+  background: var(--pf-indigo-500);
 }
 
 .personnel-tab__person-button--blue {
@@ -533,7 +533,7 @@
 }
 
 .personnel-tab__group-toggle--teal {
-  background: #ecfeff;
+  background: var(--pf-cyan-50);
 }
 
 .personnel-tab__group-toggle--blue {
@@ -541,7 +541,7 @@
 }
 
 .personnel-tab__group-toggle--amber {
-  background: #fffbeb;
+  background: var(--pf-amber-50);
 }
 
 .personnel-tab__details-panel {

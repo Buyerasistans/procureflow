@@ -31,7 +31,7 @@
   font-weight: 800;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  color: #8a5b2b;
+  color: var(--pf-amber-brown);
 }
 
 .tenantGovernanceTab__title {
@@ -52,7 +52,7 @@
 .tenantGovernanceTab__infoPanel {
   border-radius: 16px;
   border: 1px solid var(--pf-blue-100);
-  background: #f8fbff;
+  background: var(--pf-blue-25);
   padding: 14px 16px;
   display: grid;
   gap: 8px;
@@ -140,8 +140,8 @@
 }
 
 .tenantGovernanceTab__button--edit {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--pf-indigo-100);
+  color: var(--pf-indigo-800);
 }
 
 .tenantGovernanceTab__button--danger {
@@ -234,7 +234,7 @@
   font-weight: 800;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: #8a5b2b;
+  color: var(--pf-amber-brown);
   margin-top: 4px;
 }
 
@@ -318,13 +318,13 @@
 }
 
 .tenantGovernanceTab__summaryCard--green {
-  border-color: #d1fae5;
+  border-color: var(--pf-emerald-100);
   background: var(--pf-green-50);
 }
 
 .tenantGovernanceTab__summaryCard--amber {
-  border-color: #fde68a;
-  background: #fffbeb;
+  border-color: var(--pf-amber-200);
+  background: var(--pf-amber-50);
 }
 
 .tenantGovernanceTab__summaryEyebrow {
@@ -371,7 +371,7 @@
 
 .tenantGovernanceTab__categoryChip--selected {
   border-color: var(--pf-teal-700);
-  background: #ecfeff;
+  background: var(--pf-cyan-50);
   color: var(--pf-teal-700);
 }
 
@@ -400,7 +400,7 @@
 }
 
 .tenantGovernanceTab__tableRow--pressure {
-  background: #fffbeb;
+  background: var(--pf-amber-50);
 }
 
 .tenantGovernanceTab__tableRow--breach {
@@ -435,7 +435,7 @@
 }
 
 .tenantGovernanceTab__chip--teal {
-  background: #ecfeff;
+  background: var(--pf-cyan-50);
   color: var(--pf-teal-700);
 }
 
@@ -455,12 +455,12 @@
 }
 
 .tenantGovernanceTab__metricChip--calm {
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--pf-indigo-50);
+  color: var(--pf-indigo-800);
 }
 
 .tenantGovernanceTab__metricChip--pressure {
-  background: #fef3c7;
+  background: var(--pf-amber-100);
   color: var(--pf-amber-800);
 }
 

@@ -31,7 +31,7 @@
 }
 
 .platform-analytics-tab__metric-card--indigo {
-  background: #eef2ff;
+  background: var(--pf-indigo-50);
   border-color: rgba(79, 70, 229, 0.18);
 }
 
@@ -41,7 +41,7 @@
 }
 
 .platform-analytics-tab__metric-card--sky {
-  background: #e0f2fe;
+  background: var(--pf-sky-100);
   border-color: rgba(2, 132, 199, 0.18);
 }
 
@@ -51,12 +51,12 @@
 }
 
 .platform-analytics-tab__metric-card--amber {
-  background: #fffbeb;
+  background: var(--pf-amber-50);
   border-color: rgba(180, 83, 9, 0.18);
 }
 
 .platform-analytics-tab__metric-card--teal {
-  background: #f0fdfa;
+  background: var(--pf-teal-50);
   border-color: rgba(15, 118, 110, 0.18);
 }
 
@@ -134,11 +134,11 @@
 }
 
 .platform-analytics-tab__list-value--indigo {
-  color: #4f46e5;
+  color: var(--pf-indigo-600);
 }
 
 .platform-analytics-tab__list-value--green {
-  color: #059669;
+  color: var(--pf-emerald-600);
 }
 
 .platform-analytics-tab__detail-panel {

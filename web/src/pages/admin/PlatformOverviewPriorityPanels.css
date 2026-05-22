@@ -17,7 +17,7 @@
   font-weight: 800;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  color: #8a5b2b;
+  color: var(--pf-amber-brown);
 }
 
 .platform-overview-priority-panels__title {

@@ -42,7 +42,7 @@
 }
 
 .platform-overview-summary-section__value--green {
-  color: #059669;
+  color: var(--pf-emerald-600);
 }
 
 .platform-overview-summary-section__value--amber {

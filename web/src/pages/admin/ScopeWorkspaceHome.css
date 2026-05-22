@@ -142,7 +142,7 @@
   font-weight: 800;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: #1e3a8a;
+  color: var(--pf-blue-900);
 }
 
 .scope-workspace-home__metric-grid,
@@ -185,12 +185,12 @@
 
 .scope-workspace-home__metric-card--approved .scope-workspace-home__metric-label,
 .scope-workspace-home__metric-card--approved .scope-workspace-home__metric-value {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .scope-workspace-home__metric-card--rejected .scope-workspace-home__metric-label,
 .scope-workspace-home__metric-card--rejected .scope-workspace-home__metric-value {
-  color: #b91c1c;
+  color: var(--pf-red-700);
 }
 
 .scope-workspace-home__metric-card--links .scope-workspace-home__metric-label,
@@ -223,8 +223,8 @@
 
 .scope-workspace-home__status-note {
   border-radius: 16px;
-  border: 1px solid #dbeafe;
-  background: #f8fbff;
+  border: 1px solid var(--pf-blue-100);
+  background: var(--pf-blue-25);
   padding: 14px 16px;
   color: var(--pf-slate-700);
   font-size: 13px;
@@ -272,18 +272,18 @@
 }
 
 .scope-workspace-home__status-pill--approved {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--pf-green-100);
+  color: var(--pf-green-800);
 }
 
 .scope-workspace-home__status-pill--rejected {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--pf-red-100);
+  color: var(--pf-red-700);
 }
 
 .scope-workspace-home__status-pill--pending {
-  background: #fffbeb;
-  color: #92400e;
+  background: var(--pf-amber-50);
+  color: var(--pf-amber-800);
 }
 
 .scope-workspace-home__catalog-card-description {
@@ -516,12 +516,12 @@
   font-weight: 900;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #1e3a8a;
+  color: var(--pf-blue-900);
 }
 
 .scope-workspace-home__theme-card-note {
   font-size: 11px;
-  color: #1e3a8a;
+  color: var(--pf-blue-900);
   opacity: 0.72;
   font-weight: 700;
   margin-top: -4px;
@@ -557,22 +557,22 @@
 
 .scope-workspace-home__theme-card--supplier {
   border-color: rgba(220, 38, 38, 0.18);
-  background: #fef2f2;
+  background: var(--pf-red-50);
 }
 
 .scope-workspace-home__theme-card--supplier .scope-workspace-home__theme-card-title,
 .scope-workspace-home__theme-card--supplier .scope-workspace-home__theme-row-value {
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .scope-workspace-home__theme-card--channel {
   border-color: rgba(15, 118, 110, 0.18);
-  background: #f0fdfa;
+  background: var(--pf-teal-50);
 }
 
 .scope-workspace-home__theme-card--channel .scope-workspace-home__theme-card-title,
 .scope-workspace-home__theme-card--channel .scope-workspace-home__theme-row-value {
-  color: #0f766e;
+  color: var(--pf-teal-700);
 }
 
 .scope-workspace-home__summary-pill-grid {
@@ -609,12 +609,12 @@
 
 .scope-workspace-home__summary-pill-card--approved .scope-workspace-home__summary-pill-label,
 .scope-workspace-home__summary-pill-card--approved .scope-workspace-home__summary-pill-value {
-  color: #15803d;
+  color: var(--pf-green-700);
 }
 
 .scope-workspace-home__summary-pill-card--rejected .scope-workspace-home__summary-pill-label,
 .scope-workspace-home__summary-pill-card--rejected .scope-workspace-home__summary-pill-value {
-  color: #b91c1c;
+  color: var(--pf-red-700);
 }
 
 .scope-workspace-home__summary-pill-card--links .scope-workspace-home__summary-pill-label,

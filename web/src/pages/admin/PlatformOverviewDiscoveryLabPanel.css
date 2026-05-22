@@ -63,9 +63,9 @@
 .platform-overview-discovery-lab-panel__session-pill--locked,
 .platform-overview-discovery-lab-panel__audit-pill--selected,
 .platform-overview-discovery-lab-panel__filter-pill--selected {
-  background: #e0f2fe;
+  background: var(--pf-sky-100);
   border: 1px solid var(--pf-blue-200);
-  color: #0369a1;
+  color: var(--pf-sky-700);
 }
 
 .platform-overview-discovery-lab-panel__session-pill--open,
@@ -79,7 +79,7 @@
 .platform-overview-discovery-lab-panel__audit-expanded {
   border-radius: 12px;
   border: 1px solid var(--pf-blue-100);
-  background: #f8fbff;
+  background: var(--pf-blue-25);
   padding: 10px 12px;
   display: grid;
   gap: 6px;
@@ -111,13 +111,13 @@
 }
 
 .platform-overview-discovery-lab-panel__filter-button--selected {
-  border-color: #0369a1;
-  background: #e0f2fe;
-  color: #0369a1;
+  border-color: var(--pf-sky-700);
+  background: var(--pf-sky-100);
+  color: var(--pf-sky-700);
 }
 
 .platform-overview-discovery-lab-panel__audit {
-  background: #f8fbff;
+  background: var(--pf-blue-25);
   border-color: var(--pf-blue-100);
   display: grid;
   gap: 6px;
@@ -127,8 +127,8 @@
   display: inline-flex;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #e0f2fe;
-  color: #0369a1;
+  background: var(--pf-sky-100);
+  color: var(--pf-sky-700);
   font-size: 11px;
   font-weight: 700;
 }
