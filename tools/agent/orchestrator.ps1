@@ -105,4 +105,3 @@ branch: $branch
 "@ | Out-File -FilePath $stateFile -Encoding utf8
 
 Write-Host "[OK] go hazır. AI'ya tek dosya ver: tools/agent/AI_BRIEFING.md" -ForegroundColor Green
-

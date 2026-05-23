@@ -1,8 +1,8 @@
 ---
 title: Admin Governance Domain
 owned_by: platform
-last_verified_at: 2026-05-21
-confidence: 0.80
+last_verified_at: 2026-05-24
+confidence: 0.84
 stale_after_days: 14
 source_files:
   - api/routers/admin.py
@@ -17,18 +17,11 @@ source_files:
   - web/src/components/admin
 ---
 
-
 # Admin Governance Domain
-
-- owned_by: backend+frontend
-- last_verified_at: 2026-05-21
-- confidence: 0.72
-- stale_after_days: 14
 
 ## Sorumluluk
 
-Admin governance alanı; yönetici panelleri, yetki sınırları, tenant yönetimi
-ve operasyonel kontrolleri kapsar.
+Admin governance alanı; yönetici panelleri, yetki sınırları, tenant yönetimi ve operasyonel kontrolleri kapsar.
 
 ## Ana akışlar
 
@@ -36,6 +29,30 @@ ve operasyonel kontrolleri kapsar.
 - Sistem izinleri ve tenant kapsamını doğrular.
 - Yönetim aksiyonları kayıt altına alınır.
 - Gerekirse ilgili alt bileşenler veya API uçları tetiklenir.
+
+## Bu PR'da ne değişti?
+
+- `api/routers/admin.py` içinde proje dosyası listeleme/silme metinleri UTF-8'e normalize edildi.
+- `web/src/components/admin` ve `web/src/pages/admin` kapsamındaki yönetim ekranları bu domain gate'ini tetikleyen dosyalar arasında kalıyor.
+- Agent guard, CODEOWNERS ve wiki memory akışı admin governance değişikliklerinin PR'da izlenmesini sürdürüyor.
+
+## Etki analizi
+
+- Kullanıcıya dönen hata/detail metinleri Türkçe karakterleri doğru gösterecek.
+- Admin panel davranışı veya yetki matrisi değiştirilmedi.
+- Wiki gate açısından admin governance dokümantasyonu güncel değişiklikle yeniden hizalandı.
+
+## Risk/Rollback
+
+- Risk düşük; değişiklik metin ve dokümantasyon odaklı.
+- Beklenmeyen encoding drift görülürse encoding commit'i `git revert` ile geri alınabilir.
+- Admin router davranışı değişmediği için runtime rollback gerektirmesi beklenmez.
+
+## Test notu
+
+- `python tools/memory/domain_coverage.py --base-ref origin/main`
+- `python tools/memory/check_pr_wiki_gate.py`
+- Admin dosya endpointleri için mevcut authorization testleri etkilenmemelidir.
 
 ## Kritik durumlar
 

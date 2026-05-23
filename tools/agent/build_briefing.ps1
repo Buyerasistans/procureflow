@@ -64,4 +64,3 @@ $(Get-Content $promptFile -Raw -Encoding UTF8)
 "@ | Out-File -FilePath $brief -Encoding utf8
 
 Write-Host "[OK] AI briefing generated: $brief"
-
