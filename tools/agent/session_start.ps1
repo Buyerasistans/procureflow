@@ -1,9 +1,12 @@
 ﻿param(
- [string]$Task = "Genel gelitirme",
+ [string]$Task = "Genel geliştirme",
  [string]$Domain = "payment-billing"
 )
 
 $ErrorActionPreference = "Stop"
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $root = (Resolve-Path "$PSScriptRoot\..\..").Path
 Set-Location $root
 

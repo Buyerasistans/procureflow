@@ -1,5 +1,9 @@
-# Plesk Panel’e Python/Node.js Projesi Otomatik Deploy PowerShell Scripti
+# Plesk Panel'e Python/Node.js Projesi Otomatik Deploy PowerShell Scripti
 # Gereksinimler: WinSCP, PuTTY/Plink veya benzeri araçlar, SSH erişimi
+
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
 $remoteUser = "admin"
 $remoteHost = "213.238.191.177"
@@ -30,7 +34,7 @@ if [ -f "web/package.json" ]; then
   cd ..
 fi
 
-# Migration’lar
+# Migration'lar
 if [ -f "api/alembic.ini" ]; then
   source $pythonEnvPath/bin/activate
   cd api

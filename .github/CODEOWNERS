@@ -1,6 +1,7 @@
 # Agent critical files
-/tools/agent/AI_BRIEFING.md @Olimpos
-/tools/agent/SESSION_CONTEXT.md @Olimpos
-/tools/agent/STATE.md @Olimpos
-/tools/agent/* @Olimpos
-/.githooks/* @Olimpos
+/tools/agent/AI_BRIEFING.md @olimposbotsinyal
+/tools/agent/SESSION_CONTEXT.md @olimposbotsinyal
+/tools/agent/STATE.md @olimposbotsinyal
+/tools/agent/* @olimposbotsinyal
+/.githooks/* @olimposbotsinyal
+

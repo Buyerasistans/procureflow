@@ -1,4 +1,7 @@
 ﻿$ErrorActionPreference = "Stop"
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
 $root = (Resolve-Path "$PSScriptRoot\..\..").Path
 Set-Location $root
@@ -37,7 +40,7 @@ $statePath = Join-Path $root "tools/agent/STATE.md"
 $domain = "payment-billing"
 
 if (Test-Path $statePath) {
-    $stateContent = Get-Content $statePath -Raw
+    $stateContent = Get-Content $statePath -Raw -Encoding UTF8
     $m = [regex]::Match($stateContent, "(?m)^\s*domain:\s*([a-z0-9\-_]+)\s*$")
     if ($m.Success -and $m.Groups[1].Value) {
         $domain = $m.Groups[1].Value.Trim()

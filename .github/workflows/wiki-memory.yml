@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WIKI_BASE_REF: origin/main
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
 
     steps:
       - name: Checkout
@@ -39,7 +41,7 @@ jobs:
         run: python tools/memory/lint_wiki.py
 
       - name: Domain coverage
-        run: python tools/memory/domain_coverage.py
+        run: python tools/memory/domain_coverage.py --base-ref "$WIKI_BASE_REF"
 
       - name: Check PR wiki gate
         run: python tools/memory/check_pr_wiki_gate.py

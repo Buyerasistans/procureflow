@@ -6908,10 +6908,10 @@ async def upload_project_file(
 async def list_project_files(
     proj_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)
 ):
-    """Proje dosyalar�n� listele"""
+    """Proje dosyalarını listele"""
     project = db.query(Project).filter(Project.id == proj_id).first()
     if not project:
-        raise HTTPException(status_code=404, detail="Proje bulunamad�")
+        raise HTTPException(status_code=404, detail="Proje bulunamadı")
 
     current_user = _
     _ensure_project_scope(project, current_user)
@@ -6927,10 +6927,10 @@ async def delete_project_file(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin_user),
 ):
-    """Proje dosyas�n� sil (Sadece Super Admin)"""
+    """Proje dosyasını sil (Sadece Super Admin)"""
     project_file = db.query(ProjectFile).filter(ProjectFile.id == file_id).first()
     if not project_file:
-        raise HTTPException(status_code=404, detail="Dosya bulunamad�")
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     project = db.query(Project).filter(Project.id == project_file.project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
@@ -6942,10 +6942,10 @@ async def delete_project_file(
             detail="Proje dosyasi silme yetkiniz yok",
         )
 
-    # Fiziksel dosyay� sil
+    # Fiziksel dosyayı sil
     FileUploadService.delete_file(project_file.file_path)
 
-    # Veritaban�ndan sil
+    # Veritabanından sil
     db.delete(project_file)
     db.commit()
 

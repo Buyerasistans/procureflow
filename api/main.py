@@ -41,7 +41,7 @@ from .routers.mail_center_router import router as mail_center_router
 try:
     from .routers.admin_deployment import router as admin_deployment_router
 except SyntaxError as exc:
-    # deployment servisinde syntax/indentation hatasÄ± varsa health yine Ã§alÄ±ÅŸsÄ±n
+    # deployment servisinde syntax/indentation hatası varsa health yine çalışsın
     admin_deployment_router = None
     print(f"WARNING: admin_deployment router disabled (import error): {exc}")
 from api.database import Base, engine, SessionLocal, ensure_database_schema
@@ -51,7 +51,7 @@ from api.services.runtime_bootstrap import (
     seed_runtime_defaults,
 )
 
-# CRUD Ã¶rnek routerlar
+# CRUD örnek routerlar
 from api.department_crud_example import router as department_crud_router
 from api.job_crud_example import router as job_crud_router
 from api.user_crud_example import router as user_crud_router
@@ -166,7 +166,7 @@ if admin_deployment_router is not None:
 if mail_center_router is not None:
     app.include_router(mail_center_router, prefix="/api/v1")
 app.include_router(files_router)
-# CRUD Ã¶rnek routerlar
+# CRUD örnek routerlar
 app.include_router(department_crud_router, prefix="/api/v1")
 app.include_router(job_crud_router, prefix="/api/v1")
 app.include_router(user_crud_router, prefix="/api/v1")

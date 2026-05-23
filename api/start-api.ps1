@@ -1,4 +1,7 @@
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 Set-Location $scriptRoot
 
 if (-Not (Test-Path ".venv\Scripts\python.exe")) {

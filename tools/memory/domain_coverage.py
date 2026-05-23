@@ -1,3 +1,4 @@
+import argparse
 import json
 import re
 import subprocess
@@ -45,10 +46,20 @@ def map_domains(changed_files, rules):
 def updated_wiki_files(changed_files):
     return {f for f in changed_files if f.startswith("wiki/domains/") and f.endswith(".md")}
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--base-ref",
+        default=None,
+        help="Git base ref for changed file detection, e.g. origin/main.",
+    )
+    return parser.parse_args()
+
 def main():
+    args = parse_args()
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
 
-    base_ref = detect_base_ref()
+    base_ref = args.base_ref or detect_base_ref()
     changed = git_changed(base_ref)
     print(f"base_ref             : {base_ref}")
 

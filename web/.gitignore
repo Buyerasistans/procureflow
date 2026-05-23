@@ -26,6 +26,14 @@ dist/
 node_modules/
 # memory cache
 tools/memory/.cache/
+# keep agent memory files tracked
+!tools/agent/
+!tools/agent/SESSION_CONTEXT.md
+!tools/agent/AI_BRIEFING.md
+!tools/agent/prompts/
+!tools/agent/orchestrator.ps1
+!tools/agent/build_briefing.ps1
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

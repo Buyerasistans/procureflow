@@ -4,6 +4,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
 # ── Sabitler ─────────────────────────────────────────────────
 $MIN_BACKUP_BYTES   = 5_000_000   # 5 MB — altındaysa veri kaybı sinyali

@@ -76,3 +76,7 @@ $text = [regex]::Replace(
 
 Set-Content -Path $path -Value $text -Encoding UTF8
 Write-Host "permissions.ts encoding blocks fixed."
+$ErrorActionPreference = "Stop"
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
