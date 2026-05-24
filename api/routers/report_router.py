@@ -555,7 +555,7 @@ def export_quote_comparison_xlsx(
     ws.append([])
     detail_header_row = ws.max_row + 1
     ws.cell(detail_header_row, 1, "Sira")
-    ws.cell(detail_header_row, 2, "Aciklama")
+    ws.cell(detail_header_row, 2, "Açıklama")
     ws.cell(detail_header_row, 3, "Birim")
     ws.cell(detail_header_row, 4, "Miktar")
     ws.cell(detail_header_row, 5, "Tahmini Birim Fiyat")

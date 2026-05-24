@@ -56,7 +56,7 @@ def default_public_pricing_config() -> dict:
             "plans": [
                 {
                     "code": "starter",
-                    "name": "Baslangic",
+                    "name": "Başlangıç",
                     "price_monthly": 14900,
                     "currency": "TRY",
                     "description": "Kucuk ekipler icin temel satin alma operasyon paketi",

@@ -1945,7 +1945,7 @@ def register_supplier_user(
                     "Merhaba,\n\n"
                     "Kaydınız tamamlandı. Platform varsayılan SMTP/POP3/IMAP ayarları için otomatik bir iş maili oluşturuldu.\n\n"
                     f"İş maili: {work_mailbox_credentials['work_email']}\n"
-                    f"Sifre: {work_mailbox_credentials['password']}\n\n"
+                    f"Şifre: {work_mailbox_credentials['password']}\n\n"
                     "Not: Sisteme giriş her zaman üye olduğunuz kişisel e-posta ve şifreniz ile yapılır.\n"
                     "Ozel SMTP/POP3/IMAP ayarlarinizi tanimlarsaniz mailbox islemleri bu ozel profil uzerinden calisir."
                 ),

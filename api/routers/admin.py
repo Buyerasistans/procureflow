@@ -831,7 +831,7 @@ def _ensure_channel_workspace_tenant(db: Session, current_user: User) -> Tenant:
         return owned_tenant
 
     base_name = (
-        current_user.full_name or current_user.email or "Kanal Kullanici"
+        current_user.full_name or current_user.email or "Kanal Kullanıcı"
     ).strip()
     legal_name = f"{base_name} Kişisel İş Ortağı Workspace"
     slug = _ensure_unique_tenant_slug(db, _slugify_tenant(legal_name))
@@ -1046,7 +1046,7 @@ def _seed_default_channel_personnel_for_tenant(
             "local": f"channel.{tenant.slug}.finance",
             "role": "channel_agent",
             "role_profile_code": "channel.finance_viewer",
-            "catalog_role": "Kanal Finans Goruntuleyici",
+            "catalog_role": "Kanal Finans Görüntüleyici",
             "department": "Finans ve Raporlama",
         },
         {
@@ -4515,7 +4515,7 @@ async def create_tenant(
         )
         if existing_user and not existing_user.hidden_from_admin:
             raise HTTPException(
-                status_code=400, detail="Ilk tenant admin e-postasi zaten kayitli"
+                status_code=400, detail="İlk tenant admin e-postası zaten kayıtlı"
             )
 
     slug = _ensure_unique_tenant_slug(

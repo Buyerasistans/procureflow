@@ -681,7 +681,7 @@ def import_quote_from_excel(
         effective_department_id = resolve_effective_department_id(db, current_user)
 
     if not is_admin_like(current_user) and effective_department_id is None:
-        raise HTTPException(status_code=422, detail="Kullaniciya departman atanmamis")
+        raise HTTPException(status_code=422, detail="Kullanıcıya departman atanmamış")
 
     try:
         workbook = openpyxl.load_workbook(BytesIO(file.file.read()))

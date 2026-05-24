@@ -203,10 +203,10 @@ export function TenantGovernanceTab({
                   disabled={!canEditTenantGovernance}
                   value={tenantForm.city}
                   onChange={(e) => setTenantForm((prev) => ({ ...prev, city: e.target.value }))}
-                  placeholder="Sehir"
+                  placeholder="Şehir"
                   className="tenantGovernanceTab__input"
                 />
-                <div className="tenantGovernanceTab__sectionLabel">Ilk Stratejik Partner Admin</div>
+                <div className="tenantGovernanceTab__sectionLabel">İlk Stratejik Partner Admin</div>
                 <input
                   disabled={!canEditTenantGovernance || editingTenantId !== null}
                   value={tenantForm.initial_admin_full_name}
@@ -275,7 +275,7 @@ export function TenantGovernanceTab({
           <div className="tenantGovernanceTab__stack">
             {[
               { label: "draft", note: "Kurulum basladi, Stratejik Partner owner ve branding eksik olabilir." },
-              { label: "onboarding", note: "Ilk admin, branding ve temel organizasyon yapisi kuruluyor." },
+              { label: "onboarding", note: "İlk admin, branding ve temel organizasyon yapısı kuruluyor." },
               { label: "aktif", note: "Operasyon kullanıma açık, proje ve tedarikçi akışları başlayabilir." },
               { label: "duraklatildi", note: "Abonelik veya operasyon karariyla gecici durdurulmus Stratejik Partner." },
             ].map((item) => (
@@ -298,7 +298,7 @@ export function TenantGovernanceTab({
               {renderAdminFocusBanner({
                 eyebrow: "Admin Focus",
                 title: `Discovery Lab odagi: ${tenantGovernanceFocus.tenantName || `Stratejik Partner #${tenantGovernanceFocus.tenantId}`}`,
-                detail: "Stratejik Partner portfoyu listesi bu odaga gore daraltildi.",
+                detail: "Stratejik Partner portföyü listesi bu odağa göre daraltıldı.",
                 tone: "blue",
                 sourceLabel: "Stratejik Partner deep-link",
                 timestamp: undefined,
@@ -368,7 +368,7 @@ export function TenantGovernanceTab({
               <div className="tenantGovernanceTab__summaryValue">
                 {tenantCategorySummary.reduce((sum, item) => sum + item.supplierCount, 0)}
               </div>
-              <div className="tenantGovernanceTab__summaryText">Kategoriye sahip supplier portfoyu sinyali</div>
+              <div className="tenantGovernanceTab__summaryText">Kategoriye sahip supplier portföyü sinyali</div>
             </div>
             <div className="tenantGovernanceTab__summaryCard tenantGovernanceTab__summaryCard--amber">
               <div className="tenantGovernanceTab__summaryEyebrow">Kategori Eksigi</div>
@@ -450,7 +450,7 @@ export function TenantGovernanceTab({
                       <td className="tenantGovernanceTab__cell">
                         <div className="tenantGovernanceTab__tenantName">{tenant.brand_name || tenant.legal_name}</div>
                         <div className="tenantGovernanceTab__tenantMeta">
-                          {tenant.slug}  {tenant.city || "Sehir eksik"}
+                          {tenant.slug}  {tenant.city || "Şehir eksik"}
                         </div>
                         <div className="tenantGovernanceTab__chipWrap">
                           <span

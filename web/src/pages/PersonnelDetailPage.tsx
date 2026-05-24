@@ -88,7 +88,7 @@ export default function PersonnelDetailPage() {
 
       const person = allPersonnel.find((item) => item.id === userId);
       if (!person) {
-        setError("Kullanici bulunamadi");
+        setError("Kullanıcı bulunamadı");
         return;
       }
 
@@ -202,7 +202,7 @@ export default function PersonnelDetailPage() {
   if (!personnel) {
     return (
       <div className="personnel-detail-page__status personnel-detail-page__status--error">
-        ❌ {error ?? "Kullanici bulunamadi"}
+        ❌ {error ?? "Kullanıcı bulunamadı"}
       </div>
     );
   }
@@ -224,7 +224,7 @@ export default function PersonnelDetailPage() {
           onClick={() => navigate("/admin?tab=personnel")}
           className="personnel-detail-page__back-button"
         >
-          ← Kullanici Listesine Don
+          ← Kullanıcı Listesine Dön
         </button>
 
         {successMsg ? (
@@ -632,7 +632,7 @@ export default function PersonnelDetailPage() {
               </h3>
               <p className="personnel-detail-page__modal-text">
                 <strong>{personnel.full_name}</strong> sifresi gecici sifre ile sifirlanacak.
-                Kullanici bir sonraki giriste Profil sayfasindan degistirmelidir.
+                Kullanıcı bir sonraki girişte Profil sayfasından değiştirmelidir.
               </p>
               <div className="personnel-detail-page__modal-actions">
                 <button

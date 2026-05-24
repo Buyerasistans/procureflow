@@ -248,7 +248,7 @@ export function PlatformAnalyticsTab() {
   const metricCards: Array<{ label: string; value: number; color: string; bg: string }> = [
     { label: "Toplam Tenant", value: summary.total_tenants ?? 0, color: "#4f46e5", bg: "#eef2ff" },
     { label: "Aktif Tenant", value: summary.active_tenants ?? 0, color: "#059669", bg: "#ecfdf5" },
-    { label: "Aktif Kullanici", value: summary.total_internal_users ?? 0, color: "#0284c7", bg: "#e0f2fe" },
+    { label: "Aktif Kullanıcı", value: summary.total_internal_users ?? 0, color: "#0284c7", bg: "#e0f2fe" },
     { label: "Toplam Tedarikçi", value: summary.total_suppliers ?? 0, color: "#7c3aed", bg: "#f5f3ff" },
     { label: "Platform Tedarikçi", value: summary.platform_suppliers ?? 0, color: "#b45309", bg: "#fffbeb" },
     { label: "Özel Tedarikçi", value: summary.private_suppliers ?? 0, color: "#0f766e", bg: "#f0fdfa" },
@@ -303,7 +303,7 @@ export function PlatformAnalyticsTab() {
       </div>
 
       <div style={{ marginTop: 28 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Public Web KPI Ozeti</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Public Web KPI Özeti</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>
           {publicMetricCards.map((m) => (
             <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.color}30`, borderRadius: 10, padding: "14px 16px" }}>
@@ -314,7 +314,7 @@ export function PlatformAnalyticsTab() {
         </div>
 
         <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Domain Intent Ozeti</div>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Domain Intent Özeti</div>
           <div style={{ display: "grid", gap: 10 }}>
             {domainIntentSummary.map((row) => (
               <div key={row.host} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "10px 12px", borderRadius: 10, background: "#fff", border: "1px solid #e5e7eb" }}>
@@ -360,7 +360,7 @@ export function PlatformAnalyticsTab() {
               </select>
             </label>
             <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569" }}>
-              Baslangic tarihi
+              Başlangıç tarihi
               <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #cbd5e1", minWidth: 160 }} />
             </label>
             <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569" }}>
@@ -615,4 +615,3 @@ export function PublicPricingTab() {
 export function CampaignsTab() {
   return <CampaignsAdminTab />;
 }
-

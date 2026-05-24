@@ -54,7 +54,7 @@ export function PlatformOverviewPriorityPanels({
         <div className="platform-overview-priority-panels__list">
           {platformOpsSummary.highestPriorityTenants.length === 0 ? (
             <div className="platform-overview-priority-panels__empty">
-              Acik operasyon kuyrugu olusturan Stratejik Partner kaydi bulunmuyor.
+              Açık operasyon kuyruğu oluşturan Stratejik Partner kaydı bulunmuyor.
             </div>
           ) : (
             platformOpsSummary.highestPriorityTenants.map((tenant) => {

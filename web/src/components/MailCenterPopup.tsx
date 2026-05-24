@@ -458,7 +458,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
                 {accountDiagnosis && (
                   <div style={{ marginTop: 10, padding: 10, borderRadius: 12, border: `1px solid ${accountDiagnosis.status === "ok" ? "#86efac" : "#fecaca"}`, background: accountDiagnosis.status === "ok" ? "#dcfce7" : "#fee2e2" }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: accountDiagnosis.status === "ok" ? "#166534" : "#991b1b" }}>
-                      Tani Durumu: {accountDiagnosis.status === "ok" ? "Basarili" : "Sorun var"}
+                      Tanı Durumu: {accountDiagnosis.status === "ok" ? "Başarılı" : "Sorun var"}
                     </div>
                     <div style={{ marginTop: 6, fontSize: 12, color: "#334155" }}>
                       IMAP: {accountDiagnosis.imap_host || "-"}:{accountDiagnosis.imap_port || "-"} {accountDiagnosis.imap_use_ssl ? "(SSL)" : ""}

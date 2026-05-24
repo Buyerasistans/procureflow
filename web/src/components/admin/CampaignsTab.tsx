@@ -385,7 +385,7 @@ export function CampaignsAdminTab() {
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((c) => ({ ...c, description: e.target.value }))}
-                placeholder="Aciklama"
+                placeholder="Açıklama"
                 className="campaigns-admin-tab__input campaigns-admin-tab__textarea campaigns-admin-tab__textarea--full"
               />
             </label>
@@ -493,7 +493,7 @@ export function CampaignsAdminTab() {
                   {campaign.code} · {campaign.audience_type} · {campaign.trigger_event}
                 </div>
                 <div className="campaigns-admin-tab__campaign-description">
-                  {campaign.description || "Aciklama yok"}
+                  {campaign.description || "Açıklama yok"}
                 </div>
               </div>
               <span

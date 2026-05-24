@@ -294,7 +294,7 @@ function getBillingInvoiceStatusMeta(status: string | null | undefined): { bucke
     if (normalized === "unpaid") {
       return { bucket: "open", label: "Odenmedi" };
     }
-    return { bucket: "open", label: "Acik" };
+    return { bucket: "open", label: "Açık" };
   }
 
   if (normalized === "draft") {
@@ -527,7 +527,7 @@ function buildFocusTelemetryPresetImportPreview(raw: string, existingPresets: Fo
     if (!parsed.exportedAt) warnings.push("exportedAt metadata alani eksik");
     if (!parsed.sourceWorkspace) warnings.push("Calisma alani metadata alani eksik (sourceWorkspace)");
     if (!parsed.operatorLabel) warnings.push("Operator metadata alani eksik (operatorLabel)");
-    if (!parsed.presetHash) warnings.push("Ozet kodu metadata alani eksik (presetHash)");
+    if (!parsed.presetHash) warnings.push("Özet kodu metadata alanı eksik (presetHash)");
     if (Array.isArray(parsed.presets) && parsed.presets.length !== importedPresets.length) warnings.push("Bazi preset kayitlari gecersiz format nedeniyle yok sayilacak");
     const newPresetNames = importedPresets
       .filter((preset) => !existingPresets.some((item) => item.name.toLowerCase() === preset.name.toLowerCase()))
@@ -701,7 +701,7 @@ function ChannelWorkspaceSeedButton({ onSeeded }: { onSeeded: () => void | Promi
       const emails = (payload.seeded_personnel_emails || []).slice(0, 4).join(", ");
       const password = payload.seeded_personnel_password || "Aa1234!!";
       if (emails) {
-        setMsg(`Olusturuldu. Personel: ${emails} | Sifre: ${password}`);
+        setMsg(`Oluşturuldu. Personel: ${emails} | Şifre: ${password}`);
       } else {
         setMsg("Kanal varsayilan rolleri ve departmanlari olusturuldu.");
       }
@@ -1224,7 +1224,7 @@ export default function AdminPage() {
 
     const normalizeHighlights = (plan: PricingPlanCard) => [
       `Firma limiti: ${plan.limits?.max_active_companies ?? plan.limits?.active_companies ?? "-"} firma`,
-      `Kullanici limiti: ${plan.limits?.max_active_internal_users ?? plan.limits?.active_internal_users ?? "-"} kullanici`,
+      `Kullanıcı limiti: ${plan.limits?.max_active_internal_users ?? plan.limits?.active_internal_users ?? "-"} kullanıcı`,
       `Proje limiti: ${plan.limits?.max_active_projects ?? plan.limits?.active_projects ?? "-"} proje`,
       `Tedarikçi limiti: ${plan.limits?.max_active_private_suppliers ?? plan.limits?.active_private_suppliers ?? "-"} tedarikçi`,
       `Teklif limiti: ${plan.limits?.max_active_rfqs ?? plan.limits?.active_quotes ?? "-"} teklif`,
@@ -3751,7 +3751,7 @@ export default function AdminPage() {
       subscription_plan_code: planCode,
       status: "active",
       onboarding_status: "draft",
-      initial_admin_full_name: "Ilk Stratejik Partner Admin",
+      initial_admin_full_name: "İlk Stratejik Partner Admin",
       initial_admin_email: preset.adminEmail,
       initial_admin_personal_phone: "+90 555 000 00 00",
     });
@@ -3778,7 +3778,7 @@ export default function AdminPage() {
         status: "active",
         onboarding_status: "draft",
         initial_admin: {
-          full_name: "Ilk Stratejik Partner Admin",
+          full_name: "İlk Stratejik Partner Admin",
           email: `draft-${planCode}@procureflow.test`,
           personal_phone: "+90 555 000 00 00",
         },
@@ -3791,7 +3791,7 @@ export default function AdminPage() {
         subscription_plan_code: created.subscription_plan_code || planCode,
         status: created.status,
         onboarding_status: created.onboarding_status,
-        initial_admin_full_name: created.owner_full_name || "Ilk Stratejik Partner Admin",
+        initial_admin_full_name: created.owner_full_name || "İlk Stratejik Partner Admin",
         initial_admin_email: created.owner_email || `draft-${planCode}@procureflow.test`,
         initial_admin_personal_phone: "+90 555 000 00 00",
       });
@@ -4456,7 +4456,7 @@ export default function AdminPage() {
                   <span className="admin-page__tag-chip">Disa Aktarim Zamani: {previewFocusTelemetryPresetPackage.exportedAtLabel}</span>
                   <span className="admin-page__tag-chip">Calisma Alani: {previewFocusTelemetryPresetPackage.sourceWorkspaceLabel}</span>
                   <span className="admin-page__tag-chip">Operator: {previewFocusTelemetryPresetPackage.operatorLabel}</span>
-                  <span className="admin-page__tag-chip">Ozet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
+                  <span className="admin-page__tag-chip">Özet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
                   <span className="admin-page__tag-chip">Kayit: {previewFocusTelemetryPresetPackage.acceptedCount}/{previewFocusTelemetryPresetPackage.presetCount}</span>
                   <span className="admin-page__tag-chip">Cakisma: {previewFocusTelemetryPresetPackage.conflictCount}</span>
                 </div>
@@ -4681,7 +4681,7 @@ export default function AdminPage() {
                   Telemetry Export Hazirla
                 </button>
                 <button type="button" onClick={exportFocusTelemetryCsv} className="admin-page__pill-button">
-                  CSV Ozet Hazirla
+                  CSV Özet Hazırla
                 </button>
                 <button type="button" onClick={() => {
                   void copyFocusTelemetryText(focusTelemetryExport)
@@ -4781,7 +4781,7 @@ export default function AdminPage() {
                       <div className="admin-page__space-between-row">
                         <div>
                           <div className="admin-page__form-title">{item.proposed_name}</div>
-                          <div className="admin-page__request-meta">{item.entity_type === "role" ? "Rol talebi" : "Departman talebi"} • {item.requested_by_name || item.requested_by_email || `Kullanici #${item.requested_by_user_id}`}</div>
+                          <div className="admin-page__request-meta">{item.entity_type === "role" ? "Rol talebi" : "Departman talebi"} • {item.requested_by_name || item.requested_by_email || `Kullanıcı #${item.requested_by_user_id}`}</div>
                         </div>
                         <span className={`admin-page__status-badge admin-page__status-badge--${item.review_status === "approved" ? "approved" : item.review_status === "rejected" ? "rejected" : "pending"}`}>
                           {item.review_status === "approved" ? "Onaylandi" : item.review_status === "rejected" ? "Reddedildi" : "Inceleniyor"}
@@ -5040,10 +5040,10 @@ export default function AdminPage() {
                   className="admin-page__control"
                 />
                 <input
-                  aria-label="Discovery Lab Kullanici Filtresi"
+                  aria-label="Discovery Lab Kullanıcı Filtresi"
                   value={discoveryLabUserQuery}
                   onChange={(event) => setDiscoveryLabUserQuery(event.target.value)}
-                  placeholder="Kullanici ara"
+                  placeholder="Kullanıcı ara"
                   className="admin-page__control"
                 />
                 <input
@@ -5263,7 +5263,7 @@ export default function AdminPage() {
                         ) : null}
                         {discoveryQuoteById[audit.quote_id] || discoveryQuotePendingApprovalsById[audit.quote_id]?.length ? (
                           <div className="admin-page__subsection-grid">
-                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Karar Ozeti</div>
+                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Karar Özeti</div>
                             <div className="admin-page__wrap-row">
                               <span className="admin-page__text-xs-body">Transition reason: {discoveryQuoteById[audit.quote_id]?.transition_reason || "-"}</span>
                               <span className="admin-page__text-xs-body">Pending approval: {discoveryQuotePendingApprovalsById[audit.quote_id]?.length || 0}</span>

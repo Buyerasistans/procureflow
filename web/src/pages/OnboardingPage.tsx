@@ -856,7 +856,7 @@ export default function OnboardingPage() {
                         <button type="button" style={styles.copyBtn} onClick={() => void copyToClipboard(bankTransferInstructions.iban || "", "IBAN")}>IBAN Kopyala</button>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                        <span><strong>Aciklama / Referans:</strong> {bankTransferInstructions.reference || "-"}</span>
+                        <span><strong>Açıklama / Referans:</strong> {bankTransferInstructions.reference || "-"}</span>
                         <button type="button" style={styles.copyBtn} onClick={() => void copyToClipboard(bankTransferInstructions.reference || "", "Referans")}>Referansi Kopyala</button>
                       </div>
                       <div><strong>Gönderilecek tutar:</strong> {bankTransferInstructions.amount || totalPaymentAmount} {bankTransferInstructions.currency || selectedPlanCurrency}</div>

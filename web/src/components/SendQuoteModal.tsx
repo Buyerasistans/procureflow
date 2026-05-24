@@ -231,7 +231,7 @@ export default function SendQuoteModal({ quote, quoteId, projectId, suppliers, o
             Plan: {quote.package_plan_name || quote.package_plan_code || "starter"}
           </span>
           <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: platformNetworkEligible ? "#ecfdf5" : "#fff7ed", color: platformNetworkEligible ? "#166534" : "#9a3412", fontSize: "12px", fontWeight: 700 }}>
-            {platformNetworkEligible ? "Platform Agi Acik" : "Platform Agi Kapali"}
+            {platformNetworkEligible ? "Platform Ağı Açık" : "Platform Ağı Kapalı"}
           </span>
           {premiumCodes.length > 0 ? (
             <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: "#fff7ed", color: "#b45309", fontSize: "12px", fontWeight: 700 }}>
@@ -250,7 +250,7 @@ export default function SendQuoteModal({ quote, quoteId, projectId, suppliers, o
           {[
             { key: "all", label: "Tum Kaynaklar", value: sourceSummary.all, color: "#0f172a" },
             { key: "private", label: "Private Supplier", value: sourceSummary.private, color: "#7c3aed" },
-            { key: "platform_network", label: "Platform Agi", value: sourceSummary.platform_network, color: "#0f766e" },
+            { key: "platform_network", label: "Platform Ağı", value: sourceSummary.platform_network, color: "#0f766e" },
           ].map((item) => (
             <button
               key={item.key}
@@ -385,7 +385,7 @@ export default function SendQuoteModal({ quote, quoteId, projectId, suppliers, o
                     )) : <span style={{ fontSize: "12px", color: "#6b7280" }}>Kategori yok</span>}
                   </div>
                   <span style={{ fontSize: "12px", color: s.source_type === "platform_network" ? "#0f766e" : "#7c3aed", fontWeight: 600 }}>
-                    {s.source_type === "platform_network" ? "Platform Agi" : "Private Supplier"}
+                    {s.source_type === "platform_network" ? "Platform Ağı" : "Private Supplier"}
                   </span>
                   {alreadySentSupplierIds.includes(s.supplier_id) && (
                     <span style={{ fontSize: "12px", color: "#92400e", fontWeight: 600 }}>

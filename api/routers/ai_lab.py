@@ -283,7 +283,7 @@ def _serialize_timeline(event_rows: list[DiscoveryLabEvent]) -> list[dict]:
                     "analysis_created": "Analiz Olusturuldu",
                     "bom_selection": "BOM Secimi Guncellendi",
                     "ai_decision": "AI Teknik Karari Kaydedildi",
-                    "user_answer": "Kullanici Yaniti Kaydedildi",
+                    "user_answer": "Kullanıcı Yanıtı Kaydedildi",
                     "technical_lock": "Teknik Kilit ve Satin Alma Aktarimi",
                 }.get(event.event_type, event.event_type),
                 "actor": payload.get("actor_name")
@@ -567,7 +567,7 @@ def save_ai_answer(
     if not answer_text:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kullanici yaniti bos olamaz",
+            detail="Kullanıcı yanıtı boş olamaz",
         )
 
     normalized_decision = payload.decision.strip().lower() if payload.decision else None
@@ -757,7 +757,7 @@ def list_discovery_lab_sessions(
                     "analysis_created": "Analiz Olusturuldu",
                     "bom_selection": "BOM Secimi Guncellendi",
                     "ai_decision": "AI Teknik Karari Kaydedildi",
-                    "user_answer": "Kullanici Yaniti Kaydedildi",
+                    "user_answer": "Kullanıcı Yanıtı Kaydedildi",
                     "technical_lock": "Teknik Kilit ve Satin Alma Aktarimi",
                 }.get(latest_event.event_type, latest_event.event_type)
                 if latest_event

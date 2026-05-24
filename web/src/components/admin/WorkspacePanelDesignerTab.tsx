@@ -286,8 +286,8 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
       await onSave(buildPersistedConfig(nextDraft));
       setApplyMessage(
         action === "assign"
-          ? `Kullanici override kaydedildi: ${targetUsers.length} kullanici -> ${selectedProfile?.title || selectedProfile?.business_role}`
-          : `Kullanici override temizlendi (${targetUsers.length} kullanici).`
+          ? `Kullanıcı override kaydedildi: ${targetUsers.length} kullanıcı -> ${selectedProfile?.title || selectedProfile?.business_role}`
+          : `Kullanıcı override temizlendi (${targetUsers.length} kullanıcı).`
       );
     } catch (error) {
       setApplyMessage(action === "assign" ? `Override kaydedilemedi: ${String(error)}` : `Override temizlenemedi: ${String(error)}`);
@@ -606,16 +606,16 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
         {!isSelfMode ? (
         <div className="wpd-user-picker">
           <label className="wpd-field">
-            <span className="wpd-field-label">Bu Profile Bagli Kullanicilar (Coklu Secim)</span>
+            <span className="wpd-field-label">Bu Profile Bağlı Kullanıcılar (Çoklu Seçim)</span>
             <div className="wpd-user-search-row">
               <input
                 value={overrideUserSearchQuery}
                 onChange={(event) => setOverrideUserSearchQuery(event.target.value)}
-                placeholder="Kullanici adi, e-posta veya role gore ara"
+                placeholder="Kullanıcı adı, e-posta veya role göre ara"
                 className="wpd-input"
               />
-              <select value={overrideUserFilter} onChange={(event) => setOverrideUserFilter(event.target.value as "all" | "selected" | "assigned" | "unassigned")} className="wpd-select wpd-select--filter" aria-label="Kullanici override filtresi">
-                <option value="all">Tumu</option>
+              <select value={overrideUserFilter} onChange={(event) => setOverrideUserFilter(event.target.value as "all" | "selected" | "assigned" | "unassigned")} className="wpd-select wpd-select--filter" aria-label="Kullanıcı override filtresi">
+                <option value="all">Tümü</option>
                 <option value="selected">Secili</option>
                 <option value="assigned">Override var</option>
                 <option value="unassigned">Override yok</option>
@@ -628,7 +628,7 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                   checked={filteredOverrideUsers.length > 0 && filteredOverrideUsers.every((item) => selectedOverrideUserIds.includes(String(item.id)))}
                   onChange={toggleAllOverrideUsers}
                 />
-                Tumunu Sec / Kaldir
+                Tümünü Seç / Kaldır
               </label>
               {profileLinkedUsers.length === 0 ? (
                 <div className="wpd-empty">Bu profile bagli kullanici bulunamadi.</div>
@@ -668,16 +668,16 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
           {!isSelfMode ? (
             <>
               <button type="button" onClick={() => void assignSelectedProfileToCurrentUser()} disabled={!selectedProfile || (profileLinkedUsers.length === 0 && !currentUser?.email)} className="wpd-button wpd-button--assign">
-                Bu Profili Hedef Kullaniciya Ata
+                Bu Profili Hedef Kullanıcıya Ata
               </button>
               <button type="button" onClick={() => void persistOverridesForUsers(profileLinkedUsers, "assign")} disabled={!selectedProfile || profileLinkedUsers.length === 0} className="wpd-button wpd-button--bulk">
-                Profili Tum Bagli Kullanicilara Uygula
+                Profili Tüm Bağlı Kullanıcılara Uygula
               </button>
               <button type="button" onClick={() => void persistOverridesForUsers(unassignedLinkedUsers, "assign")} disabled={!selectedProfile || unassignedLinkedUsers.length === 0} className="wpd-button wpd-button--cyan">
                 Sadece Override Almamislara Uygula ({unassignedLinkedUsers.length})
               </button>
               <button type="button" onClick={() => void clearCurrentUserOverride()} disabled={selectedOverrideMatchCount === 0} className="wpd-button wpd-button--warning">
-                Mevcut Kullanici Override Kaldir
+                Mevcut Kullanıcı Override Kaldır
               </button>
             </>
           ) : null}
@@ -732,7 +732,7 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
         ) : null}
         {!isSelfMode && (currentUser || selectedOverrideUserIds.length > 0) ? (
           <div className="wpd-override-summary">
-            <span>Kullanici override:</span>{" "}
+            <span>Kullanıcı override:</span>{" "}
             <span className="wpd-strong">{selectedOverrideUserIds.length} secili kullanici</span>{" "}
             <span>{"->"}</span>{" "}
             <span className="wpd-strong">{selectedOverrideMatchCount} atama bulundu</span>
@@ -959,7 +959,7 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                     />
                   </label>
                   <label className="wpd-field">
-                    <span className="wpd-field-label">2. Renk Baslangic %</span>
+                    <span className="wpd-field-label">2. Renk Başlangıç %</span>
                     <input
                       type="range"
                       min={40}
@@ -1247,13 +1247,13 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                   </div>
                 </label>
                 <label className="wpd-field wpd-field--toggle">
-                  <span className="wpd-field-label">Kullanici Kendi Template'ini Duzenleyebilsin</span>
+                  <span className="wpd-field-label">Kullanıcı Kendi Template'ini Düzenleyebilsin</span>
                   <button
                     type="button"
                     onClick={() => updateSelected({ allow_user_self_customization: !selectedProfile.allow_user_self_customization })}
                     className={cx("wpd-toggle-button", selectedProfile.allow_user_self_customization && "wpd-toggle-button--on")}
                   >
-                    {selectedProfile.allow_user_self_customization ? "Acik" : "Kapali"}
+                    {selectedProfile.allow_user_self_customization ? "Açık" : "Kapalı"}
                   </button>
                 </label>
               </div>
@@ -1261,13 +1261,13 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
 
               {!isSelfMode ? (
               <label className="wpd-field">
-                <span className="wpd-field-label">Kisa Aciklama</span>
+                <span className="wpd-field-label">Kısa Açıklama</span>
                 <textarea value={selectedProfile.description} onChange={(event) => updateSelected({ description: event.target.value })} rows={3} className="wpd-textarea wpd-textarea--medium" />
               </label>
               ) : null}
 
               <label className="wpd-field">
-                <span className="wpd-field-label">Hero Aciklama</span>
+                <span className="wpd-field-label">Hero Açıklama</span>
                 <textarea value={selectedProfile.hero_description} onChange={(event) => updateSelected({ hero_description: event.target.value })} rows={4} className="wpd-textarea wpd-textarea--tall" />
               </label>
 
@@ -1300,7 +1300,7 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                           >
                             {enabled ? "✓" : ""}
                           </button>
-                          <span className={cx("wpd-tab-status", enabled && "wpd-tab-status--enabled")}>{enabled ? "Acik" : "Kapali"}</span>
+                          <span className={cx("wpd-tab-status", enabled && "wpd-tab-status--enabled")}>{enabled ? "Açık" : "Kapalı"}</span>
                           <span className={cx("wpd-drag-glyph", enabled && "wpd-drag-glyph--enabled")}>{enabled ? "⠿" : "□"}</span>
                           <div className={cx("wpd-tab-title", enabled && "wpd-tab-title--enabled")}>
                             {enabled && tabIndex >= 0 ? `${tabIndex + 1}. ` : ""}
@@ -1367,7 +1367,7 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                           </label>
                         </div>
                         <label className="wpd-field">
-                          <span className="wpd-field-label">Link Aciklamasi</span>
+                          <span className="wpd-field-label">Link Açıklaması</span>
                           <textarea value={link.description} onChange={(event) => updateQuickLink(index, { description: event.target.value })} rows={3} className="wpd-textarea wpd-textarea--short" />
                         </label>
                       </div>

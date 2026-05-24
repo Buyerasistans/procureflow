@@ -118,7 +118,7 @@ export function DepartmentsTab({
               <div key={request.id} style={{ borderRadius: 14, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ display: 'grid', gap: 4 }}>
                   <div style={{ fontWeight: 800, color: '#0f172a' }}>{request.proposed_name}</div>
-                  <div style={{ color: '#64748b', fontSize: 13 }}>{request.proposed_description || 'Aciklama girilmedi'}</div>
+                  <div style={{ color: '#64748b', fontSize: 13 }}>{request.proposed_description || 'Açıklama girilmedi'}</div>
                   <div style={{ color: '#475569', fontSize: 12 }}>Durum: {request.review_status}</div>
                 </div>
                 {request.review_status === 'pending_review' && onReviewRequest ? (

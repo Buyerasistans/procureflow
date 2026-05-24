@@ -447,7 +447,7 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
                     <p>{company_name} için super admin onaylı hesabınız hazırlandı. Aşağıdaki butonla şifrenizi belirleyip doğrudan giriş yapabilirsiniz.</p>
                     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin:20px 0;">
                         <p style="margin:4px 0 10px;"><strong>E-posta:</strong> {to_email}</p>
-                        <p style="margin:0;"><a href="{activation_url}" style="display:inline-block; padding:12px 18px; background:#2563eb; color:white; text-decoration:none; border-radius:10px; font-weight:700;">Sifre belirle ve hesabi aktifleştir</a></p>
+                        <p style="margin:0;"><a href="{activation_url}" style="display:inline-block; padding:12px 18px; background:#2563eb; color:white; text-decoration:none; border-radius:10px; font-weight:700;">Şifre belirle ve hesabı aktifleştir</a></p>
                     </div>
                     <p style="margin:0 0 8px;"><strong>Bağlantı 24 saat boyunca geçerlidir.</strong></p>
                     <p style="font-size:12px;color:#64748b; margin: 0;">Bu kayıt size ait değilse bu e-postayı dikkate almayın veya yöneticinizle iletişime geçin.</p>

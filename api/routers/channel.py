@@ -1506,7 +1506,7 @@ LEVEL_THRESHOLDS = [
 ]
 
 BADGE_DEFINITIONS = [
-    ("first_referral", "Ilk Referans", lambda r, _a, _s: r >= 1),
+    ("first_referral", "İlk Referans", lambda r, _a, _s: r >= 1),
     ("referral_10", "10 Referans", lambda r, _a, _s: r >= 10),
     ("referral_25", "25 Referans", lambda r, _a, _s: r >= 25),
     ("team_builder", "Ekip Kurucusu", lambda _r, a, _s: a >= 3),

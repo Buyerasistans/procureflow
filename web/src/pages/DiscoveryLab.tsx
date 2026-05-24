@@ -389,7 +389,7 @@ const DiscoveryLab: React.FC = () => {
 
     const answerText = (answerDrafts[question.id] || '').trim();
     if (!answerText) {
-      setUploadError('Kullanici yaniti bos birakilamaz.');
+      setUploadError('Kullanıcı yanıtı boş bırakılamaz.');
       return;
     }
 
@@ -415,7 +415,7 @@ const DiscoveryLab: React.FC = () => {
 
       setAnswerSavedState((current) => ({ ...current, [question.id]: true }));
       await refreshTimeline(analysisResult.session_id);
-      setActionNotice(`Kullanici yaniti kaydedildi: Soru ${question.id}`);
+      setActionNotice(`Kullanıcı yanıtı kaydedildi: Soru ${question.id}`);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
     } finally {
@@ -488,7 +488,7 @@ const DiscoveryLab: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Teknik Katman Ozeti</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Teknik Katman Özeti</h3>
                   <p className="text-xs text-gray-500">CAD dosyasindan cikarilan ana metraj katmanlari</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -792,7 +792,7 @@ const DiscoveryLab: React.FC = () => {
                       )}
                       {answerSavedState[q.id] && (
                         <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-                          Kullanici yaniti audit loga kaydedildi
+                          Kullanıcı yanıtı audit loga kaydedildi
                         </p>
                       )}
                     </div>

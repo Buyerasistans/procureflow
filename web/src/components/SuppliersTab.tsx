@@ -600,7 +600,7 @@ export function SuppliersTab() {
       {success && <SuccessMessage>✅ {success}</SuccessMessage>}
       {readOnly && (
         <ErrorMessage>
-          Platform personeli tedarikçi portfoyunu inceleyebilir; yeni tedarikçi, düzenleme, silme ve tedarikçi kullanıcısı yönetimi bu yüzeyde kapatıldı.
+          Platform personeli tedarikçi portföyünü inceleyebilir; yeni tedarikçi, düzenleme, silme ve tedarikçi kullanıcısı yönetimi bu yüzeyde kapatıldı.
         </ErrorMessage>
       )}
 
@@ -615,7 +615,7 @@ export function SuppliersTab() {
         {[
           { key: "all", label: "Tum Kaynaklar", value: supplierSourceSummary.all, color: "#0f172a" },
           { key: "private", label: "Private Supplier", value: supplierSourceSummary.private, color: "#7c3aed" },
-          { key: "platform_network", label: "Platform Agi", value: supplierSourceSummary.platform_network, color: "#0f766e" },
+          { key: "platform_network", label: "Platform Ağı", value: supplierSourceSummary.platform_network, color: "#0f766e" },
         ].map((item) => (
           <button
             key={item.key}

@@ -647,7 +647,7 @@ export function CompaniesTab({
                   <tr style={{ background: "#f3f4f6", borderBottom: "2px solid #ddd" }}>
                     <th style={tableColumnStyles.logo}>Logo</th>
                     <th style={tableColumnStyles.name}>Firma Adi</th>
-                    <th style={tableColumnStyles.responsible}>Yetkili Kullanici</th>
+                    <th style={tableColumnStyles.responsible}>Yetkili Kullanıcı</th>
                     <th style={tableColumnStyles.role}>Rol</th>
                     <th style={tableColumnStyles.status}>Durum</th>
                     <th style={tableColumnStyles.action}>Islem</th>
@@ -692,7 +692,7 @@ export function CompaniesTab({
     <div>
       {readOnly && (
         <div style={{ marginBottom: 16, padding: 12, borderRadius: 12, background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa", fontSize: 13 }}>
-          Platform personeli firma portfoyunu inceleyebilir; yeni firma ekleme, duzenleme ve silme aksiyonlari bu yuzeyde salt okunur moda alinmistir.
+          Platform personeli firma portföyünü inceleyebilir; yeni firma ekleme, düzenleme ve silme aksiyonları bu yüzeyde salt okunur moda alınmıştır.
         </div>
       )}
 
@@ -744,7 +744,7 @@ export function CompaniesTab({
               cursor: "pointer",
             }}
           >
-            {f === "all" ? "Tumu" : f === "active" ? "Aktif" : "Pasif"}
+            {f === "all" ? "Tümü" : f === "active" ? "Aktif" : "Pasif"}
           </button>
         ))}
         <div style={{ flex: 1 }} />

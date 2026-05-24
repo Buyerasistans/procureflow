@@ -134,7 +134,7 @@ def get_public_showcase_summary(db: Session = Depends(get_db)):
         open_tenders.append(
             {
                 "id": 0,
-                "title": "Demo Acik Ihale - Endustriyel Pompa Paketi",
+                "title": "Demo Açık İhale - Endüstriyel Pompa Paketi",
                 "status": "submitted",
                 "project_name": fallback_project.name
                 if fallback_project

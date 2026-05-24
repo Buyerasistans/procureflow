@@ -605,7 +605,7 @@ function UserProfileSection({
     <>
       {toast && <Toast $type={toast.type}>{toast.msg}</Toast>}
       <SettingsCard>
-        <SettingsTitle>Kullanici Bilgileri</SettingsTitle>
+        <SettingsTitle>Kullanıcı Bilgileri</SettingsTitle>
         <FormGrid>
           <Field>
             <label>Ad Soyad</label>
@@ -810,11 +810,11 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
             <input type="number" value={form.smtp_port || ""} onChange={(e) => handleChange("smtp_port", Number(e.target.value))} placeholder="587" />
           </Field>
           <Field>
-            <label>SMTP Kullanici Adi</label>
+            <label>SMTP Kullanıcı Adı</label>
             <input value={form.smtp_username || ""} onChange={(e) => handleChange("smtp_username", e.target.value)} placeholder="kullanici@firmasi.com" />
           </Field>
           <Field>
-            <label>SMTP Sifre</label>
+            <label>SMTP Şifre</label>
             <input type="password" value={form.smtp_password || ""} onChange={(e) => handleChange("smtp_password", e.target.value)} placeholder="••••••••" />
           </Field>
           <Field>
@@ -1531,4 +1531,3 @@ export default function SupplierDashboard() {
     </PageShell>
   );
 }
-

@@ -694,7 +694,7 @@ export function SupplierResponsePortal({
       {activeTab === "pending" && pendingQuotes.length > 0 ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 16 }}>
           {[
-            { label: "Platform Agina Acik", value: pendingQuotes.filter((quote) => quote.platform_network_listing_enabled).length, bg: "#ecfdf5", color: "#166534" },
+            { label: "Platform Ağına Açık", value: pendingQuotes.filter((quote) => quote.platform_network_listing_enabled).length, bg: "#ecfdf5", color: "#166534" },
             { label: "Premium Rozetli", value: pendingQuotes.filter((quote) => quote.premium_listing_enabled).length, bg: "#fff7ed", color: "#b45309" },
             { label: "Sadece Ozel Havuz", value: pendingQuotes.filter((quote) => !quote.platform_network_listing_enabled).length, bg: "#eff6ff", color: "#1d4ed8" },
             { label: "Yanit Verdikleriniz", value: submittedQuotes.length, bg: "#f5f3ff", color: "#6d28d9" },
@@ -1495,7 +1495,7 @@ export function SupplierResponsePortal({
                         color: "#334155",
                       }}
                     >
-                      <div style={{ fontWeight: 700, marginBottom: "6px" }}>Doviz Ozeti (Kalem Toplamlari)</div>
+                      <div style={{ fontWeight: 700, marginBottom: "6px" }}>Döviz Özeti (Kalem Toplamları)</div>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "6px" }}>
                         <div>
                           USD Toplami: {formatMoney(formSummary.currencyBuckets.USD, "USD")}

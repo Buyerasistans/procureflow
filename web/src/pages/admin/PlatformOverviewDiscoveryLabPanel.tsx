@@ -71,7 +71,7 @@ export function PlatformOverviewDiscoveryLabPanel({
       </div>
       <div className="platform-overview-discovery-lab-panel">
         <div className="platform-overview-discovery-lab-panel__filter-row">
-          <div className="platform-overview-discovery-lab-panel__session-title">Son Kullanici Yanitlari</div>
+          <div className="platform-overview-discovery-lab-panel__session-title">Son Kullanıcı Yanıtları</div>
           <div className="platform-overview-discovery-lab-panel__filter-group">
             {[
               { key: "all", label: "Tum Kararlar" },

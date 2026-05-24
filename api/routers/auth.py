@@ -86,7 +86,7 @@ def _resolve_workspace_branding(db: Session, user: User) -> dict[str, str | None
             else (
                 f"{tenant_name} Yönetim Alanı"
                 if system_role == "tenant_admin"
-                else f"{tenant_name} Personel Girisi"
+                else f"{tenant_name} Personel Girişi"
             )
         )
 
@@ -106,7 +106,7 @@ def _resolve_workspace_branding(db: Session, user: User) -> dict[str, str | None
         else (
             f"{organization_name} Calisma Alani"
             if system_role == "tenant_admin"
-            else f"{organization_name} Personel Girisi"
+            else f"{organization_name} Personel Girişi"
         )
     )
 
@@ -307,7 +307,7 @@ def activate_internal_user(
                     "Merhaba,\n\n"
                     "Hesabınız aktifleştirildi. Platform varsayılan SMTP/POP3/IMAP ayarları için otomatik bir iş maili oluşturuldu.\n\n"
                     f"İş maili: {work_mailbox_credentials['work_email']}\n"
-                    f"Sifre: {work_mailbox_credentials['password']}\n\n"
+                    f"Şifre: {work_mailbox_credentials['password']}\n\n"
                     "Not: Sisteme giriş her zaman üye olduğunuz kişisel e-posta ve şifreniz ile yapılır.\n"
                     "Isterseniz profilinizde ozel SMTP/POP3/IMAP ayarlari tanimlayarak kendi kurum e-postanizi varsayilan yapabilirsiniz."
                 ),

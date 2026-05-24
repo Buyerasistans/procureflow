@@ -59,7 +59,7 @@ export function CommissionDashboardPanel({
   return (
     <SectionCard backgroundColor="#f0fdf4" borderColor="#bbf7d0">
       <SectionHeader
-        title="Komisyon Ozet Paneli"
+        title="Komisyon Özet Paneli"
         right={
           onRefresh ? (
             <button

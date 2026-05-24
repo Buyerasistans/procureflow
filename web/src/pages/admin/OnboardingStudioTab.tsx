@@ -62,7 +62,7 @@ export function OnboardingStudioTab({
 
       <div className="onboarding-studio__metric-grid">
         {[
-          { label: "Stratejik Partner", value: onboardingStudioSummary.tenant_count, note: "Toplam Stratejik Partner portfoyu", tone: "blue" },
+          { label: "Stratejik Partner", value: onboardingStudioSummary.tenant_count, note: "Toplam Stratejik Partner portföyü", tone: "blue" },
           { label: "Onboarding Kuyrugu", value: onboardingStudioSummary.onboarding_queue_count, note: "Aktif olmayan kurulum akislari", tone: "amber" },
           { label: "Owner Eksigi", value: onboardingStudioSummary.owner_pending_count, note: "Sahip atamasi bekleyen Stratejik Partner", tone: "red" },
           { label: "Branding Eksigi", value: onboardingStudioSummary.branding_pending_count, note: "Logo veya brand name eksigi", tone: "violet" },
@@ -203,7 +203,7 @@ export function OnboardingStudioTab({
                       <div className="onboarding-studio__mini-label">Aktivasyon</div>
                       <div className="onboarding-studio__mini-value">{formatActivationDeliveryStatus(tenant.activation_delivery_status)}</div>
                       <div className="onboarding-studio__mini-note">
-                        {tenant.initial_admin_invitation_accepted ? "Ilk admin hesabi aktive edildi" : "Aktivasyon bekleniyor"}
+                        {tenant.initial_admin_invitation_accepted ? "İlk admin hesabı aktive edildi" : "Aktivasyon bekleniyor"}
                       </div>
                     </div>
                     <div className="onboarding-studio__detail-card">
@@ -343,7 +343,7 @@ export function OnboardingStudioTab({
           <div className="onboarding-studio__eyebrow onboarding-studio__tone--teal">Operasyon Akisi</div>
           {[
             "Stratejik Partner Yönetimi sekmesinden plan ve kurulum durumunu seç.",
-            "Ilk admin e-postasini initial_admin alanlari ile ac ve owner atamasini tamamla.",
+            "İlk admin e-postasını initial_admin alanları ile aç ve owner atamasını tamamla.",
             "Kurulum durumunu taslak > onboarding > aktif seklinde ilerlet.",
             "Branding, destek kanali ve paket limitleri aktif olmadan canliya gecme.",
           ].map((item) => (
@@ -370,7 +370,7 @@ export function OnboardingStudioTab({
               { label: "Approval-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.approvals_quote_tenant_mismatch, tone: "brown" },
               { label: "Quote-Proje Uyumsuz", value: onboardingStudioSummary.rfq_readiness.quotes_project_tenant_mismatch, tone: "dark-brown" },
               { label: "Supplier-Quote Uyumsuz", value: onboardingStudioSummary.rfq_readiness.supplier_quote_scope_mismatch, tone: "violet" },
-              { label: "Platform Agi TedarikciTeklifi", value: onboardingStudioSummary.rfq_readiness.supplier_quotes_platform_network_count, tone: "teal" },
+              { label: "Platform Ağı Tedarikçi Teklifi", value: onboardingStudioSummary.rfq_readiness.supplier_quotes_platform_network_count, tone: "teal" },
             ].map((item) => (
               <div key={item.label} className={`onboarding-studio__readiness-card onboarding-studio__tone--${item.tone}`}>
                 <div className="onboarding-studio__readiness-label">{item.label}</div>
@@ -386,7 +386,7 @@ export function OnboardingStudioTab({
                 <div className="onboarding-studio__supplier-value">{onboardingStudioSummary.supplier_mix.private_count}</div>
               </div>
               <div className="onboarding-studio__supplier-card onboarding-studio__tone--violet">
-                <div className="onboarding-studio__supplier-label">Platform Agi</div>
+                <div className="onboarding-studio__supplier-label">Platform Ağı</div>
                 <div className="onboarding-studio__supplier-value">{onboardingStudioSummary.supplier_mix.platform_network_count}</div>
               </div>
             </div>
@@ -396,4 +396,3 @@ export function OnboardingStudioTab({
     </section>
   );
 }
-

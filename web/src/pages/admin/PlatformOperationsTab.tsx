@@ -204,7 +204,7 @@ export function PlatformOperationsTab({
     <section className="platform-operations-tab">
       {activePlatformOpsFocusSummary.length > 0
         ? renderAdminFocusBanner({
-            eyebrow: "Filtre Ozeti",
+            eyebrow: "Filtre Özeti",
             title: `Platform operasyon odagi: ${activePlatformOpsFocusSummary.join(" | ")}`,
             detail: "Operasyon kuyruklari secili filtrelere gore daraltildi.",
             tone: "amber",
@@ -343,7 +343,7 @@ export function PlatformOperationsTab({
               }}
               className="platform-operations-tab__button"
             >
-              Odak Modu: {focusModeEnabled ? "Acik" : "Kapali"}
+              Odak Modu: {focusModeEnabled ? "Açık" : "Kapalı"}
             </button>
 
             {focusModeEnabled ? (
@@ -352,7 +352,7 @@ export function PlatformOperationsTab({
                 onClick={() => setOnlyCriticalVisible((current) => !current)}
                 className="platform-operations-tab__button"
               >
-                Sadece Kritikleri Goster: {onlyCriticalVisible ? "Acik" : "Kapali"}
+                Sadece Kritikleri Göster: {onlyCriticalVisible ? "Açık" : "Kapalı"}
               </button>
             ) : null}
           </div>

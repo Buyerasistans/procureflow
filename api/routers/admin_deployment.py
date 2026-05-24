@@ -372,11 +372,11 @@ async def validate_hosting_config(hosting_config: HostingConfig) -> dict:
     if not (hosting_config.host_ip or "").strip():
         errors.append("IP Adresi bos olamaz.")
     if not (hosting_config.username or "").strip():
-        errors.append("SSH Kullanici adi bos olamaz.")
+        errors.append("SSH kullanıcı adı boş olamaz.")
     has_password = bool((hosting_config.password or "").strip())
     has_key = bool((hosting_config.ssh_key_path or "").strip())
     if not has_password and not has_key:
-        errors.append("SSH Sifresi veya SSH Key Yolu girilmelidir.")
+        errors.append("SSH şifresi veya SSH key yolu girilmelidir.")
     if not (hosting_config.remote_path or "").strip():
         errors.append("Remote Path bos olamaz.")
     if not (1 <= hosting_config.port <= 65535):

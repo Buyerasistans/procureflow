@@ -219,7 +219,7 @@ export default function SupplierFinancePage() {
   async function handleEditPhoto(id: number, current: { title: string; description?: string | null }) {
     const nextTitle = window.prompt("Fotograf basligi", current.title);
     if (!nextTitle) return;
-    const nextDesc = window.prompt("Aciklama", current.description || "") || undefined;
+    const nextDesc = window.prompt("Açıklama", current.description || "") || undefined;
     await updateSupplierFinancePhoto(id, { title: nextTitle, description: nextDesc });
     await loadFinance();
   }
@@ -257,7 +257,7 @@ export default function SupplierFinancePage() {
         <h3 style={{ marginTop: 0 }}>Filtrele</h3>
         <Grid>
           <Label>Arama<Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Baslik, tutar, not" /></Label>
-          <Label>Tarih Baslangic<Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Label>
+          <Label>Tarih Başlangıç<Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Label>
           <Label>Tarih Bitis<Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Label>
         </Grid>
         <div style={{ marginTop: 8 }}>
