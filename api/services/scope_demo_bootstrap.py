@@ -25,8 +25,8 @@ DEMO_PARTNER_TENANT = {
 
 DEMO_CHANNEL_TENANT = {
     "slug": "demo-kanal-is-ortagi",
-    "legal_name": "Buyera Asistans Demo Kanal Is Ortagi Workspace",
-    "brand_name": "BA Demo Is Ortagi",
+    "legal_name": "Buyera Asistans Demo Kanal İş Ortağı Workspace",
+    "brand_name": "BA Demo İş Ortağı",
 }
 
 DEMO_PARTNER_COMPANIES = [
@@ -44,27 +44,27 @@ DEMO_PARTNER_COMPANIES = [
 
 DEMO_PARTNER_DEPARTMENTS = [
     {
-        "name": "Yonetim ve Organizasyon",
-        "description": "Partner sahipligi, idari koordinasyon ve kurulum yonetimi.",
+        "name": "Yönetim ve Organizasyon",
+        "description": "Partner sahipliği, idari koordinasyon ve kurulum yönetimi.",
     },
     {
-        "name": "Satin Alma Operasyonlari",
-        "description": "RFQ, teklif toplama, supplier iletisim ve operasyon yonetimi.",
+        "name": "Satın Alma Operasyonları",
+        "description": "RFQ, teklif toplama, supplier iletişim ve operasyon yönetimi.",
     },
     {
-        "name": "Teknik Ofis ve Sartname",
-        "description": "Teknik dosyalar, mimari degerlendirme ve teknik uygunluk kontrolu.",
+        "name": "Teknik Ofis ve Şartname",
+        "description": "Teknik dosyalar, mimari değerlendirme ve teknik uygunluk kontrolü.",
     },
     {
         "name": "Finans ve Denetim",
-        "description": "Butce kontrolu, denetim izi ve finansal gorunurluk.",
+        "description": "Bütçe kontrolü, denetim izi ve finansal görünürlük.",
     },
 ]
 
 DEMO_PARTNER_ROLE_SEED = [
     {
-        "name": "Partner Ana Yonetici",
-        "description": "Partner sahipligi, ust seviye yonetim ve tum organizasyon omurgasi.",
+        "name": "Partner Ana Yönetici",
+        "description": "Partner sahipliği, üst seviye yönetim ve tüm organizasyon omurgası.",
         "hierarchy_level": 0,
         "permissions": [
             "create:personnel",
@@ -95,8 +95,8 @@ DEMO_PARTNER_ROLE_SEED = [
         ],
     },
     {
-        "name": "Partner Yoneticisi",
-        "description": "Gunluk organizasyon yonetimi, ekip, departman ve operasyon koordinasyonu.",
+        "name": "Partner Yöneticisi",
+        "description": "Günlük organizasyon yönetimi, ekip, departman ve operasyon koordinasyonu.",
         "hierarchy_level": 1,
         "permissions": [
             "create:personnel",
@@ -115,8 +115,8 @@ DEMO_PARTNER_ROLE_SEED = [
         ],
     },
     {
-        "name": "Satin Alma Muduru",
-        "description": "Operasyonel satin alma akislarini, teklifleri ve proje bagli talepleri yonetir.",
+        "name": "Satın Alma Müdürü",
+        "description": "Operasyonel satın alma akışlarını, teklifleri ve proje bağlı talepleri yönetir.",
         "hierarchy_level": 2,
         "permissions": [
             "read:department",
@@ -131,7 +131,7 @@ DEMO_PARTNER_ROLE_SEED = [
     },
     {
         "name": "Teknik Uzman ve Mimar",
-        "description": "Teknik dosya, sartname ve uygunluk degerlendirmesini yapar.",
+        "description": "Teknik dosya, şartname ve uygunluk değerlendirmesini yapar.",
         "hierarchy_level": 3,
         "permissions": [
             "read:department",
@@ -142,8 +142,8 @@ DEMO_PARTNER_ROLE_SEED = [
         ],
     },
     {
-        "name": "Denetci ve Finansal Izleyici",
-        "description": "Salt okunur finansal izleme ve denetim gorunurlugu saglar.",
+        "name": "Denetçi ve Finansal İzleyici",
+        "description": "Salt okunur finansal izleme ve denetim görünürlüğü sağlar.",
         "hierarchy_level": 4,
         "permissions": [
             "read:department",
@@ -153,8 +153,8 @@ DEMO_PARTNER_ROLE_SEED = [
         ],
     },
     {
-        "name": "Ozel Partner Rolu",
-        "description": "Partnerin kendi ic operasyonu icin sinirli ozel rol saplasi.",
+        "name": "Özel Partner Rolü",
+        "description": "Partnerin kendi iç operasyonu için sınırlı özel rol şablonu.",
         "hierarchy_level": 5,
         "permissions": [
             "read:company",
@@ -206,51 +206,51 @@ DEMO_PLATFORM_USERS = [
 DEMO_PARTNER_USERS = [
     {
         "email": f"partner.owner.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Partner Ana Yonetici Demo",
+        "full_name": "Partner Ana Yönetici Demo",
         "role": "admin",
         "system_role": "tenant_owner",
         "scope_type": "partner",
         "role_profile_code": "partner.account_owner",
         "approval_limit": 7500000,
-        "department": "Yonetim ve Organizasyon",
+        "department": "Yönetim ve Organizasyon",
         "company": "BA Demo Merkez",
-        "assignment_role": "Partner Ana Yonetici",
+        "assignment_role": "Partner Ana Yönetici",
     },
     {
         "email": f"partner.admin.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Partner Yonetici Demo",
+        "full_name": "Partner Yönetici Demo",
         "role": "admin",
         "system_role": "tenant_admin",
         "scope_type": "partner",
         "role_profile_code": "partner.org_admin",
         "approval_limit": 5000000,
-        "department": "Yonetim ve Organizasyon",
+        "department": "Yönetim ve Organizasyon",
         "company": "BA Demo Merkez",
-        "assignment_role": "Partner Yoneticisi",
+        "assignment_role": "Partner Yöneticisi",
     },
     {
         "email": f"partner.procurement.lead1@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Satin Alma Muduru Demo 1",
+        "full_name": "Satın Alma Müdürü Demo 1",
         "role": "satinalma_yoneticisi",
         "system_role": "tenant_member",
         "scope_type": "partner",
         "role_profile_code": "partner.procurement_manager",
         "approval_limit": 1500000,
-        "department": "Satin Alma Operasyonlari",
+        "department": "Satın Alma Operasyonları",
         "company": "BA Demo Merkez",
-        "assignment_role": "Satin Alma Muduru",
+        "assignment_role": "Satın Alma Müdürü",
     },
     {
         "email": f"partner.procurement.lead2@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Satin Alma Muduru Demo 2",
+        "full_name": "Satın Alma Müdürü Demo 2",
         "role": "satinalma_yoneticisi",
         "system_role": "tenant_member",
         "scope_type": "partner",
         "role_profile_code": "partner.procurement_manager",
         "approval_limit": 1250000,
-        "department": "Satin Alma Operasyonlari",
+        "department": "Satın Alma Operasyonları",
         "company": "BA Demo Proje Ofisi",
-        "assignment_role": "Satin Alma Muduru",
+        "assignment_role": "Satın Alma Müdürü",
     },
     {
         "email": f"partner.tech.demo1@{DEMO_EMAIL_DOMAIN}",
@@ -260,7 +260,7 @@ DEMO_PARTNER_USERS = [
         "scope_type": "partner",
         "role_profile_code": "partner.technical_specialist",
         "approval_limit": 250000,
-        "department": "Teknik Ofis ve Sartname",
+        "department": "Teknik Ofis ve Şartname",
         "company": "BA Demo Proje Ofisi",
         "assignment_role": "Teknik Uzman ve Mimar",
     },
@@ -272,13 +272,13 @@ DEMO_PARTNER_USERS = [
         "scope_type": "partner",
         "role_profile_code": "partner.technical_specialist",
         "approval_limit": 250000,
-        "department": "Teknik Ofis ve Sartname",
+        "department": "Teknik Ofis ve Şartname",
         "company": "BA Demo Merkez",
         "assignment_role": "Teknik Uzman ve Mimar",
     },
     {
         "email": f"partner.audit.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Partner Denetci Demo",
+        "full_name": "Partner Denetçi Demo",
         "role": "satinalmaci",
         "system_role": "tenant_member",
         "scope_type": "partner",
@@ -286,26 +286,26 @@ DEMO_PARTNER_USERS = [
         "approval_limit": 0,
         "department": "Finans ve Denetim",
         "company": "BA Demo Merkez",
-        "assignment_role": "Denetci ve Finansal Izleyici",
+        "assignment_role": "Denetçi ve Finansal İzleyici",
     },
     {
         "email": f"partner.custom.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Ozel Partner Rol Demo",
+        "full_name": "Özel Partner Rol Demo",
         "role": "satinalmaci",
         "system_role": "tenant_member",
         "scope_type": "partner",
         "role_profile_code": "partner.custom_role",
         "approval_limit": 150000,
-        "department": "Satin Alma Operasyonlari",
+        "department": "Satın Alma Operasyonları",
         "company": "BA Demo Proje Ofisi",
-        "assignment_role": "Ozel Partner Rolu",
+        "assignment_role": "Özel Partner Rolü",
     },
 ]
 
 DEMO_CHANNEL_USERS = [
     {
         "email": f"channel.owner.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Kanal Ana Yonetici Demo",
+        "full_name": "Kanal Ana Yönetici Demo",
         "role": "channel_owner",
         "system_role": "tenant_member",
         "scope_type": "channel",
@@ -332,7 +332,7 @@ DEMO_CHANNEL_USERS = [
     },
     {
         "email": f"channel.finance.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Kanal Finans Izleyici Demo",
+        "full_name": "Kanal Finans İzleyici Demo",
         "role": "channel_agent",
         "system_role": "tenant_member",
         "scope_type": "channel",
@@ -341,7 +341,7 @@ DEMO_CHANNEL_USERS = [
     },
     {
         "email": f"channel.audit.demo@{DEMO_EMAIL_DOMAIN}",
-        "full_name": "Kanal Denetci Demo",
+        "full_name": "Kanal Denetçi Demo",
         "role": "channel_agent",
         "system_role": "tenant_member",
         "scope_type": "channel",
@@ -352,42 +352,42 @@ DEMO_CHANNEL_USERS = [
 
 DEMO_SUPPLIERS = [
     {
-        "company_name": "BA Demo Tedarikci A",
+        "company_name": "BA Demo Tedarikçi A",
         "email": f"supplier.a@{DEMO_EMAIL_DOMAIN}",
         "phone": "+90 212 700 00 01",
-        "category": "Endustriyel Malzeme",
+        "category": "Endüstriyel Malzeme",
         "users": [
             {
                 "email": f"supplier.owner.demo@{DEMO_EMAIL_DOMAIN}",
-                "name": "Tedarikci Ana Yonetici Demo",
+                "name": "Tedarikçi Ana Yönetici Demo",
                 "role_profile_code": "supplier.account_owner",
             },
             {
                 "email": f"supplier.admin.demo@{DEMO_EMAIL_DOMAIN}",
-                "name": "Tedarikci Yonetici Demo",
+                "name": "Tedarikçi Yönetici Demo",
                 "role_profile_code": "supplier.org_admin",
             },
         ],
     },
     {
-        "company_name": "BA Demo Tedarikci B",
+        "company_name": "BA Demo Tedarikçi B",
         "email": f"supplier.b@{DEMO_EMAIL_DOMAIN}",
         "phone": "+90 212 700 00 02",
-        "category": "Fiyatlandirma ve Maliyet",
+        "category": "Fiyatlandırma ve Maliyet",
         "users": [
             {
                 "email": f"supplier.sales.demo@{DEMO_EMAIL_DOMAIN}",
-                "name": "Kidemli Satis Temsilcisi Demo",
+                "name": "Kıdemli Satış Temsilcisi Demo",
                 "role_profile_code": "supplier.sales_senior",
             },
             {
                 "email": f"supplier.pricing.demo@{DEMO_EMAIL_DOMAIN}",
-                "name": "Fiyatlandirma Uzmani Demo",
+                "name": "Fiyatlandırma Uzmanı Demo",
                 "role_profile_code": "supplier.pricing_specialist",
             },
             {
                 "email": f"supplier.custom.demo@{DEMO_EMAIL_DOMAIN}",
-                "name": "Ozel Tedarikci Rol Demo",
+                "name": "Özel Tedarikçi Rol Demo",
                 "role_profile_code": "supplier.custom_role",
             },
         ],
