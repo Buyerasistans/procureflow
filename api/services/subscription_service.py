@@ -78,7 +78,7 @@ def _append_policy_flag_modules(catalog: SubscriptionCatalogOut) -> None:
             {
                 "code": "channel_commission_policy",
                 "name": "Kanal Komisyon Kurali",
-                "description": "Channel/hak edis komisyon kurallarinin plan seviyesinde tanimli olup olmadigini belirtir.",
+                "description": "Channel/hak ediş komisyon kurallarının plan seviyesinde tanımlı olup olmadığını belirtir.",
                 "enabled": True,
                 "limit_key": "allow_channel_commission_rules",
                 "limit_value": 1,
@@ -195,16 +195,16 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     {
                         "code": "user_limit",
                         "name": "Kullanıcı Yönetimi",
-                        "description": "Aktif ic kullanici sayisini kontrollu baslangic hacminde tutar.",
+                        "description": "Aktif iç kullanıcı sayısını kontrollü başlangıç hacminde tutar.",
                         "enabled": True,
                         "limit_key": "active_internal_users",
                         "limit_value": 10,
-                        "unit": "kullanici",
+                        "unit": "kullanıcı",
                     },
                     {
                         "code": "project_file_limit",
-                        "name": "Proje Dosya Yukleme",
-                        "description": "Proje basina yuklenebilecek toplam dosya adedini belirler.",
+                        "name": "Proje Dosya Yükleme",
+                        "description": "Proje başına yüklenebilecek toplam dosya adedini belirler.",
                         "enabled": True,
                         "limit_key": "project_files_total",
                         "limit_value": 100,
@@ -266,16 +266,16 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     {
                         "code": "user_limit",
                         "name": "Kullanıcı Yönetimi",
-                        "description": "Aktif ic kullanici kapasitesini buyuyen ekipler icin genisletir.",
+                        "description": "Aktif iç kullanıcı kapasitesini büyüyen ekipler için genişletir.",
                         "enabled": True,
                         "limit_key": "active_internal_users",
                         "limit_value": 50,
-                        "unit": "kullanici",
+                        "unit": "kullanıcı",
                     },
                     {
                         "code": "project_file_limit",
-                        "name": "Proje Dosya Yukleme",
-                        "description": "Proje basina dosya yukleme adedini daha yuksek hacme tasir.",
+                        "name": "Proje Dosya Yükleme",
+                        "description": "Proje başına dosya yükleme adedini daha yüksek hacme taşır.",
                         "enabled": True,
                         "limit_key": "project_files_total",
                         "limit_value": 500,
@@ -284,7 +284,7 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     {
                         "code": "project_file_size_limit",
                         "name": "Proje Dosya Boyutu",
-                        "description": "Tek dosya boyutu icin daha yuksek yukleme siniri saglar.",
+                        "description": "Tek dosya boyutu için daha yüksek yükleme sınırı sağlar.",
                         "enabled": True,
                         "limit_key": "project_file_size_mb",
                         "limit_value": 50,
@@ -337,16 +337,16 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     {
                         "code": "user_limit",
                         "name": "Kullanıcı Yönetimi",
-                        "description": "Aktif kullanici kapasitesini kurumsal organizasyonlar icin genisletir.",
+                        "description": "Aktif kullanıcı kapasitesini kurumsal organizasyonlar için genişletir.",
                         "enabled": True,
                         "limit_key": "active_internal_users",
                         "limit_value": 250,
-                        "unit": "kullanici",
+                        "unit": "kullanıcı",
                     },
                     {
                         "code": "project_file_limit",
-                        "name": "Proje Dosya Yukleme",
-                        "description": "Proje basina yuklenebilecek dosya adedini kurumsal hacme tasir.",
+                        "name": "Proje Dosya Yükleme",
+                        "description": "Proje başına yüklenebilecek dosya adedini kurumsal hacme taşır.",
                         "enabled": True,
                         "limit_key": "project_files_total",
                         "limit_value": 2000,
@@ -438,7 +438,7 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     {
                         "code": "commission_ledger",
                         "name": "Komisyon Defteri",
-                        "description": "Komisyon hareketleri, hak edis ve odeme kayitlarini izleyin.",
+                        "description": "Komisyon hareketleri, hak ediş ve ödeme kayıtlarını izleyin.",
                         "enabled": True,
                     },
                 ],
@@ -682,12 +682,12 @@ def build_subscription_catalog_snapshot(db: Session) -> SubscriptionCatalogSnaps
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_active_internal_users",
-                        label="Aktif Kullanici",
+                        label="Aktif Kullanıcı",
                         used=active_user_count,
                         limit=get_effective_plan_limit(
                             db, tenant, "max_active_internal_users"
                         ),
-                        unit="kullanici",
+                        unit="kullanıcı",
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_active_private_suppliers",
@@ -707,7 +707,7 @@ def build_subscription_catalog_snapshot(db: Session) -> SubscriptionCatalogSnaps
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_project_files_total",
-                        label="Proje Dosya Yukleme",
+                        label="Proje Dosya Yükleme",
                         used=project_file_count,
                         limit=get_effective_plan_limit(
                             db, tenant, "max_project_files_total"
@@ -776,9 +776,9 @@ def enforce_active_internal_user_limit(db: Session, tenant: Tenant | None) -> No
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=(
-                "Aktif kullanici limiti asildi. "
+                "Aktif kullanıcı limiti aşıldı. "
                 f"Mevcut plan: {normalize_subscription_plan_code(tenant.subscription_plan_code)}. "
-                f"Limit: {limit_value} aktif kullanici."
+                f"Limit: {limit_value} aktif kullanıcı."
             ),
         )
 

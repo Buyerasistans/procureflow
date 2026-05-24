@@ -119,7 +119,7 @@ export default function PublicMarketplacePage() {
       return;
     }
     if (!row.offer_allowed) {
-      setOfferMessage("Bu ihale icin havuz hakkiniz aktif degil. Uyeliginizi yukselterek veya havuz odemesi ile teklif hakki acabilirsiniz.");
+      setOfferMessage("Bu ihale i?in havuz hakk?n?z aktif de?il. ?yeli?inizi y?kselterek veya havuz ?demesi ile teklif hakk? a?abilirsiniz.");
       return;
     }
     window.location.href = `/quotes/create?source=public_tender&quote_id=${row.id}`;
@@ -301,7 +301,7 @@ export default function PublicMarketplacePage() {
                   </div>
                   {filesByQuote[row.id] ? (
                     <ul style={{ marginTop: 8, paddingLeft: 18, color: "#475569", fontSize: 13 }}>
-                      {filesByQuote[row.id].length === 0 ? <li>Dosya bulunamadi.</li> : filesByQuote[row.id].map((item) => <li key={item.id}>{item.name}</li>)}
+                      {filesByQuote[row.id].length === 0 ? <li>Dosya bulunamad?.</li> : filesByQuote[row.id].map((item) => <li key={item.id}>{item.name}</li>)}
                     </ul>
                   ) : null}
                 </>

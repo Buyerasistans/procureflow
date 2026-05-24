@@ -15,11 +15,11 @@ const NEXT_PLAN_BY_CODE: Record<string, string | null> = {
 
 const ADDON_NAME_BY_LIMIT: Record<LimitKey, string> = {
   active_companies: "Ek Firma Limiti",
-  active_internal_users: "Ek Kullanici Limiti",
+  active_internal_users: "Ek Kullanıcı Limiti",
   active_projects: "Ek Proje Limiti",
   active_private_suppliers: "Ek Tedarikçi Limiti",
   active_quotes: "Ek Teklif Limiti",
-  project_files_total: "Ek Dosya Yukleme Limiti",
+  project_files_total: "Ek Dosya Yükleme Limiti",
   project_file_size_mb: "Kurumsal paket dosya boyutu artisi",
 };
 
@@ -43,12 +43,12 @@ const PLAN_CODE_BY_NAME: Record<string, string> = {
 };
 
 export function hasSubscriptionUpgradeGuidance(message: string | null | undefined): boolean {
-  return String(message || "").includes("Paket yukseltme veya ekstra hak satin alma seceneklerini");
+  return String(message || "").includes("Paket yükseltme veya ekstra hak satın alma seçeneklerini");
 }
 
 export function getSubscriptionUpgradeHref(message: string | null | undefined): string {
   const text = String(message || "");
-  const planMatch = text.match(/Onerilen ust paket:\s*([A-Za-zçğıöşüÇĞİÖŞÜ]+)/i);
+  const planMatch = text.match(/Önerilen üst paket:\s*([A-Za-zçğıöşüÇĞİÖŞÜ]+)/i);
   const planName = planMatch?.[1]?.trim().toLowerCase();
   const planCode = planName ? PLAN_CODE_BY_NAME[planName] : undefined;
   if (!planCode) return SUBSCRIPTION_UPGRADE_CTA_HREF;
@@ -57,7 +57,7 @@ export function getSubscriptionUpgradeHref(message: string | null | undefined): 
 
 export function getSubscriptionAddonHref(message: string | null | undefined): string {
   const text = String(message || "");
-  const addonMatch = text.match(/Onerilen ek hak:\s*([A-Za-zçğıöşüÇĞİÖŞÜ\s]+)/i);
+  const addonMatch = text.match(/Önerilen ek hak:\s*([A-Za-zçğıöşüÇĞİÖŞÜ\s]+)/i);
   const addonName = addonMatch?.[1]?.trim().toLowerCase();
   const addonKey = addonName ? ADDON_KEY_BY_NAME[addonName] : undefined;
   if (!addonKey) return "/admin?tab=panel_home&focus=subscription-addon#subscription-addon";
@@ -68,10 +68,10 @@ function buildSuggestionText(planCode: string | undefined, limitKey: LimitKey): 
   const nextPlanName = planCode ? NEXT_PLAN_BY_CODE[planCode.toLowerCase()] : undefined;
   const addonName = ADDON_NAME_BY_LIMIT[limitKey];
   const planSuggestion = nextPlanName
-    ? ` Onerilen ust paket: ${nextPlanName}.`
+    ? ` Önerilen üst paket: ${nextPlanName}.`
     : "";
   const addonSuggestion = addonName
-    ? ` Onerilen ek hak: ${addonName}.`
+    ? ` Önerilen ek hak: ${addonName}.`
     : "";
   return `${planSuggestion}${addonSuggestion}`;
 }
@@ -89,14 +89,14 @@ export function getSubscriptionLimitGuidanceMessage(input: unknown, fallback: st
   const limitMatch = message.match(/Limit:\s*(\d+)\s*([A-Za-zçğıöşüÇĞİÖŞÜ]+)/i);
   const planCode = planMatch?.[1]?.trim();
   const planText = planMatch ? ` Mevcut paket: ${planMatch[1]}.` : "";
-  const limitText = limitMatch ? ` Tanimli ust sinir: ${limitMatch[1]} ${limitMatch[2]}.` : "";
-  const actionText = " Paket yukseltme veya ekstra hak satin alma seceneklerini admin ana sayfasindaki paket alanindan inceleyin.";
+  const limitText = limitMatch ? ` Tanımlı üst sınır: ${limitMatch[1]} ${limitMatch[2]}.` : "";
+  const actionText = " Paket yükseltme veya ekstra hak satın alma seçeneklerini admin ana sayfasındaki paket alanından inceleyin.";
 
   if (lower.includes("aktif firma limiti")) {
     return `Firma limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_companies")}${actionText}`;
   }
   if (lower.includes("aktif kullanici limiti")) {
-    return `Kullanici limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_internal_users")}${actionText}`;
+    return `Kullanıcı limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_internal_users")}${actionText}`;
   }
   if (lower.includes("aktif proje limiti")) {
     return `Proje limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_projects")}${actionText}`;
@@ -105,13 +105,13 @@ export function getSubscriptionLimitGuidanceMessage(input: unknown, fallback: st
     return `Tedarikçi limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_private_suppliers")}${actionText}`;
   }
   if (lower.includes("teklif limiti")) {
-    return `Teklif olusturma limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_quotes")}${actionText}`;
+    return `Teklif oluşturma limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_quotes")}${actionText}`;
   }
   if (lower.includes("proje dosya limiti")) {
-    return `Bu proje icin dosya yukleme limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "project_files_total")}${actionText}`;
+    return `Bu proje için dosya yükleme limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "project_files_total")}${actionText}`;
   }
   if (lower.includes("dosya boyutu plan limitini asiyor")) {
-    return `Yuklemeye calistiginiz dosya paketinizin izin verdigi boyutu asiyor.${planText}${limitText}${buildSuggestionText(planCode, "project_file_size_mb")}${actionText}`;
+    return `Yüklemeye çalıştığınız dosya paketinizin izin verdiği boyutu aşıyor.${planText}${limitText}${buildSuggestionText(planCode, "project_file_size_mb")}${actionText}`;
   }
 
   return message || fallback;

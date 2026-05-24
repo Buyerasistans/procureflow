@@ -72,7 +72,7 @@ const EMPTY_PREMIUM_FEATURE_DRAFT: PremiumFeatureDraft = {
 
 const LIMIT_FIELDS: Array<{ key: string; label: string; unit: string }> = [
   { key: "max_active_companies", label: "Firma limiti", unit: "firma" },
-  { key: "max_active_internal_users", label: "Kullanici limiti", unit: "kullanici" },
+  { key: "max_active_internal_users", label: "Kullanıcı limiti", unit: "kullanıcı" },
   { key: "max_active_projects", label: "Proje limiti", unit: "proje" },
   { key: "max_active_private_suppliers", label: "Tedarikçi limiti", unit: "tedarikçi" },
   { key: "max_active_rfqs", label: "Teklif limiti", unit: "teklif" },
@@ -112,7 +112,7 @@ export default function PublicPricingAdminPage() {
         setDeletedPremiumFeatureIds([]);
       })
       .catch(() => {
-        setError("Public pricing config yuklenemedi");
+        setError("Public pricing config yüklenemedi");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -164,7 +164,7 @@ export default function PublicPricingAdminPage() {
 
   function queuePremiumFeatureDelete(featureId: number) {
     if (typeof window !== "undefined") {
-      const approved = window.confirm("Bu premium feature kaydini silmek istediginize emin misiniz?");
+      const approved = window.confirm("Bu premium feature kaydını silmek istediğinize emin misiniz?");
       if (!approved) return;
     }
     setPremiumFeatures((current) => current.filter((feature) => feature.id !== featureId));
@@ -216,7 +216,7 @@ export default function PublicPricingAdminPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail || "Kayit hatasi");
+        throw new Error(data.detail || "Kayıt hatası");
       }
       await Promise.all(
         deletedPremiumFeatureIds.map((featureId) =>
@@ -271,7 +271,7 @@ export default function PublicPricingAdminPage() {
       setDeletedPremiumFeatureIds([]);
       setMessage("Public pricing config guncellendi");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kayit hatasi");
+      setError(err instanceof Error ? err.message : "Kayıt hatası");
     } finally {
       setSaving(false);
     }
@@ -352,7 +352,7 @@ export default function PublicPricingAdminPage() {
                   {strategicAddons.map((addon) => (
                     <div key={addon.code} style={{ border: "1px solid #dbe3ee", borderRadius: 14, padding: 16, background: "linear-gradient(180deg, #fffaf0 0%, #ffffff 100%)", display: "grid", gap: 12 }}>
                       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-                        <LabeledInput label="Ek Ozellik Adi" value={addon.name} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, name: value }))} />
+                        <LabeledInput label="Ek Özellik Adı" value={addon.name} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, name: value }))} />
                         <LabeledNumberInput label="Aylik Fiyat" value={addon.price_monthly} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, price_monthly: value }))} />
                         <LabeledNumberInput label="Tek Seferde Kazanim" value={addon.increment} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, increment: value }))} />
                         <LabeledInput label="Birim" value={addon.unit || ""} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, unit: value }))} />
@@ -395,13 +395,13 @@ export default function PublicPricingAdminPage() {
               <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#7c3aed" }}>Premium Feature Matrisi</div>
                 <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
-                  Odeme dogrulamasi sonrasi aktiflestirilecek premium ozellikler burada scope bazli gorunur. Paket limiti yetmediginde RFQ entitlement zinciri bu feature aktivasyonlariyla tamamlanir.
+                  Ödeme doğrulaması sonrası aktifleştirilecek premium özellikler burada scope bazlı görünür. Paket limiti yetmediğinde RFQ entitlement zinciri bu feature aktivasyonlarıyla tamamlanır.
                 </div>
                 <div style={{ marginTop: 14, border: "1px dashed #c4b5fd", borderRadius: 14, padding: 14, background: "#faf5ff", display: "grid", gap: 10 }}>
                   <div style={{ fontWeight: 800, color: "#581c87" }}>Yeni Premium Feature Ekle</div>
                   <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
                     <LabeledInput label="Code" value={newPremiumFeature.code} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, code: value }))} />
-                    <LabeledInput label="Ozellik Adi" value={newPremiumFeature.name} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, name: value }))} />
+                    <LabeledInput label="Özellik Adı" value={newPremiumFeature.name} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, name: value }))} />
                     <LabeledNumberInput label="Aylik Fiyat" value={newPremiumFeature.monthly_price} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, monthly_price: value }))} />
                     <LabeledNumberInput label="Yillik Fiyat" value={newPremiumFeature.annual_price} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, annual_price: value }))} />
                     <LabeledNumberInput label="Sira" value={newPremiumFeature.display_order} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, display_order: value }))} />
@@ -411,7 +411,7 @@ export default function PublicPricingAdminPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                     <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#475569" }}>
                       <input type="checkbox" checked={newPremiumFeature.is_active} disabled={!isSuperAdmin} onChange={(event) => setNewPremiumFeature((current) => ({ ...current, is_active: event.target.checked }))} />
-                      Aktif baslat
+                      Aktif başlat
                     </label>
                     <button type="button" onClick={addPremiumFeatureDraft} disabled={!isSuperAdmin || isNewPremiumFeatureCodeDuplicate} style={{ border: "none", borderRadius: 10, padding: "10px 14px", background: isSuperAdmin && !isNewPremiumFeatureCodeDuplicate ? "#7c3aed" : "#c4b5fd", color: "#fff", fontWeight: 800, cursor: isSuperAdmin && !isNewPremiumFeatureCodeDuplicate ? "pointer" : "not-allowed" }}>
                       Listeye Ekle
@@ -421,7 +421,7 @@ export default function PublicPricingAdminPage() {
                 </div>
                 <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
                   {sortedPremiumFeatures.length === 0 ? (
-                    <div style={{ color: "#64748b" }}>Tanimli premium ozellik yok.</div>
+                    <div style={{ color: "#64748b" }}>Tanımlı premium özellik yok.</div>
                   ) : sortedPremiumFeatures.map((feature) => (
                     <div key={feature.id} style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 14, display: "grid", gap: 8, background: "linear-gradient(180deg, #faf5ff 0%, #ffffff 100%)" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
@@ -437,7 +437,7 @@ export default function PublicPricingAdminPage() {
                         </div>
                       </div>
                       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-                        <LabeledInput label="Ozellik Adi" value={feature.name} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, name: value }))} />
+                        <LabeledInput label="Özellik Adı" value={feature.name} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, name: value }))} />
                         <LabeledNumberInput label="Aylik Fiyat" value={feature.monthly_price == null ? undefined : Number(feature.monthly_price)} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, monthly_price: value }))} />
                         <LabeledNumberInput label="Yillik Fiyat" value={feature.annual_price == null ? undefined : Number(feature.annual_price)} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, annual_price: value }))} />
                         <LabeledNumberInput label="Sira" value={feature.display_order} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, display_order: value }))} />
@@ -492,7 +492,7 @@ export default function PublicPricingAdminPage() {
 
             <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", padding: 14, borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
               <div style={{ color: "#475569", fontSize: 13, lineHeight: 1.6 }}>
-                Paketler, ekstra haklar ve premium feature fiyatlari tek kayit akisinda guncellenir.
+                Paketler, ekstra haklar ve premium feature fiyatları tek kayıt akışında güncellenir.
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button
@@ -528,7 +528,7 @@ function CatalogCard({ title, accent, plans }: { title: string; accent: string; 
             <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>{plan.description || "Aciklama yok"}</div>
             <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
               <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#f1f5f9", color: "#334155", fontWeight: 700, fontSize: 12 }}>
-                {plan.price_monthly ? `${plan.price_monthly} ${plan.currency || "TRY"} / ay` : "Kuruma ozel"}
+                {plan.price_monthly ? `${plan.price_monthly} ${plan.currency || "TRY"} / ay` : "Kuruma özel"}
               </span>
               {(plan.features || []).slice(0, 3).map((feature) => (
                 <span key={feature} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#ecfeff", color: "#155e75", fontWeight: 700, fontSize: 12 }}>{feature}</span>

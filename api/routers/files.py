@@ -25,7 +25,7 @@ async def get_file_thumbnail(file_id: int, db: Session = Depends(get_db)):
 
     if not project_file:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Dosya bulunamadi"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dosya bulunamad?"
         )
 
     # Sadece görsel dosyaları sun
@@ -40,7 +40,7 @@ async def get_file_thumbnail(file_id: int, db: Session = Depends(get_db)):
     if not os.path.exists(project_file.file_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dosya fiziksel olarak bulunamadi",
+            detail="Dosya fiziksel olarak bulunamad?",
         )
 
     # MIME type'ını belirle
@@ -112,7 +112,7 @@ async def download_file(
 
     if not project_file:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Dosya bulunamadi"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dosya bulunamad?"
         )
 
     # Dosya var mı kontrol et
@@ -121,7 +121,7 @@ async def download_file(
     if not os.path.exists(project_file.file_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dosya fiziksel olarak bulunamadi",
+            detail="Dosya fiziksel olarak bulunamad?",
         )
 
     # MIME type'ını belirle - mimetypes modülü kullan (daha güvenilir)
@@ -218,7 +218,7 @@ async def open_file(
 
     if not project_file:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Dosya bulunamadi"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dosya bulunamad?"
         )
 
     # Dosya var mı kontrol et
@@ -227,7 +227,7 @@ async def open_file(
     if not os.path.exists(project_file.file_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dosya fiziksel olarak bulunamadi",
+            detail="Dosya fiziksel olarak bulunamad?",
         )
 
     # Windows'ta os.startfile() ile dosyayı aç

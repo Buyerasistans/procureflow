@@ -27,7 +27,7 @@ def _resolve_dwg_converter_executable() -> Path:
             p = Path(env_path).expanduser().resolve()
             if p.exists() and p.is_file():
                 return p
-            raise CADConversionError(f"{env_key} tanimli ama dosya bulunamadi: {p}")
+            raise CADConversionError(f"{env_key} tanımlı ama dosya bulunamadı: {p}")
 
     for command_name in ["ODAFileConverter", "TeighaFileConverter"]:
         which_path = shutil.which(command_name)
@@ -35,8 +35,8 @@ def _resolve_dwg_converter_executable() -> Path:
             return Path(which_path).resolve()
 
     raise CADConversionError(
-        "DWG donusturme araci bulunamadi. "
-        "Sunucuda ODA/Teigha kurun ve PATH'e ekleyin veya DWG_TO_DXF_CONVERTER_PATH/Oda_Converter_PATH tanimlayin."
+        "DWG dönüştürme aracı bulunamadı. "
+        "Sunucuda ODA/Teigha kurun ve PATH'e ekleyin veya DWG_TO_DXF_CONVERTER_PATH/Oda_Converter_PATH tanımlayın."
     )
 
 
@@ -60,7 +60,7 @@ def convert_dwg_to_dxf(
 
     dwg_path = Path(dwg_file_path).resolve()
     if not dwg_path.exists():
-        raise CADConversionError(f"DWG dosyasi bulunamadi: {dwg_path}")
+        raise CADConversionError(f"DWG dosyası bulunamadı: {dwg_path}")
     if dwg_path.suffix.lower() != ".dwg":
         raise CADConversionError(f"Beklenen uzanti .dwg, gelen: {dwg_path.name}")
 
@@ -84,7 +84,7 @@ def convert_dwg_to_dxf(
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise CADConversionError(
-            f"ODA donusum hatasi (rc={result.returncode}). "
+            f"ODA dönüşüm hatası (rc={result.returncode}). "
             f"stderr={result.stderr.strip()} stdout={result.stdout.strip()}"
         )
 
@@ -94,5 +94,5 @@ def convert_dwg_to_dxf(
 
     candidates = list(out_dir.glob("*.dxf"))
     if not candidates:
-        raise CADConversionError("Donusum tamamlandi ancak DXF cikisi bulunamadi.")
+        raise CADConversionError("Dönüşüm tamamlandı ancak DXF çıkışı bulunamadı.")
     return candidates[0]

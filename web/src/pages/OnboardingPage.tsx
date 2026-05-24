@@ -105,7 +105,7 @@ const CATEGORY_HELP_COPY: Record<TenantType, { title: string; detail: string }> 
   supplier: {
     title: "Kategori bilgisi gorunurluk ve davet kalitesi icin kullanilir",
     detail:
-      "Sectiginiz uzmanlik alani sizi yalnizca profil etiketine donusturmez. Bu bilgi; ilgili RFQ akislarinda daha dogru gorunurluk, daha isabetli davet ve admin tarafinda kategori bazli supplier kapsami takibi icin kullanilir.",
+      "Seçtiğiniz uzmanlık alanı sizi yalnızca profil etiketine dönüştürmez. Bu bilgi; ilgili RFQ akışlarında daha doğru görünürlük, daha isabetli davet ve admin tarafında kategori bazlı supplier kapsamı takibi için kullanılır.",
   },
 };
 
@@ -264,7 +264,7 @@ export default function OnboardingPage() {
       .then(async (response) => {
         const data = await parseApiResponse<{ instructions?: BankTransferInstructions | null; detail?: string }>(response);
         if (!response.ok) {
-          throw new Error(data?.detail ?? "Banka bilgileri alinamadi.");
+          throw new Error(data?.detail ?? "Banka bilgileri alınamadı.");
         }
         setBankTransferInstructions(data?.instructions || null);
       })
@@ -284,7 +284,7 @@ export default function OnboardingPage() {
       if (!response.ok) {
         throw new Error(text);
       }
-      throw new Error("Sunucu yaniti ayrıştırılamadi.");
+      throw new Error("Sunucu yanıtı ayrıştırılamadı.");
     }
   }
 
@@ -331,7 +331,7 @@ export default function OnboardingPage() {
   async function copyToClipboard(value: string, label: string) {
     const normalized = value.trim();
     if (!normalized) {
-      setCopyFeedback(`${label} bulunamadi.`);
+      setCopyFeedback(`${label} bulunamadı.`);
       return;
     }
     try {
@@ -357,11 +357,11 @@ export default function OnboardingPage() {
   async function handleResubmitReceipt() {
     const transactionId = statusLookup?.payment_transaction_id ?? doneData?.payment_transaction_id ?? null;
     if (!transactionId) {
-      setError("Guncellenecek odeme islemi bulunamadi.");
+      setError("Güncellenecek ödeme işlemi bulunamadı.");
       return;
     }
     if (!paymentReceiptFile) {
-      setError("Lutfen yeni dekont dosyasini secin.");
+      setError("Lütfen yeni dekont dosyasını seçin.");
       return;
     }
 
@@ -379,14 +379,14 @@ export default function OnboardingPage() {
       });
       const data = await parseApiResponse<{ detail?: string }>(res);
       if (!res.ok) {
-        throw new Error(data?.detail ?? "Dekont guncellenemedi.");
+        throw new Error(data?.detail ?? "Dekont güncellenemedi.");
       }
-      setPaymentNote("Dekont yeniden yuklendi. Operasyon ekibi guncel kaniti inceleyecek.");
+      setPaymentNote("Dekont yeniden yüklendi. Operasyon ekibi güncel kanıtı inceleyecek.");
       setPaymentReceiptFile(null);
       setPaymentReceiptNote("");
       await loadStatusLookup();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Dekont guncellenemedi.");
+      setError(err instanceof Error ? err.message : "Dekont güncellenemedi.");
     } finally {
       setStatusActionLoading(false);
     }
@@ -414,7 +414,7 @@ export default function OnboardingPage() {
     });
     const data = await parseApiResponse<{ detail?: string; tenant_slug: string; admin_email: string; invitation_sent: boolean; message: string; payment_verified?: boolean; payment_transaction_id?: number | null }>(res);
     if (!res.ok) {
-      throw new Error((data as { detail?: string } | null)?.detail ?? "Kayit sirasinda bir hata olustu.");
+      throw new Error((data as { detail?: string } | null)?.detail ?? "Kayıt sırasında bir hata oluştu.");
     }
     setDoneData(data);
     setStep("done");
@@ -425,11 +425,11 @@ export default function OnboardingPage() {
     setError(null);
 
     if (!legalName.trim() || !fullName.trim() || !email.trim() || !phone.trim()) {
-      setError("Lutfen zorunlu alanlari doldurun.");
+      setError("Lütfen zorunlu alanları doldurun.");
       return;
     }
     if (selectedCategories.length < 1) {
-      setError("En az 1 faaliyet kategorisi secmelisiniz.");
+      setError("En az 1 faaliyet kategorisi seçmelisiniz.");
       return;
     }
 
@@ -439,11 +439,11 @@ export default function OnboardingPage() {
   async function handlePlanContinue() {
     setError(null);
     if (!selectedPlan) {
-      setError("Lutfen bir plan secin.");
+      setError("Lütfen bir plan seçin.");
       return;
     }
     if (selectedPlanNeedsSalesContact) {
-      setError("Bu plan kuruma ozel oldugu icin self-serve kayitla tamamlanamaz. Lutfen satis ekibiyle iletisime gecin.");
+      setError("Bu plan kuruma özel olduğu için self-serve kayıtla tamamlanamaz. Lütfen satış ekibiyle iletişime geçin.");
       return;
     }
 
@@ -456,7 +456,7 @@ export default function OnboardingPage() {
     try {
       await submitRegistration(selectedPlan, paymentTransactionId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sunucuya baglanilamadi. Lutfen tekrar deneyin.");
+      setError(err instanceof Error ? err.message : "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
     } finally {
       setSubmitting(false);
     }
@@ -466,12 +466,12 @@ export default function OnboardingPage() {
     setError(null);
 
     if (!selectedPlanObj || totalPaymentAmount <= 0) {
-      setError("Odeme gerektiren bir plan secmelisiniz.");
+      setError("Ödeme gerektiren bir plan seçmelisiniz.");
       return;
     }
 
     if (!email.trim() || !fullName.trim() || !phone.trim() || selectedCategories.length < 1) {
-      setError("Odeme adimindan once hesap bilgilerini doldurun.");
+      setError("Ödeme adımından önce hesap bilgilerini doldurun.");
       setStep("details");
       return;
     }
@@ -501,12 +501,12 @@ export default function OnboardingPage() {
 
       const paymentData = await parseApiResponse<{ detail?: string; transaction_id?: number; redirect_url?: string | null; instructions?: BankTransferInstructions | null }>(paymentRes);
       if (!paymentRes.ok) {
-        throw new Error((paymentData as { detail?: string } | null)?.detail ?? "Odeme baslatilamadi.");
+        throw new Error((paymentData as { detail?: string } | null)?.detail ?? "Ödeme başlatılamadı.");
       }
 
       const txnId = Number(paymentData?.transaction_id);
       if (!txnId) {
-        throw new Error("Odeme islemi olusturulamadi.");
+        throw new Error("Ödeme işlemi oluşturulamadı.");
       }
 
       setPaymentTransactionId(txnId);
@@ -527,21 +527,21 @@ export default function OnboardingPage() {
           throw err;
         });
         if (!receiptRes.ok) {
-          throw new Error(receiptData?.detail ?? "Dekont yuklenemedi.");
+          throw new Error(receiptData?.detail ?? "Dekont yüklenemedi.");
         }
       }
 
       if (paymentData?.redirect_url) {
         window.open(String(paymentData.redirect_url), "_blank", "noopener,noreferrer");
-        setPaymentNote("Odeme penceresi yeni sekmede acildi. Odeme adimini tamamlayip geri donun.");
+        setPaymentNote("Ödeme penceresi yeni sekmede açıldı. Ödeme adımını tamamlayıp geri dönün.");
       } else {
-        setPaymentNote("Odeme islemi olusturuldu. Kayit adimina devam ediliyor.");
+        setPaymentNote("Ödeme işlemi oluşturuldu. Kayıt adımına devam ediliyor.");
       }
 
       setSubmitting(true);
       await submitRegistration(selectedPlanObj.code, txnId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Odeme adimi basarisiz oldu.");
+      setError(err instanceof Error ? err.message : "Ödeme adımı başarısız oldu.");
     } finally {
       setPaymentLoading(false);
       setSubmitting(false);
@@ -569,7 +569,7 @@ export default function OnboardingPage() {
                 <div style={{ display: "grid", gap: 8 }}>
                   <div><strong>Başvuru:</strong> {statusLookup.brand_name || statusLookup.legal_name}</div>
                   <div><strong>Durum:</strong> {statusLookup.onboarding_approval_status} / {statusLookup.onboarding_payment_status}</div>
-                  {statusLookup.tracking_token_expires_at ? <div><strong>Takip linki son gecerlilik:</strong> {new Date(statusLookup.tracking_token_expires_at).toLocaleString("tr-TR")}</div> : null}
+                  {statusLookup.tracking_token_expires_at ? <div><strong>Takip linki son geçerlilik:</strong> {new Date(statusLookup.tracking_token_expires_at).toLocaleString("tr-TR")}</div> : null}
                   {statusLookup.onboarding_activation_notes ? <div><strong>Operasyon notu:</strong> {statusLookup.onboarding_activation_notes}</div> : null}
                   {statusLookup.can_resubmit_receipt ? (
                     <div style={{ display: "grid", gap: 10, marginTop: 4 }}>
@@ -583,7 +583,7 @@ export default function OnboardingPage() {
                         <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} style={{ ...styles.input, resize: "vertical" }} placeholder="Yeni dekont aciklamasi veya banka referansi" />
                       </label>
                       <button type="button" style={styles.btnPrimary} disabled={statusActionLoading} onClick={() => void handleResubmitReceipt()}>
-                        {statusActionLoading ? "Guncelleniyor..." : "Dekontu Yeniden Yukle"}
+                        {statusActionLoading ? "Güncelleniyor..." : "Dekontu Yeniden Yükle"}
                       </button>
                     </div>
                   ) : null}
@@ -607,7 +607,7 @@ export default function OnboardingPage() {
                   {i + 1}
                 </div>
                 <span style={{ fontSize: 12, color: step === s ? "#4f46e5" : "#6b7280", fontWeight: step === s ? 600 : 400 }}>
-                  {s === "tenant_type" ? "Siz Kimsiniz?" : s === "details" ? "Hesap Bilgileri" : s === "plan" ? "Plan Secimi" : s === "payment" ? "Odeme" : "Tamamlandi"}
+                  {s === "tenant_type" ? "Siz Kimsiniz?" : s === "details" ? "Hesap Bilgileri" : s === "plan" ? "Plan Seçimi" : s === "payment" ? "Ödeme" : "Tamamlandı"}
                 </span>
                 {i < 4 && <div style={styles.stepLine} />}
               </div>
@@ -617,7 +617,7 @@ export default function OnboardingPage() {
           {step === "tenant_type" && (
             <div>
               <h2 style={styles.stepTitle}>Siz kimsiniz?</h2>
-              <p style={styles.stepDesc}>Lutfen isletme tipinizi secin.</p>
+              <p style={styles.stepDesc}>Lütfen işletme tipinizi seçin.</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginTop: 20 }}>
                 {TENANT_TYPES.map((type) => (
                   <div
@@ -664,10 +664,10 @@ export default function OnboardingPage() {
 
           {step === "plan" && (
             <div>
-              <h2 style={styles.stepTitle}>Paketinizi secin</h2>
+              <h2 style={styles.stepTitle}>Paketinizi seçin</h2>
               <p style={styles.stepDesc}>Fiyat bilgisi super admin tarafından yönetilir ve seçime göre ödeme adımı zorunlu tutulur.</p>
               {plansLoading ? (
-                <div style={styles.loading}>Paketler yukleniyor...</div>
+                <div style={styles.loading}>Paketler yükleniyor...</div>
               ) : (
                 <div style={styles.planGrid}>
                   {plans.map((plan) => (
@@ -686,7 +686,7 @@ export default function OnboardingPage() {
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                         <span style={{ fontWeight: 700, fontSize: 17 }}>{plan.name}</span>
-                        {plan.is_default ? <span style={styles.badge}>Onerilen</span> : null}
+                        {plan.is_default ? <span style={styles.badge}>Önerilen</span> : null}
                       </div>
                       <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>{plan.description}</p>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", marginTop: 4 }}>
@@ -724,7 +724,7 @@ export default function OnboardingPage() {
               </div>
               {selectedPlanNeedsSalesContact ? (
                 <div style={styles.infoBox}>
-                  Bu plan kuruma ozel oldugu icin self-serve akista devam edilemez. Lutfen <a href="/demo?audience=strategic">satis ekibiyle gorusun</a>.
+                  Bu plan kuruma özel olduğu için self-serve akışta devam edilemez. Lütfen <a href="/demo?audience=strategic">satış ekibiyle görüşün</a>.
                 </div>
               ) : null}
             </div>
@@ -736,7 +736,7 @@ export default function OnboardingPage() {
               <p style={styles.stepDesc}>Sisteme giriş yapacak ilk yönetici hesabını oluşturun.</p>
               {selectedPlanObj && (
                 <div style={styles.prominentInfoBox}>
-                  <strong>Secilen plan:</strong> {selectedPlanObj.name} - {renderPrice(selectedPlanObj)}
+                  <strong>Seçilen plan:</strong> {selectedPlanObj.name} - {renderPrice(selectedPlanObj)}
                 </div>
               )}
               <div style={styles.formGrid}>
@@ -753,15 +753,15 @@ export default function OnboardingPage() {
                     <div style={styles.selectionHeaderRow}>
                       <span>Mevcut faaliyet kategorileri *</span>
                       <button type="button" style={styles.inlineSelectBtn} onClick={() => { setError(null); setActiveCategoryModal("offered"); }}>
-                        Kategori Sec
+                        Kategori Seç
                       </button>
                     </div>
                     <div style={styles.selectionSummaryBox}>
                       {selectedCategories.length > 0 ? selectedCategories.map((item) => (
                         <span key={`selected-offered-${item}`} style={styles.selectedChip}>{item}</span>
-                      )) : <span style={styles.selectionEmpty}>En az 1 kategori secilmeli</span>}
+                      )) : <span style={styles.selectionEmpty}>En az 1 kategori seçilmeli</span>}
                     </div>
-                    <div style={styles.selectionMeta}>{selectedCategories.length} / {MAX_COMPANY_CATEGORY_COUNT} secildi</div>
+                    <div style={styles.selectionMeta}>{selectedCategories.length} / {MAX_COMPANY_CATEGORY_COUNT} seçildi</div>
                   </div>
                 ) : null}
                 {selectedTenantType ? (
@@ -769,7 +769,7 @@ export default function OnboardingPage() {
                     <div style={styles.selectionHeaderRow}>
                       <span>Hedef ilgilenilen kategoriler</span>
                       <button type="button" style={styles.inlineSelectBtn} onClick={() => { setError(null); setActiveCategoryModal("target"); }}>
-                        Hedef Kategori Sec
+                        Hedef Kategori Seç
                       </button>
                     </div>
                     <div style={styles.selectionSummaryBox}>
@@ -817,7 +817,7 @@ export default function OnboardingPage() {
               <div style={styles.actions}>
                 <button type="button" style={styles.btnSecondary} onClick={() => setStep("tenant_type")}>← Geri</button>
                 <button type="submit" style={styles.btnPrimary} disabled={submitting}>
-                  Plan Secimine Devam Et →
+                  Plan Seçimine Devam Et →
                 </button>
               </div>
             </form>
@@ -825,8 +825,8 @@ export default function OnboardingPage() {
 
           {step === "payment" && (
             <div>
-              <h2 style={styles.stepTitle}>Odeme adimi</h2>
-              <p style={styles.stepDesc}>Secilen plan ucretli oldugu icin kayit oncesi odeme islemi zorunludur.</p>
+              <h2 style={styles.stepTitle}>Ödeme adımı</h2>
+              <p style={styles.stepDesc}>Seçilen plan ücretli olduğu için kayıt öncesi ödeme işlemi zorunludur.</p>
               <div style={styles.prominentInfoBox}>
                 <div><strong>Plan:</strong> {selectedPlanObj?.name}</div>
                 <div><strong>Plan ucreti:</strong> {selectedPlanPrice.toLocaleString("tr-TR")} {selectedPlanCurrency} / ay</div>
@@ -835,7 +835,7 @@ export default function OnboardingPage() {
               </div>
 
               <label style={styles.label}>
-                Odeme yontemi
+                Ödeme yontemi
                 <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} style={styles.select}>
                   {paymentProviders.length === 0 ? <option value="bank_transfer">Havale / EFT</option> : null}
                   {paymentProviders.map((p) => (
@@ -862,7 +862,7 @@ export default function OnboardingPage() {
                       <div><strong>Gönderilecek tutar:</strong> {bankTransferInstructions.amount || totalPaymentAmount} {bankTransferInstructions.currency || selectedPlanCurrency}</div>
                     </div>
                   ) : (
-                    <div style={{ marginTop: 10, color: "#64748b", fontSize: 12 }}>Odeme baslatildiginda banka hesap bilgileri burada gorunecek.</div>
+                    <div style={{ marginTop: 10, color: "#64748b", fontSize: 12 }}>Ödeme başlatıldığında banka hesap bilgileri burada görünecek.</div>
                   )}
                   {copyFeedback ? <div style={{ marginTop: 10, color: "#1d4ed8", fontSize: 12 }}>{copyFeedback}</div> : null}
                   <label style={{ ...styles.label, marginTop: 12 }}>
@@ -882,7 +882,7 @@ export default function OnboardingPage() {
               <div style={styles.actions}>
                 <button type="button" style={styles.btnSecondary} onClick={() => setStep("plan")}>← Geri</button>
                 <button type="button" style={styles.btnPrimary} onClick={handlePaymentAndComplete} disabled={paymentLoading || submitting}>
-                  {paymentLoading || submitting ? "Isleniyor..." : "Odemeyi Baslat ve Kaydi Tamamla"}
+                  {paymentLoading || submitting ? "İşleniyor..." : "Ödemeyi Başlat ve Kaydı Tamamla"}
                 </button>
               </div>
             </div>
@@ -891,21 +891,21 @@ export default function OnboardingPage() {
           {step === "done" && doneData && (
             <div style={{ textAlign: "center", padding: "24px 0" }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
-              <h2 style={{ ...styles.stepTitle, textAlign: "center" }}>Kaydiniz alindi!</h2>
+              <h2 style={{ ...styles.stepTitle, textAlign: "center" }}>Kaydınız alındı!</h2>
               <p style={{ color: "#6b7280", margin: "0 0 20px" }}>{doneData.message}</p>
               <div style={styles.doneBox}>
                 <div><strong>Hesap:</strong> {doneData.admin_email}</div>
                 <div style={{ marginTop: 6 }}>
                   {doneData.payment_verified
-                    ? "✅ Odeme adimi dogrulandi."
+                    ? "✅ Ödeme adımı doğrulandı."
                     : doneData.payment_transaction_id
-                      ? "⏳ Odeme kaydi alindi. Dekont veya islem sonucu operasyon ekibi tarafindan dogrulandiktan sonra aktivasyon ilerleyecek."
-                      : "ℹ️ Bu plan icin odeme adimi gerekmiyor."}
+                      ? "⏳ Ödeme kaydı alındı. Dekont veya işlem sonucu operasyon ekibi tarafından doğrulandıktan sonra aktivasyon ilerleyecek."
+                      : "ℹ️ Bu plan için ödeme adımı gerekmiyor."}
                 </div>
                 <div style={{ marginTop: 6 }}>
                   {doneData.invitation_sent ? "✅ Aktivasyon e-postası gönderildi. Gelen kutunuzu kontrol edin." : "⏳ Aktivasyon bağlantısı yakında iletilecektir."}
                 </div>
-                {doneData.payment_transaction_id ? <div style={{ marginTop: 6 }}><strong>Odeme islem no:</strong> {doneData.payment_transaction_id}</div> : null}
+                {doneData.payment_transaction_id ? <div style={{ marginTop: 6 }}><strong>Ödeme işlem no:</strong> {doneData.payment_transaction_id}</div> : null}
               </div>
               <a href="/login" style={styles.linkBtn}>Giriş sayfasına git →</a>
             </div>
@@ -917,11 +917,11 @@ export default function OnboardingPage() {
           <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeaderRow}>
               <div>
-                <div style={styles.modalTitle}>{activeCategoryModal === "offered" ? "Faaliyet Kategorisi Sec" : "Hedef Kategori Sec"}</div>
+                <div style={styles.modalTitle}>{activeCategoryModal === "offered" ? "Faaliyet Kategorisi Seç" : "Hedef Kategori Seç"}</div>
                 <div style={styles.modalDesc}>
                   {activeCategoryModal === "offered"
-                    ? `En fazla ${MAX_COMPANY_CATEGORY_COUNT} faaliyet kategorisi secilebilir. En az 1 kategori zorunludur.`
-                    : `${includedTargetCategoryLimit} hedef kategori dahil. Fazlasi kategori basina ${extraTargetCategorySlotPrice.toLocaleString("tr-TR")} ${extraTargetCategorySlotCurrency} eklenir.`}
+                    ? `En fazla ${MAX_COMPANY_CATEGORY_COUNT} faaliyet kategorisi seçilebilir. En az 1 kategori zorunludur.`
+                    : `${includedTargetCategoryLimit} hedef kategori dahil. Fazlası kategori başına ${extraTargetCategorySlotPrice.toLocaleString("tr-TR")} ${extraTargetCategorySlotCurrency} eklenir.`}
                 </div>
               </div>
               <button type="button" style={styles.modalCloseBtn} onClick={() => setActiveCategoryModal(null)}>Kapat</button>
@@ -937,7 +937,7 @@ export default function OnboardingPage() {
                     onClick={() => {
                       setError(null);
                       if (isOffered) {
-                        toggleLimitedCategorySelection(item, selectedCategories, setSelectedCategories, MAX_COMPANY_CATEGORY_COUNT, `En fazla ${MAX_COMPANY_CATEGORY_COUNT} faaliyet kategorisi secebilirsiniz.`);
+                        toggleLimitedCategorySelection(item, selectedCategories, setSelectedCategories, MAX_COMPANY_CATEGORY_COUNT, `En fazla ${MAX_COMPANY_CATEGORY_COUNT} faaliyet kategorisi seçebilirsiniz.`);
                         return;
                       }
                       toggleCategorySelection(item, setSelectedTargetCategories);
@@ -961,16 +961,16 @@ export default function OnboardingPage() {
                 onChange={(e) => activeCategoryModal === "offered" ? setCustomCategoriesText(e.target.value) : setCustomTargetCategoriesText(e.target.value)}
                 rows={3}
                 style={{ ...styles.input, resize: "vertical" }}
-                placeholder={activeCategoryModal === "offered" ? "Kategori adlarini virgulle yazin" : "Hedef kategori adlarini virgulle yazin"}
+                placeholder={activeCategoryModal === "offered" ? "Kategori adlarını virgülle yazın" : "Hedef kategori adlarını virgülle yazın"}
               />
             </label>
             <div style={styles.modalFooterRow}>
               <div style={styles.selectionMeta}>
                 {activeCategoryModal === "offered"
-                  ? `${selectedCategories.length} / ${MAX_COMPANY_CATEGORY_COUNT} kategori secildi`
-                    : `${totalTargetCategoryCount} hedef kategori secildi • ${extraTargetCategoryCount} adet ucretli ek slot`}
+                  ? `${selectedCategories.length} / ${MAX_COMPANY_CATEGORY_COUNT} kategori seçildi`
+                    : `${totalTargetCategoryCount} hedef kategori seçildi • ${extraTargetCategoryCount} adet ücretli ek slot`}
               </div>
-              <button type="button" style={styles.btnPrimary} onClick={() => setActiveCategoryModal(null)}>Secimi Kaydet</button>
+              <button type="button" style={styles.btnPrimary} onClick={() => setActiveCategoryModal(null)}>Seçimi Kaydet</button>
             </div>
           </div>
         </div>
@@ -982,7 +982,7 @@ export default function OnboardingPage() {
 function renderPrice(plan: Plan): string {
   const amount = Number(plan.price_monthly || 0);
   if (!amount || amount <= 0) {
-    return "Kuruma Ozel Teklif";
+    return "Kuruma Özel Teklif";
   }
   return `${amount.toLocaleString("tr-TR")} ${plan.currency || "TRY"} / ay`;
 }

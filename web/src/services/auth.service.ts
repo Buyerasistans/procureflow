@@ -138,7 +138,7 @@ export async function loginRequest(email: string, password: string): Promise<Log
       }
 
       if (error.code === "ECONNABORTED") {
-        throw new Error("Giris istegi zaman asimina ugradi. API servisini kontrol edip tekrar deneyin.");
+        throw new Error("Giri? iste?i zaman a??m?na u?rad?. API servisini kontrol edip tekrar deneyin.");
       }
 
       if (detail) {

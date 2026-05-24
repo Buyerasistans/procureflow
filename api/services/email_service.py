@@ -267,7 +267,7 @@ class EmailService:
                 return False
 
         plain_body = (body or "").strip() or (
-            "Merhaba,\n\nBu ileti ProcureFlow sisteminden gonderilmistir.\n\nIyi calismalar."
+            "Merhaba,\n\nBu ileti ProcureFlow sisteminden gönderilmiştir.\n\nİyi çalışmalar."
         )
         html_body = (
             '<html><body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">'
@@ -442,15 +442,15 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; background: #f8fafc; margin: 0; padding: 24px 12px;">
                 <div style="max-width: 620px; margin: 0 auto; padding: 28px 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px;">
                     <div style="font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; color: #64748b; font-weight: 700;">ProcureFlow</div>
-                    <h2 style="color: #0f172a; margin: 12px 0 0;">Hesabinizi olusturun</h2>
+                    <h2 style="color: #0f172a; margin: 12px 0 0;">Hesabınızı oluşturun</h2>
                     <p>Merhaba <strong>{full_name}</strong>,</p>
-                    <p>{company_name} icin super admin onayli hesabiniz hazirlandi. Asagidaki butonla sifrenizi belirleyip dogrudan giris yapabilirsiniz.</p>
+                    <p>{company_name} için super admin onaylı hesabınız hazırlandı. Aşağıdaki butonla şifrenizi belirleyip doğrudan giriş yapabilirsiniz.</p>
                     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin:20px 0;">
                         <p style="margin:4px 0 10px;"><strong>E-posta:</strong> {to_email}</p>
                         <p style="margin:0;"><a href="{activation_url}" style="display:inline-block; padding:12px 18px; background:#2563eb; color:white; text-decoration:none; border-radius:10px; font-weight:700;">Sifre belirle ve hesabi aktifleştir</a></p>
                     </div>
-                    <p style="margin:0 0 8px;"><strong>Baglanti 24 saat boyunca gecerlidir.</strong></p>
-                    <p style="font-size:12px;color:#64748b; margin: 0;">Bu kayit size ait degilse bu e-postayi dikkate almayin veya yoneticinizle iletisime gecin.</p>
+                    <p style="margin:0 0 8px;"><strong>Bağlantı 24 saat boyunca geçerlidir.</strong></p>
+                    <p style="font-size:12px;color:#64748b; margin: 0;">Bu kayıt size ait değilse bu e-postayı dikkate almayın veya yöneticinizle iletişime geçin.</p>
                 </div>
             </body>
         </html>
@@ -458,14 +458,14 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
         plain_text = (
             f"ProcureFlow Hesap Aktivasyonu\n\n"
             f"Merhaba {full_name},\n\n"
-            f"{company_name} icin super admin onayli hesabiniz hazirlandi.\n"
+            f"{company_name} için super admin onaylı hesabınız hazırlandı.\n"
             f"E-posta: {to_email}\n"
-            f"Sifre belirleme baglantisi: {activation_url}\n\n"
-            "Baglantiyi acip sifrenizi belirleyerek hesabinizi aktiflestirebilirsiniz. Baglanti 24 saat gecerlidir."
+            f"Şifre belirleme bağlantısı: {activation_url}\n\n"
+            "Bağlantıyı açıp şifrenizi belirleyerek hesabınızı aktifleştirebilirsiniz. Bağlantı 24 saat geçerlidir."
         )
         return self._send_smtp(
             to_email,
-            "ProcureFlow hesabinizi olusturun",
+            "ProcureFlow hesabınızı oluşturun",
             html_content,
             plain_text,
             owner_user_id=owner_user_id,
@@ -484,46 +484,46 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
         decision_value = (decision or "").strip().lower()
         is_rejected = decision_value == "rejected"
         is_needs_info = decision_value == "needs_info"
-        title = "Uyelik basvurunuz guncellendi"
-        headline = "Uyelik basvurunuzla ilgili guncelleme"
-        body_intro = f"<strong>{company_name}</strong> icin yaptiginiz ProcureFlow basvurusu super admin ekibi tarafindan guncellendi."
+        title = "Üyelik başvurunuz güncellendi"
+        headline = "Üyelik başvurunuzla ilgili güncelleme"
+        body_intro = f"<strong>{company_name}</strong> için yaptığınız ProcureFlow başvurusu super admin ekibi tarafından güncellendi."
         action_box = ""
         plain_note = ""
 
         if is_rejected:
-            title = "Uyelik basvurunuz icin ek islem gerekli"
-            headline = "Basvurunuz su an icin onaylanmadi"
-            body_intro = f"<strong>{company_name}</strong> icin yaptiginiz ProcureFlow basvurusu incelendi ancak aktivasyon bu asamada tamamlanmadi."
+            title = "Üyelik başvurunuz için ek işlem gerekli"
+            headline = "Başvurunuz şu an için onaylanmadı"
+            body_intro = f"<strong>{company_name}</strong> için yaptığınız ProcureFlow başvurusu incelendi ancak aktivasyon bu aşamada tamamlanmadı."
             action_box = (
                 '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px;margin:18px 0;">'
                 '<div style="font-weight:700;color:#9a3412;margin-bottom:8px;">Neden / Operasyon Notu</div>'
-                f'<div style="color:#7c2d12;">{html.escape((note or "Operasyon ekibi sizinle iletisime gececektir.").strip())}</div>'
+                f'<div style="color:#7c2d12;">{html.escape((note or "Operasyon ekibi sizinle iletişime geçecektir.").strip())}</div>'
                 '</div>'
             )
-            plain_note = f"\n\nNeden / not: {(note or 'Operasyon ekibi sizinle iletisime gececektir.').strip()}"
+            plain_note = f"\n\nNeden / not: {(note or 'Operasyon ekibi sizinle iletişime geçecektir.').strip()}"
         elif is_needs_info:
-            title = "Uyelik basvurunuz icin ek bilgi gerekiyor"
-            headline = "Basvurunuz icin ek bilgi veya yeni dekont gerekiyor"
-            body_intro = f"<strong>{company_name}</strong> icin yaptiginiz ProcureFlow basvurusu incelendi. Aktivasyon oncesi sizden ek bilgi veya guncel odeme kaniti talep ediliyor."
+            title = "Üyelik başvurunuz için ek bilgi gerekiyor"
+            headline = "Başvurunuz için ek bilgi veya yeni dekont gerekiyor"
+            body_intro = f"<strong>{company_name}</strong> için yaptığınız ProcureFlow başvurusu incelendi. Aktivasyon öncesi sizden ek bilgi veya güncel ödeme kanıtı talep ediliyor."
             action_box = (
                 '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin:18px 0;">'
-                '<div style="font-weight:700;color:#1d4ed8;margin-bottom:8px;">Talep Detayi</div>'
-                f'<div style="color:#1e3a8a;">{html.escape((note or "Lutfen odeme kanitini ve aciklama bilgisini guncelleyin.").strip())}</div>'
+                '<div style="font-weight:700;color:#1d4ed8;margin-bottom:8px;">Talep Detayı</div>'
+                f'<div style="color:#1e3a8a;">{html.escape((note or "Lütfen ödeme kanıtını ve açıklama bilgisini güncelleyin.").strip())}</div>'
                 '</div>'
             )
             if action_url:
                 action_box += (
                     '<div style="margin:18px 0;">'
-                    f'<a href="{html.escape(action_url)}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;">Basvurumu Guncelle</a>'
+                    f'<a href="{html.escape(action_url)}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;">Başvurumu Güncelle</a>'
                     "</div>"
                 )
-            plain_note = f"\n\nTalep detayi: {(note or 'Lutfen odeme kanitini ve aciklama bilgisini guncelleyin.').strip()}"
+            plain_note = f"\n\nTalep detayı: {(note or 'Lütfen ödeme kanıtını ve açıklama bilgisini güncelleyin.').strip()}"
             if action_url:
-                plain_note += f"\nBasvuru guncelleme linki: {action_url}"
+                plain_note += f"\nBaşvuru güncelleme linki: {action_url}"
         else:
             action_box = (
                 '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin:18px 0;color:#1e3a8a;">'
-                "Basvurunuz onaylandiginda aktivasyon baglantisi ayrica e-posta ile iletilir."
+                "Başvurunuz onaylandığında aktivasyon bağlantısı ayrıca e-posta ile iletilir."
                 "</div>"
             )
             if note:
@@ -537,7 +537,7 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
                     <p>Merhaba <strong>{html.escape(full_name)}</strong>,</p>
                     <p>{body_intro}</p>
                     {action_box}
-                    <p style="color:#475569;">Sorulariniz varsa bu e-postayi yanitlayabilir veya platform ekibiyle iletisime gecebilirsiniz.</p>
+                    <p style="color:#475569;">Sorularınız varsa bu e-postayı yanıtlayabilir veya platform ekibiyle iletişime geçebilirsiniz.</p>
                 </div>
             </body>
         </html>
@@ -545,9 +545,9 @@ Eğer bu daveti almadıysanız, bu emaili görmezden gelebilirsiniz.
         plain_text = (
             f"{title}\n\n"
             f"Merhaba {full_name},\n\n"
-            f"{company_name} icin yaptiginiz ProcureFlow basvurusu guncellendi."
+            f"{company_name} için yaptığınız ProcureFlow başvurusu güncellendi."
             f"{plain_note}\n\n"
-            "Sorulariniz varsa bu e-postayi yanitlayabilirsiniz."
+            "Sorularınız varsa bu e-postayı yanıtlayabilirsiniz."
         )
         return self._send_smtp(
             to_email,

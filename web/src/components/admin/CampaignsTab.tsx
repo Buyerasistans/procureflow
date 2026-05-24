@@ -83,7 +83,7 @@ export function CampaignsAdminTab() {
       setSelectedProviderCode(fallbackCode);
       hydrateProviderDraft(providerRows.find((item) => item.code === fallbackCode) || null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kampanya verileri alinamadi");
+      setError(err instanceof Error ? err.message : "Kampanya verileri al?namad?");
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export function CampaignsAdminTab() {
       });
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kampanya olusturulamadi");
+      setError(err instanceof Error ? err.message : "Kampanya olu?turulamad?");
     }
   };
 
@@ -182,7 +182,7 @@ export function CampaignsAdminTab() {
     <div className="campaigns-admin-tab">
       <div className="campaigns-admin-tab__header">
         <div>
-          <h2 className="campaigns-admin-tab__title">Kampanyalar ve Odeme Ayarlari</h2>
+          <h2 className="campaigns-admin-tab__title">Kampanyalar ve ?deme Ayarlar?</h2>
           <p className="campaigns-admin-tab__description">
             Ödeme sağlayıcılarının aktif/pasif ve credential ayarlarını yönetin; pasif olanlar ödeme ekranına düşmez.
           </p>
@@ -199,7 +199,7 @@ export function CampaignsAdminTab() {
       {error ? <div className="campaigns-admin-tab__error">{error}</div> : null}
 
       <section className="campaigns-admin-tab__section">
-        <div className="campaigns-admin-tab__section-title">Odeme Saglayici Ayarlari</div>
+        <div className="campaigns-admin-tab__section-title">?deme Sa?lay?c? Ayarlar?</div>
         <div className="campaigns-admin-tab__layout">
           <div className="campaigns-admin-tab__provider-list">
             {providers.map((provider) => (
@@ -252,7 +252,7 @@ export function CampaignsAdminTab() {
 
           <div className="campaigns-admin-tab__settings-panel">
             {!selectedProvider ? (
-              <div className="campaigns-admin-tab__settings-empty">Saglayici secin.</div>
+              <div className="campaigns-admin-tab__settings-empty">Sa?lay?c? se?in.</div>
             ) : (
               <div className="campaigns-admin-tab__settings-content">
                 <div className="campaigns-admin-tab__settings-header">
@@ -268,7 +268,7 @@ export function CampaignsAdminTab() {
                       checked={providerActiveDraft}
                       onChange={(e) => setProviderActiveDraft(e.target.checked)}
                     />
-                    Odeme ekraninda aktif
+                    ?deme ekran?nda aktif
                   </label>
                 </div>
 
@@ -399,7 +399,7 @@ export function CampaignsAdminTab() {
               onClick={() => void handleCreateCampaign()}
               className="campaigns-admin-tab__button campaigns-admin-tab__button--primary"
             >
-              Kampanya Olustur
+              Kampanya Olu?tur
             </button>
           </div>
         </div>
@@ -418,7 +418,7 @@ export function CampaignsAdminTab() {
                 title="Event için kampanya seçimi"
                 className="campaigns-admin-tab__select"
               >
-                <option value={0}>Kampanya secin</option>
+                <option value={0}>Kampanya se?in</option>
                 {campaigns.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>
                     {campaign.name}

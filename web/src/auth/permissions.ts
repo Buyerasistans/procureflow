@@ -182,7 +182,7 @@ export function getUserDisplayRoleLabel(user: PermissionContext | null | undefin
     return getRoleLabel(systemRole);
   }
 
-  return getRoleLabel(normalizedRole(user)) || "Kullanici";
+  return getRoleLabel(normalizedRole(user)) || "Kullanıcı";
 }
 
 export function isSuperAdminBusinessRole(role: string | null | undefined): boolean {
@@ -484,27 +484,27 @@ export function getRoleMenuAccessPreview(
         },
         {
           key: "admin_surface.user_create",
-          label: "Personel Olusturma",
+          label: "Personel Oluşturma",
           enabled: applyOverride("admin_surface.user_create", adminSurface, overrides),
-          description: "Yeni personel kaydi acma.",
+          description: "Yeni personel kaydı açma.",
         },
         {
           key: "admin_surface.user_edit",
-          label: "Personel Duzenleme",
+          label: "Personel Düzenleme",
           enabled: applyOverride("admin_surface.user_edit", adminSurface, overrides),
-          description: "Var olan personel kayitlarini guncelleme.",
+          description: "Var olan personel kayıtlarını güncelleme.",
         },
         {
           key: "admin_surface.user_disable",
           label: "Personel Pasife Alma",
           enabled: applyOverride("admin_surface.user_disable", adminSurface, overrides),
-          description: "Personel kaydini pasif duruma cekme.",
+          description: "Personel kaydını pasif duruma çekme.",
         },
         {
           key: "admin_surface.user_delete",
           label: "Personel Silme",
           enabled: applyOverride("admin_surface.user_delete", adminSurface, overrides),
-          description: "Pasif personel kaydini kaldirma.",
+          description: "Pasif personel kaydını kaldırma.",
         },
       ],
     ),
@@ -512,14 +512,14 @@ export function getRoleMenuAccessPreview(
       key: "manage_users",
       label: "Kullanıcı Yönetimi",
       enabled: manageUsers,
-      description: "Kullanici olusturma, rol atama ve duzenleme akislarina erisim.",
+      description: "Kullanıcı oluşturma, rol atama ve düzenleme akışlarına erişim.",
     },
     withChildren(
       {
         key: "quote_workspace",
         label: "Teklif Çalışma Alanı",
         enabled: quoteWorkspace,
-        description: "Teklif olusturma, listeleme ve ilgili satin alma operasyonu.",
+        description: "Teklif oluşturma, listeleme ve ilgili satın alma operasyonu.",
       },
       [
         {
@@ -530,15 +530,15 @@ export function getRoleMenuAccessPreview(
         },
         {
           key: "quote_workspace.create",
-          label: "Teklif Olusturma",
+          label: "Teklif Oluşturma",
           enabled: applyOverride("quote_workspace.create", quoteWorkspace, overrides),
-          description: "Yeni teklif olusturma.",
+          description: "Yeni teklif oluşturma.",
         },
         {
           key: "quote_workspace.edit",
-          label: "Teklif Duzenleme",
+          label: "Teklif Düzenleme",
           enabled: applyOverride("quote_workspace.edit", quoteWorkspace, overrides),
-          description: "Mevcut teklif kaydini duzenleme.",
+          description: "Mevcut teklif kaydını düzenleme.",
         },
         {
           key: "quote_workspace.submit_approval",
@@ -558,7 +558,7 @@ export function getRoleMenuAccessPreview(
       key: "approval_review",
       label: "Onay Inceleme",
       enabled: approvalReview,
-      description: "Onay gerektiren kayitlari goruntuleme/degerlendirme.",
+      description: "Onay gerektiren kayıtları görüntüleme/değerlendirme.",
     },
     withChildren(
       {
@@ -592,9 +592,9 @@ export function getRoleMenuAccessPreview(
       [
         {
           key: "tenant_governance_write.detail_edit",
-          label: "Detay Duzenleme",
+          label: "Detay Düzenleme",
           enabled: applyOverride("tenant_governance_write.detail_edit", governanceWrite, overrides),
-          description: "Stratejik partner alanlarini duzenleme.",
+          description: "Stratejik partner alanlarını düzenleme.",
         },
       ],
     ),
@@ -602,7 +602,7 @@ export function getRoleMenuAccessPreview(
       key: "support_workflow",
       label: "Destek Akisi Guncelleme",
       enabled: supportWorkflow,
-      description: "Support workflow alanlarini guncelleme yetkisi.",
+      description: "Support workflow alanlarını güncelleme yetkisi.",
     },
     {
       key: "tenant_identity",

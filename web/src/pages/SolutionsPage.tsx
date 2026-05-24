@@ -23,7 +23,7 @@ const cards = [
   },
   {
     title: "Entegrasyon Katmanı",
-    body: "ERP ve ic sistemlerle kontrollu veri akisina hazir entegrasyon modeli ile tekrarli veri girisini azaltin.",
+    body: "ERP ve i? sistemlerle kontroll? veri ak???na haz?r entegrasyon modeli ile tekrarl? veri giri?ini azalt?n.",
     bullets: ["API-first mimari", "Webhook tetikleyiciler", "Kimlik ve yetki izolasyonu"],
   },
   {
@@ -41,7 +41,7 @@ export default function SolutionsPage() {
       <section style={{ maxWidth: 1080, margin: "0 auto" }}>
         <h1 style={{ fontSize: 40, marginBottom: 8, color: "#0f172a" }}>Çözümler</h1>
         <p style={{ color: "#475569", marginBottom: 28, maxWidth: 860, lineHeight: 1.7 }}>
-          Bu icerik artik Teklifler, Tedarikciler ve Stratejik Partnerlik sayfalarina dagitildi. Bu sayfa sadece gecis merkezi olarak tutulur.
+          Bu i?erik art?k Teklifler, Tedarik?iler ve Stratejik Partnerlik sayfalar?na da??t?ld?. Bu sayfa sadece ge?i? merkezi olarak tutulur.
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
@@ -68,8 +68,8 @@ export default function SolutionsPage() {
 
         <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
           <a href="/teklifler" style={ctaPrimary}>Teklifler Akisina Git</a>
-          <a href="/tedarikciler" style={ctaSecondary}>Tedarikciler Sayfasina Git</a>
-          <a href="/stratejik-ortaklik" style={ctaSecondary}>Stratejik Partnerlik Sayfasina Git</a>
+          <a href="/tedarikciler" style={ctaSecondary}>Tedarik?iler Sayfas?na Git</a>
+          <a href="/stratejik-ortaklik" style={ctaSecondary}>Stratejik Partnerlik Sayfas?na Git</a>
         </div>
       </section>
       </main>

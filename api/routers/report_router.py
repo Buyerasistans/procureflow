@@ -501,7 +501,7 @@ def export_quote_comparison_xlsx(
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Karsilastirma Raporu"
+    ws.title = "Kar??la?t?rma Raporu"
 
     ws.append(["Teklif", dataset["quote"]["title"]])
     ws.append(["Teklif ID", dataset["quote"]["id"]])
@@ -509,11 +509,11 @@ def export_quote_comparison_xlsx(
     ws.append([])
     ws.append(
         [
-            "Tedarikci",
+            "Tedarik?i",
             "Revizyon",
             "Toplam Tutar",
-            "Indirim Tutar",
-            "Final Tutar",
+            "?ndirim Tutar?",
+            "Final Tutar?",
             "Teslimat (Gun)",
             "Durum",
             "Onay",
@@ -538,7 +538,7 @@ def export_quote_comparison_xlsx(
     ws.append([])
     ws.append(
         [
-            "Onaylanan Tedarikci",
+            "Onaylanan Tedarik?i",
             dataset["quote"]["approved_supplier_name"] or "Henüz yok",
         ]
     )
@@ -652,9 +652,9 @@ def export_quote_comparison_xlsx(
         dynamic_col += 2
 
     chart = BarChart()
-    chart.title = "Tedarikci Final Tutar Karsilastirmasi"
-    chart.y_axis.title = "Final Tutar"
-    chart.x_axis.title = "Tedarikci"
+    chart.title = "Tedarik?i Final Tutar? Kar??la?t?rmas?"
+    chart.y_axis.title = "Final Tutar?"
+    chart.x_axis.title = "Tedarik?i"
     data = Reference(ws, min_col=5, min_row=5, max_row=5 + len(suppliers))
     cats = Reference(ws, min_col=1, min_row=6, max_row=5 + len(suppliers))
     chart.add_data(data, titles_from_data=True)

@@ -120,7 +120,7 @@ def default_public_pricing_config() -> dict:
                     "features": [
                         "Ayni hizmet ailesinin en yuksek hacimli surumu",
                         "Kurumsal ekiplere uygun dosya ve teklif hacmi",
-                        "Ozel destek ve operasyonel esneklik",
+                        "Özel destek ve operasyonel esneklik",
                     ],
                 },
             ],
@@ -128,7 +128,7 @@ def default_public_pricing_config() -> dict:
                 {
                     "code": "company_slot",
                     "name": "Ek Firma Limiti",
-                    "description": "Paket disinda adet bazli ek firma hakki satin alin.",
+                    "description": "Paket dışında adet bazlı ek firma hakkı satın alın.",
                     "price_monthly": 2900,
                     "currency": "TRY",
                     "increment": 1,
@@ -140,14 +140,14 @@ def default_public_pricing_config() -> dict:
                 },
                 {
                     "code": "user_slot",
-                    "name": "Ek Kullanici Limiti",
+                    "name": "Ek Kullanıcı Limiti",
                     "description": "Paket disinda ekip kapasitesini adet bazli genisletin.",
                     "price_monthly": 750,
                     "currency": "TRY",
                     "increment": 1,
-                    "unit": "kullanici",
+                    "unit": "kullanıcı",
                     "visibility_notes": [
-                        "Her ek alim aktif kullanici kapasitesini 1 kullanici artirir.",
+                        "Her ek alım aktif kullanıcı kapasitesini 1 kullanıcı artırır.",
                         "Tekil alim maliyeti paket gecisinden daha yuksektir.",
                     ],
                 },
@@ -161,7 +161,7 @@ def default_public_pricing_config() -> dict:
                     "unit": "proje",
                     "visibility_notes": [
                         "Her ek alim aktif proje kapasitesini 1 proje artirir.",
-                        "Tekil proje hakki, ust pakete gore daha yuksek birim fiyatla gelir.",
+                        "Tekil proje hakkı, üst pakete göre daha yüksek birim fiyatla gelir.",
                     ],
                 },
                 {
@@ -186,20 +186,20 @@ def default_public_pricing_config() -> dict:
                     "increment": 10,
                     "unit": "teklif",
                     "visibility_notes": [
-                        "Her ek alim 10 tekliflik ek hacim saglar.",
-                        "Hazirlama, toplama ve onay akisinda ayni limit havuzu kullanilir.",
+                        "Her ek alım 10 tekliflik ek hacim sağlar.",
+                        "Hazırlama, toplama ve onay akışında aynı limit havuzu kullanılır.",
                     ],
                 },
                 {
                     "code": "file_slot",
-                    "name": "Ek Dosya Yukleme Limiti",
-                    "description": "Proje basina daha fazla dokuman yuklemek icin ek hak satin alin.",
+                    "name": "Ek Dosya Yükleme Limiti",
+                    "description": "Proje başına daha fazla doküman yüklemek için ek hak satın alın.",
                     "price_monthly": 900,
                     "currency": "TRY",
                     "increment": 50,
                     "unit": "dosya",
                     "visibility_notes": [
-                        "Her ek alim 50 dosyalik kapasite artisi saglar.",
+                        "Her ek alım 50 dosyalık kapasite artışı sağlar.",
                         "Tek dosya boyutu limiti paket seviyesinden ayrı yönetilir.",
                     ],
                 },
@@ -215,7 +215,7 @@ def default_public_pricing_config() -> dict:
                     "description": "Platformda gorunurluk ve temel teklif yanitlari",
                     "features": [
                         "Tedarikçi profili",
-                        "Temel ihale davet yaniti",
+                        "Temel ihale davet yanıtı",
                         "Aylik performans ozeti",
                     ],
                 },
@@ -226,7 +226,7 @@ def default_public_pricing_config() -> dict:
                     "currency": "TRY",
                     "description": "Kurumsal tedarikçi buyume paketi",
                     "features": [
-                        "Coklu kullanici",
+                        "Çoklu kullanıcı",
                         "API/export imkanlari",
                         "Stratejik partnerlik workshoplari",
                     ],
