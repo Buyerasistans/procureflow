@@ -14,11 +14,11 @@ interface HelpArticle {
 }
 
 const ARTICLES: HelpArticle[] = [
-  { id: "a1", title: "Aktivasyon nasil yapilir?", summary: "Aktivasyon mailinden hesabinizi nasil aktive edersiniz.", slug: "aktivasyon", category: "Baslangic" },
-  { id: "a2", title: "Ilk giristen sonra ne yapmaliyim?", summary: "Aktivasyon sonrasi tamamlamaniz gereken adimlar.", slug: "aktivasyon/baslangic", category: "Baslangic" },
-  { id: "a3", title: "Sifremi nasil degistiririm?", summary: "Profil sayfasindan sifre guncelleme adimlari.", slug: "hesap/sifre", category: "Hesap" },
-  { id: "b1", title: "Sirket bilgilerimi nasil guncellerim?", summary: "Vergi no, adres ve telefon bilgisi guncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
-  { id: "b2", title: "Kullanici nasil davet ederim?", summary: "Ekibinizi platforma ekleme adimlari.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
+  { id: "a1", title: "Aktivasyon nasıl yapılır?", summary: "Aktivasyon mailinden hesabınızı nasıl aktive edersiniz.", slug: "aktivasyon", category: "Başlangıç" },
+  { id: "a2", title: "İlk girişten sonra ne yapmalıyım?", summary: "Aktivasyon sonrası tamamlamanız gereken adımlar.", slug: "aktivasyon/baslangic", category: "Başlangıç" },
+  { id: "a3", title: "Şifremi nasıl değiştiririm?", summary: "Profil sayfasından şifre güncelleme adımları.", slug: "hesap/sifre", category: "Hesap" },
+  { id: "b1", title: "Şirket bilgilerimi nasıl güncellerim?", summary: "Vergi no, adres ve telefon bilgisi güncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
+  { id: "b2", title: "Kullanıcı nasıl davet ederim?", summary: "Ekibinizi platforma ekleme adımları.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
   { id: "b3", title: "Tedarikçi nasıl eklenir?", summary: "Tedarikçi kaydı oluşturma ve yönetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
   { id: "b4", title: "Teklif talebi (RFQ) nasıl oluşturulur?", summary: "Satın alma talebi oluşturma ve tedarikçilere gönderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
   { id: "c1", title: "Tedarikçi profili nasıl tamamlanır?", summary: "İletişim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikçi" },
@@ -31,11 +31,11 @@ export default function HelpCenterInline() {
   const { locale } = useLocale();
   const t = usePublicTranslations("help_center", locale, {
     title: "Yardim Merkezi",
-    subtitle: "Nasil yardimci olabiliriz?",
+    subtitle: "Nasıl yardımcı olabiliriz?",
     articles_tab: "Makaleler",
     ticket_tab: "Destek Talebi",
-    search_placeholder: "Kilavuzlarda ara...",
-    all_categories: "Tumu",
+    search_placeholder: "Kılavuzlarda ara...",
+    all_categories: "Tümü",
     not_found: "Aranan kilavuz bulunamadi.",
     missing_prompt: "Aradiginizi bulamadin mi?",
     create_ticket: "Destek Talebi Olustur",

@@ -170,7 +170,7 @@ export default function ProjectFilesPage() {
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
       {readOnly && (
         <div style={{ marginBottom: "16px", padding: "12px", borderRadius: "12px", background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa" }}>
-          Bu dosya portfoyu platform personeli icin salt okunur durumdadir.
+          Bu dosya portföyü platform personeli için salt okunur durumdadır.
         </div>
       )}
       {/* Header */}

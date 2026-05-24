@@ -323,7 +323,7 @@ export default function PublicPricingAdminPage() {
                         <LabeledNumberInput label="Aylik Fiyat" value={plan.price_monthly} disabled={!isSuperAdmin} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, price_monthly: value }))} />
                         <LabeledInput label="Para Birimi" value={plan.currency || "TRY"} disabled={!isSuperAdmin} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, currency: value }))} />
                       </div>
-                      <LabeledTextarea label="Aciklama" value={plan.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, description: value }))} />
+                      <LabeledTextarea label="Açıklama" value={plan.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, description: value }))} />
                       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
                         {LIMIT_FIELDS.map((limitField) => (
                           <LabeledNumberInput
@@ -357,7 +357,7 @@ export default function PublicPricingAdminPage() {
                         <LabeledNumberInput label="Tek Seferde Kazanim" value={addon.increment} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, increment: value }))} />
                         <LabeledInput label="Birim" value={addon.unit || ""} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, unit: value }))} />
                       </div>
-                      <LabeledTextarea label="Aciklama" value={addon.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, description: value }))} />
+                      <LabeledTextarea label="Açıklama" value={addon.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, description: value }))} />
                       <LabeledTextarea
                         label="Gorunurluk ve Satis Notlari"
                         value={(addon.visibility_notes || []).join("\n")}
@@ -386,7 +386,7 @@ export default function PublicPricingAdminPage() {
                         <LabeledNumberInput label="Aylik Fiyat" value={plan.price_monthly} disabled={!isSuperAdmin} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, price_monthly: value }))} />
                         <LabeledInput label="Para Birimi" value={plan.currency || "TRY"} disabled={!isSuperAdmin} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, currency: value }))} />
                       </div>
-                      <LabeledTextarea label="Aciklama" value={plan.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, description: value }))} />
+                      <LabeledTextarea label="Açıklama" value={plan.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, description: value }))} />
                     </div>
                   ))}
                 </div>
@@ -406,7 +406,7 @@ export default function PublicPricingAdminPage() {
                     <LabeledNumberInput label="Yillik Fiyat" value={newPremiumFeature.annual_price} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, annual_price: value }))} />
                     <LabeledNumberInput label="Sira" value={newPremiumFeature.display_order} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, display_order: value }))} />
                   </div>
-                  <LabeledTextarea label="Aciklama" value={newPremiumFeature.description} disabled={!isSuperAdmin} rows={2} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, description: value }))} />
+                  <LabeledTextarea label="Açıklama" value={newPremiumFeature.description} disabled={!isSuperAdmin} rows={2} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, description: value }))} />
                   <LabeledInput label="Scope JSON / Liste" value={newPremiumFeature.available_for_tenant_types} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, available_for_tenant_types: value }))} />
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                     <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#475569" }}>
@@ -442,7 +442,7 @@ export default function PublicPricingAdminPage() {
                         <LabeledNumberInput label="Yillik Fiyat" value={feature.annual_price == null ? undefined : Number(feature.annual_price)} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, annual_price: value }))} />
                         <LabeledNumberInput label="Sira" value={feature.display_order} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, display_order: value }))} />
                       </div>
-                      <LabeledTextarea label="Aciklama" value={feature.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, description: value }))} />
+                      <LabeledTextarea label="Açıklama" value={feature.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, description: value }))} />
                       <LabeledInput label="Scope JSON / Liste" value={feature.available_for_tenant_types || ""} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, available_for_tenant_types: value }))} />
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: 12 }}>
@@ -525,7 +525,7 @@ function CatalogCard({ title, accent, plans }: { title: string; accent: string; 
               <div style={{ fontWeight: 800, color: "#0f172a" }}>{plan.name}</div>
               <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: `${accent}15`, color: accent, fontWeight: 700, fontSize: 12 }}>{plan.code}</span>
             </div>
-            <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>{plan.description || "Aciklama yok"}</div>
+            <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>{plan.description || "Açıklama yok"}</div>
             <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
               <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#f1f5f9", color: "#334155", fontWeight: 700, fontSize: 12 }}>
                 {plan.price_monthly ? `${plan.price_monthly} ${plan.currency || "TRY"} / ay` : "Kuruma özel"}
@@ -611,4 +611,3 @@ function LabeledTextarea({ label, value, onChange, disabled, rows }: { label: st
     </label>
   );
 }
-

@@ -5,7 +5,7 @@ const c = BRAND_COLORS.supplier;
 
 const features = [
   { icon: "[Hiz]", title: "Hızlı Profil Devreye Alma", desc: "Tedarikçi profilinizi dakikalar içinde oluşturun, kategori ve coğrafya etiketlerinizi tanımlayın." },
-  { icon: "[Ihale]", title: "İhale Davetlerine Tek Panelden Yanıt", desc: "Gelen ihale davetlerini tek yerden görün, teklifinizi gönderin, durumu takip edin." },
+  { icon: "[İhale]", title: "İhale Davetlerine Tek Panelden Yanıt", desc: "Gelen ihale davetlerini tek yerden görün, teklifinizi gönderin, durumu takip edin." },
   { icon: "[Kategori]", title: "Kategori Bazlı Görünürlük", desc: "Seçtiğiniz ürün ve hizmet kategorilerinde alıcı kurumların radarında kalın." },
   { icon: "[Rapor]", title: "Performans ve Geri Bildirim Raporu", desc: "Teklif kabul orani, teslimat puani ve alici yorumlariyla kendinizi gelistirin." },
   { icon: "[Rozet]", title: "Öncü Tedarikçi Rozeti", desc: "Prime seviyede öne çıkma ve öncelikli ihale daveti fırsatları kazanın." },
@@ -129,7 +129,7 @@ export default function SupplierProgramPage() {
 
       <section style={{ background: `linear-gradient(135deg, ${c.bg} 0%, #1e4976 100%)`, padding: "52px 24px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#fff", marginBottom: 32 }}>Nasil Baslarsiniz?</h2>
+          <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#fff", marginBottom: 32 }}>Nasıl Başlarsınız?</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
             {steps.map((s) => (
               <div key={s.num} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 14, padding: 22, textAlign: "center" }}>

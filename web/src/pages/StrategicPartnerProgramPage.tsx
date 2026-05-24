@@ -25,7 +25,7 @@ const governanceDetails = [
     desc: "Stratejik partner kaydi acilirken faaliyet alani ve uzmanlik kategorisi onboarding akisinda kaydedilir. Bu bilgi sonraki operasyon katmanlarinda supplier uygunlugu icin referans olur.",
   },
   {
-    title: "Supplier Uygunlugu Ilk Gunden Gorunur",
+    title: "Supplier Uygunluğu İlk Günden Görünür",
     desc: "Platform yönetimi sizin kategorinizle aynı alanda aktif supplier sayısını tenant governance ekranında görür. Böylece ilk günden hangi kategoride hazır supplier kapsamı olduğu hızla anlaşılır.",
   },
   {
@@ -36,7 +36,7 @@ const governanceDetails = [
 
 const planCards = [
   {
-    name: "Baslangic",
+    name: "Başlangıç",
     price: "Kuruma ozel teklif",
     accent: "#0f766e",
     features: ["RFQ + teklif toplama", "Temel onay akisi", "Standart destek"],
@@ -135,7 +135,7 @@ export default function StrategicPartnerProgramPage() {
 
       <section style={{ background: `linear-gradient(135deg, ${c.bg} 0%, #1a3d30 100%)`, padding: "52px 24px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#fff", marginBottom: 32 }}>Nasil Calisir?</h2>
+          <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#fff", marginBottom: 32 }}>Nasıl Çalışır?</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
             {steps.map((s) => (
               <div key={s.num} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14, padding: 22, textAlign: "center" }}>

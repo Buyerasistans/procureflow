@@ -69,7 +69,7 @@ export default function PublicMarketplacePage() {
   }, []);
 
   const title =
-    mode === "offers" ? "Acik Ihaleler" :
+    mode === "offers" ? "Açık İhaleler" :
     mode === "suppliers" ? "Tedarikçi Havuzu" :
     mode === "strategic" ? "Stratejik Partnerlerimiz" :
     "Başarılı İş Ortaklarımız";
@@ -261,7 +261,7 @@ export default function PublicMarketplacePage() {
                       <div style={{ fontWeight: 800, color: "#0f172a", textAlign: "left" }}>{row.title}</div>
                       <div style={{ color: "#475569", marginTop: 6, textAlign: "left" }}>{row.company_name} / {row.project_name}</div>
                       <div style={{ color: "#64748b", marginTop: 4, textAlign: "left" }}>
-                        Sehir: {row.project_city || "-"} | Proje No: {row.project_code || "-"}
+                        Şehir: {row.project_city || "-"} | Proje No: {row.project_code || "-"}
                       </div>
                       <div style={{ marginTop: 8, color: "#0b5d4a", fontWeight: 700, textAlign: "left" }}>
                         Tedarikçi sayısı: {row.supplier_count || 0} | Teklif sayısı: {row.bidder_count || 0}
@@ -274,7 +274,7 @@ export default function PublicMarketplacePage() {
                       onClick={() => void loadFiles(row.id)}
                       style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}
                     >
-                      Dosyalari Goruntule
+                      Dosyaları Görüntüle
                     </button>
                     <button
                       type="button"
@@ -339,7 +339,7 @@ export default function PublicMarketplacePage() {
                         {row.name}
                       </div>
                       <div style={{ color: "#475569", marginTop: 6 }}>
-                        Sehir: {row.city} | Proje: {row.project_count} | Ihale: {row.tender_count ?? 0}
+                        Şehir: {row.city} | Proje: {row.project_count} | İhale: {row.tender_count ?? 0}
                       </div>
                     </div>
                   </div>

@@ -22,7 +22,7 @@ const fallbackConfig: PricingConfig = {
     plans: [
       {
         code: "starter",
-        name: "Baslangic",
+        name: "Başlangıç",
         description: "Temel RFQ ve tedarikçi operasyonları",
         features: ["RFQ + teklif toplama", "Temel rapor ekranlari", "Standart destek"],
       },
@@ -79,7 +79,7 @@ export default function PricingPlansPage() {
       <section style={{ maxWidth: 1080, margin: "0 auto" }}>
         <h1 style={{ fontSize: 38, color: "#0f172a", marginBottom: 8 }}>Fiyatlandırma</h1>
         <p style={{ color: "#475569", marginBottom: 24, lineHeight: 1.7 }}>
-          Fiyatlandirma icerigi artik Teklifler ve Tedarikciler sayfalarina dagitildi. Bu sayfa geriye donuk yonlendirme merkezi olarak tutulur.
+          Fiyatlandırma içeriği artık Teklifler ve Tedarikçiler sayfalarına dağıtıldı. Bu sayfa geriye dönük yönlendirme merkezi olarak tutulur.
         </p>
 
         <section id="stratejik" style={{ marginBottom: 24 }}>
@@ -204,4 +204,3 @@ const outlineBtn = {
   fontWeight: 700,
   padding: "10px 14px",
 };
-

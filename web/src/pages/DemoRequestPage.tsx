@@ -115,7 +115,7 @@ export default function DemoRequestPage() {
               <>
                 <li>45 dakika canlı ürün senaryosu</li>
                 <li>Mevcut sürecine özel gap analizi</li>
-                <li>Ilk 90 gun onboarding plani</li>
+                <li>İlk 90 gün onboarding planı</li>
                 <li>Rol bazli onay ve denetim akislari</li>
                 <li>Kurumsal fiyatlandirma ve entegrasyon rehberi</li>
               </>
@@ -130,7 +130,7 @@ export default function DemoRequestPage() {
         <article style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
           <h2 style={{ marginTop: 0, fontSize: 20, color: "#0f172a", fontWeight: 900 }}>Demo Talep Formu</h2>
           <div style={{ marginBottom: 16, borderRadius: 12, border: `1px solid ${isSupplierDemo ? "#bae6fd" : "#bbf7d0"}`, background: isSupplierDemo ? "#f0f9ff" : "#f0fdf4", padding: 14, color: "#334155", fontSize: 13, lineHeight: 1.6 }}>
-            <strong>Talep Ozeti:</strong> {requestSummary}
+            <strong>Talep Özeti:</strong> {requestSummary}
             <div style={{ marginTop: 6 }}>{requestNote}</div>
           </div>
           {sent ? (
@@ -170,4 +170,3 @@ const inputStyle: CSSProperties = {
   width: "100%",
   boxSizing: "border-box" as const,
 };
-

@@ -208,7 +208,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="dashboard-page__howto">
-              <div className="dashboard-page__howto-title">Nasil Kullanilir?</div>
+              <div className="dashboard-page__howto-title">Nasıl Kullanılır?</div>
               <div className="dashboard-page__howto-text">
                 1) Kanal panel ayarlari icin{" "}
                 <Link to="/admin" className="dashboard-page__inline-link">
