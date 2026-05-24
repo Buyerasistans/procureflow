@@ -128,7 +128,7 @@ export function TenantGovernanceTab({
           <div className="tenantGovernanceTab__infoPanel">
             <div className="tenantGovernanceTab__infoPanelTitle">Bu akis onboarding kuyuguna girmez.</div>
             <div className="tenantGovernanceTab__infoPanelText">
-              Super admin buradan stratejik partneri dogrudan aktif olarak acar. Ilk yoneticiye sadece sifre belirleme ve hesap aktivasyon e-postasi gider.
+              Super admin buradan stratejik partneri doğrudan aktif olarak açar. İlk yöneticiye sadece şifre belirleme ve hesap aktivasyon e-postası gider.
             </div>
           </div>
           {tenantMessage ? <div className="tenantGovernanceTab__message">{tenantMessage}</div> : null}
@@ -171,7 +171,7 @@ export function TenantGovernanceTab({
                       {editingTenantId ? "Stratejik Partner guncelle" : "Yeni Stratejik Partner olustur"}
                     </div>
                     <div className="tenantGovernanceTab__modalDescription">
-                      Bu kayit super admin onayli olarak acilir ve ilk yoneticiye sadece sifre belirleme e-postasi gider.
+                      Bu kayıt super admin onaylı olarak açılır ve ilk yöneticiye sadece şifre belirleme e-postası gider.
                     </div>
                   </div>
                   <button type="button" onClick={closeTenantModal} className="tenantGovernanceTab__button tenantGovernanceTab__button--close">
@@ -276,7 +276,7 @@ export function TenantGovernanceTab({
             {[
               { label: "draft", note: "Kurulum basladi, Stratejik Partner owner ve branding eksik olabilir." },
               { label: "onboarding", note: "Ilk admin, branding ve temel organizasyon yapisi kuruluyor." },
-              { label: "aktif", note: "Operasyon kullanima acik, proje ve tedarikci akislari baslayabilir." },
+              { label: "aktif", note: "Operasyon kullanıma açık, proje ve tedarikçi akışları başlayabilir." },
               { label: "duraklatildi", note: "Abonelik veya operasyon karariyla gecici durdurulmus Stratejik Partner." },
             ].map((item) => (
               <div key={item.label} className="tenantGovernanceTab__statusCard">
@@ -291,8 +291,8 @@ export function TenantGovernanceTab({
       <div className="tenantGovernanceTab__portfolioCard">
         <div className="tenantGovernanceTab__portfolioHeader">
           <div className="tenantGovernanceTab__eyebrow">Stratejik Partner Portfoyu</div>
-          <div className="tenantGovernanceTab__title">Musteri olgunluk gorunumu</div>
-          <div className="tenantGovernanceTab__portfolioDescription">Bu alan artik Stratejik Partner tablosundaki kayitlari dogrudan yonetir.</div>
+          <div className="tenantGovernanceTab__title">Müşteri olgunluk görünümü</div>
+          <div className="tenantGovernanceTab__portfolioDescription">Bu alan artık Stratejik Partner tablosundaki kayıtları doğrudan yönetir.</div>
           {tenantGovernanceFocus ? (
             <div className="tenantGovernanceTab__focusBannerWrap">
               {renderAdminFocusBanner({
@@ -361,10 +361,10 @@ export function TenantGovernanceTab({
             <div className="tenantGovernanceTab__summaryCard tenantGovernanceTab__summaryCard--blue">
               <div className="tenantGovernanceTab__summaryEyebrow">Kategori Kapsami</div>
               <div className="tenantGovernanceTab__summaryValue">{tenantCategorySummary.length}</div>
-              <div className="tenantGovernanceTab__summaryText">Tenant ve tedarikci tarafinda gorulen ortak kategori sayisi</div>
+              <div className="tenantGovernanceTab__summaryText">Tenant ve tedarikçi tarafında görülen ortak kategori sayısı</div>
             </div>
             <div className="tenantGovernanceTab__summaryCard tenantGovernanceTab__summaryCard--green">
-              <div className="tenantGovernanceTab__summaryEyebrow">Kategori Eslesen Tedarikci</div>
+              <div className="tenantGovernanceTab__summaryEyebrow">Kategori Eşleşen Tedarikçi</div>
               <div className="tenantGovernanceTab__summaryValue">
                 {tenantCategorySummary.reduce((sum, item) => sum + item.supplierCount, 0)}
               </div>
@@ -468,7 +468,7 @@ export function TenantGovernanceTab({
                                 matchingSupplierCount > 0 ? "tenantGovernanceTab__chip--green" : "tenantGovernanceTab__chip--orange",
                               )}
                             >
-                              {matchingSupplierCount > 0 ? `${matchingSupplierCount} tedarikci eslesiyor` : "Eslesen tedarikci yok"}
+                              {matchingSupplierCount > 0 ? `${matchingSupplierCount} tedarikçi eşleşiyor` : "Eşleşen tedarikçi yok"}
                             </span>
                           ) : null}
                         </div>

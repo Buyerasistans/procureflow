@@ -594,11 +594,11 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
     <section className="wpd-root">
       <div className="wpd-card">
         <div className="wpd-eyebrow">Panel Tasarimi</div>
-        <div className="wpd-page-title">{isSelfMode ? "Kisisel Template Ayarlari" : "Rol bazli panelleri ayir ve yonet"}</div>
+        <div className="wpd-page-title">{isSelfMode ? "Kişisel Template Ayarları" : "Rol bazlı panelleri ayır ve yönet"}</div>
         <div className="wpd-page-copy">
           {isSelfMode
             ? "Bu alan sadece kendi panel temani duzenlemek icin aciktir. Rol, sekme ve kapsam degistiremezsin; sadece metin ve renk template'ini guncellersin."
-            : "Super admin bu alandan her rol profili icin ayri panel adi, aciklama ve gorulecek sekmeleri duzenleyebilir. Yeni bir is rolu eklendiginde burada yeni profil acilarak panel kapsami tanimlanabilir."}
+            : "Super admin bu alandan her rol profili için ayrı panel adı, açıklama ve görülecek sekmeleri düzenleyebilir. Yeni bir iş rolü eklendiğinde burada yeni profil açılarak panel kapsamı tanımlanabilir."}
         </div>
         <div className="wpd-page-note">
           Renk uygulama notu: Birinci renk ana vurgu icindir. Ikinci renk opsiyoneldir (Yok secilebilir). 1. renk kapsami ve 2. renk baslangic yuzdesiyle soldan saga dagilim ayarlanir.
@@ -1178,15 +1178,15 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                 </label>
                 <label className="wpd-field">
                   <span className="wpd-field-label">Panel Basligi</span>
-                  <input value={selectedProfile.title} onChange={(event) => updateSelected({ title: event.target.value })} placeholder="or: Yonetici Paneli" className="wpd-input" />
+                  <input value={selectedProfile.title} onChange={(event) => updateSelected({ title: event.target.value })} placeholder="örn: Yönetici Paneli" className="wpd-input" />
                 </label>
                 <label className="wpd-field">
                   <span className="wpd-field-label">Menu Etiketi</span>
-                  <input value={selectedProfile.nav_label} onChange={(event) => updateSelected({ nav_label: event.target.value })} placeholder="or: Yonetici" className="wpd-input" />
+                  <input value={selectedProfile.nav_label} onChange={(event) => updateSelected({ nav_label: event.target.value })} placeholder="örn: Yönetici" className="wpd-input" />
                 </label>
                 <label className="wpd-field">
                   <span className="wpd-field-label">Workspace Etiketi</span>
-                  <input value={selectedProfile.workspace_label} onChange={(event) => updateSelected({ workspace_label: event.target.value })} placeholder="or: Yonetici Calisma Alani" className="wpd-input" />
+                  <input value={selectedProfile.workspace_label} onChange={(event) => updateSelected({ workspace_label: event.target.value })} placeholder="örn: Yönetici Calisma Alani" className="wpd-input" />
                 </label>
                 <label className="wpd-field">
                   <span className="wpd-field-label">Hero Basligi</span>

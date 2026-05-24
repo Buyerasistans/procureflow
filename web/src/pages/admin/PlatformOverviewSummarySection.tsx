@@ -86,7 +86,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
   return (
     <section className="platform-overview-summary-section">
       {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
-        eyebrow: "Yonetici Odagi",
+        eyebrow: "Yönetici Odağı",
         title: searchParams.get("tenantFocusName")
           ? `Platform genel bakis odagi: ${searchParams.get("tenantFocusName")}`
           : searchParams.get("projectFocusName")
@@ -101,7 +101,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
         sourceLabel: "Platform genel bakis baglantisi",
         timestamp: PLATFORM_OVERVIEW_BANNER_TIMESTAMP,
         actions: [
-          searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
+          searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
           searchParams.get("projectFocusName") ? { label: "Discovery Lab'a Git", onClick: () => navigateAdminTab("discovery_lab_operations", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
           searchParams.get("projectFocusName") ? { label: "Projects'e Git", onClick: () => navigateAdminTab("projects", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
           searchParams.get("onboardingPlanFocus") ? { label: "Onboarding'e Git", onClick: () => navigateAdminTab("onboarding_studio", { onboardingPlanFocus: searchParams.get("onboardingPlanFocus") || "" }) } : undefined,

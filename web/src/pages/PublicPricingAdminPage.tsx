@@ -74,7 +74,7 @@ const LIMIT_FIELDS: Array<{ key: string; label: string; unit: string }> = [
   { key: "max_active_companies", label: "Firma limiti", unit: "firma" },
   { key: "max_active_internal_users", label: "Kullanici limiti", unit: "kullanici" },
   { key: "max_active_projects", label: "Proje limiti", unit: "proje" },
-  { key: "max_active_private_suppliers", label: "Tedarikci limiti", unit: "tedarikci" },
+  { key: "max_active_private_suppliers", label: "Tedarikçi limiti", unit: "tedarikçi" },
   { key: "max_active_rfqs", label: "Teklif limiti", unit: "teklif" },
   { key: "max_project_files_total", label: "Dosya limiti", unit: "dosya" },
   { key: "max_project_file_size_mb", label: "Tek dosya boyutu", unit: "MB" },
@@ -307,7 +307,7 @@ export default function PublicPricingAdminPage() {
 
               <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
                 <CatalogCard title="Stratejik Partner Paketleri" accent="#0f766e" plans={strategicPlans} />
-                <CatalogCard title="Tedarikci Paketleri" accent="#0284c7" plans={supplierPlans} />
+                <CatalogCard title="Tedarikçi Paketleri" accent="#0284c7" plans={supplierPlans} />
               </div>
 
               <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
@@ -376,7 +376,7 @@ export default function PublicPricingAdminPage() {
               <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0284c7" }}>Tedarikçi Paket Yönetimi</div>
                 <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
-                  Tedarikci paketlerinin ad, aciklama ve fiyat alanlari da buradan duzenlenebilir.
+                  Tedarikçi paketlerinin ad, açıklama ve fiyat alanları da buradan düzenlenebilir.
                 </div>
                 <div style={{ marginTop: 14, display: "grid", gap: 14 }}>
                   {supplierPlans.map((plan) => (

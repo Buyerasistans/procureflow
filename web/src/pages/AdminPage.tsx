@@ -363,9 +363,9 @@ function formatCategoryRequestStatus(status: string | null | undefined) {
 function formatActivationDeliveryStatus(status: string | null | undefined) {
   const normalized = String(status || "").trim().toLowerCase();
   if (normalized === "waiting") return "link bekleniyor";
-  if (normalized === "sent") return "mail gonderildi";
+  if (normalized === "sent") return "mail gönderildi";
   if (normalized === "activated") return "kullanici aktive etti";
-  if (normalized === "not_sent") return "gonderilmedi";
+  if (normalized === "not_sent") return "gönderilmedi";
   if (!normalized) return "bilinmiyor";
   return normalized.replace(/_/g, " ");
 }
@@ -759,17 +759,17 @@ export default function AdminPage() {
   const { locale } = useLocale();
   const tAdmin = usePublicTranslations("admin_tabs", locale, {
     panel_home: "Panel Ana Sayfa",
-    platform_operations: "Platform Operasyonlari",
-    discovery_lab_operations: "Discovery Lab Operasyonlari",
-    onboarding_studio: "Kurulum Studyosu",
-    tenant_governance: "Stratejik Partner Yonetimi",
-    packages: "Paket ve Kullanim",
-    deployment: "Yayinlama",
+    platform_operations: "Platform Operasyonları",
+    discovery_lab_operations: "Discovery Lab Operasyonları",
+    onboarding_studio: "Kurulum Stüdyosu",
+    tenant_governance: "Stratejik Partner Yönetimi",
+    packages: "Paket ve Kullanım",
+    deployment: "Yayınlama",
     platform_analytics: "Platform Analitikleri",
-    platform_suppliers: "Platform Tedarikci Havuzu",
-    public_pricing: "Genel Fiyatlandirma",
+    platform_suppliers: "Platform Tedarikçi Havuzu",
+    public_pricing: "Genel Fiyatlandırma",
     campaigns: "Kampanyalar ve Landing",
-    commission_admin: "Komisyon Yonetimi",
+    commission_admin: "Komisyon Yönetimi",
     support_tickets: "Destek Talepleri",
     settings: "Ayarlar",
     companies: "Firmalar",
@@ -777,12 +777,12 @@ export default function AdminPage() {
     departments: "Departmanlar",
     personnel: "Personeller",
     projects: "Projeler",
-    approvals: "Onay Akislari",
+    approvals: "Onay Akışları",
     reports: "Raporlar",
-    panel_designer: "Panel Tasarimi",
-    personal_theme: "Kisisel Tema",
-    partner_settings: "Stratejik Partner Ayarlari",
-    channel_settings: "Is Ortagi Platform Ayarlari",
+    panel_designer: "Panel Tasarımı",
+    personal_theme: "Kişisel Tema",
+    partner_settings: "Stratejik Partner Ayarları",
+    channel_settings: "İş Ortağı Platform Ayarları",
   });
   const isChannelUser = String(user?.scope_type || "").toLowerCase() === "channel"
     || String(user?.business_role || user?.role || "").toLowerCase() === "channel_owner"
@@ -1129,8 +1129,8 @@ export default function AdminPage() {
     return [
       {
         key: "metric-companies",
-        title: "Firma Yonetimi",
-        note: "Pakete dahil aktif firma kapasitesi ve pasif firma dagilimi.",
+        title: "Firma Yönetimi",
+        note: "Pakete dahil aktif firma kapasitesi ve pasif firma dağılımı.",
         activeCount: activeCompanyMetric?.used ?? totalActiveCompanies,
         passiveCount: totalPassiveCompanies,
         usedCount: activeCompanyMetric?.used ?? totalActiveCompanies,
@@ -1140,8 +1140,8 @@ export default function AdminPage() {
       },
       {
         key: "metric-rfq",
-        title: translateServiceLabel("RFQ (Teklif Isteme Formu) Yonetimi"),
-        note: "Hazirlanabilecek, tedarikciye cikilabilecek ve onay akisina alinabilecek toplam teklif sayisi.",
+        title: translateServiceLabel("RFQ (Teklif İsteme Formu) Yönetimi"),
+        note: "Hazırlanabilecek, tedarikçiye çıkılabilecek ve onay akışına alınabilecek toplam teklif sayısı.",
         usedCount: quoteMetric?.used ?? overviewQuoteTotal,
         limitCount: quoteMetric?.limit ?? undefined,
         remainingCount: buildRemaining(quoteMetric?.used ?? overviewQuoteTotal, quoteMetric?.limit ?? undefined),
@@ -1149,17 +1149,17 @@ export default function AdminPage() {
       },
       {
         key: "metric-supplier-portal",
-        title: translateServiceLabel("Tedarikci Portali"),
-        note: "Pakete bagli olarak yonetilebilecek aktif tedarikci sayisi.",
+        title: translateServiceLabel("Tedarikçi Portalı"),
+        note: "Pakete bağlı olarak yönetilebilecek aktif tedarikçi sayısı.",
         usedCount: supplierMetric?.used,
         limitCount: supplierMetric?.limit ?? undefined,
         remainingCount: buildRemaining(supplierMetric?.used, supplierMetric?.limit ?? undefined),
-        unit: supplierMetric?.unit || "tedarikci",
+        unit: supplierMetric?.unit || "tedarik?i",
       },
       {
         key: "metric-projects",
-        title: translateServiceLabel("Proje Yonetimi"),
-        note: "Aktif ve pasif proje dagilimi ile planin tanidigi toplam aktif proje kapasitesi.",
+        title: translateServiceLabel("Proje Yönetimi"),
+        note: "Aktif ve pasif proje dağılımı ile planın tanıdığı toplam aktif proje kapasitesi.",
         activeCount: activeProjectMetric?.used ?? activeProjectCount,
         passiveCount: passiveProjectCount,
         usedCount: activeProjectMetric?.used ?? activeProjectCount,
@@ -1169,8 +1169,8 @@ export default function AdminPage() {
       },
       {
         key: "metric-users",
-        title: translateServiceLabel("Kullanici Yonetimi"),
-        note: "Aktif ve pasif ekip dagilimi ile planin tanidigi toplam aktif kullanici kapasitesi.",
+        title: translateServiceLabel("Kullanıcı Yönetimi"),
+        note: "Aktif ve pasif ekip dağılımı ile planın tanıdığı toplam aktif kullanıcı kapasitesi.",
         activeCount: activeUserMetric?.used ?? totalActivePersonnel,
         passiveCount: totalPassivePersonnel,
         usedCount: activeUserMetric?.used ?? totalActivePersonnel,
@@ -1226,7 +1226,7 @@ export default function AdminPage() {
       `Firma limiti: ${plan.limits?.max_active_companies ?? plan.limits?.active_companies ?? "-"} firma`,
       `Kullanici limiti: ${plan.limits?.max_active_internal_users ?? plan.limits?.active_internal_users ?? "-"} kullanici`,
       `Proje limiti: ${plan.limits?.max_active_projects ?? plan.limits?.active_projects ?? "-"} proje`,
-      `Tedarikci limiti: ${plan.limits?.max_active_private_suppliers ?? plan.limits?.active_private_suppliers ?? "-"} tedarikci`,
+      `Tedarikçi limiti: ${plan.limits?.max_active_private_suppliers ?? plan.limits?.active_private_suppliers ?? "-"} tedarikçi`,
       `Teklif limiti: ${plan.limits?.max_active_rfqs ?? plan.limits?.active_quotes ?? "-"} teklif`,
       `Dosya limiti: ${plan.limits?.max_project_files_total ?? plan.limits?.project_files_total ?? "-"} dosya`,
       `Tek dosya boyutu: ${plan.limits?.max_project_file_size_mb ?? plan.limits?.project_file_size_mb ?? "-"} MB`,
@@ -1267,7 +1267,7 @@ export default function AdminPage() {
       incrementLabel: "Ozellik bazli aktivasyon",
       detailLines: [
         feature.code === "special_listing"
-          ? "Ozel listeleme aktif oldugunda teklifleriniz daha genis tedarikci kitlesine acilir ve tedarikcileri inceleyerek ek teklif toplayabilirsiniz."
+          ? "Özel listeleme aktif olduğunda teklifleriniz daha geniş tedarikçi kitlesine açılır ve tedarikçileri inceleyerek ek teklif toplayabilirsiniz."
           : "Bu ozellik tenant bazinda aktiflestirilir ve paket uzerine eklenir.",
         feature.code === "special_listing"
           ? "Firma vitrinde ozel listeleme alaninda gozukebilir ve gorunurlugu artar."
@@ -1705,25 +1705,25 @@ export default function AdminPage() {
     const projectFocusName = searchParams.get("projectFocusName");
     const onboardingPlanFocus = searchParams.get("onboardingPlanFocus");
     if (tenantFocusName) {
-      events.push({ id: "platform-overview-tenant", label: "Platform Genel Bakisi Odagi", detail: `Stratejik Partner odagi: ${tenantFocusName}`, source: "platform-overview", createdAt: now });
+      events.push({ id: "platform-overview-tenant", label: "Platform Genel Bakışı Odagi", detail: `Stratejik Partner odagi: ${tenantFocusName}`, source: "platform-overview", createdAt: now });
     }
     if (projectFocusName) {
-      events.push({ id: "platform-overview-project", label: "Platform Genel Bakisi Odagi", detail: `Proje odagi: ${projectFocusName}`, source: "platform-overview", createdAt: now - 1 });
+      events.push({ id: "platform-overview-project", label: "Platform Genel Bakışı Odagi", detail: `Proje odagi: ${projectFocusName}`, source: "platform-overview", createdAt: now - 1 });
     }
     if (onboardingPlanFocus) {
-      events.push({ id: "platform-overview-onboarding", label: "Platform Genel Bakisi Odagi", detail: `Onboarding plani: ${String(onboardingPlanFocus).toUpperCase()}`, source: "platform-overview", createdAt: now - 2 });
+      events.push({ id: "platform-overview-onboarding", label: "Platform Genel Bakışı Odagi", detail: `Onboarding planı: ${String(onboardingPlanFocus).toUpperCase()}`, source: "platform-overview", createdAt: now - 2 });
     }
     if (tenantGovernanceFocus?.tenantId != null || tenantGovernanceFocus?.tenantName) {
       events.push({
         id: "tenant-governance-focus",
-        label: "Stratejik Partner Yonetimi Odagi",
+        label: "Stratejik Partner Yönetimi Odagi",
         detail: tenantGovernanceFocus.tenantName || `Stratejik Partner #${tenantGovernanceFocus.tenantId}`,
         source: "tenant-governance",
         createdAt: now - 3,
       });
     }
     if (activePlatformOpsFocusSummary.length > 0) {
-      events.push({ id: "platform-ops-focus", label: "Platform Operasyonlari Odagi", detail: activePlatformOpsFocusSummary.join(" - "), source: "platform-operations", createdAt: now - 4 });
+      events.push({ id: "platform-ops-focus", label: "Platform Operasyonları Odagi", detail: activePlatformOpsFocusSummary.join(" - "), source: "platform-operations", createdAt: now - 4 });
     }
     if (activePackageFocusSummary.length > 0) {
       events.push({ id: "packages-focus", label: "Paketler Odagi", detail: activePackageFocusSummary.join(" - "), source: "packages", createdAt: now - 5 });
@@ -2526,7 +2526,7 @@ export default function AdminPage() {
         note: "Kurulumu tamamlanmamis Stratejik Partnerlar once burada ele alinmali.",
         color: "#b45309",
         items: byOnboarding,
-        nextStep: "Yonetici davetini ve ilk kurulum adimlarini kontrol et",
+        nextStep: "Yönetici davetini ve ilk kurulum adımlarını kontrol et",
       },
       {
         key: "owner",
@@ -2534,7 +2534,7 @@ export default function AdminPage() {
         note: "Sorumlu bilgisi eksik Stratejik Partnerlar operasyonel risk yaratir.",
         color: "#dc2626",
         items: byOwner,
-        nextStep: "Stratejik Partner Yonetimi sekmesinde sorumlu kisiyi belirle",
+        nextStep: "Stratejik Partner Yönetimi sekmesinde sorumlu kisiyi belirle",
       },
       {
         key: "branding",
@@ -2755,7 +2755,7 @@ export default function AdminPage() {
           key: "roles",
           label: tAdmin.roles,
           icon: "ROL",
-          description: "Rol hiyerarsisini, izin dagilimini ve alt rol yonetimini bu alandan yonetin.",
+          description: "Rol hiyerarşisini, izin dağılımını ve alt rol yönetimini bu alandan yönetin.",
         },
       ];
     }
@@ -2765,7 +2765,7 @@ export default function AdminPage() {
           key: "panel_home",
           label: canViewPlatformGovernance ? (activeWorkspacePanelProfile?.title || tAdmin.panel_home) : currentUserRoleLabel,
         icon: "ADM",
-        description: canViewPlatformGovernance ? (activeWorkspacePanelProfile?.description || "Bu rola ait panel ozetini ve hizli yonlendirmeleri goruntuleyin.") : "",
+        description: canViewPlatformGovernance ? (activeWorkspacePanelProfile?.description || "Bu role ait panel özetini ve hızlı yönlendirmeleri görüntüleyin.") : "",
       },
       ...(canViewPlatformGovernance
         ? [
@@ -2773,25 +2773,25 @@ export default function AdminPage() {
               key: "platform_operations" as const,
               label: tAdmin.platform_operations,
               icon: "OPS",
-              description: "Platform destek ve operator ekipleri icin Stratejik Partner triage kuyruklarini yonetin.",
+              description: "Platform destek ve operatör ekipleri için Stratejik Partner triage kuyruklarını yönetin.",
             },
             {
               key: "discovery_lab_operations" as const,
               label: tAdmin.discovery_lab_operations,
               icon: "LAB",
-              description: "Discovery Lab yanit denetimi, Stratejik Partner kirilimi ve RFQ baglantilarini detayli olarak izleyin.",
+              description: "Discovery Lab yanıt denetimi, Stratejik Partner kırılımı ve RFQ bağlantılarını detaylı olarak izleyin.",
             },
             {
               key: "onboarding_studio" as const,
               label: tAdmin.onboarding_studio,
               icon: "KUR",
-              description: "Plan secimi, Stratejik Partner acilisi ve ilk aktivasyon akislarini tek yuzeyde toplayin.",
+              description: "Plan seçimi, Stratejik Partner açılışı ve ilk aktivasyon akışlarını tek yüzeyde toplayın.",
             },
             {
               key: "tenant_governance" as const,
               label: tAdmin.tenant_governance,
               icon: "SPY",
-              description: "Musteri Stratejik Partner olusumu, kurulum olgunlugu ve operasyonel hazirlik durumunu yonetin.",
+              description: "Müşteri Stratejik Partner oluşumu, kurulum olgunluğu ve operasyonel hazırlık durumunu yönetin.",
             },
             ...(canViewPackagesTab
               ? [
@@ -2799,7 +2799,7 @@ export default function AdminPage() {
                     key: "packages" as const,
                     label: tAdmin.packages,
                     icon: "PKT",
-                    description: "Plan katalogu, modul dagilimi ve Stratejik Partner limitlerini super admin seviyesinde izleyin.",
+                    description: "Plan kataloğu, modül dağılımı ve Stratejik Partner limitlerini super admin seviyesinde izleyin.",
                   },
                 ]
               : []),
@@ -2808,44 +2808,44 @@ export default function AdminPage() {
                   key: "deployment" as AdminTabKey,
                   label: tAdmin.deployment,
                   icon: "DPL",
-                  description: "Canli domainler (.com.tr/.com/.info/.online) icin hosting kurulum, dagitim ve dosya gonderimi islemleri.",
+                  description: "Canlı domainler (.com.tr/.com/.info/.online) için hosting kurulum, dağıtım ve dosya gönderimi işlemleri.",
                 }]
               : []),
             {
               key: "platform_analytics" as const,
               label: tAdmin.platform_analytics,
               icon: "ANL",
-              description: "Tenant sayisi, kullanici dagilimi, plan dagilimi ve platform geneli operasyon metriklerini izleyin.",
+              description: "Tenant sayısı, kullanıcı dağılımı, plan dağılımı ve platform geneli operasyon metriklerini izleyin.",
             },
             {
               key: "platform_suppliers" as const,
               label: tAdmin.platform_suppliers,
               icon: "TED",
-              description: "Tum tenant'lara acik platform geneli tedarikci havuzunu yonetin.",
+              description: "Tüm tenant'lara açık platform geneli tedarikçi havuzunu yönetin.",
             },
             {
               key: "public_pricing" as const,
               label: tAdmin.public_pricing,
               icon: "FYT",
-              description: "Public webde yayinlanan stratejik partner ve tedarikci planlarini yonetin.",
+              description: "Public webde yayınlanan stratejik partner ve tedarikçi planlarını yönetin.",
             },
             {
               key: "campaigns" as const,
               label: tAdmin.campaigns,
               icon: "KMP",
-              description: "Platform duyurularini, kampanyalarini ve landing sayfa iceriklerini yonetin.",
+              description: "Platform duyurularını, kampanyalarını ve landing sayfa içeriklerini yönetin.",
             },
             {
               key: "commission_admin" as const,
               label: tAdmin.commission_admin,
               icon: "KOM",
-              description: "Kanal komisyon ledger kayitlarini goruntuleyin, onaylayin ve odeme durumunu yonetin.",
+              description: "Kanal komisyon ledger kayıtlarını görüntüleyin, onaylayın ve ödeme durumunu yönetin.",
             },
             {
               key: "support_tickets" as const,
               label: tAdmin.support_tickets,
               icon: "DST",
-              description: "Tenant kullanicilarinin destek taleplerini goruntuleyin, atayin ve kapatin.",
+              description: "Tenant kullanıcılarının destek taleplerini görüntüleyin, atayın ve kapatın.",
             },
             ...(canViewSettingsTab
               ? [
@@ -2853,7 +2853,7 @@ export default function AdminPage() {
                     key: "settings" as const,
                     label: tAdmin.settings,
                     icon: "AYR",
-                    description: "Platform gonderim, genel sistem ve ust seviye ayarlari yonetin.",
+                    description: "Platform gönderim, genel sistem ve üst seviye ayarlarını yönetin.",
                   },
                 ]
               : []),
@@ -2864,50 +2864,50 @@ export default function AdminPage() {
         label: tAdmin.companies,
         icon: "FRM",
         description: canViewPlatformGovernance
-          ? "Platformdaki musteri firmalarini ve yapilarini izleyin."
-          : "Kendi Stratejik Partner yapiniza ait firma ve bagli yapilari yonetin.",
+          ? "Platformdaki müşteri firmalarını ve yapılarını izleyin."
+          : "Kendi Stratejik Partner yapınıza ait firma ve bağlı yapıları yönetin.",
       },
       {
         key: "roles",
         label: tAdmin.roles,
         icon: "ROL",
         description: canViewPlatformGovernance
-          ? "Platform ve Stratejik Partner gecis sureci icin rol yapisini izleyin."
-          : "Kendi ekip rollerinizi ve yetki dagilimlarini yonetin.",
+          ? "Platform ve Stratejik Partner geçiş süreci için rol yapısını izleyin."
+          : "Kendi ekip rollerinizi ve yetki dağılımlarını yönetin.",
       },
       {
         key: "departments",
         label: tAdmin.departments,
         icon: "DEP",
-        description: "Is akislarinin gectigi departman ve alt acilimlari yonetin.",
+        description: "İş akışlarının geçtiği departman ve alt açılımları yönetin.",
       },
       {
         key: "personnel",
         label: tAdmin.personnel,
         icon: "PRS",
         description: canViewPlatformGovernance
-          ? "Stratejik Partner kullanicilarini ve olusum kurallarini denetleyin."
-          : "Ekibinizi, atamalari ve iletisim bilgilerini yonetin.",
+          ? "Stratejik Partner kullanıcılarını ve oluşum kurallarını denetleyin."
+          : "Ekibinizi, atamaları ve iletişim bilgilerini yönetin.",
       },
       {
         key: "projects",
         label: tAdmin.projects,
         icon: "PRJ",
-        description: "RFQ ve satin alma operasyonlarinin baglandigi projeleri yonetin.",
+        description: "RFQ ve satın alma operasyonlarının bağlandığı projeleri yönetin.",
       },
       {
         key: "approvals",
         label: tAdmin.approvals,
         icon: "ONY",
-        description: "Teklif ve karar sureclerindeki onay bekleyen kayitlari yonetin.",
+        description: "Teklif ve karar süreçlerindeki onay bekleyen kayıtları yönetin.",
       },
       {
         key: "reports",
         label: tAdmin.reports,
         icon: "RPR",
         description: canViewPlatformGovernance
-          ? "Platform genelinde teklif karsilastirma ve performans raporlarini goruntuleyin."
-          : "RFQ karsilastirma ve satin alma performans raporlarinizi goruntuleyin.",
+          ? "Platform genelinde teklif karşılaştırma ve performans raporlarını görüntüleyin."
+          : "RFQ karşılaştırma ve satın alma performans raporlarınızı görüntüleyin.",
       },
       ...(showSettingsWorkspaceLinks
         ? [
@@ -2916,8 +2916,8 @@ export default function AdminPage() {
               label: isChannelUser ? tAdmin.channel_settings : tAdmin.partner_settings,
               icon: "AYR",
               description: isChannelUser
-                ? "Is Ortagi kimligi, e-posta gonderici hesaplari ve calisma alani ayarlarinizi yonetin."
-                : "Stratejik Partner kimligi, e-posta gonderici hesaplari ve calisma alani ayarlarinizi yonetin.",
+                ? "İş Ortağı kimliği, e-posta gönderici hesapları ve çalışma alanı ayarlarınızı yönetin."
+                : "Stratejik Partner kimliği, e-posta gönderici hesapları ve çalışma alanı ayarlarınızı yönetin.",
             },
           ]
         : []),
@@ -2929,8 +2929,8 @@ export default function AdminPage() {
         label: isSuperAdminUser(user) ? tAdmin.panel_designer : tAdmin.personal_theme,
         icon: "PNT",
         description: isSuperAdminUser(user)
-          ? "Tum rol panellerini, gorulecek sekmeleri ve yeni rol profillerini bu alandan yonetin."
-          : "Kendi panel tema renklerini ve metinlerini bu alandan duzenleyin.",
+          ? "Tüm rol panellerini, görülecek sekmeleri ve yeni rol profillerini bu alandan yönetin."
+          : "Kendi panel tema renklerini ve metinlerini bu alandan düzenleyin.",
       });
     }
 
@@ -3689,8 +3689,8 @@ export default function AdminPage() {
         });
         setTenantMessage(
           created.initial_admin_email_sent
-            ? "Stratejik Partner super admin onayli olarak acildi. Ilk yoneticiye sifre belirleme e-postasi gonderildi."
-            : "Stratejik Partner super admin onayli olarak acildi. Ilk yonetici icin sifre belirleme e-postasi gonderilememis olabilir."
+            ? "Stratejik Partner super admin onaylı olarak açıldı. İlk yöneticiye şifre belirleme e-postası gönderildi."
+            : "Stratejik Partner super admin onaylı olarak açıldı. İlk yönetici için şifre belirleme e-postası gönderilememiş olabilir."
         );
       }
       closeTenantModal();
@@ -3723,7 +3723,7 @@ export default function AdminPage() {
   function handleStartOnboardingTemplate(planCode: string) {
     const presets: Record<string, { legalName: string; brandName: string; city: string; adminEmail: string }> = {
       starter: {
-        legalName: "Starter Musteri Ltd.",
+        legalName: "Starter Müşteri Ltd.",
         brandName: "Starter Workspace",
         city: "Istanbul",
         adminEmail: "owner@starter.test",
@@ -3934,7 +3934,7 @@ export default function AdminPage() {
   async function handleReassignTenantOwner(tenant: Tenant, ownerUserIdRaw: string) {
     const ownerUserId = Number(ownerUserIdRaw);
     if (!ownerUserId || Number.isNaN(ownerUserId)) {
-      setTenantMessage("Gecerli bir Stratejik Partner yoneticisi secin.");
+      setTenantMessage("Geçerli bir Stratejik Partner yöneticisi seçin.");
       return;
     }
 
@@ -3942,7 +3942,7 @@ export default function AdminPage() {
       setTenantSaving(true);
       setTenantMessage(null);
       await updateTenant(tenant.id, { owner_user_id: ownerUserId });
-      setTenantMessage("Stratejik Partner yoneticisi guncellendi.");
+      setTenantMessage("Stratejik Partner yöneticisi güncellendi.");
       await loadData();
     } catch (err) {
       setTenantMessage(String(err));
@@ -3968,7 +3968,7 @@ export default function AdminPage() {
   if (!canOpenWorkspacePanel && !canAccessRoleCatalog) {
     return (
       <div className="admin-page__access-denied">
-        Bu sayfaya erisim icin yonetim yetkisi gerekir
+        Bu sayfaya erişim için yönetim yetkisi gerekir
       </div>
     );
   }
@@ -3976,7 +3976,7 @@ export default function AdminPage() {
   // Handler fonksiyonlar yeni tab bilesenlerine tasindi
 
   if (loading) {
-    return <div className="admin-page__loading">Calisma alani yukleniyor...</div>;
+    return <div className="admin-page__loading">Çalışma alanı yükleniyor...</div>;
   }
 
   const panelMenuStyle = activeWorkspacePanelProfile?.menu_style || "pill";
@@ -4012,7 +4012,7 @@ export default function AdminPage() {
             user={user}
             currentUserRoleLabel={currentUserRoleLabel}
             title={activeWorkspacePanelProfile?.hero_title || currentUserRoleLabel}
-            description={activeWorkspacePanelProfile?.hero_description || "Bu role ait hizli linkler, scope kapsami ve onay kuyrugu bu ana sayfada toplanir."}
+            description={activeWorkspacePanelProfile?.hero_description || "Bu role ait hizli linkler, scope kapsami ve onay kuyrugu bu ana sayfada toplanır."}
             platformMetrics={panelHomePlatformMetrics}
             topNotice={activeWorkspacePanelProfile?.top_notice || null}
             headerInfo={activeWorkspacePanelProfile?.header_info || null}
@@ -4083,7 +4083,7 @@ export default function AdminPage() {
           <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
             {_scope === "platform" && panelHomePlatformMetrics ? (
               <div className="admin-page__grid admin-page__grid--sm">
-                <div className="admin-page__section-title admin-page__section-title--accent">Platform Yonetim Alani</div>
+                <div className="admin-page__section-title admin-page__section-title--accent">Platform Yönetim Alanı</div>
                 <div className="admin-page__metric-grid">
                   {[
                     {
@@ -4098,17 +4098,17 @@ export default function AdminPage() {
                       ],
                     },
                     {
-                      label: "Tedarikci",
+                      label: "Tedarikçi",
                       tone: "red",
                       note: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
                       items: [
                         { key: "Firma", value: panelHomePlatformMetrics.supplierCompanies },
-                        { key: "Yanitlanan Teklif", value: panelHomePlatformMetrics.supplierRespondedQuotes },
+                        { key: "Yanıtlanan Teklif", value: panelHomePlatformMetrics.supplierRespondedQuotes },
                         { key: "Revize Teklif", value: panelHomePlatformMetrics.supplierRevisedQuotes },
                       ],
                     },
                     {
-                      label: "Is Ortagi",
+                      label: "İş Ortağı",
                       tone: "teal",
                       note: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
                       items: [
@@ -4174,26 +4174,26 @@ export default function AdminPage() {
       {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
-            eyebrow: "Yonetici Odagi",
+            eyebrow: "Yönetici Odağı",
             title: searchParams.get("tenantFocusName")
-              ? `Platform genel bakis odagi: ${searchParams.get("tenantFocusName")}`
+              ? `Platform genel bakış odağı: ${searchParams.get("tenantFocusName")}`
               : searchParams.get("projectFocusName")
-                ? `Platform genel bakis odagi: ${searchParams.get("projectFocusName")}`
-                : `Platform genel bakis odagi: ${String(searchParams.get("onboardingPlanFocus") || "").toUpperCase()} plani`,
+                ? `Platform genel bakış odağı: ${searchParams.get("projectFocusName")}`
+                : `Platform genel bakış odağı: ${String(searchParams.get("onboardingPlanFocus") || "").toUpperCase()} planı`,
             detail: searchParams.get("tenantFocusName")
-              ? "Platform genel bakis kartlari secili Stratejik Partner baglamina gore izleniyor."
+              ? "Platform genel bakış kartları seçili Stratejik Partner bağlamına göre izleniyor."
               : searchParams.get("projectFocusName")
-                ? "Discovery Lab izleme kartlari secili proje baglamina gore okunuyor."
-                : "Onboarding odagi platform genel bakis seviyesinde korunuyor.",
+                ? "Discovery Lab izleme kartları seçili proje bağlamına göre okunuyor."
+                : "Onboarding odağı platform genel bakış seviyesinde korunuyor.",
             tone: "amber",
-            sourceLabel: "Platform genel bakis baglantisi",
+            sourceLabel: "Platform genel bakış bağlantısı",
             timestamp: Date.now(),
             actions: [
-              searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
+              searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
               searchParams.get("projectFocusName") ? { label: "Discovery Lab'a Git", onClick: () => navigateAdminTab("discovery_lab_operations", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
               searchParams.get("projectFocusName") ? { label: "Projelere Git", onClick: () => navigateAdminTab("projects", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
               searchParams.get("onboardingPlanFocus") ? { label: "Onboarding'e Git", onClick: () => navigateAdminTab("onboarding_studio", { onboardingPlanFocus: searchParams.get("onboardingPlanFocus") || "" }) } : undefined,
-              { label: "Odagi Temizle", onClick: () => navigateAdminTab("panel_home") },
+              { label: "Odağı Temizle", onClick: () => navigateAdminTab("panel_home") },
             ].filter(Boolean) as Array<{ label: string; onClick?: () => void; href?: string }>,
             testId: "admin-focus-banner-platform-overview",
           }) : null}
@@ -4350,9 +4350,9 @@ export default function AdminPage() {
             </div>
 
             <div ref={focusTelemetryPanelRef} className="admin-page__panel-card admin-page__panel-card--stacked">
-              <div className="admin-page__panel-eyebrow">Yonetici Odak Telemetrisi</div>
-              <div className="admin-page__panel-title">Paylasilan focus olay listesi</div>
-              <div className="admin-page__link-description">Platform genel bakis, filtre odaklari ve geri yukleme davranislari tek listede toplanir.</div>
+              <div className="admin-page__panel-eyebrow">Yönetici Odak Telemetrisi</div>
+              <div className="admin-page__panel-title">Paylaşılan focus olay listesi</div>
+              <div className="admin-page__link-description">Platform genel bakış, filtre odakları ve geri yükleme davranışları tek listede toplanır.</div>
               <div className="admin-page__wrap-row">
                 {focusTelemetryExportMeta.headerLines.map((line) => (
                   <span key={line} className="admin-page__soft-chip">
@@ -4362,23 +4362,23 @@ export default function AdminPage() {
               </div>
               <div className="admin-page__form-row">
                 <label className="admin-page__field admin-page__field--wide">
-                  Preset Adi
-                  <input aria-label="Telemetry Preset Adi" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="ornek: Merkez Replay" className="admin-page__control" />
+                  Preset Adı
+                  <input aria-label="Telemetry Preset Adı" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="örnek: Merkez Replay" className="admin-page__control" />
                 </label>
                 <button type="button" onClick={saveFocusTelemetryPreset} className="admin-page__pill-button">
                   Preset Kaydet
                 </button>
                 <button type="button" onClick={exportFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--blue">
-                  Preset Paketi Hazirla
+                  Preset Paketi Hazırla
                 </button>
                 <button type="button" onClick={importFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--violet">
-                  Preset Paketini Ice Aktar
+                  Preset Paketini İçe Aktar
                 </button>
                 {focusTelemetryPresets.map((preset) => (
                   <div key={preset.id} className="admin-page__chip-row">
                     {focusTelemetryEditingPresetId === preset.id ? (
                       <>
-                        <input aria-label={`Preset Yeniden Adlandir ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
+                        <input aria-label={`Preset Yeniden Adlandır ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
                         <button type="button" onClick={() => commitFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--blue">
                           Kaydet
                         </button>
@@ -4389,7 +4389,7 @@ export default function AdminPage() {
                       </button>
                     )}
                     <button type="button" onClick={() => startFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--amber">
-                      Yeniden Adlandir
+                      Yeniden Adlandır
                     </button>
                     <button type="button" onClick={() => deleteFocusTelemetryPreset(preset.id)} className="admin-page__pill-button admin-page__pill-button--red">
                       Preseti Sil
@@ -4401,10 +4401,10 @@ export default function AdminPage() {
                 <label className="admin-page__field">
                   Kaynak Filtresi
                   <select aria-label="Telemetry Kaynak Filtresi" value={focusTelemetrySourceFilter} onChange={(event) => setFocusTelemetrySourceFilter(event.target.value)} className="admin-page__control">
-                    <option value="all">Tum Kaynaklar</option>
-                    <option value="platform-overview">Platform Genel Bakisi</option>
-                    <option value="tenant-governance">Stratejik Partner Yonetimi</option>
-                    <option value="platform-operations">Platform Operasyonlari</option>
+                    <option value="all">Tüm Kaynaklar</option>
+                    <option value="platform-overview">Platform Genel Bakışı</option>
+                    <option value="tenant-governance">Stratejik Partner Yönetimi</option>
+                    <option value="platform-operations">Platform Operasyonları</option>
                     <option value="packages">Paketler</option>
                     <option value="discovery-lab">Discovery Lab</option>
                   </select>
@@ -5092,8 +5092,8 @@ export default function AdminPage() {
                   sourceLabel: "Quote return",
                   timestamp: filteredRestoredQuoteDebugEvents[0]?.createdAt || Date.now(),
                   actions: [
-                    { label: `RFQ #${restoredQuoteInsight.quoteId} odagina git`, onClick: jumpToRestoredQuoteCard },
-                    { label: "Odagi Temizle", onClick: clearRestoredQuoteInsight },
+                    { label: `RFQ #${restoredQuoteInsight.quoteId} odağına git`, onClick: jumpToRestoredQuoteCard },
+                    { label: "Odağı Temizle", onClick: clearRestoredQuoteInsight },
                   ],
                   testId: "admin-focus-banner-rfq",
                 }) : null}
@@ -5197,7 +5197,7 @@ export default function AdminPage() {
                           onClick={() => openTenantGovernanceTab(audit.tenant_id, audit.tenant_name)}
                           className="admin-page__audit-button admin-page__audit-button--teal"
                         >
-                          Stratejik Partner Yonetimine Git
+                          Stratejik Partner Yönetimine Git
                         </button>
                       ) : null}
                       {audit.project_id ? (
@@ -5257,7 +5257,7 @@ export default function AdminPage() {
                               onClick={clearRestoredQuoteInsight}
                               className={`admin-page__mini-pill-button ${restoredQuoteInsight.section === "status-history" ? "admin-page__mini-pill-button--blue" : "admin-page__mini-pill-button--violet"}`}
                             >
-                              Odagi Temizle
+                              Odağı Temizle
                             </button>
                           </div>
                         ) : null}
@@ -5386,9 +5386,9 @@ export default function AdminPage() {
                             </div>
                             {discoveryQuoteAuditTrailById[audit.quote_id].summary ? (
                               <div className="admin-page__wrap-row">
-                                <span className="admin-page__text-xs-body">Durum degisikligi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
+                                <span className="admin-page__text-xs-body">Durum değişikliği: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
                                 <span className="admin-page__text-xs-body">Onay seviyesi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.approval_levels ?? 0}</span>
-                                <span className="admin-page__text-xs-body">Tedarikci yaniti: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.suppliers_responded ?? 0}</span>
+                                <span className="admin-page__text-xs-body">Tedarikçi yanıtı: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.suppliers_responded ?? 0}</span>
                               </div>
                             ) : null}
                             {discoveryQuoteAuditTrailById[audit.quote_id].timeline.slice(0, 5).map((event, index) => (
@@ -5600,15 +5600,15 @@ export default function AdminPage() {
         <section className="admin-page__subsection-grid">
           <div className={`admin-page__channel-info ${isChannelUser ? "admin-page__channel-info--channel" : "admin-page__channel-info--platform"}`}>
             <div className="admin-page__channel-info-title">
-              {isChannelUser ? "Kanal Departmanlari" : "Departmanlar nasil kullanilmali?"}
+              {isChannelUser ? "Kanal Departmanları" : "Departmanlar nasıl kullanılmalı?"}
             </div>
             <div className="admin-page__channel-info-copy">
               {isChannelUser
-                ? "Is ortagi organizasyonunuze ait varsayilan departmanlar asagida listelenmistir. Musteriler, Operasyon, Satis ve Finans birimlerinizi buradan yonetin."
-                : "Varsayilan satin alma departmanlari ilk aktivasyonda otomatik acilir. Yeni departman eklerken sirketinizde farkli kategori, uzmanlik veya operasyon hatti varsa ayri gorunurluk ve sahiplik olusturmak icin ekleyin."}
+                ? "İş ortağı organizasyonunuza ait varsayılan departmanlar aşağıda listelenmiştir. Müşteriler, Operasyon, Satış ve Finans birimlerinizi buradan yönetin."
+                : "Varsayılan satın alma departmanları ilk aktivasyonda otomatik açılır. Yeni departman eklerken şirketinizde farklı kategori, uzmanlık veya operasyon hattı varsa ayrı görünürlük ve sahiplik oluşturmak için ekleyin."}
             </div>
             {isChannelUser && (
-              <div className="admin-page__text-xs-muted">Henuz departman yoksa asagidaki butonu kullanarak varsayilan kanal departmanlarini olusturabilirsiniz.</div>
+              <div className="admin-page__text-xs-muted">Henüz departman yoksa aşağıdaki butonu kullanarak varsayılan kanal departmanlarını oluşturabilirsiniz.</div>
             )}
           </div>
           {isChannelUser && departments.length === 0 && (
@@ -5636,9 +5636,9 @@ export default function AdminPage() {
         <>
           {isChannelUser && (
             <div className="admin-page__channel-info admin-page__channel-info--channel admin-page__channel-info--spaced">
-              <div className="admin-page__channel-info-title">Is Ortagi Firma Gorunumu</div>
+              <div className="admin-page__channel-info-title">İş Ortağı Firma Görünümü</div>
               <div className="admin-page__channel-info-copy">
-                Bu ekranda is ortagi organizasyonunuza ait firma kaydini ve bagli yapilari goruntuluyorsunuz. Yonlendirdiginiz musterilerin firma kayitlari platformdaki katilim sureclerine gore burada gozukecektir.
+                Bu ekranda iş ortağı organizasyonunuza ait firma kaydını ve bağlı yapıları görüntülüyorsunuz. Yönlendirdiğiniz müşterilerin firma kayıtları platformdaki katılım süreçlerine göre burada gözükecektir.
               </div>
             </div>
           )}
@@ -5651,12 +5651,12 @@ export default function AdminPage() {
             personnel={personnel}
             tenants={tenants}
             handleDeleteCompany={async (id: number) => {
-              if (!confirm("Firmayi silmek istediginize emin misiniz?")) return;
+              if (!confirm("Firmayı silmek istediğinize emin misiniz?")) return;
               try {
                 await deleteCompany(id);
                 await loadData();
               } catch (err) {
-                alert("Silme hatasi: " + String(err));
+                alert("Silme hatası: " + String(err));
               }
             }}
           />
@@ -5672,11 +5672,11 @@ export default function AdminPage() {
             </div>
             <div className="admin-page__channel-info-copy">
               {isChannelUser
-                ? "Kanal organizasyonunuzdaki roller asagida listelenmistir. Hesap sahibi, ekip lideri, temsilci, finans ve denetci rollerini ekibinize atayabilirsiniz."
-                : "Super admin bu ekranda platform, stratejik partner, tedarikci ve is ortagi bolumlerini tek yerden yonetir. Yetkili personel rol/departman ekleyebilir, duzenleyebilir ve silebilir."}
+                ? "Kanal organizasyonunuzdaki roller aşağıda listelenmiştir. Hesap sahibi, ekip lideri, temsilci, finans ve denetçi rollerini ekibinize atayabilirsiniz."
+                : "Super admin bu ekranda platform, stratejik partner, tedarikçi ve iş ortağı bölümlerini tek yerden yönetir. Yetkili personel rol/departman ekleyebilir, düzenleyebilir ve silebilir."}
             </div>
             {isChannelUser && (
-              <div className="admin-page__text-xs-muted">Henuz rol yoksa varsayilan kanal rollerini olusturmak icin asagidaki butonu kullanin.</div>
+              <div className="admin-page__text-xs-muted">Henüz rol yoksa varsayılan kanal rollerini oluşturmak için aşağıdaki butonu kullanın.</div>
             )}
           </div>
           {isChannelUser && roles.filter(r => r.tenant_id != null).length === 0 && (
@@ -5708,7 +5708,7 @@ export default function AdminPage() {
               tone: "violet",
               sourceLabel: "Project deep-link",
               timestamp: Date.now(),
-              actions: [{ label: "Odagi Temizle", onClick: () => navigateAdminTab("projects") }],
+              actions: [{ label: "Odağı Temizle", onClick: () => navigateAdminTab("projects") }],
               testId: "admin-focus-banner-project",
             })
           ) : null}

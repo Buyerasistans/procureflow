@@ -39,7 +39,7 @@ export function PlatformOverviewPriorityPanels({
             "Admin'i personelden ayiran system_role gecisi baslatildi.",
             "Stratejik Partner omurgasi ve bootstrap scripti eklendi.",
             "Navigation ve varsayilan yonlendirme system_role bazli calisiyor.",
-            "Siradaki is: Stratejik Partner yonetici yeniden atama ve daha derin yasam dongusu aksiyonlari.",
+            "Sıradaki iş: Stratejik Partner yönetici yeniden atama ve daha derin yaşam döngüsü aksiyonları.",
           ].map((item) => (
             <div key={item} className="platform-overview-priority-panels__item">
               {item}

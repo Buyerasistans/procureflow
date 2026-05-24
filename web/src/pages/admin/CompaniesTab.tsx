@@ -316,9 +316,9 @@ export function CompaniesTab({
           try {
             await updateAdminSupplierManagementDetail(supplier.id, { is_active: !isActive });
             await loadData();
-            setNotice({ type: "success", text: isActive ? "Tedarikci pasife alindi." : "Tedarikci aktife alindi." });
+            setNotice({ type: "success", text: isActive ? "Tedarikçi pasife alındı." : "Tedarikçi aktife alındı." });
           } catch {
-            setNotice({ type: "error", text: "Tedarikci durumu degistirilemedi." });
+            setNotice({ type: "error", text: "Tedarikçi durumu değiştirilemedi." });
           } finally {
             setSupplierTogglingId(null);
           }
@@ -346,7 +346,7 @@ export function CompaniesTab({
 
   const resolveCompanyRoleLabel = (company: Company): string => {
     if (segment === "partner") return company.is_primary ? "Ana Firma" : "Alt Firma";
-    if (segment === "channel") return "Is Ortagi";
+    if (segment === "channel") return "İş Ortağı";
     return company.is_platform_primary ? "Platform Ana" : "Portal Firma";
   };
 
@@ -461,14 +461,14 @@ export function CompaniesTab({
           aria-label={`Sil: ${supplier.company_name}`}
           onClick={async () => {
             if (supplier.is_active !== false) return;
-            const approved = window.confirm(`Tedarikci devre disi birakilsin mi? (${supplier.company_name})`);
+            const approved = window.confirm(`Tedarikçi devre dışı bırakılsın mı? (${supplier.company_name})`);
             if (!approved) return;
             try {
               await deleteAdminSupplier(supplier.id);
               await loadData();
-              setNotice({ type: "success", text: "Tedarikci devre disi birakildi." });
+              setNotice({ type: "success", text: "Tedarikçi devre dışı bırakıldı." });
             } catch {
-              setNotice({ type: "error", text: "Tedarikci silinemedi." });
+              setNotice({ type: "error", text: "Tedarikçi silinemedi." });
             }
           }}
           style={{
@@ -488,8 +488,8 @@ export function CompaniesTab({
   const segmentTabs: { key: CompanySegment; label: string }[] = [
     { key: "portal", label: `Portal Ana Firmalar (${segmentCounts.portal})` },
     { key: "partner", label: `Stratejik Partner Firmalar (${segmentCounts.partner})` },
-    { key: "supplier", label: `Tedarikci Firmalar (${segmentCounts.supplier})` },
-    { key: "channel", label: `Is Ortagi Firmalar (${segmentCounts.channel})` },
+    { key: "supplier", label: `Tedarikçi Firmalar (${segmentCounts.supplier})` },
+    { key: "channel", label: `İş Ortağı Firmalar (${segmentCounts.channel})` },
   ];
 
   const renderCompaniesTable = (rows: Company[]) => {
@@ -608,7 +608,7 @@ export function CompaniesTab({
     <div style={{ overflowX: "auto" }}>
       {rows.length === 0 ? (
         <div style={{ padding: "24px 16px", textAlign: "center", color: "#94a3b8", fontSize: 14 }}>
-          Bu segmentte tedarikci bulunamadi.
+          Bu segmentte tedarikçi bulunamadı.
         </div>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
@@ -630,7 +630,7 @@ export function CompaniesTab({
 
             const groupName = supplier.tenant_id != null
               ? (supplier.inviter_company_name || tenantPrimaryCompany?.name || supplier.tenant_name || `Tenant #${supplier.tenant_id}`)
-              : "Buyera Asistans Ozel Tedarikci";
+              : "Buyera Asistans Özel Tedarikçi";
 
             if (!map.has(key)) {
               map.set(key, { key, name: groupName, suppliers: [] as AdminSupplierListItem[] });
@@ -672,7 +672,7 @@ export function CompaniesTab({
                       <td style={responsibleCellStyle} title={resolveSupplierResponsible(supplier)}>{resolveSupplierResponsible(supplier)}</td>
                       <td style={roleCellStyle}>
                         <span style={{ display: "inline-flex", padding: "2px 8px", borderRadius: 999, fontWeight: 700, background: "#ede9fe", color: "#5b21b6" }}>
-                          Tedarikci
+                          Tedarikçi
                         </span>
                       </td>
                       <td style={statusCellStyle}>{renderSupplierStatusToggle(supplier)}</td>
@@ -810,7 +810,7 @@ export function CompaniesTab({
                   {entityModal.edit ? "Duzenle" : "Detay"}: {entityModal.entityName}
                 </strong>
                 <span style={{ color: "#64748b", fontSize: 12 }}>
-                  {entityModal.entityType === "company" ? "Firma" : "Tedarikci"} bilgisi popup icinde acildi.
+                  {entityModal.entityType === "company" ? "Firma" : "Tedarikçi"} bilgisi popup içinde açıldı.
                 </span>
               </div>
               <button

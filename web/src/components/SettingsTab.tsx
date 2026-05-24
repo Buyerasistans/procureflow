@@ -155,7 +155,7 @@ export const SettingsTab: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">{isChannelWorkspace ? "E-posta Ayarlari" : "Sistem Ayarları"}</h2>
         <p className="mt-1 text-sm text-gray-600">
-          {isChannelWorkspace ? "Mail gonderim profilinizi ve sistem mailbox ayarlarinizi yonetin" : "Uygulamanın ayarlarını yönetin"}
+          {isChannelWorkspace ? "Mail gönderim profilinizi ve sistem mailbox ayarlarınızı yönetin" : "Uygulamanın ayarlarını yönetin"}
         </p>
         {!isChannelWorkspace && !canEditTenantIdentity && (
           <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

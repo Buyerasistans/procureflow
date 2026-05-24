@@ -25,8 +25,8 @@ export function CampaignsAdminTab() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     code: "supplier-growth-bonus",
-    name: "Tedarikci Buyume Bonusu",
-    description: "Getirilen aktif tedarikci sayisina gore gorunurluk ve ozel liste odulleri.",
+    name: "Tedarikçi Büyüme Bonusu",
+    description: "Getirilen aktif tedarikçi sayısına göre görünürlük ve özel liste ödülleri.",
     audience_type: "supplier",
     trigger_event: "supplier_referral_activated",
     status: "active",
@@ -184,7 +184,7 @@ export function CampaignsAdminTab() {
         <div>
           <h2 className="campaigns-admin-tab__title">Kampanyalar ve Odeme Ayarlari</h2>
           <p className="campaigns-admin-tab__description">
-            Odeme saglayicilarinin aktif/pasif ve credential ayarlarini yonetin; pasif olanlar odeme ekranina dusmez.
+            Ödeme sağlayıcılarının aktif/pasif ve credential ayarlarını yönetin; pasif olanlar ödeme ekranına düşmez.
           </p>
         </div>
         <button
@@ -405,7 +405,7 @@ export function CampaignsAdminTab() {
         </div>
 
         <div className="campaigns-admin-tab__section">
-          <div className="campaigns-admin-tab__section-title">Test Event Gonder</div>
+          <div className="campaigns-admin-tab__section-title">Test Event Gönder</div>
           <div className="campaigns-admin-tab__stack">
             <label className="campaigns-admin-tab__field">
               <span className="campaigns-admin-tab__label">Kampanya</span>

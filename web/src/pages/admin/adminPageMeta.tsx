@@ -108,15 +108,15 @@ export function renderTabIconBadge(icon: string, active = false) {
 export function translateServiceLabel(label: string) {
   const normalized = String(label || "").trim().toLowerCase();
   if (normalized === "rfq core") return "RFQ (Teklif Isteme Formu)";
-  if (normalized === "rfq (teklif isteme formu) yonetimi") return "RFQ (Teklif Isteme Formu) Yonetimi";
+  if (normalized === "rfq (teklif isteme formu) yonetimi") return "RFQ (Teklif İsteme Formu) Yönetimi";
   if (normalized === "advanced reports") return "Gelismis Raporlar";
-  if (normalized === "supplier portal") return "Tedarikci Portali";
-  if (normalized === "tedarikci portali") return "Tedarikci Portali";
-  if (normalized === "active private supplier" || normalized === "aktif ozel tedarikci") return "Tedarikci Portali";
-  if (normalized === "active project" || normalized === "aktif proje" || normalized === "project management" || normalized === "proje yonetimi") return "Proje Yonetimi";
-  if (normalized === "active user" || normalized === "aktif kullanici" || normalized === "user management" || normalized === "kullanici yonetimi") return "Kullanici Yonetimi";
-  if (normalized === "project limit") return "Proje Yonetimi";
-  if (normalized === "user limit") return "Kullanici Yonetimi";
+  if (normalized === "supplier portal") return "Tedarikçi Portalı";
+  if (normalized === "tedarikci portali") return "Tedarikçi Portalı";
+  if (normalized === "active private supplier" || normalized === "aktif ozel tedarikci") return "Tedarikçi Portalı";
+  if (normalized === "active project" || normalized === "aktif proje" || normalized === "project management" || normalized === "proje yonetimi") return "Proje Yönetimi";
+  if (normalized === "active user" || normalized === "aktif kullanici" || normalized === "user management" || normalized === "kullanici yonetimi") return "Kullanıcı Yönetimi";
+  if (normalized === "project limit") return "Proje Yönetimi";
+  if (normalized === "user limit") return "Kullanıcı Yönetimi";
   if (normalized === "project file upload" || normalized === "proje dosya yukleme") return "Proje Dosya Yukleme";
   if (normalized === "project file size" || normalized === "proje dosya boyutu" || normalized === "maksimum dosya boyutu") return "Maksimum Dosya Boyutu";
   return label;

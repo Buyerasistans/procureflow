@@ -451,7 +451,7 @@ export const AdvancedSettingsTab: React.FC = () => {
 
   const handleEmailTest = async () => {
     if (readOnly) {
-      setMessage({ type: "error", text: "Bu panelde test gonderimi kapatilmis durumda." });
+      setMessage({ type: "error", text: "Bu panelde test gönderimi kapatılmış durumda." });
       return;
     }
     if (!emailForm.from_email && !emailForm.smtp_username) {
@@ -474,8 +474,8 @@ export const AdvancedSettingsTab: React.FC = () => {
         type: "error",
         text: resolveFriendlyErrorMessage(
           err,
-          "Test gonderimi basarisiz",
-          "Bu panelde test e-postasi gonderme yetkiniz yok.",
+          "Test gönderimi başarısız",
+          "Bu panelde test e-postası gönderme yetkiniz yok.",
         ),
       });
     } finally {
@@ -863,7 +863,7 @@ export const AdvancedSettingsTab: React.FC = () => {
             border: "1px solid #bfdbfe",
           }}
         >
-          Kanal hesap sahibi panelinde e-posta ayarlari ve mailbox yonetimi aciktir.
+          Kanal hesap sahibi panelinde e-posta ayarları ve mailbox yönetimi açıktır.
         </div>
       )}
 
@@ -1386,7 +1386,7 @@ export const AdvancedSettingsTab: React.FC = () => {
               <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
                 <h4 style={{ margin: 0, color: "#1e3a8a" }}>7) Kanal Markalama Ayarları</h4>
                 <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  <input aria-label="Gönderici Adı Takma Adı" value={channelPrefs.sender_alias} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, sender_alias: e.target.value }))} placeholder="Gonderici adı" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                  <input aria-label="Gönderici Adı Takma Adı" value={channelPrefs.sender_alias} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, sender_alias: e.target.value }))} placeholder="Gönderici adı" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
                   <input aria-label="Marka Logosu URL" value={channelPrefs.branding_logo_url} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_logo_url: e.target.value }))} placeholder="Logo URL" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
                   <input aria-label="Birincil Marka Rengi" type="color" value={channelPrefs.branding_primary_color} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_primary_color: e.target.value }))} style={{ width: "100%", height: 38, border: "1px solid #cbd5e1", borderRadius: 6, background: "#fff" }} />
                 </div>
@@ -1407,7 +1407,7 @@ export const AdvancedSettingsTab: React.FC = () => {
 
           <h4>Sistem Mail Hesapları</h4>
           <div style={{ color: "#64748b", fontSize: 13, marginBottom: 8 }}>
-            Ozel SMTP / POP3 / IMAP tanimi yoksa platformun olusturdugu is maili varsayilan kullanilir. Ozel ayar tanimlandiginda varsayilan kanal otomatik olarak bu profile gecer.
+            Özel SMTP / POP3 / IMAP tanımı yoksa platformun oluşturduğu iş maili varsayılan kullanılır. Özel ayar tanımlandığında varsayılan kanal otomatik olarak bu profile geçer.
           </div>
           {!isSuperAdmin && (
             <div style={{ marginBottom: 8, color: "#64748b", fontSize: 12 }}>

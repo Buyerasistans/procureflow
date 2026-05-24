@@ -81,7 +81,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
   const [mailDirectionFilter, setMailDirectionFilter] = useState<"all" | "inbound" | "outbound">("all");
   const [selectedMailFolder, setSelectedMailFolder] = useState<"all" | "inbox" | "outbound" | "archived" | "spam" | "trash">("inbox");
   const [mailSearchQuery, setMailSearchQuery] = useState("");
-  const [mailDraft, setMailDraft] = useState({ to_email: "", subject: "ProcureFlow test", body: "Merhaba,\n\nBu test e-postasi ProcureFlow Mail Merkezi ekranindan gonderilmistir.", cc: "" });
+  const [mailDraft, setMailDraft] = useState({ to_email: "", subject: "ProcureFlow test", body: "Merhaba,\n\nBu test e-postası ProcureFlow Mail Merkezi ekranından gönderilmiştir.", cc: "" });
   const [attachmentPreview, setAttachmentPreview] = useState<{ name: string; url: string; contentType: string; textContent?: string | null } | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [diagnosing, setDiagnosing] = useState(false);
@@ -217,7 +217,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
         } else if (!nextMessages.length && isAuthFailureText(selectedAccount?.last_inbox_error)) {
           setMessage({
             type: "error",
-            text: "Mailbox kimlik dogrulama hatasi var. Once Tani Calistir ile kontrol edip sifre veya app password bilgisini guncelleyin.",
+            text: "Mailbox kimlik doğrulama hatası var. Önce Tanı Çalıştır ile kontrol edip şifre veya app password bilgisini güncelleyin.",
           });
         }
         if (cancelled) return;
@@ -340,7 +340,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
       setMessages(nextMessages);
       setSelectedMailFolder("outbound");
     } catch (error) {
-      setMessage({ type: "error", text: resolveErrorText(error, "Mail gonderilemedi") });
+      setMessage({ type: "error", text: resolveErrorText(error, "Mail gönderilemedi") });
     } finally {
       setLoading(false);
     }
@@ -386,11 +386,11 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
             <div style={{ padding: 20 }}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, background: "#e0f2fe", color: "#075985", fontSize: 12, fontWeight: 800 }}><Bell size={14} />MAIL CENTER</div>
-              <h4 style={{ margin: "10px 0 0", fontSize: 24, color: "#0f172a" }}>{selectedAccount?.email || "Mailbox seciniz"}</h4>
+              <h4 style={{ margin: "10px 0 0", fontSize: 24, color: "#0f172a" }}>{selectedAccount?.email || "Mailbox seçiniz"}</h4>
               <div style={{ color: "#64748b", fontSize: 13, marginTop: 6 }}>
                 {selectedAccount
-                  ? "Gelen ve giden hareketler bu hesap ozelinde goruntulenir. Ozel SMTP/IMAP tanimliysa o hesap varsayilan, degilse platform is maili kullanilir."
-                  : "Acmak icin once bir mailbox hesabi secin."}
+                  ? "Gelen ve giden hareketler bu hesap özelinde görüntülenir. Özel SMTP/IMAP tanımlıysa o hesap varsayılan, değilse platform iş maili kullanılır."
+                  : "Açmak için önce bir mailbox hesabı seçin."}
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, padding: 20 }}>
@@ -400,7 +400,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
               <button onClick={() => handleMessageAction("spam", selectedMessage)} disabled={!selectedMessage} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fff7ed", color: "#9a3412", border: "1px solid #fdba74" }}><ShieldAlert size={15} />Spam</button>
               <button onClick={() => handleMessageAction("trash", selectedMessage)} disabled={!selectedMessage} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" }}><Trash2 size={15} />Sil</button>
               <button onClick={() => { void handleDiagnose(); }} disabled={loading || diagnosing || !selectedAccountId} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#ecfeff", color: "#0f766e", border: "1px solid #67e8f9" }}>
-                <ShieldAlert size={15} />{diagnosing ? "Tani..." : "Tani Calistir"}
+                <ShieldAlert size={15} />{diagnosing ? "Tanı..." : "Tanı Çalıştır"}
               </button>
               <button onClick={handleSync} disabled={loading || !selectedAccountId}>Yenile / Sync</button>
               <button onClick={onClose}>Kapat</button>
@@ -412,7 +412,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
           <div style={{ padding: "0 20px 16px", display: "flex", gap: 10, flexWrap: "wrap" }}>
             {accounts.length === 0 && (
               <div style={{ fontSize: 13, color: "#64748b", padding: "8px 0" }}>
-                Acilabilir mailbox bulunamadi. Ozel SMTP/IMAP ayari yoksa profil is mailinizin olusturuldugunu, ozel ayar varsa mailbox kimlik bilgilerinizin guncel oldugunu kontrol edin.
+                Açılabilir mailbox bulunamadı. Özel SMTP/IMAP ayarı yoksa profil iş mailinizin oluşturulduğunu, özel ayar varsa mailbox kimlik bilgilerinizin güncel olduğunu kontrol edin.
               </div>
             )}
             {accounts.map((account) => (

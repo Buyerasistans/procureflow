@@ -66,7 +66,7 @@ export function OnboardingStudioTab({
           { label: "Onboarding Kuyrugu", value: onboardingStudioSummary.onboarding_queue_count, note: "Aktif olmayan kurulum akislari", tone: "amber" },
           { label: "Owner Eksigi", value: onboardingStudioSummary.owner_pending_count, note: "Sahip atamasi bekleyen Stratejik Partner", tone: "red" },
           { label: "Branding Eksigi", value: onboardingStudioSummary.branding_pending_count, note: "Logo veya brand name eksigi", tone: "violet" },
-          { label: "Yeni Uyelik", value: onboardingStudioSummary.new_membership_count, note: "Public onboarding ile gelen yeni basvurular", tone: "teal" },
+          { label: "Yeni Üyelik", value: onboardingStudioSummary.new_membership_count, note: "Public onboarding ile gelen yeni başvurular", tone: "teal" },
           { label: "Odeme Kontrol", value: onboardingStudioSummary.payment_review_count, note: "Odeme dogrulamasi bekleyen uyelikler", tone: "orange" },
           { label: "Bilgi Istendi", value: onboardingStudioSummary.information_requested_count, note: "Ek bilgi veya yeni dekont bekleyen uyelikler", tone: "sky" },
           { label: "Onay Bekliyor", value: onboardingStudioSummary.activation_approval_waiting_count, note: "Aktivasyon onayi bekleyen uyelikler", tone: "purple" },
@@ -95,10 +95,10 @@ export function OnboardingStudioTab({
           </div>
         ) : null}
         {[
-          { title: "1. Plan Secimi", note: "Starter, Growth veya Enterprise paketi ile ticari cerceveyi sabitle.", status: "Hazir", tone: "sky", action: "starter" },
-          { title: "2. Stratejik Partner Kaydi", note: "Stratejik Partner slug, branding ve sahip kullanici adayi ile workspace kaydini ac.", status: "Hazir", tone: "teal", action: "growth" },
-          { title: "3. Ilk Admin Aktivasyonu", note: "Owner daveti ve ilk yonetici aktivasyonunu tamamla.", status: "Hazir", tone: "amber", action: "enterprise" },
-          { title: "4. Kurulum Sihirbazi", note: "Sirket, departman, roller, proje ve tedarikci tohumlarini adim adim tamamlama akisini kur.", status: "Taslak", tone: "violet", action: null },
+          { title: "1. Plan Secimi", note: "Starter, Growth veya Enterprise paketi ile ticari cerceveyi sabitle.", status: "Hazır", tone: "sky", action: "starter" },
+          { title: "2. Stratejik Partner Kaydi", note: "Stratejik Partner slug, branding ve sahip kullanici adayi ile workspace kaydini ac.", status: "Hazır", tone: "teal", action: "growth" },
+          { title: "3. İlk Admin Aktivasyonu", note: "Owner daveti ve ilk yönetici aktivasyonunu tamamla.", status: "Hazır", tone: "amber", action: "enterprise" },
+          { title: "4. Kurulum Sihirbazı", note: "Şirket, departman, roller, proje ve tedarikçi tohumlarını adım adım tamamlama akışını kur.", status: "Taslak", tone: "violet", action: null },
         ].filter((card) => {
           const focus = searchParams.get("onboardingPlanFocus");
           if (!focus) return true;
@@ -131,16 +131,16 @@ export function OnboardingStudioTab({
       </div>
 
       <div className="onboarding-studio__panel">
-        <div className="onboarding-studio__eyebrow onboarding-studio__tone--blue">Yeni Uyelik Onay Masasi</div>
+        <div className="onboarding-studio__eyebrow onboarding-studio__tone--blue">Yeni Üyelik Onay Masasi</div>
         <div className="onboarding-studio__title">Odeme kontrolu ve aktivasyon onayi</div>
-        <div className="onboarding-studio__copy">Public ana sayfadan gelen stratejik partner ve tedarikci uyelik basvurulari burada takip edilir. Ucretli planlarda EFT dahil tum odemeler dogrulanmadan ve super admin onayi verilmeden aktivasyon tamamlanmaz.</div>
+        <div className="onboarding-studio__copy">Public ana sayfadan gelen stratejik partner ve tedarikçi üyelik başvuruları burada takip edilir. Ücretli planlarda EFT dahil tüm ödemeler doğrulanmadan ve super admin onayı verilmeden aktivasyon tamamlanmaz.</div>
         <div className="onboarding-studio__info-box onboarding-studio__info-box--blue">
           <div className="onboarding-studio__eyebrow onboarding-studio__tone--blue">Kategori ve Eslesme Notu</div>
           <div className="onboarding-studio__body-copy">
-            Onboarding sirasinda toplanan kategori bilgisi burada yalnizca bir profil alani olarak durmaz. Super admin ekibi bu veriyi stratejik partner kapsami, supplier uygunlugu ve kategori eksigi olan basvurulari hizlica ayiklamak icin kullanir.
+            Onboarding sırasında toplanan kategori bilgisi burada yalnızca bir profil alanı olarak durmaz. Super admin ekibi bu veriyi stratejik partner kapsamı, supplier uygunluğu ve kategori eksiği olan başvuruları hızlıca ayıklamak için kullanır.
           </div>
           <div className="onboarding-studio__small-body">
-            Ozellikle supplier ve stratejik partner basvurularinda kategori uyumu; aktivasyon karari sonrasi hangi havuzun once acilacagini, hangi tenantin ek supplier sourcing ihtiyaci tasidigini ve hangi kayitlarin operasyonel takip gerektirdigini gosterir.
+            Özellikle supplier ve stratejik partner başvurularında kategori uyumu; aktivasyon kararı sonrası hangi havuzun önce açılacağını, hangi tenantın ek supplier sourcing ihtiyacı taşıdığını ve hangi kayıtların operasyonel takip gerektirdiğini gösterir.
           </div>
         </div>
         {onboardingStudioSummary.recent_memberships.length === 0 ? (
@@ -182,7 +182,7 @@ export function OnboardingStudioTab({
                   <div className="onboarding-studio__card-header">
                     <div>
                       <div className="onboarding-studio__membership-title">{tenant.brand_name || tenant.legal_name}</div>
-                      <div className="onboarding-studio__membership-meta">{tenant.owner_email || "owner e-postasi yok"} • {tenant.subscription_plan_code || "starter"} • {String(tenant.subscription_plan_code || "").startsWith("supplier") ? "tedarikci uyeligi" : "stratejik partner uyeligi"}</div>
+                      <div className="onboarding-studio__membership-meta">{tenant.owner_email || "owner e-postası yok"} • {tenant.subscription_plan_code || "starter"} • {String(tenant.subscription_plan_code || "").startsWith("supplier") ? "tedarikçi üyeliği" : "stratejik partner üyeliği"}</div>
                     </div>
                     <span className={`onboarding-studio__status-chip ${approvalStatus === "approved" ? "onboarding-studio__status-chip--approved" : "onboarding-studio__status-chip--pending"}`}>
                       {formatOnboardingApprovalStatus(tenant.onboarding_approval_status)}
@@ -342,7 +342,7 @@ export function OnboardingStudioTab({
         <div className="onboarding-studio__panel">
           <div className="onboarding-studio__eyebrow onboarding-studio__tone--teal">Operasyon Akisi</div>
           {[
-            "Stratejik Partner Yonetimi sekmesinden plan ve kurulum durumunu sec.",
+            "Stratejik Partner Yönetimi sekmesinden plan ve kurulum durumunu seç.",
             "Ilk admin e-postasini initial_admin alanlari ile ac ve owner atamasini tamamla.",
             "Kurulum durumunu taslak > onboarding > aktif seklinde ilerlet.",
             "Branding, destek kanali ve paket limitleri aktif olmadan canliya gecme.",
@@ -352,7 +352,7 @@ export function OnboardingStudioTab({
         </div>
 
         <div className="onboarding-studio__panel">
-          <div className="onboarding-studio__eyebrow onboarding-studio__tone--violet">RFQ Gecis Hazirligi</div>
+          <div className="onboarding-studio__eyebrow onboarding-studio__tone--violet">RFQ Gecis Hazırligi</div>
           <div className={`onboarding-studio__readiness-banner ${onboardingStudioSummary.rfq_readiness.transition_ready ? "onboarding-studio__readiness-banner--ready" : "onboarding-studio__readiness-banner--blocked"}`}>
             {onboardingStudioSummary.rfq_readiness.transition_ready ? "Stratejik Partner RFQ gecisi icin kritik blokaj gorunmuyor" : "Stratejik Partner RFQ gecisi oncesi veri duzeltme gerekli"}
           </div>
@@ -379,10 +379,10 @@ export function OnboardingStudioTab({
             ))}
           </div>
           <div className="onboarding-studio__supplier-mix">
-            <div className="onboarding-studio__eyebrow onboarding-studio__tone--teal">Tedarikci Kaynak Dengesi</div>
+            <div className="onboarding-studio__eyebrow onboarding-studio__tone--teal">Tedarikçi Kaynak Dengesi</div>
             <div className="onboarding-studio__supplier-grid">
               <div className="onboarding-studio__supplier-card onboarding-studio__tone--blue">
-                <div className="onboarding-studio__supplier-label">Ozel Tedarikci</div>
+                <div className="onboarding-studio__supplier-label">Özel Tedarikçi</div>
                 <div className="onboarding-studio__supplier-value">{onboardingStudioSummary.supplier_mix.private_count}</div>
               </div>
               <div className="onboarding-studio__supplier-card onboarding-studio__tone--violet">
