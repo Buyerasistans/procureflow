@@ -398,7 +398,7 @@ def _provision_with_plesk(
             result.status in {"provisioned", "warning"}
             or "<status>ok</status>" in response_text.lower()
         ):
-            message = "Plesk uzerinde mailbox olusturma istegi gonderildi"
+            message = "Plesk üzerinde mailbox oluşturma isteği gönderildi"
             if password_was_upgraded:
                 message = "Plesk strong parola politikasi nedeniyle mailbox sifresi guclendirildi ve hesap olusturuldu"
             return MailboxProvisioningResult(

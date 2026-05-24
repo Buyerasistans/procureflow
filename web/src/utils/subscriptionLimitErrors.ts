@@ -17,7 +17,7 @@ const ADDON_NAME_BY_LIMIT: Record<LimitKey, string> = {
   active_companies: "Ek Firma Limiti",
   active_internal_users: "Ek Kullanici Limiti",
   active_projects: "Ek Proje Limiti",
-  active_private_suppliers: "Ek Tedarikci Limiti",
+  active_private_suppliers: "Ek Tedarikçi Limiti",
   active_quotes: "Ek Teklif Limiti",
   project_files_total: "Ek Dosya Yukleme Limiti",
   project_file_size_mb: "Kurumsal paket dosya boyutu artisi",
@@ -102,7 +102,7 @@ export function getSubscriptionLimitGuidanceMessage(input: unknown, fallback: st
     return `Proje limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_projects")}${actionText}`;
   }
   if (lower.includes("aktif tedarikci limiti")) {
-    return `Tedarikci limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_private_suppliers")}${actionText}`;
+    return `Tedarikçi limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_private_suppliers")}${actionText}`;
   }
   if (lower.includes("teklif limiti")) {
     return `Teklif olusturma limitiniz doldu.${planText}${limitText}${buildSuggestionText(planCode, "active_quotes")}${actionText}`;

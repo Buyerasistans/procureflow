@@ -449,9 +449,9 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "workspace_home",
-        label: "Yonetim Ana Sayfasi",
+        label: "Yönetim Ana Sayfası",
         enabled: workspaceHome,
-        description: "Admin is alani acilis kartlari ve yonetim ozetleri.",
+        description: "Admin iş alanı açılış kartları ve yönetim özetleri.",
       },
       [
         {
@@ -473,7 +473,7 @@ export function getRoleMenuAccessPreview(
         key: "admin_surface",
         label: "Yönetim Alanı",
         enabled: adminSurface,
-        description: "Personel, firma, departman ve benzeri yonetim ekranlari.",
+        description: "Personel, firma, departman ve benzeri yönetim ekranları.",
       },
       [
         {
@@ -510,7 +510,7 @@ export function getRoleMenuAccessPreview(
     ),
     {
       key: "manage_users",
-      label: "Kullanici Yonetimi",
+      label: "Kullanıcı Yönetimi",
       enabled: manageUsers,
       description: "Kullanici olusturma, rol atama ve duzenleme akislarina erisim.",
     },
@@ -542,9 +542,9 @@ export function getRoleMenuAccessPreview(
         },
         {
           key: "quote_workspace.submit_approval",
-          label: "Onaya Gonderme",
+          label: "Onaya Gönderme",
           enabled: applyOverride("quote_workspace.submit_approval", quoteWorkspace, overrides),
-          description: "Teklifi onay surecine gonderme.",
+          description: "Teklifi onay sürecine gönderme.",
         },
         {
           key: "quote_workspace.comparison",
@@ -563,9 +563,9 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "tenant_governance_read",
-        label: "Stratejik Partner Yonetimi (Okuma)",
+        label: "Stratejik Partner Yönetimi (Okuma)",
         enabled: governanceRead,
-        description: "Stratejik partner yonetim kayitlarini goruntuleme.",
+        description: "Stratejik partner yönetim kayıtlarını görüntüleme.",
       },
       [
         {
@@ -585,9 +585,9 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "tenant_governance_write",
-        label: "Stratejik Partner Yonetimi (Yazma)",
+        label: "Stratejik Partner Yönetimi (Yazma)",
         enabled: governanceWrite,
-        description: "Stratejik partner yonetim alaninda degisiklik yapma.",
+        description: "Stratejik partner yönetim alanında değişiklik yapma.",
       },
       [
         {
@@ -614,7 +614,7 @@ export function getRoleMenuAccessPreview(
       key: "shared_email",
       label: "Ortak E-Posta Profilleri",
       enabled: sharedEmail,
-      description: "Platform genel SMTP/profil yonetimi.",
+      description: "Platform genel SMTP/profil yönetimi.",
     },
   ];
 }

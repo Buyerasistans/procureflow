@@ -85,7 +85,7 @@ BASE_TRANSLATIONS: dict[str, dict[str, dict[str, str]]] = {
             "not_found": "Aranan kilavuz bulunamadi.",
             "missing_prompt": "Aradiginizi bulamadin mi?",
             "create_ticket": "Destek Talebi Olustur",
-            "view_all_docs": "Tum Kilavuzlari Goruntule (buyerasistans.info/docs)",
+            "view_all_docs": "Tüm Kılavuzları Görüntüle (buyerasistans.info/docs)",
         },
         "en": {
             "title": "Help Center",

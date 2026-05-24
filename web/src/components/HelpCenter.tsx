@@ -35,12 +35,12 @@ const ARTICLES: HelpArticle[] = [
   { id: "b1", title: "Sirket bilgilerimi nasil guncellerim?", summary: "Vergi no, adres ve telefon bilgisi guncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
   { id: "b2", title: "Kullanici nasil davet ederim?", summary: "Ekibinizi platforma ekleme adimlari.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
   { id: "b3", title: "Tedarikçi nasıl eklenir?", summary: "Tedarikçi kaydı oluşturma ve yönetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
-  { id: "b4", title: "Teklif talebi (RFQ) nasil olusturulur?", summary: "Satin alma talebi olusturma ve tedarikcilere gonderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
+  { id: "b4", title: "Teklif talebi (RFQ) nasıl oluşturulur?", summary: "Satın alma talebi oluşturma ve tedarikçilere gönderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
 
   // Tedarikci
-  { id: "c1", title: "Tedarikci profili nasil tamamlanir?", summary: "Iletisim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikci" },
-  { id: "c2", title: "Teklif nasil verilir?", summary: "Acik teklif taleplerine yanit verme.", slug: "tedarikci/teklif-verme", category: "Tedarikci" },
-  { id: "c3", title: "Belge yukleme nasil yapilir?", summary: "Zorunlu evraklari sisteme ekleme.", slug: "tedarikci/belgeler", category: "Tedarikci" },
+  { id: "c1", title: "Tedarikçi profili nasıl tamamlanır?", summary: "İletişim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikçi" },
+  { id: "c2", title: "Teklif nasıl verilir?", summary: "Açık teklif taleplerine yanıt verme.", slug: "tedarikci/teklif-verme", category: "Tedarikçi" },
+  { id: "c3", title: "Belge yükleme nasıl yapılır?", summary: "Zorunlu evrakları sisteme ekleme.", slug: "tedarikci/belgeler", category: "Tedarikçi" },
 
   // Fatura & Odeme
   { id: "d1", title: "Fatura nereden goruntulenir?", summary: "Abonelik faturalari ve odeme gecmisi.", slug: "fatura/goruntuleme", category: "Fatura & Odeme" },
@@ -48,7 +48,7 @@ const ARTICLES: HelpArticle[] = [
 
   // Destek
   { id: "e1", title: "Destek talebi nasil acilir?", summary: "Platform personeline talep iletme adimlari.", slug: "destek/talep-acma", category: "Destek" },
-  { id: "e2", title: "SLA sureleri nedir?", summary: "Oncelik gore yanit ve cozum sureleri.", slug: "destek/sla", category: "Destek" },
+  { id: "e2", title: "SLA süreleri nedir?", summary: "Önceliğe göre yanıt ve çözüm süreleri.", slug: "destek/sla", category: "Destek" },
 
   // İş Ortağı
   { id: "f1", title: "İş Ortağı programına nasıl katılırım?", summary: "Program koşulları ve kayıt adımları.", slug: "is-ortagi/program-kosullari", category: "İş Ortağı" },
@@ -74,7 +74,7 @@ export default function HelpCenter() {
     not_found: "Aranan kilavuz bulunamadi.",
     missing_prompt: "Aradiginizi bulamadin mi?",
     create_ticket: "Destek Talebi Olustur",
-    view_all_docs: "Tum Kilavuzlari Goruntule (buyerasistans.info/docs)",
+    view_all_docs: "Tüm Kılavuzları Görüntüle (buyerasistans.info/docs)",
   });
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>("search");

@@ -74,7 +74,7 @@ def default_public_pricing_config() -> dict:
                     "features": [
                         "RFQ (Teklif Isteme Formu) ve teklif toplama",
                         "Temel onay akislari",
-                        "Firma, kullanici, proje ve tedarikci limitleri",
+                        "Firma, kullanıcı, proje ve tedarikçi limitleri",
                     ],
                 },
                 {
@@ -96,7 +96,7 @@ def default_public_pricing_config() -> dict:
                     },
                     "features": [
                         "Ayni hizmet ailesi daha yuksek adetlerle sunulur",
-                        "Daha genis tedarikci ve teklif hacmi",
+                        "Daha geniş tedarikçi ve teklif hacmi",
                         "Buyuyen ekipler icin genisletilmis dosya limitleri",
                     ],
                 },
@@ -105,7 +105,7 @@ def default_public_pricing_config() -> dict:
                     "name": "Kurumsal",
                     "price_monthly": 79900,
                     "currency": "TRY",
-                    "description": "Kurumsal operasyon hacmi ve ust seviye yonetim paketi",
+                    "description": "Kurumsal operasyon hacmi ve üst seviye yönetim paketi",
                     "limits": {
                         "max_active_companies": 25,
                         "max_active_internal_users": 250,
@@ -154,7 +154,7 @@ def default_public_pricing_config() -> dict:
                 {
                     "code": "project_slot",
                     "name": "Ek Proje Limiti",
-                    "description": "Ayni anda daha fazla aktif proje yonetmek icin ek hak satin alin.",
+                    "description": "Aynı anda daha fazla aktif proje yönetmek için ek hak satın alın.",
                     "price_monthly": 1900,
                     "currency": "TRY",
                     "increment": 1,
@@ -166,14 +166,14 @@ def default_public_pricing_config() -> dict:
                 },
                 {
                     "code": "supplier_slot",
-                    "name": "Ek Tedarikci Limiti",
-                    "description": "Ozel tedarikci portfoyunuzu adet bazli buyutun.",
+                    "name": "Ek Tedarikçi Limiti",
+                    "description": "Özel tedarikçi portföyünüzü adet bazlı büyütün.",
                     "price_monthly": 1200,
                     "currency": "TRY",
                     "increment": 10,
-                    "unit": "tedarikci",
+                    "unit": "tedarikçi",
                     "visibility_notes": [
-                        "Her ek alim 10 aktif tedarikci hakki saglar.",
+                        "Her ek alım 10 aktif tedarikçi hakkı sağlar.",
                         "Paket gecisi yerine tekil alim tercih edildiginde birim maliyet daha yuksektir.",
                     ],
                 },
@@ -200,7 +200,7 @@ def default_public_pricing_config() -> dict:
                     "unit": "dosya",
                     "visibility_notes": [
                         "Her ek alim 50 dosyalik kapasite artisi saglar.",
-                        "Tek dosya boyutu limiti paket seviyesinden ayri yonetilir.",
+                        "Tek dosya boyutu limiti paket seviyesinden ayrı yönetilir.",
                     ],
                 },
             ],
@@ -209,22 +209,22 @@ def default_public_pricing_config() -> dict:
             "plans": [
                 {
                     "code": "supplier_free",
-                    "name": "Tedarikci Ucretsiz",
+                    "name": "Tedarikçi Ücretsiz",
                     "price_monthly": 0,
                     "currency": "TRY",
                     "description": "Platformda gorunurluk ve temel teklif yanitlari",
                     "features": [
-                        "Tedarikci profili",
+                        "Tedarikçi profili",
                         "Temel ihale davet yaniti",
                         "Aylik performans ozeti",
                     ],
                 },
                 {
                     "code": "supplier_prime",
-                    "name": "Tedarikci Prime",
+                    "name": "Tedarikçi Prime",
                     "price_monthly": 9900,
                     "currency": "TRY",
-                    "description": "Kurumsal tedarikci buyume paketi",
+                    "description": "Kurumsal tedarikçi buyume paketi",
                     "features": [
                         "Coklu kullanici",
                         "API/export imkanlari",

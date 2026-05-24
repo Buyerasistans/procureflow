@@ -6,11 +6,11 @@ type KnowledgeMode = "blog" | "rehber" | "sozluk";
 const COPY_BY_MODE: Record<KnowledgeMode, { title: string; subtitle: string; bullets: string[] }> = {
   blog: {
     title: "Bilgi Merkezi Blog",
-    subtitle: "Satin alma operasyonlari, tedarikci yonetimi ve uygulama pratikleri icin guncel yazi havuzu.",
+    subtitle: "Satın alma operasyonları, tedarikçi yönetimi ve uygulama pratikleri için güncel yazı havuzu.",
     bullets: [
       "Saha ogrenimleri ve vaka notlari",
-      "Satin alma surec optimizasyonu",
-      "Tedarikci performans ve KPI yorumlari",
+      "Satın alma süreç optimizasyonu",
+      "Tedarikçi performans ve KPI yorumları",
     ],
   },
   rehber: {
@@ -27,8 +27,8 @@ const COPY_BY_MODE: Record<KnowledgeMode, { title: string; subtitle: string; bul
     subtitle: "Platform ve satin alma operasyonlarinda kullanilan temel kavramlarin ortak dili.",
     bullets: [
       "Rol, yetki ve onay terimleri",
-      "Tedarikci ve teklif sureci kavramlari",
-      "Operasyon ve yonetisim tanimlari",
+      "Tedarikçi ve teklif süreci kavramları",
+      "Operasyon ve yönetişim tanımları",
     ],
   },
 };

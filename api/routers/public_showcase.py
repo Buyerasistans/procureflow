@@ -199,7 +199,7 @@ def get_public_showcase_summary(db: Session = Depends(get_db)):
         supplier_pool.append(
             {
                 "id": 0,
-                "company_name": "Demo Tedarikci A.S.",
+                "company_name": "Demo Tedarikçi A.Ş.",
                 "category": "Mekanik",
                 "city": "Istanbul",
                 "logo_url": None,
@@ -292,7 +292,7 @@ def get_public_showcase_summary(db: Session = Depends(get_db)):
         top_channels.append(
             {
                 "id": 0,
-                "name": "Demo Is Ortagi",
+                "name": "Demo İş Ortağı",
                 "referral_count": 3,
                 "commission_total": 8500.0,
                 "success_score": 44.5,

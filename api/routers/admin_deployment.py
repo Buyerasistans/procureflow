@@ -57,7 +57,7 @@ def _require_local_env() -> None:
 def _make_sse_stream(svc: DeploymentService, coro):
     """
     Blocking SSH/subprocess iceren coroutine'i thread pool'da calistirir,
-    loglari gercek zamanli SSE olarak gonderir.
+    logları gerçek zamanlı SSE olarak gönderir.
     """
 
     async def event_generator():

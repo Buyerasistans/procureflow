@@ -47,7 +47,7 @@ def _resolve_workspace_branding(db: Session, user: User) -> dict[str, str | None
         return {
             "organization_name": platform_name,
             "organization_logo_url": None,
-            "workspace_label": "Ana Yonetim",
+            "workspace_label": "Ana Yönetim",
             "platform_name": platform_name,
             "platform_domain": platform_domain,
         }
@@ -81,10 +81,10 @@ def _resolve_workspace_branding(db: Session, user: User) -> dict[str, str | None
             tenant_domain = tenant.settings.custom_domain
 
         workspace_label = (
-            f"{tenant_name} Owner Yonetim Alani"
+            f"{tenant_name} Owner Yönetim Alanı"
             if system_role == "tenant_owner"
             else (
-                f"{tenant_name} Yonetim Alani"
+                f"{tenant_name} Yönetim Alanı"
                 if system_role == "tenant_admin"
                 else f"{tenant_name} Personel Girisi"
             )
@@ -101,7 +101,7 @@ def _resolve_workspace_branding(db: Session, user: User) -> dict[str, str | None
 
     organization_name = company.name if company else platform_name
     workspace_label = (
-        f"{organization_name} Owner Yonetim Alani"
+        f"{organization_name} Owner Yönetim Alanı"
         if system_role == "tenant_owner"
         else (
             f"{organization_name} Calisma Alani"
@@ -302,13 +302,13 @@ def activate_internal_user(
         try:
             email_service.send_custom_email(
                 to_email=user.email,
-                subject="ProcureFlow Is Maili Bilgileriniz",
+                subject="ProcureFlow İş Maili Bilgileriniz",
                 body=(
                     "Merhaba,\n\n"
-                    "Hesabiniz aktiflestirildi. Platform varsayilan SMTP/POP3/IMAP ayarlari icin otomatik bir is maili olusturuldu.\n\n"
-                    f"Is maili: {work_mailbox_credentials['work_email']}\n"
+                    "Hesabınız aktifleştirildi. Platform varsayılan SMTP/POP3/IMAP ayarları için otomatik bir iş maili oluşturuldu.\n\n"
+                    f"İş maili: {work_mailbox_credentials['work_email']}\n"
                     f"Sifre: {work_mailbox_credentials['password']}\n\n"
-                    "Not: Sisteme giris her zaman uye oldugunuz kisisel e-posta ve sifreniz ile yapilir.\n"
+                    "Not: Sisteme giriş her zaman üye olduğunuz kişisel e-posta ve şifreniz ile yapılır.\n"
                     "Isterseniz profilinizde ozel SMTP/POP3/IMAP ayarlari tanimlayarak kendi kurum e-postanizi varsayilan yapabilirsiniz."
                 ),
                 owner_user_id=user.id,
