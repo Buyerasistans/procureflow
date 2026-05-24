@@ -83,7 +83,7 @@ def _friendly_plesk_error(exc: Exception) -> str:
         )
     if "timed out" in normalized:
         return "Plesk API endpointine zaman asiminda ulasilamadi."
-    return text or "bilinmeyen ba?lant? hatas?"
+    return text or "bilinmeyen bağlantı hatası"
 
 
 def _resolve_plesk_api_endpoint(
@@ -115,7 +115,7 @@ def _parse_plesk_connectivity_response(response_text: str) -> MailboxProvisionin
     if "use https instead" in normalized or "security reasons" in normalized:
         return MailboxProvisioningResult(
             "warning",
-            "Plesk panele HTTP ?zerinden eri?ildi. Panel HTTPS ?neriyor ancak ba?lant? kurulabildi.",
+            "Plesk panele HTTP üzerinden erişildi. Panel HTTPS öneriyor ancak bağlantı kurulabildi.",
         )
     return MailboxProvisioningResult(
         "failed", f"Plesk yanıtı beklenmedik: {response_text[:220]}"
@@ -197,7 +197,7 @@ def _resolve_plesk_site_id(settings: EmailSettings, domain: str) -> tuple[str, s
     site_id = _extract_between(response_text, "<id>", "</id>")
     if site_id:
         return site_id, ""
-    return "", f"Plesk domain kimli?i bulunamad?: {response_text[:220]}"
+    return "", f"Plesk domain kimliği bulunamadı: {response_text[:220]}"
 
 
 def _update_existing_plesk_mailbox(
@@ -274,7 +274,7 @@ def _provision_with_cpanel(
     if not settings.mailbox_provider_url:
         return MailboxProvisioningResult("failed", "cPanel adresi girilmedi")
     if not settings.mailbox_provider_username:
-        return MailboxProvisioningResult("failed", "cPanel kullan?c? ad? gerekli")
+        return MailboxProvisioningResult("failed", "cPanel kullanıcı adı gerekli")
 
     base_url = settings.mailbox_provider_url.rstrip("/")
     query = urllib.parse.urlencode(
@@ -324,7 +324,7 @@ def _provision_with_plesk(
         )
     if not settings.mailbox_provider_username or not settings.mailbox_provider_password:
         return MailboxProvisioningResult(
-            "failed", "Plesk kullan?c? ad? ve parola gerekli"
+            "failed", "Plesk kullanıcı adı ve parola gerekli"
         )
 
     endpoint = _resolve_plesk_api_endpoint(settings, prefer_api_url=True)
@@ -400,7 +400,7 @@ def _provision_with_plesk(
         ):
             message = "Plesk üzerinde mailbox oluşturma isteği gönderildi"
             if password_was_upgraded:
-                message = "Plesk strong parola politikas? nedeniyle mailbox ?ifresi g??lendirildi ve hesap olu?turuldu"
+                message = "Plesk strong parola politikası nedeniyle mailbox şifresi güçlendirildi ve hesap oluşturuldu"
             return MailboxProvisioningResult(
                 "provisioned",
                 message,
@@ -482,11 +482,11 @@ def test_mailbox_provider_connection(
     settings: EmailSettings | None,
 ) -> MailboxProvisioningResult:
     if not settings:
-        return MailboxProvisioningResult("failed", "Mail profili bulunamad?")
+        return MailboxProvisioningResult("failed", "Mail profili bulunamadı")
 
     provider_type = (settings.mailbox_provider_type or "none").strip().lower()
     if provider_type == "none":
-        return MailboxProvisioningResult("failed", "Hosting sa?lay?c?s? se?ilmedi")
+        return MailboxProvisioningResult("failed", "Hosting sağlayıcısı seçilmedi")
     if not settings.mailbox_provider_url and not getattr(
         settings, "mailbox_provider_api_url", None
     ):
@@ -500,7 +500,7 @@ def test_mailbox_provider_connection(
             or not settings.mailbox_provider_password
         ):
             return MailboxProvisioningResult(
-                "failed", "Plesk kullan?c? ad? ve parola gerekli"
+                "failed", "Plesk kullanıcı adı ve parola gerekli"
             )
         endpoint = _resolve_plesk_api_endpoint(settings, prefer_api_url=False)
         packet = '<packet version="1.6.9.1"><server><get_protos/></server></packet>'
@@ -533,7 +533,7 @@ def test_mailbox_provider_connection(
 
     if provider_type == "cpanel":
         if not settings.mailbox_provider_username:
-            return MailboxProvisioningResult("failed", "cPanel kullan?c? ad? gerekli")
+            return MailboxProvisioningResult("failed", "cPanel kullanıcı adı gerekli")
         domain = (settings.mail_domain or "example.com").strip() or "example.com"
         endpoint = f"{settings.mailbox_provider_url.rstrip('/')}/execute/Email/list_pops?domain={urllib.parse.quote(domain)}"
         headers = {"Accept": "application/json"}
@@ -623,9 +623,9 @@ def provision_mailbox(
     force: bool = False,
 ) -> MailboxProvisioningResult:
     if not settings:
-        return MailboxProvisioningResult("skipped", "Mail profili bulunamad?")
+        return MailboxProvisioningResult("skipped", "Mail profili bulunamadı")
     if not force and not settings.mailbox_provider_auto_create:
-        return MailboxProvisioningResult("skipped", "Otomatik mailbox olu?turma kapal?")
+        return MailboxProvisioningResult("skipped", "Otomatik mailbox oluşturma kapalı")
 
     local_part, domain = _split_email(email_address)
     if not local_part or not domain:
@@ -637,7 +637,7 @@ def provision_mailbox(
 
     provider_type = (settings.mailbox_provider_type or "none").strip().lower()
     if provider_type == "none":
-        return MailboxProvisioningResult("skipped", "Hosting sa?lay?c?s? se?ilmedi")
+        return MailboxProvisioningResult("skipped", "Hosting sağlayıcısı seçilmedi")
     if provider_type == "plesk":
         return _provision_with_plesk(settings, local_part, domain, password)
     if provider_type == "cpanel":

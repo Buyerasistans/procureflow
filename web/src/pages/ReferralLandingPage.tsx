@@ -15,7 +15,7 @@ export default function ReferralLandingPage() {
     setLoading(true);
     getPublicReferralInfo(code)
       .then((data) => setInfo(data))
-      .catch(() => setError("Bu referral link bulunamad? veya art?k ge?erli de?il."))
+      .catch(() => setError("Bu referral link bulunamadı veya artık geçerli değil."))
       .finally(() => setLoading(false));
   }, [code]);
 
