@@ -119,7 +119,7 @@ export default function AdminSupplierFinancePage() {
 
   useEffect(() => {
     if (!Number.isFinite(supplierId) || supplierId <= 0) {
-      setError("Gecersiz tedarikci numarasi");
+      setError("Geçersiz tedarikçi numarası");
       setLoading(false);
       return;
     }
@@ -176,10 +176,10 @@ export default function AdminSupplierFinancePage() {
       setPhotoTitle("");
       setPhotoFile(null);
       await loadFinance();
-      setSuccess("Is fotografi eklendi");
+      setSuccess("İş fotoğrafı eklendi");
       setError(null);
     } catch {
-      setError("Is fotografi eklenemedi");
+      setError("İş fotoğrafı eklenemedi");
     }
   }
 
@@ -243,7 +243,7 @@ export default function AdminSupplierFinancePage() {
       <Card>
         <Header>
           <h2 style={{ margin: 0 }}>Finans Modulu: {supplierName || `#${supplierId}`}</h2>
-          <Btn type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}`)}>Tedarikci Detayina Don</Btn>
+          <Btn type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}`)}>Tedarikçi Detayına Dön</Btn>
         </Header>
         {!!finance?.alerts?.length && <Message $error style={{ marginTop: 10 }}>{finance.alerts.join(" ")}</Message>}
       </Card>
@@ -294,10 +294,10 @@ export default function AdminSupplierFinancePage() {
       </Card>
 
       <Card>
-        <h3 style={{ marginTop: 0 }}>Is Fotografi Ekle</h3>
+        <h3 style={{ marginTop: 0 }}>İş Fotoğrafı Ekle</h3>
         <Grid>
           <Label>Fotograf Basligi<Input value={photoTitle} onChange={(e) => setPhotoTitle(e.target.value)} /></Label>
-          <Label>Is Fotografi<Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} /></Label>
+          <Label>İş Fotoğrafı<Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} /></Label>
         </Grid>
         <div style={{ marginTop: 8 }}>
           <PrimaryBtn type="button" onClick={() => void handleAddPhoto()}>Fotograf Ekle</PrimaryBtn>
@@ -337,7 +337,7 @@ export default function AdminSupplierFinancePage() {
       </Card>
 
       <Card>
-        <h3 style={{ marginTop: 0 }}>Is Fotograflari ({finance?.photos.length || 0})</h3>
+        <h3 style={{ marginTop: 0 }}>İş Fotoğrafları ({finance?.photos.length || 0})</h3>
         <div style={{ display: "grid", gap: 8 }}>
           {(finance?.photos || []).map((p) => (
             <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>

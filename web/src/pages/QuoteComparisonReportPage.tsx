@@ -183,7 +183,7 @@ export default function QuoteComparisonReportPage() {
 
       {readOnly && (
         <div style={{ ...card, marginBottom: "12px", borderColor: "#bfdbfe", background: "#eff6ff", color: "#1e3a8a" }}>
-          Platform personeli karsilastirma raporunu inceleyebilir; tedarikci secimi ve is onayi gibi write aksiyonlari salt okunur modda kapatildi.
+          Platform personeli karşılaştırma raporunu inceleyebilir; tedarikçi seçimi ve iş onayı gibi write aksiyonları salt okunur modda kapatıldı.
         </div>
       )}
 

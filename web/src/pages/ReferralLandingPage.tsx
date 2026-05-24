@@ -28,9 +28,9 @@ export default function ReferralLandingPage() {
   const effectiveTarget = forcedTarget || info?.target_type || "mixed";
   const targetLabel =
     effectiveTarget === "partner"
-      ? "Stratejik Partner Programi"
+      ? "Stratejik Partner Programı"
       : effectiveTarget === "supplier"
-      ? "Tedarikci Programi"
+      ? "Tedarikçi Programı"
       : "Platform Programlari";
 
   const strategicPartnerPath = `/onboarding?tenant_type=strategic_partner&ref=${code}`;
@@ -185,7 +185,7 @@ export default function ReferralLandingPage() {
                     textDecoration: "none",
                   }}
                 >
-                  Tedarikci Olarak Devam Et
+                  Tedarikçi Olarak Devam Et
                 </Link>
               </div>
             )}

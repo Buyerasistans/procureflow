@@ -70,7 +70,7 @@ export default function PublicMarketplacePage() {
 
   const title =
     mode === "offers" ? "Acik Ihaleler" :
-    mode === "suppliers" ? "Tedarikci Havuzu" :
+    mode === "suppliers" ? "Tedarikçi Havuzu" :
     mode === "strategic" ? "Stratejik Partnerlerimiz" :
     "Başarılı İş Ortaklarımız";
 
@@ -246,7 +246,7 @@ export default function PublicMarketplacePage() {
               <div>{offerMessage}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <a href="/supplier/login" style={{ background: "#1d4ed8", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Giriş Yap</a>
-                <a href="/fiyatlandirma#tedarikci" style={{ background: "#0f766e", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Uyeligi Yukselti</a>
+                <a href="/fiyatlandirma#tedarikci" style={{ background: "#0f766e", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Üyeliği Yükselt</a>
                 <button type="button" onClick={() => setOfferMessage(null)} style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>Kapat</button>
               </div>
             </article>
@@ -264,7 +264,7 @@ export default function PublicMarketplacePage() {
                         Sehir: {row.project_city || "-"} | Proje No: {row.project_code || "-"}
                       </div>
                       <div style={{ marginTop: 8, color: "#0b5d4a", fontWeight: 700, textAlign: "left" }}>
-                        Tedarikci sayisi: {row.supplier_count || 0} | Teklif sayisi: {row.bidder_count || 0}
+                        Tedarikçi sayısı: {row.supplier_count || 0} | Teklif sayısı: {row.bidder_count || 0}
                       </div>
                     </div>
                   </div>

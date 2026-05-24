@@ -35,7 +35,7 @@ export function PartnerSummaryCard({ summary, loading }: PartnerSummaryCardProps
           labelColor="#334155"
         />
         <StatCard
-          label="Son 30 Gun Yeni Musteri"
+          label="Son 30 Gün Yeni Müşteri"
           value={<span style={{ fontSize: 20 }}>{summary?.last_30d_new_customers ?? "-"}</span>}
           borderColor="#fde68a"
           backgroundColor="#fffbeb"

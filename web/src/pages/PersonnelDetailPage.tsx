@@ -668,7 +668,7 @@ export default function PersonnelDetailPage() {
               <p className="personnel-detail-page__modal-text">Geçici şifre:</p>
               <div className="personnel-detail-page__password-chip">{resetResult.temp_password}</div>
               <p className="personnel-detail-page__modal-note">
-                Bu sifreyi kullaniciya iletiniz. Kullanici giris yaptiktan sonra Profil sayfasindan
+                Bu şifreyi kullanıcıya iletiniz. Kullanıcı giriş yaptıktan sonra Profil sayfasından
                 degistirmelidir.
               </p>
               <button

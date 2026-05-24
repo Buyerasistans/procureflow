@@ -835,7 +835,7 @@ export default function QuoteDetailPage() {
 
       {readOnly && (
         <div style={{ marginBottom: "16px", padding: "12px 14px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a" }}>
-          Platform personeli bu teklifi inceleyebilir; duzenleme, onaya gonderme, onay, revize ve tedarikci secimi aksiyonlari salt okunur modda kapatildi.
+          Platform personeli bu teklifi inceleyebilir; düzenleme, onaya gönderme, onay, revize ve tedarikçi seçimi aksiyonları salt okunur modda kapatıldı.
         </div>
       )}
 

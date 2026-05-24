@@ -132,7 +132,7 @@ export default function PublicHomePage() {
               Referans pazar oyuncularindaki en iyi yaklasimlari; daha yalin onboarding, daha net rol ayrimi ve daha guvenli denetim iziyle yeniden tasarladik.
             </p>
             <ul style={listStyle}>
-              <li>Alici ve tedarikci tarafi icin ayri ama senkron calisma deneyimi</li>
+              <li>Alıcı ve tedarikçi tarafı için ayrı ama senkron çalışma deneyimi</li>
               <li>Kurumsal yönetişime uygun, kanıtlanabilir onay zinciri</li>
               <li>Platform analytics ile yönetim kuruluna hazır KPI panosu</li>
               <li>Ayni altyapiyla coklu marka/domain yayini</li>

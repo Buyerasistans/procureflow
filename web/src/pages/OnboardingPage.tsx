@@ -83,14 +83,14 @@ const TENANT_TYPES: TenantTypeOption[] = [
   {
     type: "strategic_partner",
     title: "Stratejik Partnerlik",
-    description: "Kurumsal satin alma ekibi - Tedarikcileri yonetin, teklif alin",
+    description: "Kurumsal satın alma ekibi - Tedarikçileri yönetin, teklif alın",
     color: "#4f46e5",
     bgColor: "#eef2ff",
   },
   {
     type: "supplier",
-    title: "Tedarikci",
-    description: "Teklif sunun, musteri bulun, daha fazla is kazanin",
+    title: "Tedarikçi",
+    description: "Teklif sunun, müşteri bulun, daha fazla iş kazanın",
     color: "#0891b2",
     bgColor: "#ecf0ff",
   },
@@ -100,7 +100,7 @@ const CATEGORY_HELP_COPY: Record<TenantType, { title: string; detail: string }> 
   strategic_partner: {
     title: "Kategori bilgisi supplier planlamasi icin kullanilir",
     detail:
-      "Sectiginiz faaliyet alani onboarding sonrasinda Stratejik Partner Yonetimi ekraninda supplier kapsami ile birlikte izlenir. Boylece ilgili kategoride hazir tedarikci olup olmadigi ve hangi alanlarda ek supplier devreye alma gerektigi ilk gunden gorulur.",
+      "Seçtiğiniz faaliyet alanı onboarding sonrasında Stratejik Partner Yönetimi ekranında supplier kapsamı ile birlikte izlenir. Böylece ilgili kategoride hazır tedarikçi olup olmadığı ve hangi alanlarda ek supplier devreye alma gerektiği ilk günden görülür.",
   },
   supplier: {
     title: "Kategori bilgisi gorunurluk ve davet kalitesi icin kullanilir",
@@ -299,7 +299,7 @@ export default function OnboardingPage() {
       const res = await fetch(`${API_BASE}/api/v1/onboarding/status?${params.toString()}`);
       const data = await parseApiResponse<OnboardingLookupStatus | { detail?: string }>(res);
       if (!res.ok) {
-        throw new Error((data as { detail?: string } | null)?.detail ?? "Basvuru durumu alinamadi.");
+        throw new Error((data as { detail?: string } | null)?.detail ?? "Başvuru durumu alınamadı.");
       }
       const nextStatus = data as OnboardingLookupStatus;
       setStatusLookup(nextStatus);
@@ -310,7 +310,7 @@ export default function OnboardingPage() {
       }
     } catch (err) {
       setStatusLookup(null);
-      setError(err instanceof Error ? err.message : "Basvuru durumu alinamadi.");
+      setError(err instanceof Error ? err.message : "Başvuru durumu alınamadı.");
     } finally {
       setStatusLookupLoading(false);
     }
@@ -557,23 +557,23 @@ export default function OnboardingPage() {
         <div style={styles.card}>
           <div style={styles.header}>
             <PublicBrandLogo height={44} maxWidth={220} />
-            <div style={styles.subtitle}>Tedarik sureclerinizi dijitallestirin</div>
+            <div style={styles.subtitle}>Tedarik süreçlerinizi dijitalleştirin</div>
           </div>
 
           {trackingToken ? (
             <div style={{ ...styles.prominentInfoBox, marginBottom: 18, borderColor: "#93c5fd", background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" }}>
-              <div style={{ fontWeight: 800, color: "#1d4ed8", marginBottom: 6 }}>Basvuru Takibi</div>
+              <div style={{ fontWeight: 800, color: "#1d4ed8", marginBottom: 6 }}>Başvuru Takibi</div>
               {statusLookupLoading ? (
-                <div>Basvuru durumu yukleniyor...</div>
+                <div>Başvuru durumu yükleniyor...</div>
               ) : statusLookup ? (
                 <div style={{ display: "grid", gap: 8 }}>
-                  <div><strong>Basvuru:</strong> {statusLookup.brand_name || statusLookup.legal_name}</div>
+                  <div><strong>Başvuru:</strong> {statusLookup.brand_name || statusLookup.legal_name}</div>
                   <div><strong>Durum:</strong> {statusLookup.onboarding_approval_status} / {statusLookup.onboarding_payment_status}</div>
                   {statusLookup.tracking_token_expires_at ? <div><strong>Takip linki son gecerlilik:</strong> {new Date(statusLookup.tracking_token_expires_at).toLocaleString("tr-TR")}</div> : null}
                   {statusLookup.onboarding_activation_notes ? <div><strong>Operasyon notu:</strong> {statusLookup.onboarding_activation_notes}</div> : null}
                   {statusLookup.can_resubmit_receipt ? (
                     <div style={{ display: "grid", gap: 10, marginTop: 4 }}>
-                      <div style={{ color: "#1e3a8a" }}>Yeni dekont veya aciklama yukleyerek basvurunuzu guncelleyebilirsiniz.</div>
+                      <div style={{ color: "#1e3a8a" }}>Yeni dekont veya açıklama yükleyerek başvurunuzu güncelleyebilirsiniz.</div>
                       <label style={styles.label}>
                         Yeni dekont dosyasi
                         <input type="file" accept="application/pdf,image/*" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} style={styles.input} />
@@ -589,7 +589,7 @@ export default function OnboardingPage() {
                   ) : null}
                 </div>
               ) : (
-                <div>Basvuru kaydi bulunamadi.</div>
+                <div>Başvuru kaydı bulunamadı.</div>
               )}
             </div>
           ) : null}
@@ -665,7 +665,7 @@ export default function OnboardingPage() {
           {step === "plan" && (
             <div>
               <h2 style={styles.stepTitle}>Paketinizi secin</h2>
-              <p style={styles.stepDesc}>Fiyat bilgisi super admin tarafindan yonetilir ve secime gore odeme adimi zorunlu tutulur.</p>
+              <p style={styles.stepDesc}>Fiyat bilgisi super admin tarafından yönetilir ve seçime göre ödeme adımı zorunlu tutulur.</p>
               {plansLoading ? (
                 <div style={styles.loading}>Paketler yukleniyor...</div>
               ) : (
@@ -733,7 +733,7 @@ export default function OnboardingPage() {
           {step === "details" && (
             <form data-telemetry-name="onboarding-register-form" onSubmit={handleDetailsContinue}>
               <h2 style={styles.stepTitle}>Firma ve hesap bilgileri</h2>
-              <p style={styles.stepDesc}>Sisteme giris yapacak ilk yonetici hesabini olusturun.</p>
+              <p style={styles.stepDesc}>Sisteme giriş yapacak ilk yönetici hesabını oluşturun.</p>
               {selectedPlanObj && (
                 <div style={styles.prominentInfoBox}>
                   <strong>Secilen plan:</strong> {selectedPlanObj.name} - {renderPrice(selectedPlanObj)}
@@ -809,7 +809,7 @@ export default function OnboardingPage() {
                   <strong>{CATEGORY_HELP_COPY[selectedTenantType].title}</strong>
                   <div style={{ marginTop: 6 }}>{CATEGORY_HELP_COPY[selectedTenantType].detail}</div>
                   <div style={{ marginTop: 8, color: "#475569" }}>
-                    Kategori secimi popup ile yonetilir. Faaliyet kategorisi en fazla {MAX_COMPANY_CATEGORY_COUNT} adet secilebilir. Hedef kategorilerde {includedTargetCategoryLimit} adet temel limite dahildir; daha fazlasi odeme tutarina eklenir.
+                    Kategori seçimi popup ile yönetilir. Faaliyet kategorisi en fazla {MAX_COMPANY_CATEGORY_COUNT} adet seçilebilir. Hedef kategorilerde {includedTargetCategoryLimit} adet temel limite dahildir; daha fazlası ödeme tutarına eklenir.
                   </div>
                 </div>
               ) : null}
@@ -846,7 +846,7 @@ export default function OnboardingPage() {
 
               {selectedProvider === "bank_transfer" ? (
                 <div style={styles.prominentInfoBox}>
-                  <div><strong>EFT / Havale is akisi:</strong> Dekont yuklendikten sonra odeme super admin ekibi tarafindan dogrulanir, ardindan uyelik aktivasyon onayi verilir.</div>
+                  <div><strong>EFT / Havale iş akışı:</strong> Dekont yüklendikten sonra ödeme super admin ekibi tarafından doğrulanır, ardından üyelik aktivasyon onayı verilir.</div>
                   {bankTransferInstructions ? (
                     <div style={{ marginTop: 10, padding: 12, borderRadius: 10, border: "1px solid #cbd5e1", background: "white", display: "grid", gap: 4 }}>
                       <div><strong>Banka:</strong> {bankTransferInstructions.bank_name || "-"}</div>
@@ -859,7 +859,7 @@ export default function OnboardingPage() {
                         <span><strong>Aciklama / Referans:</strong> {bankTransferInstructions.reference || "-"}</span>
                         <button type="button" style={styles.copyBtn} onClick={() => void copyToClipboard(bankTransferInstructions.reference || "", "Referans")}>Referansi Kopyala</button>
                       </div>
-                      <div><strong>Gonderilecek tutar:</strong> {bankTransferInstructions.amount || totalPaymentAmount} {bankTransferInstructions.currency || selectedPlanCurrency}</div>
+                      <div><strong>Gönderilecek tutar:</strong> {bankTransferInstructions.amount || totalPaymentAmount} {bankTransferInstructions.currency || selectedPlanCurrency}</div>
                     </div>
                   ) : (
                     <div style={{ marginTop: 10, color: "#64748b", fontSize: 12 }}>Odeme baslatildiginda banka hesap bilgileri burada gorunecek.</div>
@@ -871,7 +871,7 @@ export default function OnboardingPage() {
                   </label>
                   <label style={{ ...styles.label, marginTop: 12 }}>
                     Referans / aciklama
-                    <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} style={{ ...styles.input, resize: "vertical" }} placeholder="Gonderen hesap adi, EFT referansi veya not" />
+                    <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} style={{ ...styles.input, resize: "vertical" }} placeholder="Gönderen hesap adı, EFT referansı veya not" />
                   </label>
                 </div>
               ) : null}
@@ -903,11 +903,11 @@ export default function OnboardingPage() {
                       : "ℹ️ Bu plan icin odeme adimi gerekmiyor."}
                 </div>
                 <div style={{ marginTop: 6 }}>
-                  {doneData.invitation_sent ? "✅ Aktivasyon e-postasi gonderildi. Gelen kutunuzu kontrol edin." : "⏳ Aktivasyon baglantisi yakinda iletilecektir."}
+                  {doneData.invitation_sent ? "✅ Aktivasyon e-postası gönderildi. Gelen kutunuzu kontrol edin." : "⏳ Aktivasyon bağlantısı yakında iletilecektir."}
                 </div>
                 {doneData.payment_transaction_id ? <div style={{ marginTop: 6 }}><strong>Odeme islem no:</strong> {doneData.payment_transaction_id}</div> : null}
               </div>
-              <a href="/login" style={styles.linkBtn}>Giris sayfasina git →</a>
+              <a href="/login" style={styles.linkBtn}>Giriş sayfasına git →</a>
             </div>
           )}
         </div>

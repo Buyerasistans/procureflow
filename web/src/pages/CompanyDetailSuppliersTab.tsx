@@ -50,8 +50,8 @@ export function CompanyDetailSuppliersTab({ tenantId, tenantName, companyCreated
         <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Tedarikçi yok</div>
         <div style={{ fontSize: 14 }}>
           {tenantId
-            ? "Bu firmaya henuz davet edilen tedarikci bulunmuyor."
-            : "Bu firma tenant bagimsiz oldugu icin Buyera Asistans ozel tedarikci havuzu gosterilir."}
+            ? "Bu firmaya henüz davet edilen tedarikçi bulunmuyor."
+            : "Bu firma tenant bağımsız olduğu için Buyera Asistans özel tedarikçi havuzu gösterilir."}
         </div>
       </div>
     );

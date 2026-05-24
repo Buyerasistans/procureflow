@@ -620,7 +620,7 @@ function UserProfileSection({
             <input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+90 5xx xxx xx xx" />
           </Field>
           <Field>
-            <label>Is E-postasi (opsiyonel)</label>
+            <label>İş E-postası (opsiyonel)</label>
             <input value={form.work_email} onChange={(e) => setForm((p) => ({ ...p, work_email: e.target.value }))} placeholder="is@firmasi.com" />
           </Field>
         </FormGrid>
@@ -745,7 +745,7 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
 
   const handleSave = async () => {
     if (hasSupplierToken) {
-      flash("Bu panelde SMTP ayarlari super admin tarafindan yonetilir.", "info");
+      flash("Bu panelde SMTP ayarları super admin tarafından yönetilir.", "info");
       return;
     }
     setSaving(true);
@@ -764,7 +764,7 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
 
   const handleTest = async () => {
     if (hasSupplierToken) {
-      flash("Test gonderimi super admin panelinden yapilabilir.", "info");
+      flash("Test gönderimi super admin panelinden yapılabilir.", "info");
       return;
     }
     const to = form.from_email || form.smtp_username || "";
@@ -772,9 +772,9 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
     setTesting(true);
     try {
       const res = await testEmailSettings({ ...form, to_email: to }, userId);
-      flash(res.message || "Test maili gonderildi.", "success");
+      flash(res.message || "Test maili gönderildi.", "success");
     } catch {
-      flash("Test maili gonderilemedi.", "error");
+      flash("Test maili gönderilemedi.", "error");
     } finally {
       setTesting(false);
     }
@@ -788,7 +788,7 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
 
       {isDefault && (
         <DefaultBadge>
-          Bu profilde ozel SMTP / POP3 / IMAP ayari tanimli degil. Mail gonderme ve alma islemlerinde size tanimlanan buyerasistans.com.tr is maili varsayilan olarak kullanilir. Ozel ayar girip kaydederseniz varsayilan kanal otomatik olarak ozel profilinize gecer.
+          Bu profilde özel SMTP / POP3 / IMAP ayarı tanımlı değil. Mail gönderme ve alma işlemlerinde size tanımlanan buyerasistans.com.tr iş maili varsayılan olarak kullanılır. Özel ayar girip kaydederseniz varsayılan kanal otomatik olarak özel profilinize geçer.
         </DefaultBadge>
       )}
 
@@ -818,11 +818,11 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
             <input type="password" value={form.smtp_password || ""} onChange={(e) => handleChange("smtp_password", e.target.value)} placeholder="••••••••" />
           </Field>
           <Field>
-            <label>Gonderen E-posta (From)</label>
+            <label>Gönderen E-posta (From)</label>
             <input value={form.from_email || ""} onChange={(e) => handleChange("from_email", e.target.value)} placeholder="bilgi@firmasi.com" />
           </Field>
           <Field>
-            <label>Gonderen Adi</label>
+            <label>Gönderen Adı</label>
             <input value={form.from_name || ""} onChange={(e) => handleChange("from_name", e.target.value)} placeholder="Firma Adi" />
           </Field>
           <Field>
@@ -879,7 +879,7 @@ function PlatformSettingsSection({ userId }: { userId?: number | null }) {
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <SaveBtn onClick={() => { void handleSave(); }} disabled={saving || hasSupplierToken}>{saving ? "Kaydediliyor..." : "Ayarlari Kaydet"}</SaveBtn>
-        <TestBtn onClick={() => { void handleTest(); }} disabled={testing || hasSupplierToken}>{testing ? "Test ediliyor..." : "Test Maili Gonder"}</TestBtn>
+        <TestBtn onClick={() => { void handleTest(); }} disabled={testing || hasSupplierToken}>{testing ? "Test ediliyor..." : "Test Maili Gönder"}</TestBtn>
         {!hasSupplierToken && !isDefault && settings?.id && (
           <SaveBtn
             onClick={() => {
@@ -965,7 +965,7 @@ export default function SupplierDashboard() {
   const [userEmail, setUserEmail] = useState<string>("-");
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [userWorkEmail, setUserWorkEmail] = useState<string | null>(null);
-  const [roleText, setRoleText] = useState<string>("Tedarikci Kullanicisi");
+  const [roleText, setRoleText] = useState<string>("Tedarikçi Kullanıcısı");
   const [supplierUserId, setSupplierUserId] = useState<number | null>(null);
   const [authorizedUsers, setAuthorizedUsers] = useState<SupplierAuthorizedUser[]>([]);
 
@@ -1062,13 +1062,13 @@ export default function SupplierDashboard() {
         const sr = String(parsed.system_role || "").toLowerCase();
         const code = String(parsed.role_profile_code || "").trim();
         setIsSuperAdminSession(sr === "super_admin");
-        if (br === "supplier_admin") setRoleText(code || "Tedarikci Yoneticisi");
-        else if (br === "supplier_user" || sr === "supplier_user") setRoleText(code || "Tedarikci Kullanicisi");
-        else setRoleText(code || "Tedarikci");
+        if (br === "supplier_admin") setRoleText(code || "Tedarikçi Yöneticisi");
+        else if (br === "supplier_user" || sr === "supplier_user") setRoleText(code || "Tedarikçi Kullanıcısı");
+        else setRoleText(code || "Tedarikçi");
       }
     } catch {
       setFirmName("Firma");
-      setUserName("Tedarikci kullanicisi");
+      setUserName("Tedarikçi kullanicisi");
     }
   }, []);
 
@@ -1392,7 +1392,7 @@ export default function SupplierDashboard() {
                     <h3>{project.name}</h3>
 
                     <div className={`status-badge${project.supplier_quote?.submitted ? " submitted" : " pending"}`}>
-                      {project.supplier_quote?.submitted ? "Teklif Gonderildi" : "Teklif Bekleniyor"}
+                      {project.supplier_quote?.submitted ? "Teklif Gönderildi" : "Teklif Bekleniyor"}
                     </div>
 
                     {project.quote?.title && (
@@ -1501,7 +1501,7 @@ export default function SupplierDashboard() {
             <FirmsSection
               firms={myFirms}
               onSwitch={(firm) => {
-                flash(`${firm.company_name} firmasina gecis yapilamaz — tek oturum desteklenmektedir. Yeni firmaya katilim davetiyesi ile giris yapiniz.`, "info");
+                flash(`${firm.company_name} firmasına geçiş yapılamaz — tek oturum desteklenmektedir. Yeni firmaya katılım davetiyesi ile giriş yapınız.`, "info");
               }}
             />
           </>

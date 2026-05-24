@@ -325,7 +325,7 @@ export default function SendQuoteModal({ quote, quoteId, projectId, suppliers, o
             Paket kurali
           </div>
           <div style={{ fontSize: "12px", lineHeight: 1.6 }}>
-            Private supplier secimleri her pakette gonderilebilir. Platform Agi secimleri ise Growth, Enterprise veya aktif premium entitlement gerektirir. Uygun olmayan secimlerde backend gonderimi bloke eder.
+            Private supplier seçimleri her pakette gönderilebilir. Platform Ağı seçimleri ise Growth, Enterprise veya aktif premium entitlement gerektirir. Uygun olmayan seçimlerde backend gönderimi bloke eder.
           </div>
           {quote.entitlement_summary ? (
             <div style={{ marginTop: "6px", fontSize: "12px", lineHeight: 1.6, color: platformNetworkEligible ? "#166534" : "#9a3412" }}>
