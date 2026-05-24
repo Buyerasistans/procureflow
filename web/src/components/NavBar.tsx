@@ -23,15 +23,15 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
   const defaultCopy = isTurkish
     ? {
       home: "Ana Sayfa",
-      offers: "Acik Ihaleler",
-      suppliers: "Tedarikci Havuzu",
+      offers: "Açık İhaleler",
+      suppliers: "Tedarikçi Havuzu",
       strategic: "Stratejik Partnerlerimiz",
-      partnerProgram: "Basarili Is Ortaklarimiz",
-      signIn: "Sisteme Giris",
-      supplierLogin: "Tedarikci Girisi",
-      partnerLogin: "Is Ortagi Girisi",
-      chooseLogin: "Giris Secin",
-      strategicLogin: "Stratejik Partner Girisi",
+      partnerProgram: "Başarılı İş Ortaklarımız",
+      signIn: "Sisteme Giriş",
+      supplierLogin: "Tedarikçi Girişi",
+      partnerLogin: "İş Ortağı Girişi",
+      chooseLogin: "Giriş Seçin",
+      strategicLogin: "Stratejik Partner Girişi",
       close: "Kapat",
     }
     : {

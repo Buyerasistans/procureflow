@@ -176,7 +176,7 @@ export default function SupplierPortalLoginPage() {
     }
 
     if (!formData.password) {
-      setError({ field: "password", message: "Sifre gerekli" });
+      setError({ field: "password", message: "Şifre gerekli" });
       return;
     }
 
@@ -184,13 +184,13 @@ export default function SupplierPortalLoginPage() {
 
     try {
       await supplierLoginRequest(formData.email, formData.password);
-      setSuccess("Giris basarili! Yonlendiriliyorsunuz...");
+      setSuccess("Giriş başarılı! Yönlendiriliyorsunuz...");
       navigate("/supplier/dashboard", { replace: true });
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Giris basarisiz. Lutfen e-posta ve sifrenizi kontrol ediniz.";
+          : "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol ediniz.";
       setError({ message: errorMessage });
     } finally {
       setLoading(false);
@@ -204,15 +204,15 @@ export default function SupplierPortalLoginPage() {
         <LeftSection>
           <div>
             <PublicBrandLogo height={44} maxWidth={220} marginBottom={24} invert />
-            <h1>Tedarikci Portali</h1>
-            <p>Tekliflerinizi yonetin, proje detaylarini gorun ve sozlesme sureclerini tek bir panelden takip edin.</p>
+            <h1>Tedarikçi Portalı</h1>
+            <p>Tekliflerinizi yönetin, proje detaylarını görün ve sözleşme süreçlerini tek bir panelden takip edin.</p>
           </div>
         </LeftSection>
 
         <RightSection>
           <FormContainer>
-            <h2>Tedarikci Girisi</h2>
-            <p>Tedarikci hesabinizla giris yaparak kendi tedarikci panelinize erisin.</p>
+            <h2>Tedarikçi Girişi</h2>
+            <p>Tedarikçi hesabınızla giriş yaparak kendi tedarikçi panelinize erişin.</p>
 
             <Form onSubmit={handleSubmit}>
               {error && <ErrorMessage>{error.message}</ErrorMessage>}
@@ -233,7 +233,7 @@ export default function SupplierPortalLoginPage() {
               </FormGroup>
 
               <FormGroup htmlFor="password">
-                Sifre
+                Şifre
                 <Input
                   type="password"
                   id="password"
@@ -247,7 +247,7 @@ export default function SupplierPortalLoginPage() {
               </FormGroup>
 
               <SubmitButton type="submit" disabled={loading}>
-                {loading ? "Giris yapiliyor..." : "Giris Yap"}
+                {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
               </SubmitButton>
             </Form>
           </FormContainer>

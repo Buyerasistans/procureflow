@@ -1,50 +1,50 @@
 import NavBar from "../components/NavBar";
 
 const highlights = [
-  { label: "Kurumsal RFQ", value: "Dakikalar icinde ihale" },
-  { label: "Onay Yonetisimi", value: "Rol bazli + denetlenebilir" },
-  { label: "Tedarikci Agi", value: "Platform + ozel havuz" },
-  { label: "Stratejik Partner", value: "Tenant-izole calisma alani" },
+  { label: "Kurumsal RFQ", value: "Dakikalar içinde ihale" },
+  { label: "Onay Yönetişimi", value: "Rol bazlı + denetlenebilir" },
+  { label: "Tedarikçi Ağı", value: "Platform + özel havuz" },
+  { label: "Stratejik Partner", value: "Tenant-izole çalışma alanı" },
 ];
 
 const domainMap = [
   {
     domain: "buyerasistans.com.tr",
     role: "Ana kurumsal vitrin",
-    why: "TR hedef kitle, yerel guven ve marka otoritesi icin birincil alan.",
+    why: "TR hedef kitle, yerel güven ve marka otoritesi icin birincil alan.",
   },
   {
     domain: "buyerasistans.com",
-    role: "Global/EN acilis sayfasi",
-    why: "Uluslararasi aramalarda daha guclu algi ve yurtdisi lead yakalama.",
+    role: "Global/EN açılış sayfası",
+    why: "Uluslararası aramalarda daha güçlü algı ve yurt dışı lead yakalama.",
   },
   {
     domain: "buyerasistans.online",
     role: "Kampanya ve demo landingleri",
-    why: "Performans kampanyalari icin hizli A/B test ve mikro hedefleme.",
+    why: "Performans kampanyaları için hızlı A/B test ve mikro hedefleme.",
   },
   {
     domain: "buyerasistans.info",
-    role: "Bilgi merkezi ve kaynak kutuphanesi",
-    why: "SEO odakli rehber, sozluk, dokuman ve sector icerigi ile organik buyume.",
+    role: "Bilgi merkezi ve kaynak kütüphanesi",
+    why: "SEO odaklı rehber, sözlük, doküman ve sektör içeriği ile organik büyüme.",
   },
 ];
 
 const flowSteps = [
   {
-    title: "1. Kesif ve Kayit",
+    title: "1. Keşif ve Kayıt",
     detail:
-      "Stratejik ortaklar onboarding ile, tedarikciler supplier kayit akisiyla platforma hizli giris yapar.",
+      "Stratejik ortaklar onboarding ile, tedarikçiler supplier kayıt akışıyla platforma hızlı giriş yapar.",
   },
   {
-    title: "2. Eslesme ve Teklif",
+    title: "2. Eşleşme ve Teklif",
     detail:
-      "Alici talepleri, uygun tedarikci havuzuna baglanir; RFQ ve teklif sureci tek panelde izlenir.",
+      "Alıcı talepleri, uygun tedarikçi havuzuna bağlanır; RFQ ve teklif süreci tek panelde izlenir.",
   },
   {
     title: "3. Onay ve Performans",
     detail:
-      "Onay zinciri, teslimat ve performans metrikleriyle surec kurumsal denetime hazir hale gelir.",
+      "Onay zinciri, teslimat ve performans metrikleriyle süreç kurumsal denetime hazır hale gelir.",
   },
 ];
 
@@ -72,17 +72,17 @@ export default function PublicHomePage() {
         </section>
 
         <section style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-          <a href="/onboarding" style={ctaGreen}>Hemen Basla</a>
-          <a href="/teklifler" style={ctaTeal}>Acik Ihaleler</a>
+          <a href="/onboarding" style={ctaGreen}>Hemen Başla</a>
+          <a href="/teklifler" style={ctaTeal}>Açık İhaleler</a>
           <a href="/stratejik-ortaklik" style={ctaGold}>Stratejik Partnerlerimiz</a>
-          <a href="/is-ortagi-programi" style={ctaDark}>Basarili Is Ortaklarimiz</a>
+          <a href="/is-ortagi-programi" style={ctaDark}>Başarılı İş Ortaklarımız</a>
         </section>
 
         <section style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
           <article style={tileCard}>
-            <div style={{ fontWeight: 800, color: "#0f172a" }}>Stratejik Ortaklar Icin</div>
+            <div style={{ fontWeight: 800, color: "#0f172a" }}>Stratejik Ortaklar İçin</div>
             <p style={{ margin: "8px 0", color: "#475569", fontSize: 14, lineHeight: 1.6 }}>
-              Kurumsal satin alma ekipleri icin onboarding, yonetisim ve operasyon surecini birlikte kurgulayan model.
+              Kurumsal satın alma ekipleri için onboarding, yönetişim ve operasyon sürecini birlikte kurgulayan model.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <a href="/onboarding" style={miniPrimary}>Stratejik Ortak Ol</a>
@@ -91,27 +91,27 @@ export default function PublicHomePage() {
             </div>
           </article>
           <article style={tileCard}>
-            <div style={{ fontWeight: 800, color: "#0f172a" }}>Tedarikciler Icin</div>
+            <div style={{ fontWeight: 800, color: "#0f172a" }}>Tedarikçiler İçin</div>
             <p style={{ margin: "8px 0", color: "#475569", fontSize: 14, lineHeight: 1.6 }}>
-              Tedarikci programi ile daha fazla gorunurluk, hizli teklif yaniti ve performans bazli buyume imkanlari.
+              Tedarikçi programı ile daha fazla görünürlük, hızlı teklif yanıtı ve performans bazlı büyüme imkanları.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <a href="/supplier/register" style={miniPrimary}>Tedarikci Ol</a>
-              <a href="/supplier/login" style={miniGhost}>Tedarikci Girisi</a>
-              <a href="/demo?audience=supplier" style={miniGhost}>Tedarikci Demosu</a>
-              <a href="/fiyatlandirma#tedarikci" style={miniGhost}>Tedarikci Planlari</a>
+              <a href="/supplier/register" style={miniPrimary}>Tedarikçi Ol</a>
+              <a href="/supplier/login" style={miniGhost}>Tedarikçi Girişi</a>
+              <a href="/demo?audience=supplier" style={miniGhost}>Tedarikçi Demosu</a>
+              <a href="/fiyatlandirma#tedarikci" style={miniGhost}>Tedarikçi Planları</a>
             </div>
           </article>
           <article style={tileCard}>
-            <div style={{ fontWeight: 800, color: "#0f172a" }}>Is Ortaklari / Komisyoncular Icin</div>
+            <div style={{ fontWeight: 800, color: "#0f172a" }}>İş Ortakları / Komisyoncular İçin</div>
             <p style={{ margin: "8px 0", color: "#475569", fontSize: 14, lineHeight: 1.6 }}>
-              Getirdiginiz partner ve tedarikci kayitlari icin attribution tabanli hak edis modeli,
-              seffaf komisyon takibi ve ekip paneli.
+              Getirdiğiniz partner ve tedarikçi kayıtları için attribution tabanlı hakediş modeli,
+              Şeffaf komisyon takibi ve ekip paneli.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <a href="/is-ortagi-programi" style={miniPrimary}>Is Ortagi Programi</a>
+              <a href="/is-ortagi-programi" style={miniPrimary}>İş Ortağı Programı</a>
               <a href="/demo?audience=strategic" style={miniGhost}>Program Demosu</a>
-              <a href="/onboarding" style={miniGhost}>Basvuru Baslat</a>
+              <a href="/onboarding" style={miniGhost}>Başvuru Başlat</a>
             </div>
           </article>
         </section>
@@ -133,22 +133,22 @@ export default function PublicHomePage() {
             </p>
             <ul style={listStyle}>
               <li>Alici ve tedarikci tarafi icin ayri ama senkron calisma deneyimi</li>
-              <li>Kurumsal yonetisime uygun, kanitlanabilir onay zinciri</li>
-              <li>Platform analytics ile yonetim kuruluna hazir KPI panosu</li>
+              <li>Kurumsal yönetişime uygun, kanıtlanabilir onay zinciri</li>
+              <li>Platform analytics ile yönetim kuruluna hazır KPI panosu</li>
               <li>Ayni altyapiyla coklu marka/domain yayini</li>
             </ul>
           </article>
           <article style={panelCard}>
             <h2 style={h2}>Stratejik Partnerlik Sozu</h2>
             <p style={bodyText}>
-              Sadece yazilim degil; category, onay ve tedarikci devreye alma disiplinini birlikte standardize eden bir operasyon modeli sunuyoruz.
+              Sadece yazılım değil; category, onay ve tedarikçi devreye alma disiplinini birlikte standardize eden bir operasyon modeli sunuyoruz.
             </p>
             <a href="/demo" style={{ ...primaryCta, display: "inline-block", marginTop: 8 }}>Kurumsal Demo Planla</a>
           </article>
         </section>
 
         <section style={{ marginTop: 30 }}>
-          <h2 style={{ ...h2, marginBottom: 12 }}>Platform Akisi</h2>
+          <h2 style={{ ...h2, marginBottom: 12 }}>Platform Akışı</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
             {flowSteps.map((step) => (
               <article key={step.title} style={tileCard}>
@@ -160,7 +160,7 @@ export default function PublicHomePage() {
         </section>
 
         <section style={{ marginTop: 38 }}>
-          <h2 style={{ ...h2, marginBottom: 12 }}>Domain Gorev Dagilimi Ornegi</h2>
+          <h2 style={{ ...h2, marginBottom: 12 }}>Domain Görev Dağılımı Örneği</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
             {domainMap.map((d) => (
               <article key={d.domain} style={tileCard}>
@@ -173,7 +173,7 @@ export default function PublicHomePage() {
         </section>
 
         <footer style={{ marginTop: 44, borderTop: "1px solid #dbeafe", paddingTop: 18, color: "#475569", fontSize: 13 }}>
-          © {new Date().getFullYear()} BUYER ASISTANS · Stratejik Partner Satin Alma Platformu
+          © {new Date().getFullYear()} BUYER ASISTANS · Stratejik Partner Satın Alma Platformu
         </footer>
       </section>
       </main>

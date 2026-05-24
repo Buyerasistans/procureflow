@@ -11,7 +11,7 @@ export function PartnerSummaryCard({ summary, loading }: PartnerSummaryCardProps
   return (
     <SectionCard backgroundColor="#f8fafc" borderColor="#e2e8f0">
       <SectionHeader
-        title="Is Ortagi Ozet Karti"
+        title="İş Ortağı Özet Kartı"
         right={
           <span style={{ fontSize: 12, color: "#475569" }}>
           {loading ? "Guncelleniyor..." : summary?.display_name || "-"}

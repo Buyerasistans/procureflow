@@ -25,7 +25,7 @@ export default function StrategicPartnerLoginPage() {
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Giri�x ba�xarısız.";
+      const message = err instanceof Error ? err.message : "Giriş başarısız.";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -69,10 +69,10 @@ export default function StrategicPartnerLoginPage() {
           <div style={{ position: "relative", zIndex: 1 }}>
             <PublicBrandLogo height={44} maxWidth={220} />
             <h1 style={{ margin: "22px 0 12px", fontSize: 50, lineHeight: 1.02, fontWeight: 900 }}>
-              Stratejik Partner Yonetimi
+              Stratejik Partner Yönetimi
             </h1>
             <p style={{ margin: 0, maxWidth: 560, fontSize: 16, lineHeight: 1.7, color: "#dbe4ea" }}>
-              Stratejik partnerlari yonetir, kendi tenant alanlarina erisir. Kultur, alt yapilar, satis kanallar ve platform dusmani butunlugunu kontrol ederiz.
+              Stratejik partnerleri yönetir, kendi tenant alanlarına erişir; kültür, altyapı, satış kanalları ve platform deneyimi bütünlüğünü kontrol ederiz.
             </p>
           </div>
         </div>
@@ -81,11 +81,11 @@ export default function StrategicPartnerLoginPage() {
           <div style={{ maxWidth: 420, margin: "0 auto" }}>
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: "#21453d" }}>
-                Stratejik Partner girisi
+                Stratejik Partner girişi
               </div>
-              <h2 style={{ margin: "10px 0 8px", fontSize: 34, lineHeight: 1.08, color: "#0f172a" }}>Hesabinla devam et</h2>
+              <h2 style={{ margin: "10px 0 8px", fontSize: 34, lineHeight: 1.08, color: "#0f172a" }}>Hesabınla devam et</h2>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: "#64748b" }}>
-                Stratejik partnerlar bu ekran uzerinden yonetim panelesine erisir ve kendi calisma alanlarini kontrol eder.
+                Stratejik partnerler bu ekran üzerinden yönetim paneline erişir ve kendi çalışma alanlarını kontrol eder.
               </p>
             </div>
 
@@ -112,7 +112,7 @@ export default function StrategicPartnerLoginPage() {
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Sifre</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Şifre</span>
                 <input
                   id="password"
                   name="password"
@@ -154,12 +154,12 @@ export default function StrategicPartnerLoginPage() {
                   opacity: submitting ? 0.7 : 1,
                 }}
               >
-                {submitting ? "Giris yapiliyor..." : "Giris yap"}
+                {submitting ? "Giriş yapılıyor..." : "Giriş yap"}
               </button>
             </form>
 
             <div style={{ marginTop: 18, borderRadius: 22, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "16px 18px", color: "#475569", fontSize: 14, lineHeight: 1.7 }}>
-              Stratejik partner hesabiniz varsa bu ekrandan giris yapabilirsiniz.
+              Stratejik partner hesabınız varsa bu ekrandan giriş yapabilirsiniz.
             </div>
           </div>
         </div>

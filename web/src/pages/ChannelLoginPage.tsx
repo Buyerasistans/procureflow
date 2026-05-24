@@ -24,7 +24,7 @@ export default function ChannelLoginPage() {
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Giris basarisiz.";
+      const message = err instanceof Error ? err.message : "Giriş başarısız.";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -68,11 +68,11 @@ export default function ChannelLoginPage() {
           <div style={{ position: "relative", zIndex: 1 }}>
             <PublicBrandLogo height={44} maxWidth={220} />
             <h1 style={{ margin: "22px 0 12px", fontSize: 50, lineHeight: 1.02, fontWeight: 900 }}>
-              Is Ortagi Programi
+              İş Ortağı Programı
             </h1>
             <p style={{ margin: 0, maxWidth: 560, fontSize: 16, lineHeight: 1.7, color: "#fdecd3" }}>
-              Is ortaklari bu alandan giris yaparak lead, portfoy ve hakedis
-              sureclerini kendi panelinden yonetir.
+              İş ortakları bu alandan giriş yaparak lead, portföy ve hakediş
+              süreçlerini kendi panelinden yönetir.
             </p>
           </div>
         </div>
@@ -81,11 +81,11 @@ export default function ChannelLoginPage() {
           <div style={{ maxWidth: 420, margin: "0 auto" }}>
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: "#92400e" }}>
-                Is Ortagi girisi
+                İş Ortağı girişi
               </div>
-              <h2 style={{ margin: "10px 0 8px", fontSize: 34, lineHeight: 1.08, color: "#0f172a" }}>Hesabinla devam et</h2>
+              <h2 style={{ margin: "10px 0 8px", fontSize: 34, lineHeight: 1.08, color: "#0f172a" }}>Hesabınla devam et</h2>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: "#64748b" }}>
-                Is ortagi hesabi olan kullanicilar bu ekran uzerinden ilgili ortaklik paneline erisir.
+                İş ortağı hesabı olan kullanıcılar bu ekran üzerinden ilgili ortaklık paneline erişir.
               </p>
             </div>
 
@@ -112,7 +112,7 @@ export default function ChannelLoginPage() {
               </label>
 
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Sifre</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Şifre</span>
                 <input
                   id="password"
                   name="password"
@@ -154,12 +154,12 @@ export default function ChannelLoginPage() {
                   opacity: submitting ? 0.7 : 1,
                 }}
               >
-                {submitting ? "Giris yapiliyor..." : "Giris yap"}
+                {submitting ? "Giriş yapılıyor..." : "Giriş yap"}
               </button>
             </form>
 
             <div style={{ marginTop: 18, borderRadius: 22, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "16px 18px", color: "#475569", fontSize: 14, lineHeight: 1.7 }}>
-              Is ortagi hesabiniz varsa bu ekrandan giris yapabilirsiniz.
+              İş ortağı hesabınız varsa bu ekrandan giriş yapabilirsiniz.
             </div>
           </div>
         </div>

@@ -32,7 +32,7 @@ export default function ChannelPartnerRegisterPage() {
     e.preventDefault();
     setError(null);
     if (!legalName.trim() || !fullName.trim() || !email.trim()) {
-      setError("Lutfen zorunlu alanlari doldurun.");
+      setError("Lütfen zorunlu alanları doldurun.");
       return;
     }
     setSubmitting(true);
@@ -53,13 +53,13 @@ export default function ChannelPartnerRegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.detail ?? "Kayit sirasinda bir hata olustu.");
+        setError(data.detail ?? "Kayıt sırasında bir hata oluştu.");
         return;
       }
       setDoneData(data);
       setStep("done");
     } catch {
-      setError("Sunucuya baglanilamadi. Lutfen tekrar deneyin.");
+      setError("Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
     } finally {
       setSubmitting(false);
     }
@@ -72,10 +72,10 @@ export default function ChannelPartnerRegisterPage() {
         <div style={styles.card}>
           {/* Header */}
           <div style={styles.header}>
-            <div style={styles.badge}>IS ORTAGI / KOMISYON PROGRAMI</div>
-            <h1 style={styles.title}>Basvuru Formu</h1>
+            <div style={styles.badge}>İŞ ORTAĞI / KOMİSYON PROGRAMI</div>
+            <h1 style={styles.title}>Başvuru Formu</h1>
             <p style={styles.subtitle}>
-              Networkunuzu gelire donusturun. Getirdiginiz her musteri icin komisyon kazanin.
+              Networkunuzu gelire dönüştürün. Getirdiğiniz her müşteri için komisyon kazanın.
             </p>
           </div>
 
@@ -84,31 +84,31 @@ export default function ChannelPartnerRegisterPage() {
               <div style={styles.infoBox}>
                 <div style={styles.infoRow}>
                   <span>[OK]</span>
-                  <span>Programa katilim tamamen <strong>ucretsiz</strong></span>
+                  <span>Programa katılım tamamen <strong>ücretsiz</strong></span>
                 </div>
                 <div style={styles.infoRow}>
                   <span>[Kazanc]</span>
-                  <span>Ilk 90 gunde getirdiginiz musterilerde <strong>%15 komisyon</strong></span>
+                  <span>İlk 90 günde getirdiğiniz müşterilerde <strong>%15 komisyon</strong></span>
                 </div>
                 <div style={styles.infoRow}>
                   <span>[Takip]</span>
-                  <span>Seffaf takip ve odeme - tum kazanclarinizi panelinizden izleyin</span>
+                  <span>Şeffaf takip ve ödeme - tüm kazançlarınızı panelinizden izleyin</span>
                 </div>
               </div>
 
               <div style={styles.formGrid}>
                 <label style={styles.label}>
-                  Firma ticari unvani *
+                  Firma ticari unvanı *
                   <input
                     style={styles.input}
                     value={legalName}
                     onChange={(e) => setLegalName(e.target.value)}
-                    placeholder="Ornek Danismanlik A.S."
+                    placeholder="Örnek Danışmanlık A.Ş."
                     required
                   />
                 </label>
                 <label style={styles.label}>
-                  Marka adi / Ticaret adi
+                  Marka adı / Ticaret adı
                   <input
                     style={styles.input}
                     value={brandName}
@@ -117,9 +117,9 @@ export default function ChannelPartnerRegisterPage() {
                   />
                 </label>
                 <label style={styles.label}>
-                  Uzmanlik / kategori
+                  Uzmanlık / kategori
                   <select style={styles.input} value={category} onChange={(e) => setCategory(e.target.value)}>
-                    <option value="">Seciniz</option>
+                    <option value="">Seçiniz</option>
                     {COMPANY_CATEGORY_OPTIONS.map((item) => (
                       <option key={item} value={item}>{item}</option>
                     ))}
@@ -127,21 +127,21 @@ export default function ChannelPartnerRegisterPage() {
                 </label>
                 <div style={{ ...styles.prominentInfoBox, gridColumn: "1 / -1", marginTop: -4, marginBottom: 4, borderColor: "#fcd34d", background: "linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%)" }}>
                   <div style={styles.infoRow}>
-                    <span>[Ipucu]</span>
-                    <span>Sectiginiz uzmanlik alani, getireceginiz musteri ve tedarikci portfoyunun hangi kategorilerde yogunlastigini platform ekibine gorunur kilar.</span>
+                    <span>[İpucu]</span>
+                    <span>Seçtiğiniz uzmanlık alanı, getireceğiniz müşteri ve tedarikçi portföyünün hangi kategorilerde yoğunlaştığını platform ekibine görünür kılar.</span>
                   </div>
                   <div style={styles.infoRow}>
-                    <span>[Baglanti]</span>
-                    <span>Bu bilgi daha sonra stratejik partner ve supplier onboarding akislariyla birlikte degerlendirilir; kategori bazli buyume ve eslesme planlari daha dogru kurulur.</span>
+                    <span>[Bağlantı]</span>
+                    <span>Bu bilgi daha sonra stratejik partner ve supplier onboarding akışlarıyla birlikte değerlendirilir; kategori bazlı büyüme ve eşleşme planları daha doğru kurulur.</span>
                   </div>
                 </div>
                 <label style={styles.label}>
-                  Yetkili adi soyadi *
+                  Yetkili adı soyadı *
                   <input
                     style={styles.input}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ahmet Yilmaz"
+                    placeholder="Ahmet Yılmaz"
                     required
                   />
                 </label>
@@ -171,9 +171,9 @@ export default function ChannelPartnerRegisterPage() {
               {error && <div style={styles.error}>{error}</div>}
 
               <div style={styles.actions}>
-                <a href="/is-ortagi-programi" style={styles.btnSecondary}>{"<- Programa Don"}</a>
+                <a href="/is-ortagi-programi" style={styles.btnSecondary}>{"<- Programa Dön"}</a>
                 <button type="submit" style={styles.btnPrimary} disabled={submitting}>
-                  {submitting ? "Basvuru gonderiliyor..." : "Basvuruyu Tamamla"}
+                  {submitting ? "Başvuru gönderiliyor..." : "Başvuruyu Tamamla"}
                 </button>
               </div>
             </form>
@@ -183,18 +183,18 @@ export default function ChannelPartnerRegisterPage() {
             <div style={{ textAlign: "center" as const, padding: "24px 0" }}>
               <div style={{ fontSize: 56, marginBottom: 16 }}>[Tamam]</div>
               <h2 style={{ fontSize: 24, fontWeight: 800, color: "#111827", margin: "0 0 12px" }}>
-                Basvurunuz Alindi!
+                Başvurunuz Alındı!
               </h2>
               <p style={{ color: "#6b7280", margin: "0 0 24px", lineHeight: 1.6 }}>{doneData.message}</p>
               <div style={styles.doneBox}>
-                <div><strong>Hesap e-postasi:</strong> {doneData.admin_email}</div>
+                <div><strong>Hesap e-postası:</strong> {doneData.admin_email}</div>
                 <div style={{ marginTop: 8 }}>
                   {doneData.invitation_sent
-                    ? "[OK] Aktivasyon e-postasi gonderildi. Gelen kutunuzu kontrol edin."
-                    : "[Bekliyor] Ekibimiz basvurunuzu inceleyecek ve en kisa surede iletisime gececek."}
+                    ? "[OK] Aktivasyon e-postası gönderildi. Gelen kutunuzu kontrol edin."
+                    : "[Bekliyor] Ekibimiz başvurunuzu inceleyecek ve en kısa sürede iletişime geçecek."}
                 </div>
               </div>
-              <a href="/" style={styles.linkBtn}>{"Ana Sayfaya Don ->"}</a>
+              <a href="/" style={styles.linkBtn}>{"Ana Sayfaya Dön ->"}</a>
             </div>
           )}
         </div>

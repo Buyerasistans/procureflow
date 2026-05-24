@@ -280,20 +280,20 @@ export default function PublicPricingAdminPage() {
   return (
     <main style={{ minHeight: "100vh", background: "radial-gradient(circle at top left, #eff6ff 0, #f8fafc 42%, #fff 100%)", padding: "28px 18px 40px", fontFamily: "'Segoe UI', sans-serif" }}>
       <section style={{ maxWidth: 1120, margin: "0 auto", background: "rgba(255,255,255,0.92)", border: "1px solid #e2e8f0", borderRadius: 18, padding: 24, boxShadow: "0 18px 48px rgba(15, 23, 42, 0.08)" }}>
-        <h1 style={{ marginTop: 0, color: "#0f172a" }}>Public Fiyatlandirma Ayarlari</h1>
+        <h1 style={{ marginTop: 0, color: "#0f172a" }}>Public Fiyatlandırma Ayarları</h1>
         <p style={{ color: "#475569", lineHeight: 1.6 }}>
-          Bu alan stratejik partner ve tedarikci plan fiyatlarini merkezi olarak yonetir.
-          Public sayfalar (`/fiyatlandirma`) bu konfigurasyonu otomatik kullanir.
+          Bu alan stratejik partner ve tedarikçi plan fiyatlarını merkezi olarak yönetir.
+          Public sayfalar (`/fiyatlandirma`) bu konfigürasyonu otomatik kullanır.
         </p>
 
         {loading ? (
-          <div style={{ color: "#64748b" }}>Yukleniyorâ€¦</div>
+          <div style={{ color: "#64748b" }}>Yükleniyor...</div>
         ) : (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 12 }}>
               <StatCard label="Stratejik Plan" value={String(config.strategic_partner?.plans?.length || 0)} />
-              <StatCard label="Tedarikci Plan" value={String(config.supplier?.plans?.length || 0)} />
-              <StatCard label="Premium Ozellik" value={String(sortedPremiumFeatures.length)} />
+              <StatCard label="Tedarikçi Plan" value={String(config.supplier?.plans?.length || 0)} />
+              <StatCard label="Premium Özellik" value={String(sortedPremiumFeatures.length)} />
               <StatCard label="Yetki" value={isSuperAdmin ? "Yazma" : "Salt Okuma"} />
             </div>
 
@@ -301,7 +301,7 @@ export default function PublicPricingAdminPage() {
               <article style={{ border: "1px solid #dbe3ee", borderRadius: 12, padding: 16, background: "linear-gradient(135deg,#eff6ff,#f8fafc)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#1d4ed8" }}>Public Bilgi Mimarisi</div>
                 <div style={{ marginTop: 6, color: "#334155", lineHeight: 1.7 }}>
-                  Public nav artik scope bazli ilerlemeli: Ana Sayfa, Teklifler, Tedarikciler, Stratejik Partnerlik, Is Ortagi Programi, Tedarikci Ol, Demo Talep Et ve Sisteme Giris. Fiyatlandirma ve cozumler icerigi bu sayfalarda dagitilabilir.
+                  Public nav artık scope bazlı ilerlemeli: Ana Sayfa, Teklifler, Tedarikçiler, Stratejik Partnerlik, İş Ortağı Programı, Tedarikçi Ol, Demo Talep Et ve Sisteme Giriş. Fiyatlandırma ve çözümler içeriği bu sayfalarda dağıtılabilir.
                 </div>
               </article>
 
@@ -311,7 +311,7 @@ export default function PublicPricingAdminPage() {
               </div>
 
               <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0f766e" }}>Form Tabanli Paket Yonetimi</div>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0f766e" }}>Form Tabanlı Paket Yönetimi</div>
                 <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
                   Super admin burada paket fiyatlarini, limitlerini ve tek tek satilan ekstra haklari form ile guncelleyebilir. JSON editor altta ileri seviye fallback olarak kalir.
                 </div>
@@ -346,7 +346,7 @@ export default function PublicPricingAdminPage() {
               <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#b45309" }}>Ekstra Paket ve Adet Bazli Haklar</div>
                 <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
-                  Paket gecisi istemeyen musteriler icin adet bazli haklar burada yonetilir. Birim fiyatlari ust paket gecisinden yuksek tutulabilir.
+                  Paket geçişi istemeyen müşteriler için adet bazlı haklar burada yönetilir. Birim fiyatları üst paket geçişinden yüksek tutulabilir.
                 </div>
                 <div style={{ marginTop: 14, display: "grid", gap: 14 }}>
                   {strategicAddons.map((addon) => (
@@ -374,7 +374,7 @@ export default function PublicPricingAdminPage() {
               </article>
 
               <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0284c7" }}>Tedarikci Paket Yonetimi</div>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0284c7" }}>Tedarikçi Paket Yönetimi</div>
                 <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
                   Tedarikci paketlerinin ad, aciklama ve fiyat alanlari da buradan duzenlenebilir.
                 </div>
@@ -500,7 +500,7 @@ export default function PublicPricingAdminPage() {
                 disabled={!isSuperAdmin || saving}
                 style={{ background: isSuperAdmin ? "#0f766e" : "#94a3b8", color: "#fff", border: "none", borderRadius: 8, padding: "10px 14px", fontWeight: 700, cursor: isSuperAdmin ? "pointer" : "not-allowed" }}
               >
-                {saving ? "Kaydediliyorâ€¦" : "Kaydet"}
+                {saving ? "Kaydediliyor..." : "Kaydet"}
               </button>
               <a href="/admin?tab=campaigns" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 8, border: "1px solid #cbd5e1", color: "#0f172a", fontWeight: 700 }}>
                 Admin'e Don

@@ -19,7 +19,7 @@ const ARTICLES: HelpArticle[] = [
   { id: "a3", title: "Sifremi nasil degistiririm?", summary: "Profil sayfasindan sifre guncelleme adimlari.", slug: "hesap/sifre", category: "Hesap" },
   { id: "b1", title: "Sirket bilgilerimi nasil guncellerim?", summary: "Vergi no, adres ve telefon bilgisi guncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
   { id: "b2", title: "Kullanici nasil davet ederim?", summary: "Ekibinizi platforma ekleme adimlari.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
-  { id: "b3", title: "Tedarikci nasil eklenir?", summary: "Tedarikci kaydi olusturma ve yonetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
+  { id: "b3", title: "Tedarikçi nasıl eklenir?", summary: "Tedarikçi kaydı oluşturma ve yönetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
   { id: "b4", title: "Teklif talebi (RFQ) nasil olusturulur?", summary: "Satin alma talebi olusturma ve tedarikcilere gonderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
   { id: "c1", title: "Tedarikci profili nasil tamamlanir?", summary: "Iletisim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikci" },
   { id: "c2", title: "Teklif nasil verilir?", summary: "Acik teklif taleplerine yanit verme.", slug: "tedarikci/teklif-verme", category: "Tedarikci" },

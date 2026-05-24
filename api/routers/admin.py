@@ -5330,7 +5330,7 @@ async def delete_department(
         except Exception as e:
             db.rollback()
             raise HTTPException(
-                status_code=500, detail=f"Departman silinirken hata oluÅŸtu: {str(e)}"
+                status_code=500, detail=f"Departman silinirken hata oluştu: {str(e)}"
             )
         return {"message": "Departman silindi"}
 

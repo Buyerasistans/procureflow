@@ -18,39 +18,39 @@ const HOST_BY_INTENT: Record<PublicSeoConfig["intent"], string> = {
 const DEFAULT_SEO: PublicSeoConfig = {
   title: "BUYER ASISTANS",
   description:
-    "Stratejik partnerler ve tedarikciler icin RFQ, onay ve tedarik operasyonlarini tek omurgada yonetin.",
+    "Stratejik partnerler ve tedarikçiler için RFQ, onay ve tedarik operasyonlarını tek omurgada yönetin.",
   intent: "corporate",
 };
 
 const SEO_BY_PATH: Record<string, PublicSeoConfig> = {
   "/": {
-    title: "BUYER ASISTANS | Stratejik Partner ve Tedarikci Platformu",
+    title: "BUYER ASISTANS | Stratejik Partner ve Tedarikçi Platformu",
     description:
-      "Stratejik partner, tedarikci ve satin alma ekipleri icin RFQ, onay ve operasyon akislarini tek platformda birlestirin.",
+      "Stratejik partner, tedarikçi ve satın alma ekipleri için RFQ, onay ve operasyon akışlarını tek platformda birleştirin.",
     intent: "corporate",
   },
   "/cozumler": {
-    title: "Cozumler | BUYER ASISTANS",
+    title: "Çözümler | BUYER ASISTANS",
     description:
-      "RFQ, onay, denetim izi ve tenant uyumlu satin alma operasyonlari icin moduler cozumleri inceleyin.",
+      "RFQ, onay, denetim izi ve tenant uyumlu satın alma operasyonları için modüler çözümleri inceleyin.",
     intent: "corporate",
   },
   "/fiyatlandirma": {
-    title: "Fiyatlandirma | BUYER ASISTANS",
+    title: "Fiyatlandırma | BUYER ASISTANS",
     description:
-      "Stratejik partner ve tedarikci planlarini, modulleri ve kullanim limitlerini tek ekranda karsilastirin.",
+      "Stratejik partner ve tedarikçi planlarını, modülleri ve kullanım limitlerini tek ekranda karşılaştırın.",
     intent: "corporate",
   },
   "/demo": {
     title: "Demo Talebi | BUYER ASISTANS",
     description:
-      "Platformu stratejik partner veya tedarikci perspektifinden demo talebiyle inceleyin.",
+      "Platformu stratejik partner veya tedarikçi perspektifinden demo talebiyle inceleyin.",
     intent: "campaign",
   },
   "/stratejik-ortaklik": {
-    title: "Stratejik Partnerlik Programi | BUYER ASISTANS",
+    title: "Stratejik Partnerlik Programı | BUYER ASISTANS",
     description:
-      "Stratejik partner onboarding, tenant kurulumu ve satin alma operasyon modelini ozetleyen program sayfasi.",
+      "Stratejik partner onboarding, tenant kurulumu ve satın alma operasyon modelini özetleyen program sayfası.",
     intent: "corporate",
   },
   "/strategic-partner": {
@@ -60,9 +60,9 @@ const SEO_BY_PATH: Record<string, PublicSeoConfig> = {
     intent: "global",
   },
   "/tedarikci-ol": {
-    title: "Tedarikci Ol | BUYER ASISTANS",
+    title: "Tedarikçi Ol | BUYER ASISTANS",
     description:
-      "Tedarikci onboarding, teklif toplama ve supplier workspace akislarini inceleyin.",
+      "Tedarikçi onboarding, teklif toplama ve supplier workspace akışlarını inceleyin.",
     intent: "campaign",
   },
   "/become-supplier": {
@@ -72,9 +72,9 @@ const SEO_BY_PATH: Record<string, PublicSeoConfig> = {
     intent: "campaign",
   },
   "/is-ortagi-programi": {
-    title: "Is Ortagi Programi | BUYER ASISTANS",
+    title: "İş Ortağı Programı | BUYER ASISTANS",
     description:
-      "Kanal ve is ortagi programinin operasyon modelini, komisyon ve yonlendirme akislarini ozetler.",
+      "Kanal ve iş ortağı programının operasyon modelini, komisyon ve yönlendirme akışlarını özetler.",
     intent: "global",
   },
   "/partner-program": {
@@ -84,15 +84,15 @@ const SEO_BY_PATH: Record<string, PublicSeoConfig> = {
     intent: "global",
   },
   "/is-ortagi-basvuru": {
-    title: "Is Ortagi Basvuru | BUYER ASISTANS",
+    title: "İş Ortağı Başvuru | BUYER ASISTANS",
     description:
-      "Kanal ve is ortagi basvurusunu baslatmak icin gerekli temel bilgileri gonderin.",
+      "Kanal ve iş ortağı başvurusunu başlatmak için gerekli temel bilgileri gönderin.",
     intent: "campaign",
   },
   "/onboarding": {
     title: "Onboarding | BUYER ASISTANS",
     description:
-      "Tenant tipi, plan secimi ve ilk kurulum akislarini yoneten onboarding giris sayfasi.",
+      "Tenant tipi, plan seçimi ve ilk kurulum akışlarını yöneten onboarding giriş sayfası.",
     intent: "corporate",
   },
   "/partner-apply": {
@@ -104,19 +104,19 @@ const SEO_BY_PATH: Record<string, PublicSeoConfig> = {
   "/blog": {
     title: "Blog | BUYER ASISTANS Bilgi Merkezi",
     description:
-      "Satin alma operasyonlari, tedarikci yonetimi ve platform uygulamalarina dair guncel bilgi merkezi yazilari.",
+      "Satın alma operasyonları, tedarikçi yönetimi ve platform uygulamalarına dair güncel bilgi merkezi yazıları.",
     intent: "knowledge",
   },
   "/rehber": {
     title: "Rehber | BUYER ASISTANS Bilgi Merkezi",
     description:
-      "Onboarding, RFQ, onay ve operasyon standartlari icin adim adim uygulama rehberleri.",
+      "Onboarding, RFQ, onay ve operasyon standartları için adım adım uygulama rehberleri.",
     intent: "knowledge",
   },
   "/sozluk": {
-    title: "Sozluk | BUYER ASISTANS Bilgi Merkezi",
+    title: "Sözlük | BUYER ASISTANS Bilgi Merkezi",
     description:
-      "Platform, rol, yetki ve satin alma sureclerinde kullanilan kavramlarin ortak tanimlari.",
+      "Platform, rol, yetki ve satın alma süreçlerinde kullanılan kavramların ortak tanımları.",
     intent: "knowledge",
   },
 };

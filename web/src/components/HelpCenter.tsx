@@ -34,7 +34,7 @@ const ARTICLES: HelpArticle[] = [
   // Stratejik Partner
   { id: "b1", title: "Sirket bilgilerimi nasil guncellerim?", summary: "Vergi no, adres ve telefon bilgisi guncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
   { id: "b2", title: "Kullanici nasil davet ederim?", summary: "Ekibinizi platforma ekleme adimlari.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
-  { id: "b3", title: "Tedarikci nasil eklenir?", summary: "Tedarikci kaydi olusturma ve yonetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
+  { id: "b3", title: "Tedarikçi nasıl eklenir?", summary: "Tedarikçi kaydı oluşturma ve yönetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
   { id: "b4", title: "Teklif talebi (RFQ) nasil olusturulur?", summary: "Satin alma talebi olusturma ve tedarikcilere gonderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
 
   // Tedarikci
@@ -50,8 +50,8 @@ const ARTICLES: HelpArticle[] = [
   { id: "e1", title: "Destek talebi nasil acilir?", summary: "Platform personeline talep iletme adimlari.", slug: "destek/talep-acma", category: "Destek" },
   { id: "e2", title: "SLA sureleri nedir?", summary: "Oncelik gore yanit ve cozum sureleri.", slug: "destek/sla", category: "Destek" },
 
-  // Is Ortagi
-  { id: "f1", title: "Is Ortagi programina nasil katilirim?", summary: "Program kosullari ve kayit adimlari.", slug: "is-ortagi/program-kosullari", category: "Is Ortagi" },
+  // İş Ortağı
+  { id: "f1", title: "İş Ortağı programına nasıl katılırım?", summary: "Program koşulları ve kayıt adımları.", slug: "is-ortagi/program-kosullari", category: "İş Ortağı" },
 ];
 
 const CATEGORIES = [...new Set(ARTICLES.map((a) => a.category))];

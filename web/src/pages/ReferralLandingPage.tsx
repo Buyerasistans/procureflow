@@ -67,7 +67,7 @@ export default function ReferralLandingPage() {
           Buyer Asistans
         </div>
         <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 4 }}>
-          Tedarik ve Is Ortagi Platformu
+          Tedarik ve İş Ortağı Platformu
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default function ReferralLandingPage() {
               Link Artik Aktif Degil
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-              Bu referral link pasife alinmis. Daha guncel bir link icin ilgili is ortagiyla iletisime gecin.
+              Bu referral link pasife alınmış. Daha güncel bir link için ilgili iş ortağıyla iletişime geçin.
             </div>
             <Link to="/" style={{ fontSize: 14, color: "#2563eb", textDecoration: "none" }}>
               Ana sayfaya don &rarr;
@@ -191,7 +191,7 @@ export default function ReferralLandingPage() {
             )}
 
             <div style={{ marginTop: 16, textAlign: "center", fontSize: 12, color: "#94a3b8" }}>
-              Zaten hesabiniz var mi? <Link to="/login" style={{ color: "#2563eb", textDecoration: "none" }}>Giris yapin</Link>
+              Zaten hesabınız var mı? <Link to="/login" style={{ color: "#2563eb", textDecoration: "none" }}>Giriş yapın</Link>
             </div>
           </>
         )}

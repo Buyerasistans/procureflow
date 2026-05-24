@@ -72,7 +72,7 @@ export default function PublicMarketplacePage() {
     mode === "offers" ? "Acik Ihaleler" :
     mode === "suppliers" ? "Tedarikci Havuzu" :
     mode === "strategic" ? "Stratejik Partnerlerimiz" :
-    "Basarili Is Ortaklarimiz";
+    "Başarılı İş Ortaklarımız";
 
   const rows =
     mode === "offers" ? data?.open_tenders ?? [] :
@@ -115,7 +115,7 @@ export default function PublicMarketplacePage() {
   function handleOfferClick(row: any) {
     const token = getToken();
     if (!token) {
-      setOfferMessage("Teklif vermek icin once giris yapmalisiniz. Giris sonrasi yetkiniz kontrol edilip otomatik devam edilir.");
+      setOfferMessage("Teklif vermek için önce giriş yapmalısınız. Giriş sonrası yetkiniz kontrol edilip otomatik devam edilir.");
       return;
     }
     if (!row.offer_allowed) {
@@ -245,7 +245,7 @@ export default function PublicMarketplacePage() {
             <article style={{ gridColumn: "1 / -1", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: 12, color: "#9a3412" }}>
               <div>{offerMessage}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <a href="/supplier/login" style={{ background: "#1d4ed8", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Giris Yap</a>
+                <a href="/supplier/login" style={{ background: "#1d4ed8", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Giriş Yap</a>
                 <a href="/fiyatlandirma#tedarikci" style={{ background: "#0f766e", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Uyeligi Yukselti</a>
                 <button type="button" onClick={() => setOfferMessage(null)} style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>Kapat</button>
               </div>

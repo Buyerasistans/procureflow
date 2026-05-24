@@ -471,7 +471,7 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "admin_surface",
-        label: "Yonetim Alani",
+        label: "Yönetim Alanı",
         enabled: adminSurface,
         description: "Personel, firma, departman ve benzeri yonetim ekranlari.",
       },
@@ -517,7 +517,7 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "quote_workspace",
-        label: "Teklif Calisma Alani",
+        label: "Teklif Çalışma Alanı",
         enabled: quoteWorkspace,
         description: "Teklif olusturma, listeleme ve ilgili satin alma operasyonu.",
       },
@@ -697,13 +697,13 @@ export function resolveApprovalRoleLabel(approval: ApprovalRoleInfo): string {
 }
 
 // ---------------------------------------------------------------------------
-// TEK KAYNAK: Matris tabanli �nizleme yardimcilari
-// Backend /admin/role-permission-matrix endpointinden gelen veriyle �alisir.
+// TEK KAYNAK: Matris tabanlı önizleme yardımcıları
+// Backend /admin/role-permission-matrix endpointinden gelen veriyle çalışır.
 // ---------------------------------------------------------------------------
 
 /**
  * Backend matris verisinden profil anahtari olusturur.
- * �nce kesin eslesme, sonra system_role='' fallback, sonra default=[].
+ * Önce kesin eşleşme, sonra system_role='' fallback, sonra default=[].
  */
 export function resolveMatrixProfileKey(
   businessRole: string,
@@ -719,8 +719,8 @@ export function resolveMatrixProfileKey(
 }
 
 /**
- * Backend matris + katalog agaci verisinden MenuAccessPreviewItem[] �retir.
- * (Matris verisi yoksa bos liste d�ner.)
+ * Backend matris + katalog ağacı verisinden MenuAccessPreviewItem[] üretir.
+ * (Matris verisi yoksa boş liste döner.)
  */
 export function buildMenuPreviewFromMatrix(
   businessRole: string | null | undefined,
@@ -785,8 +785,8 @@ export function getUserScopeType(user: PermissionContext | null | undefined): st
 export function getScopeLabel(scopeType: string): string {
   const labels: Record<string, string> = {
     platform: "Platform",
-    tenant: "Kiraci",
-    supplier: "Tedarik�i",
+    tenant: "Kiracı",
+    supplier: "Tedarikçi",
     channel: "Kanal",
     none: "Yok",
   };
@@ -826,17 +826,17 @@ export function canAccessProcurementSettings(user: PermissionContext | null | un
 }
 
 export function getWorkspacePanelNavLabel(user: PermissionContext | null | undefined): string {
-  if (!user) return "�alisma Alani";
+  if (!user) return "Çalışma Alanı";
   if (isSuperAdminUser(user)) return "Super Admin";
   const sr = normalizedSystemRole(user);
   if (sr === "tenant_owner") return "Ortak Admin";
-  if (sr === "tenant_admin") return "Yonetim Alani";
+  if (sr === "tenant_admin") return "Yönetim Alanı";
   const role = normalizedBusinessRole(user);
-  if (role === "manager") return "Yonetici Paneli";
+  if (role === "manager") return "Yönetici Paneli";
   if (role === "channel_owner") return "Kanal Sahibi Paneli";
   if (role === "channel_agent" || role === "is_ortagi") return "Kanal Temsilcisi";
-  if (sr === "supplier_user") return "Tedarikci Paneli";
-  return "Calisma Alani";
+  if (sr === "supplier_user") return "Tedarikçi Paneli";
+  return "Çalışma Alanı";
 }
 
 
