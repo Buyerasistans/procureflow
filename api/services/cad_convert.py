@@ -42,8 +42,8 @@ def _resolve_dwg_converter_executable() -> Path:
 
 def can_convert_dwg() -> tuple[bool, str]:
     try:
-        exe = _resolve_oda_executable()
-        return True, f"DWG donusturucu bulundu: {exe}"
+        exe = _resolve_dwg_converter_executable()
+        return True, f"DWG dönüştürücü bulundu: {exe}"
     except Exception as e:
         return False, str(e)
 
