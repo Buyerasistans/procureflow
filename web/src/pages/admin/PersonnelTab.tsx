@@ -1026,7 +1026,17 @@ export function PersonnelTab(props: PersonnelTabProps) {
         <PersonnelCreateModal
           isOpen={showNewPersonnelModal}
           onClose={() => setShowNewPersonnelModal(false)}
-          contextScope={isChannelUser ? "channel" : "portal"}
+          contextScope={
+            isChannelUser
+              ? "channel"
+              : segment === "partner"
+                ? "partner"
+                : segment === "channel"
+                  ? "channel"
+                  : "portal"
+          }
+          tenantOptions={segment === "partner" ? tenants : []}
+          requireTenantSelection={segment === "partner"}
           onSuccess={(result) => {
             setShowNewPersonnelModal(false);
             setNotice(
@@ -1041,7 +1051,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
         <PersonnelCreateModal
           isOpen={!!editPersonnel}
           onClose={() => setEditPersonnel(null)}
-          contextScope={isChannelUser ? "channel" : "portal"}
+          contextScope={(() => {
+            if (isChannelUser) return "channel";
+            const r = String(editPersonnel?.role || "").toLowerCase();
+            if (r.startsWith("kanal_") || r === "ozel_kanal_rolu") return "channel";
+            if (editPersonnel?.tenant_id != null) return "partner";
+            return "portal";
+          })()}
           onSuccess={() => {
             setEditPersonnel(null);
             setNotice({ type: "success", text: "Kullanıcı bilgileri güncellendi." });

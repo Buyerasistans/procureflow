@@ -128,34 +128,31 @@ const ADMIN_SYSTEM_ROLE_OPTIONS = [
   { value: "platform_operator", label: "Platform Operasyon" },
 ] as const;
 
-const STRATEGIC_PARTNER_ROLE_ORDER = [
-  "Partner Admin",
-  "Satın Alma Direktörü",
-  "Satın Alma Müdürü",
-  "Satın Alma Müdür Yardımcısı",
-  "Satın Alma Yöneticisi",
-  "Satın Alma Kıdemli Uzmanı",
-  "Satın Alma Uzman Yardımcısı",
-  "Satın Alma Uzmanı",
-  "Proje Mimarı",
-  "Teknik Uzman",
-  "Özel Stratejik Partner Rolü",
-  "Finans İzleyici",
-] as const;
-
-function filterAssignableBusinessRoleOptions(currentRole: string | null | undefined) {
-  const normalizedCurrentRole = String(currentRole || "").toLowerCase();
-  if (!normalizedCurrentRole || normalizedCurrentRole === "super_admin") {
-    return BUSINESS_ROLE_OPTIONS;
-  }
-
-  const currentOption = BUSINESS_ROLE_OPTIONS.find((option) => option.value === normalizedCurrentRole);
-  if (!currentOption) {
-    return BUSINESS_ROLE_OPTIONS.filter((option) => option.value !== "super_admin");
-  }
-
-  return BUSINESS_ROLE_OPTIONS.filter((option) => option.hierarchy_level >= currentOption.hierarchy_level);
-}
+const SCOPE_ROLE_CODES: Record<string, string[]> = {
+  portal: ["super_admin"],
+  partner: [
+    "partner_admin",
+    "satinalma_direktoru",
+    "satinalma_muduru",
+    "satinalma_mudur_yrd",
+    "satinalma_yoneticisi",
+    "satinalma_kidemli_uzmani",
+    "satinalma_uzman_yrd",
+    "satinalma_uzmani",
+    "proje_mimari",
+    "teknik_uzman",
+    "ozel_partner_rolu",
+    "finans_izleyici",
+  ],
+  channel: [
+    "kanal_hesap_sahibi",
+    "kanal_ekip_lideri",
+    "kanal_temsilcisi",
+    "kanal_finans",
+    "ozel_kanal_rolu",
+  ],
+  supplier: [],
+};
 
 export function PersonnelCreateModal({
   isOpen,
@@ -228,43 +225,16 @@ export function PersonnelCreateModal({
     return roles.find((item) => normalizeText(item.name) === normalizedRole);
   }, [role, roles]);
 
-  const strategicRoleOptions = useMemo(() => {
-    const byName = new Map<string, Role>();
-    for (const row of roles) {
-      byName.set(normalizeText(row.name), row);
-    }
-
-    const ordered = STRATEGIC_PARTNER_ROLE_ORDER
-      .map((name) => byName.get(normalizeText(name)))
-      .filter((item): item is Role => Boolean(item))
-      .map((item) => ({ value: item.name, label: item.name }));
-
-    const remaining = roles
-      .filter((row) => !STRATEGIC_PARTNER_ROLE_ORDER.some((name) => normalizeText(name) === normalizeText(row.name)))
-      .sort((a, b) => a.hierarchy_level - b.hierarchy_level || a.name.localeCompare(b.name, "tr"))
-      .map((row) => ({ value: row.name, label: row.name }));
-
-    return [...ordered, ...remaining];
-  }, [roles]);
-
-  const availableSystemRoleOptions = useMemo(() => {
-    const visibleOptions = filterAssignableBusinessRoleOptions(authUser?.business_role || authUser?.role);
-
+  const operationalRoleOptions = useMemo(() => {
+    const allowed = SCOPE_ROLE_CODES[contextScope] ?? SCOPE_ROLE_CODES.partner;
+    let options = BUSINESS_ROLE_OPTIONS.filter((opt) => allowed.includes(opt.value));
     if (!canAssignPrivilegedBusinessRole(authUser) && isTenantAdminUser(authUser)) {
-      return visibleOptions.filter(
-        (option) => option.value !== "admin" && option.value !== "super_admin",
+      options = options.filter(
+        (opt) => opt.value !== "admin" && opt.value !== "super_admin" && opt.value !== "partner_admin",
       );
     }
-
-    return visibleOptions;
-  }, [authUser]);
-
-  const operationalRoleOptions = useMemo(() => {
-    if (contextScope === "partner" || contextScope === "channel") {
-      return strategicRoleOptions;
-    }
-    return availableSystemRoleOptions.map((item) => ({ value: item.value, label: item.label }));
-  }, [availableSystemRoleOptions, contextScope, strategicRoleOptions]);
+    return options.map((opt) => ({ value: opt.value, label: opt.label }));
+  }, [contextScope, authUser]);
 
   const [permissionOverrides, setPermissionOverrides] = useState<PermissionOverrideMap>({});
   const [permissionOverridesLoading, setPermissionOverridesLoading] = useState(false);
