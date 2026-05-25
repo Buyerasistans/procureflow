@@ -60,8 +60,8 @@ export function CompaniesTab({
   };
 
   const tenantScopeMap = useMemo(
-    () => buildTenantScopeMap(tenants, [...personnel, ...channelUsers], suppliers),
-    [tenants, personnel, channelUsers, suppliers],
+    () => buildTenantScopeMap(tenants, [...personnel, ...channelUsers], suppliers, companies),
+    [tenants, personnel, channelUsers, suppliers, companies],
   );
 
   // Classify companies into segments
