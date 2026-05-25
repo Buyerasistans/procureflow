@@ -217,11 +217,27 @@ Güncel durum: `alembic current` başlıkla uyumlu; requirements güncellendi, `
 ### Güncel DB durumu
 - **Local:** `postgresql+psycopg://postgres:96578097@localhost:5432/procureflow`
 - **Golden snapshot (yüklenebilir referans - Local procureflow):**
-  - **Seçili restore dump:** `pre_restore_procureflow_20260505_120811.dump` (companies=11, users=71)
-  - **Golden backup path:** `D:\Projects\procureflow_full_backups\local_backup\GOLDEN_PROCUREFLOW_20260507_231530.dump`
+  - **Aktif golden:**
+    `local_backup\GOLDEN_PROCUREFLOW_20260525_101632.dump`
+    (users=71, companies=11, tenants=6, quotes=24)
   - **Amaç:** Daha sonra hosting/local sync sırasında “doğru veri” durumuna hızlı geri dönmek.
 - **Hosting:** `admin_procureflow` üzerinde ayrı DB
 - Aynı kullanıcı kaydı iki ortamda da aynı anda bulunmayabilir; bu nedenle seed işlemleri ortam bazlı yürütülmeli.
+
+### ⚠️ KURAL: Local DB'ye dokunmadan önce MUTLAKA guard scriptini çalıştır
+
+```powershell
+# Sadece snapshot al (her DROP / RECREATE / restore öncesi zorunlu):
+.\scripts\guard_local_db.ps1
+
+# Veri temiz ve güncel ise golden'ı da güncelle:
+.\scripts\guard_local_db.ps1 -UpdateGolden
+```
+
+**Bu kuralın ihlali 2026-05-22 auth regresyonuna neden oldu:**
+restore drill sırasında local DB silinip sadece demo seed uygulandı
+→ 71 kullanıcı + 11 firma kayboldu. Guard script çalıştırılmış
+olsaydı önce snapshot alınırdı ve geri dönüş 1 komutla olurdu.
 
 ### Canonical giriş bilgisi
 - **Super Admin:** `superadmin@buyerasistans.com.tr`
