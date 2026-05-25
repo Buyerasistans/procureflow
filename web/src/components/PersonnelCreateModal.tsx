@@ -69,21 +69,57 @@ interface PendingAssignment {
 }
 
 const BUSINESS_ROLE_OPTIONS = [
-  { value: "satinalmaci", label: "Satın Almacı", hierarchy_level: 5 },
-  { value: "satinalma_uzmani", label: "Satın Alma Uzmanı", hierarchy_level: 4 },
-  { value: "satinalma_yoneticisi", label: "Satın Alma Yöneticisi", hierarchy_level: 3 },
-  { value: "admin", label: "Satın Alma Admin", hierarchy_level: 1 },
-  { value: "satinalma_direktoru", label: "Satın Alma Direktörü", hierarchy_level: 2 },
+  // Platform
   { value: "super_admin", label: "Süper Admin", hierarchy_level: 0 },
-] as const;
+  // Stratejik Partner rolleri (v2 kataloğu)
+  { value: "partner_admin", label: "Partner Admin", hierarchy_level: 0 },
+  { value: "satinalma_direktoru", label: "Satın Alma Direktörü", hierarchy_level: 1 },
+  { value: "satinalma_muduru", label: "Satın Alma Müdürü", hierarchy_level: 2 },
+  { value: "satinalma_mudur_yrd", label: "Satın Alma Müdür Yardımcısı", hierarchy_level: 3 },
+  { value: "satinalma_yoneticisi", label: "Satın Alma Yöneticisi", hierarchy_level: 4 },
+  { value: "satinalma_kidemli_uzmani", label: "Satın Alma Kıdemli Uzmanı", hierarchy_level: 5 },
+  { value: "satinalma_uzman_yrd", label: "Satın Alma Uzman Yardımcısı", hierarchy_level: 6 },
+  { value: "satinalma_uzmani", label: "Satın Alma Uzmanı", hierarchy_level: 7 },
+  { value: "proje_mimari", label: "Proje Mimarı", hierarchy_level: 8 },
+  { value: "teknik_uzman", label: "Teknik Uzman", hierarchy_level: 9 },
+  { value: "ozel_partner_rolu", label: "Özel Stratejik Partner Rolü", hierarchy_level: 10 },
+  { value: "finans_izleyici", label: "Finans İzleyici", hierarchy_level: 10 },
+  // Kanal rolleri (v2 kataloğu)
+  { value: "kanal_hesap_sahibi", label: "Kanal Hesap Sahibi", hierarchy_level: 0 },
+  { value: "kanal_ekip_lideri", label: "Kanal Ekip Lideri", hierarchy_level: 1 },
+  { value: "kanal_temsilcisi", label: "Kanal Temsilcisi", hierarchy_level: 2 },
+  { value: "kanal_finans", label: "Kanal Finans", hierarchy_level: 3 },
+  { value: "ozel_kanal_rolu", label: "Özel Kanal Rolü", hierarchy_level: 4 },
+  // Eski kodlar — geriye dönük uyumluluk
+  { value: "admin", label: "Satın Alma Admin", hierarchy_level: 1 },
+  { value: "satinalmaci", label: "Satın Almacı", hierarchy_level: 7 },
+];
 
 const ROLE_LABELS: Record<string, string> = {
+  // Platform
   super_admin: "Süper Admin",
+  // Stratejik Partner v2
+  partner_admin: "Partner Admin",
+  satinalma_direktoru: "Satın Alma Direktörü",
+  satinalma_muduru: "Satın Alma Müdürü",
+  satinalma_mudur_yrd: "Satın Alma Müdür Yardımcısı",
+  satinalma_yoneticisi: "Satın Alma Yöneticisi",
+  satinalma_kidemli_uzmani: "Satın Alma Kıdemli Uzmanı",
+  satinalma_uzman_yrd: "Satın Alma Uzman Yardımcısı",
+  satinalma_uzmani: "Satın Alma Uzmanı",
+  proje_mimari: "Proje Mimarı",
+  teknik_uzman: "Teknik Uzman",
+  ozel_partner_rolu: "Özel Stratejik Partner Rolü",
+  finans_izleyici: "Finans İzleyici",
+  // Kanal v2
+  kanal_hesap_sahibi: "Kanal Hesap Sahibi",
+  kanal_ekip_lideri: "Kanal Ekip Lideri",
+  kanal_temsilcisi: "Kanal Temsilcisi",
+  kanal_finans: "Kanal Finans",
+  ozel_kanal_rolu: "Özel Kanal Rolü",
+  // Eski kodlar
   admin: "Satın Alma Admin",
   satinalmaci: "Satın Almacı",
-  satinalma_uzmani: "Satın Alma Uzmanı",
-  satinalma_yoneticisi: "Satın Alma Yöneticisi",
-  satinalma_direktoru: "Satın Alma Direktörü",
 };
 
 const ADMIN_SYSTEM_ROLE_OPTIONS = [
@@ -93,12 +129,18 @@ const ADMIN_SYSTEM_ROLE_OPTIONS = [
 ] as const;
 
 const STRATEGIC_PARTNER_ROLE_ORDER = [
-  "Partner Ana Yönetici",
-  "Partner Yöneticisi",
+  "Partner Admin",
+  "Satın Alma Direktörü",
   "Satın Alma Müdürü",
-  "Teknik Uzman ve Mimar",
-  "Denetçi ve Finansal İzleyici",
-  "Özel Partner Rolü",
+  "Satın Alma Müdür Yardımcısı",
+  "Satın Alma Yöneticisi",
+  "Satın Alma Kıdemli Uzmanı",
+  "Satın Alma Uzman Yardımcısı",
+  "Satın Alma Uzmanı",
+  "Proje Mimarı",
+  "Teknik Uzman",
+  "Özel Stratejik Partner Rolü",
+  "Finans İzleyici",
 ] as const;
 
 function filterAssignableBusinessRoleOptions(currentRole: string | null | undefined) {
