@@ -358,3 +358,22 @@ fazi `TENANT_SAAS_TRANSFORMATION_PLAN.md` uzerinden yuruturecek.
 - Bu plana gecis aninda son telemetry/discovery regression sonucu,
 tamamlanan madde numaralari ve acik teknik borclar tek bir kapanis
 notu olarak bu dokumana eklenecek.
+
+## 7. Hotfix Kapanis Notu — 2026-05-25
+
+Discovery Lab hotfix fazı kapatıldı. Aşağıdaki kritikler giderildi ve release gate geçildi.
+
+**Kapatılan kritikler:**
+
+- K-1 Converter preflight NameError — commit `eb639b6`
+- K-2 Teknik exception UI'a sızma — commit `9d24ab3`
+- K-3 Test profili DB drop ediyordu — commit `f51755f`
+- K-4 Converter durumu diagnose edilemiyordu — commit `4b2fc1b`
+
+**Release gate:** PASS — pytest (nodrop), vitest (discovery-lab), type-check, build
+
+**Kalan non-blocker borçlar (D-1..D-7):**
+Detay: `docs/runbooks/discovery-lab-closure-note.md`
+
+Sonraki faz `TENANT_SAAS_TRANSFORMATION_PLAN.md` üzerinden yürütülecek.
+Non-blocker borçlar o planin ilk sprint'ine tasinacak.
