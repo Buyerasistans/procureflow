@@ -225,7 +225,7 @@ Güncel durum: `alembic current` başlıkla uyumlu; requirements güncellendi, `
 
 ### Canonical giriş bilgisi
 - **Super Admin:** `superadmin@buyerasistans.com.tr`
-- **Şifre:** `Aa1234!!`
+- **Şifre:** `[REDACTED — api/.env SUPER_ADMIN_PASSWORD alanından okunur]`
 
 ### Seed / bootstrap komutları
 Local ortam için:

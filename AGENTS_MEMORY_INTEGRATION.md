@@ -100,7 +100,7 @@ Yeni bir oturum açıldığında şu sıra izlenir:
   - host üzerinde `admin_procureflow` kullanılıyor; local DB ile aynı olmamalı
 - Canonical super admin:
   - email: `superadmin@buyerasistans.com.tr`
-  - password: `Aa1234!!`
+  - password: `[REDACTED — env/secret-store'da saklanır]`
 - Local demo/scope seed:
   - `python -m api.scripts.bootstrap_scope_demo_data`
 - Runtime bootstrap:

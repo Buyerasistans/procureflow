@@ -37,15 +37,27 @@ Sadece super_admin ayakta kaldı. Tüm tenant/kullanıcı/proje/teklif verisi s�
 
 ## Açık Eylem Kalemi
 
-- [x] api/.env içindeki SUPER_ADMIN_PASSWORD=Aa1234!! güçlü rastgele değerle değiştirildi
+- [x] SUPER_ADMIN_PASSWORD rotasyonu tamamlandı (geçici → güçlü CSPRNG değeri)
 
-## Secret Rotation Kaydı — 2026-05-25
+## Secret Rotation Kaydı — 2026-05-25 (Rotation 1)
 
 | Alan | Değer |
 | --- | --- |
 | Tarih | 2026-05-25 |
 | Yöntem | env-only — api/.env güncellendi (gitignored, repoya gitmez) |
 | Uzunluk | 32 karakter, CSPRNG (RandomNumberGenerator), base64-alfanumerik |
-| Doğrulama | health OK · login(yeni) 200 OK · login(eski Aa1234!!) 401 OK |
-| Önceki değer | Aa1234!! (PR-2'den beri geçici — artık geçersiz) |
-| Yeni değer | [MASKED — api/.env içinde saklanır] |
+| Doğrulama | health OK · login(yeni) 200 OK · login(eski değer) 401 OK |
+| Önceki değer | [REDACTED — geçici placeholder, artık geçersiz] |
+| Yeni değer | [REDACTED — api/.env içinde saklanır, repoya girmez] |
+
+## Secret Rotation Kaydı — 2026-05-25 (Rotation 2 — Hijyen)
+
+| Alan | Değer |
+| --- | --- |
+| Tarih | 2026-05-25 |
+| Sebep | Rotation 1 audit notunda eski değer referansı saptandı; ikinci rotasyon uygulandı |
+| Yöntem | env-only — api/.env güncellendi (gitignored, repoya gitmez) |
+| Uzunluk | 32 karakter, CSPRNG, base64-alfanumerik |
+| Doğrulama | health OK · login(yeni) 200 OK · login(Rotation 1 değeri) 401 OK |
+| Önceki değer | [REDACTED — rotation 1 değeri, artık geçersiz] |
+| Yeni değer | [REDACTED — api/.env içinde saklanır, repoya girmez] |
