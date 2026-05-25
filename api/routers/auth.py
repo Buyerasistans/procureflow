@@ -181,7 +181,15 @@ def _resolve_login_user(db: Session, email: str) -> User | None:
 def login(data: LoginIn, db: Session = Depends(get_db)):
     user = _resolve_login_user(db, data.email)
 
-    if not user or not verify_password(data.password, user.hashed_password):
+    if user is None:
+        logger.warning("login_rejected reason=user_not_found email_domain=%s", str(data.email).split("@")[-1])
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+
+    if not verify_password(data.password, user.hashed_password):
+        logger.warning("login_rejected reason=wrong_password user_id=%s", user.id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -203,7 +211,7 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
             detail="Kullanıcı pasif durumda",
         )
 
-    print(f"[DEBUG] Login: user_id={user.id}, email={user.email}, role={user.role}")
+    logger.info("login_ok user_id=%s role=%s", user.id, user.role)
     auth_user = _build_auth_user_payload(db, user)
     access_token = create_access_token(
         sub=str(user.id), role=user.role, system_role=str(auth_user["system_role"])
