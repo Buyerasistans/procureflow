@@ -78,11 +78,25 @@ function buildAuthHeaders(contentType?: string) {
 }
 
 function getErrorMessage(detail: unknown) {
+  const fallback = 'Dosya analizi tamamlanamadı. Lütfen dosyayı kontrol edip tekrar deneyin.';
+  const technicalErrorPattern = /(_resolve_oda_executable|NameError|Traceback| is not defined|stderr=|stdout=)/i;
+
+  if (detail && typeof detail === 'object') {
+    const errorDetail = detail as { message?: unknown; request_id?: unknown };
+    if (typeof errorDetail.message === 'string' && errorDetail.message.trim()) {
+      const requestNote = typeof errorDetail.request_id === 'string' ? ` Referans: ${errorDetail.request_id}` : '';
+      return `${errorDetail.message}${requestNote}`;
+    }
+  }
+
   if (typeof detail === 'string' && detail.trim()) {
+    if (technicalErrorPattern.test(detail)) {
+      return fallback;
+    }
     return detail;
   }
 
-  return 'Dosya analizi tamamlanamadi. Lutfen dosyayi kontrol edip tekrar deneyin.';
+  return fallback;
 }
 
 const DiscoveryLab: React.FC = () => {
@@ -281,7 +295,7 @@ const DiscoveryLab: React.FC = () => {
       return;
     }
     if (!selectedProjectId) {
-      setUploadError('Discovery Lab aktarimi icin once aktif bir proje secin.');
+      setUploadError('Discovery Lab aktarımı için önce aktif bir proje seçin.');
       return;
     }
 
@@ -311,7 +325,7 @@ const DiscoveryLab: React.FC = () => {
       const quoteId = (payload as { transfer?: { quote_id?: number } }).transfer?.quote_id ?? null;
       setTransferQuoteId(quoteId);
       await refreshTimeline(analysisResult.session_id);
-      setActionNotice(transferId ? `Teknik kilit atildi ve satin alma aktarimi kuyruga alindi: ${transferId}` : 'Teknik kilit atildi ve satin alma aktarimi baslatildi.');
+      setActionNotice(transferId ? `Teknik kilit atıldı ve satın alma aktarımı kuyruğa alındı: ${transferId}` : 'Teknik kilit atıldı ve satın alma aktarımı başlatıldı.');
       if (quoteId && autoOpenQuoteAfterTransfer && typeof window !== 'undefined') {
         window.location.assign(`/quotes/${quoteId}`);
       }
@@ -341,7 +355,7 @@ const DiscoveryLab: React.FC = () => {
       if (analysisResult?.session_id) {
         await refreshTimeline(analysisResult.session_id);
       }
-      setActionNotice(`BOM secimi guncellendi: ${itemKey}`);
+      setActionNotice(`BOM seçimi güncellendi: ${itemKey}`);
     } catch (error) {
       setSelectedBomItems((current) => ({
         ...current,
@@ -376,7 +390,7 @@ const DiscoveryLab: React.FC = () => {
         [questionId]: decision,
       }));
       await refreshTimeline(analysisResult.session_id);
-      setActionNotice(decision === 'approved' ? `AI karari onaylandi: Soru ${questionId}` : `AI karari yoksayildi: Soru ${questionId}`);
+      setActionNotice(decision === 'approved' ? `AI kararı onaylandı: Soru ${questionId}` : `AI kararı yoksayıldı: Soru ${questionId}`);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
     }
@@ -455,7 +469,7 @@ const DiscoveryLab: React.FC = () => {
                   href={`/quotes/${transferQuoteId}`}
                   className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-700"
                 >
-                  Olusan RFQ'yu Ac
+                  Oluşan RFQ'yu Aç
                 </a>
               ) : null}
             </div>
@@ -468,7 +482,7 @@ const DiscoveryLab: React.FC = () => {
               <Upload size={48} className={isUploading ? "animate-bounce text-blue-500" : "text-blue-400"} />
             </div>
             <p className="text-gray-500 font-medium">
-              {isUploading ? "Analiz Ediliyor..." : "Mimari Projeyi (DWG/DXF) Yükleyin"}
+              {isUploading ? "Analiz ediliyor..." : "Mimari Projeyi (DWG/DXF) Yükleyin"}
             </p>
             {uploadError && (
               <div className="mt-4 max-w-md rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-sm text-rose-700">
@@ -477,7 +491,7 @@ const DiscoveryLab: React.FC = () => {
             )}
             <input
               type="file"
-              aria-label="Mimari proje dosyasi yukleyin"
+              aria-label="Mimari proje dosyası yükleyin"
               className="mt-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
               onChange={handleFileUpload}
               accept=".dwg,.dxf"
@@ -489,19 +503,19 @@ const DiscoveryLab: React.FC = () => {
               <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Teknik Katman Özeti</h3>
-                  <p className="text-xs text-gray-500">CAD dosyasindan cikarilan ana metraj katmanlari</p>
+                  <p className="text-xs text-gray-500">CAD dosyasından çıkarılan ana metraj katmanları</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                    <span>Aktarim Projesi</span>
+                    <span>Aktarım Projesi</span>
                     <select
                       value={selectedProjectId ?? ''}
                       onChange={(event) => setSelectedProjectId(event.target.value ? Number(event.target.value) : null)}
                       disabled={projectsLoading || projects.length === 0}
                       className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
-                      aria-label="Aktarim Projesi"
+                      aria-label="Aktarım Projesi"
                     >
-                      {projects.length === 0 ? <option value="">Proje bulunamadi</option> : null}
+                      {projects.length === 0 ? <option value="">Proje bulunamadı</option> : null}
                       {projects.map((project) => (
                         <option key={project.id} value={project.id}>
                           {project.name}
@@ -538,7 +552,7 @@ const DiscoveryLab: React.FC = () => {
               <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">BOM Visualizer</h3>
-                  <p className="text-xs text-gray-500">Reçete motorunun teknik katmanlardan urettigi alt malzeme listesi</p>
+                  <p className="text-xs text-gray-500">Reçete motorunun teknik katmanlardan ürettiği alt malzeme listesi</p>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   {bomItems.length} kalem
@@ -563,7 +577,7 @@ const DiscoveryLab: React.FC = () => {
                             {items.length} alt kalem
                           </span>
                           <span className="text-xs font-bold uppercase tracking-wide text-emerald-700">
-                            {collapsedBomGroups[sourceLayer] ? 'Goster' : 'Gizle'}
+                            {collapsedBomGroups[sourceLayer] ? 'Göster' : 'Gizle'}
                           </span>
                         </div>
                       </button>
@@ -596,7 +610,7 @@ const DiscoveryLab: React.FC = () => {
                                       ? 'bg-emerald-100 text-emerald-700'
                                       : 'bg-amber-100 text-amber-700'
                                   }`}>
-                                    {isSelected ? 'Secili' : 'Pasif'}
+                                    {isSelected ? 'Seçili' : 'Pasif'}
                                   </span>
                                 </div>
                               </div>
@@ -609,7 +623,7 @@ const DiscoveryLab: React.FC = () => {
                 </div>
               ) : (
                 <div className="px-6 py-8 text-sm text-gray-500">
-                  Teknik recete icin otomatik BOM kalemi olusmadi.
+                  Teknik reçete için otomatik BOM kalemi oluşmadı.
                 </div>
               )}
             </div>
@@ -619,7 +633,7 @@ const DiscoveryLab: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Audit Timeline</h3>
-                    <p className="text-xs text-gray-500">Discovery Lab aksiyonlari ve satin alma aktarim gecmisi</p>
+                    <p className="text-xs text-gray-500">Discovery Lab aksiyonları ve satın alma aktarım geçmişi</p>
                   </div>
                   <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
                     {timeline.length} olay
@@ -658,14 +672,14 @@ const DiscoveryLab: React.FC = () => {
                       )}
                       {answerText && (
                         <div className="mt-2 rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-xs text-sky-900">
-                          Yanit: {answerText}
+                          Yanıt: {answerText}
                         </div>
                       )}
                       {rationale && (
-                        <p className="mt-1 text-xs text-slate-600">Gerekce: {rationale}</p>
+                        <p className="mt-1 text-xs text-slate-600">Gerekçe: {rationale}</p>
                       )}
                       {actor && (
-                        <p className="mt-1 text-xs text-slate-600">Aktor E-postasi: {actor}</p>
+                        <p className="mt-1 text-xs text-slate-600">Aktör E-postası: {actor}</p>
                       )}
                           </>
                         );
@@ -716,7 +730,7 @@ const DiscoveryLab: React.FC = () => {
                           setAnswerDrafts((current) => ({ ...current, [q.id]: nextValue }));
                           setAnswerSavedState((current) => ({ ...current, [q.id]: false }));
                         }}
-                        placeholder="Mimar veya teknik ekip yanitini kaydet"
+                        placeholder="Mimar veya teknik ekip yanıtını kaydet"
                         aria-label={`Yanıt ${q.id}`}
                         className="mb-2 min-h-[72px] w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700"
                       />
@@ -728,14 +742,14 @@ const DiscoveryLab: React.FC = () => {
                           setAnswerSavedState((current) => ({ ...current, [q.id]: false }));
                         }}
                         placeholder="Opsiyonel gerekce"
-                        aria-label={`Gerekce ${q.id}`}
+                        aria-label={`Gerekçe ${q.id}`}
                         className="mb-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700"
                       />
                       <div className="mb-3 flex gap-2">
                         {[
-                          { key: 'needs_review', label: 'Incelemeye Al' },
-                          { key: 'approved', label: 'Yanit + Onay' },
-                          { key: 'ignored', label: 'Yanit + Pas' },
+                          { key: 'needs_review', label: 'İncelemeye Al' },
+                          { key: 'approved', label: 'Yanıt + Onay' },
+                          { key: 'ignored', label: 'Yanıt + Pas' },
                         ].map((item) => (
                           <button
                             key={item.key}
@@ -783,11 +797,11 @@ const DiscoveryLab: React.FC = () => {
                             : 'bg-sky-600 text-white hover:bg-sky-700'
                         }`}
                       >
-                        {savingAnswerQuestionId === q.id ? 'YANIT KAYDEDILIYOR...' : 'YANITI AUDIT LOGA KAYDET'}
+                        {savingAnswerQuestionId === q.id ? 'YANIT KAYDEDİLİYOR...' : 'YANITI AUDIT LOGA KAYDET'}
                       </button>
                       {decisionState[q.id] && (
                         <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                          {decisionState[q.id] === 'approved' ? 'Karar kaydedildi: Onaylandi' : 'Karar kaydedildi: Yoksayildi'}
+                          {decisionState[q.id] === 'approved' ? 'Karar kaydedildi: Onaylandı' : 'Karar kaydedildi: Yoksayıldı'}
                         </p>
                       )}
                       {answerSavedState[q.id] && (
@@ -801,7 +815,7 @@ const DiscoveryLab: React.FC = () => {
               ))}
               {analysisResult.ai_report.karar_destek_sorulari.length === 0 && (
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
-                  AI teknik denetimde ek karar sorusu olusmadi.
+                  AI teknik denetimde ek karar sorusu oluşmadı.
                 </div>
               )}
             </div>
@@ -838,7 +852,7 @@ const DiscoveryLab: React.FC = () => {
             onChange={(event) => setAutoOpenQuoteAfterTransfer(event.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
           />
-          Aktarim tamamlaninca olusan RFQ ekranini otomatik ac
+          Aktarım tamamlanınca oluşan RFQ ekranını otomatik aç
         </label>
       </div>
       </div>

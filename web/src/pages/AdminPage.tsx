@@ -271,7 +271,7 @@ function formatAdminFocusTimestamp(value?: number | null) {
 }
 
 function getQuoteInsightSectionLabel(section: "status-history" | "full-audit-trail") {
-  return section === "status-history" ? "Durum Gecmisi" : "Denetim Izi";
+  return section === "status-history" ? "Durum Geçmişi" : "Denetim İzi";
 }
 
 type BillingInvoiceStatusBucket = "open" | "paid" | "other";
@@ -1592,7 +1592,7 @@ export default function AdminPage() {
     setIsRestoredQuoteToastPaused(false);
     setRestoredQuoteInsight(null);
     window.localStorage.removeItem(RESTORED_QUOTE_INSIGHT_STORAGE_KEY);
-    appendRestoredQuoteDebugEvent("action", "Manuel Temizleme", "Geri yukleme odagi kullanici tarafindan temizlendi");
+    appendRestoredQuoteDebugEvent("action", "Manuel Temizleme", "Geri yükleme odağı kullanıcı tarafından temizlendi");
   }, [appendRestoredQuoteDebugEvent]);
 
   const jumpToRestoredQuoteCard = useCallback(() => {
@@ -1600,7 +1600,7 @@ export default function AdminPage() {
       return;
     }
     discoveryQuoteCardRefs.current[restoredQuoteInsight.quoteId]?.scrollIntoView?.({ block: "center", behavior: "auto" });
-    appendRestoredQuoteDebugEvent("action", "Atlama Eylemi", `RFQ #${restoredQuoteInsight.quoteId} kartina gidildi`);
+    appendRestoredQuoteDebugEvent("action", "Atlama Eylemi", `RFQ #${restoredQuoteInsight.quoteId} kartına gidildi`);
   }, [appendRestoredQuoteDebugEvent, restoredQuoteInsight]);
 
   const removeRestoredQuoteDebugEvent = useCallback((eventId: string) => {
@@ -1646,7 +1646,7 @@ export default function AdminPage() {
       },
       {
         key: "transition",
-        label: transitionReason === "-" ? "Gerekce yok" : "Gerekce var",
+        label: transitionReason === "-" ? "Gerekçe yok" : "Gerekçe var",
         detail: `Transition reason: ${transitionReason}`,
         tone: transitionReason === "-" ? "gray" : "blue",
       },
@@ -1729,7 +1729,7 @@ export default function AdminPage() {
       events.push({ id: "packages-focus", label: "Paketler Odagi", detail: activePackageFocusSummary.join(" - "), source: "packages", createdAt: now - 5 });
     }
     if (restoredQuoteInsight) {
-      events.push({ id: `restore-focus-${restoredQuoteInsight.quoteId}`, label: "Geri Yukleme Odagi", detail: `RFQ #${restoredQuoteInsight.quoteId} - ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`, source: "discovery-lab", createdAt: now - 6, targetQuoteId: restoredQuoteInsight.quoteId, targetSection: restoredQuoteInsight.section });
+      events.push({ id: `restore-focus-${restoredQuoteInsight.quoteId}`, label: "Geri Yükleme Odağı", detail: `RFQ #${restoredQuoteInsight.quoteId} - ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`, source: "discovery-lab", createdAt: now - 6, targetQuoteId: restoredQuoteInsight.quoteId, targetSection: restoredQuoteInsight.section });
     }
     return events.sort((left, right) => right.createdAt - left.createdAt);
   }, [activePackageFocusSummary, activePlatformOpsFocusSummary, restoredQuoteInsight, searchParams, tenantGovernanceFocus]);
@@ -2211,7 +2211,7 @@ export default function AdminPage() {
       setDiscoveryQuotePendingApprovalsById((current) => ({ ...current, [quoteId]: pendingApprovals }));
       setDiscoveryQuoteById((current) => ({ ...current, [quoteId]: quoteDetail }));
     } catch (err) {
-      setDiscoveryQuoteInsightErrorById((current) => ({ ...current, [quoteId]: err instanceof Error ? err.message : "RFQ gecmisi yuklenemedi" }));
+      setDiscoveryQuoteInsightErrorById((current) => ({ ...current, [quoteId]: err instanceof Error ? err.message : "RFQ geçmişi yüklenemedi" }));
     } finally {
       setDiscoveryQuoteInsightLoadingId((current) => current === quoteId ? null : current);
     }
@@ -3548,7 +3548,7 @@ export default function AdminPage() {
     setTelemetryPulseTarget({
       quoteId: selectedFocusTelemetryTarget.quoteId,
       section: selectedFocusTelemetryTarget.section,
-      reason: `Telemetry secimi bu bolumu hedefledi: ${getQuoteInsightSectionLabel(selectedFocusTelemetryTarget.section)}`,
+        reason: `Telemetry seçimi bu bölümü hedefledi: ${getQuoteInsightSectionLabel(selectedFocusTelemetryTarget.section)}`,
     });
     if (focusTelemetryPulseTimeoutRef.current) {
       window.clearTimeout(focusTelemetryPulseTimeoutRef.current);
@@ -4846,9 +4846,9 @@ export default function AdminPage() {
       {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           <div className="admin-page__panel-card admin-page__panel-card--stacked">
-            <div className="admin-page__discovery-title">Discovery Lab Operasyon Masasi</div>
-            <div className="admin-page__large-heading">Answer audit ve RFQ baglanti merkezi</div>
-            <div className="admin-page__plain-muted">Stratejik Partner, proje, kullanici ve karar kirilimi ile Discovery Lab cevaplarini ve olusan RFQ baglantilarini izleyin.</div>
+            <div className="admin-page__discovery-title">Discovery Lab Operasyon Masası</div>
+            <div className="admin-page__large-heading">Answer audit ve RFQ bağlantı merkezi</div>
+            <div className="admin-page__plain-muted">Stratejik Partner, proje, kullanıcı ve karar kırılımı ile Discovery Lab cevaplarını ve oluşan RFQ bağlantılarını izleyin.</div>
             {showRestoredQuoteToast && restoredQuoteInsight ? (
               <div
                 ref={restoredQuoteToastRef}
@@ -4869,8 +4869,8 @@ export default function AdminPage() {
                 className={`admin-page__restore-toast ${restoredQuoteInsight.section === "status-history" ? "" : "admin-page__restore-toast--paused"}`}
               >
                 <div className="admin-page__restore-toast-content">
-                  <div className="admin-page__restore-toast-title">Geri Donus Restore</div>
-                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} icinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odagi geri yuklendi.</div>
+                  <div className="admin-page__restore-toast-title">Geri Dönüş Restore</div>
+                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} içinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odağı geri yüklendi.</div>
                   <progress data-testid="restored-quote-toast-progress" className="admin-page__wide-progress" value={restoredQuoteToastProgress} max={100} />
                 </div>
                 <div className="admin-page__wrap-row">
@@ -4879,7 +4879,7 @@ export default function AdminPage() {
                     onClick={jumpToRestoredQuoteCard}
                     className="admin-page__ghost-button"
                   >
-                    RFQ #{restoredQuoteInsight.quoteId} Odagina Git
+                    RFQ #{restoredQuoteInsight.quoteId} Odağına Git
                   </button>
                   <button
                     type="button"
@@ -4895,10 +4895,10 @@ export default function AdminPage() {
 
           <div className="admin-page__compact-metric-grid">
             {[
-              { label: "Toplam Audit", value: discoveryLabSummary.answer_audit_count, note: "Kayit altina alinan tum cevaplar", tone: "blue" },
-              { label: "RFQ Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile caprazlanan cevaplar", tone: "navy" },
-              { label: "Stratejik Partner Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner baglamina cozulmus kayitlar", tone: "teal" },
-              { label: "Inceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri donus gerektiren cevaplar", tone: "amber" },
+              { label: "Toplam Audit", value: discoveryLabSummary.answer_audit_count, note: "Kayıt altına alınan tüm cevaplar", tone: "blue" },
+              { label: "RFQ Bağlı Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile çaprazlanan cevaplar", tone: "navy" },
+              { label: "Stratejik Partner Bağlı Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner bağlamına çözülmüş kayıtlar", tone: "teal" },
+              { label: "İnceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri dönüş gerektiren cevaplar", tone: "amber" },
             ].map((card) => (
               <div key={card.label} className={`admin-page__overview-card admin-page__tone--${card.tone}`}>
                 <div className="admin-page__overview-label">{card.label}</div>
@@ -4914,10 +4914,10 @@ export default function AdminPage() {
                 <div className="admin-page__section-title">Geri Yukleme Zaman Cizelgesi</div>
                 <div className="admin-page__wrap-row">
                   {[
-                    { key: "all", label: "Tum Event" },
+                    { key: "all", label: "Tüm Event" },
                     { key: "restore", label: "Restore" },
                     { key: "action", label: "Aksiyon" },
-                    { key: "lifecycle", label: "Yasam Dongusu" },
+                    { key: "lifecycle", label: "Yaşam Döngüsü" },
                   ].map((filter) => (
                     <button
                       key={filter.key}
@@ -4989,13 +4989,13 @@ export default function AdminPage() {
                 ))}
                 {filteredRestoredQuoteDebugEvents.length === 0 ? (
                   <div className="admin-page__empty-state">
-                    Secili filtre icin debug olayi bulunmuyor.
+                    Seçili filtre için debug olayı bulunmuyor.
                   </div>
                 ) : null}
               </div>
               <div className="admin-page__space-between-row">
                 <div className="admin-page__wrap-row">
-                  <div className="admin-page__text-sm-muted">Son restore akisini secilen bolume gore yeniden tetikleyin.</div>
+                  <div className="admin-page__text-sm-muted">Son restore akışını seçilen bölüme göre yeniden tetikleyin.</div>
                   <label className="admin-page__inline-field">
                     Replay hedefi
                     <select
@@ -5004,7 +5004,7 @@ export default function AdminPage() {
                       onChange={(event) => setRestoredQuoteReplayTarget(event.target.value as "status-history" | "full-audit-trail")}
                       className="admin-page__control"
                     >
-                      <option value="status-history">Durum gecmisi</option>
+                      <option value="status-history">Durum geçmişi</option>
                       <option value="full-audit-trail">Denetim izi</option>
                     </select>
                   </label>
@@ -5047,10 +5047,10 @@ export default function AdminPage() {
                   className="admin-page__control"
                 />
                 <input
-                  aria-label="Discovery Lab Kayit Arama"
+                  aria-label="Discovery Lab Kayıt Arama"
                   value={discoveryLabSearch}
                   onChange={(event) => setDiscoveryLabSearch(event.target.value)}
-                  placeholder="Kayit ara"
+                  placeholder="Kayıt ara"
                   className="admin-page__control"
                 />
               </div>
@@ -5062,7 +5062,7 @@ export default function AdminPage() {
                     onClick={() => setDiscoveryLabAuditDecisionFilter(decision)}
                     className={`admin-page__pill-button admin-page__pill-button--sm ${discoveryLabAuditDecisionFilter === decision ? "admin-page__pill-button--active-teal" : ""}`}
                   >
-                    {decision === "all" ? "Tum Kararlar" : decision === "needs_review" ? "Inceleme" : decision === "approved" ? "Onaylandi" : "Goz Ardi"}
+                    {decision === "all" ? "Tüm Kararlar" : decision === "needs_review" ? "İnceleme" : decision === "approved" ? "Onaylandı" : "Göz Ardı"}
                   </button>
                 ))}
                 <button
@@ -5076,18 +5076,18 @@ export default function AdminPage() {
                   }}
                   className="admin-page__pill-button admin-page__pill-button--sm"
                 >
-                  Son 7 Gun
+                  Son 7 Gün
                 </button>
               </div>
             </div>
             <div className="admin-page__space-between-row">
               <div>
-                <div className="admin-page__discovery-title">Filtrelenmis Audit Kayitlari</div>
-                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bagli detay listesi</div>
+                <div className="admin-page__discovery-title">Filtrelenmiş Audit Kayıtları</div>
+                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bağlı detay listesi</div>
                 {restoredQuoteInsight ? renderAdminFocusBanner({
                   eyebrow: "Admin Focus",
-                  title: `Admin geri donus odagi: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
-                  detail: `Geri donus odagi gecici olarak listenin ustune tasindi: RFQ #${restoredQuoteInsight.quoteId} - replay hedefi ${getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}`,
+                  title: `Admin geri dönüş odağı: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
+                  detail: `Geri dönüş odağı geçici olarak listenin üstüne taşındı: RFQ #${restoredQuoteInsight.quoteId} - replay hedefi ${getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}`,
                   tone: restoredQuoteInsight.section === "status-history" ? "blue" : "violet",
                   sourceLabel: "Quote return",
                   timestamp: filteredRestoredQuoteDebugEvents[0]?.createdAt || Date.now(),
@@ -5098,13 +5098,13 @@ export default function AdminPage() {
                   testId: "admin-focus-banner-rfq",
                 }) : null}
               </div>
-              <div className="admin-page__link-description">{sortedDiscoveryLabAnswerAudits.length} kayit yuklendi</div>
+              <div className="admin-page__link-description">{sortedDiscoveryLabAnswerAudits.length} kayıt yüklendi</div>
             </div>
 
             <div className="admin-page__list-stack">
               {discoveryLabAnswerAudits.length === 0 ? (
                 <div className="admin-page__empty-state">
-                  Filtreye uyan Discovery Lab yanit denetimi kaydi bulunmuyor.
+                  Filtreye uyan Discovery Lab yanıt denetimi kaydı bulunmuyor.
                 </div>
               ) : (
                 sortedDiscoveryLabAnswerAudits.map((audit) => (
@@ -5142,7 +5142,7 @@ export default function AdminPage() {
                       <div className="admin-page__wrap-row">
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
                           <span className={`admin-page__pill-chip ${restoredQuoteInsight?.section === "status-history" ? "admin-page__pill-chip--blue" : "admin-page__pill-chip--violet"}`}>
-                            Geri Donus Odagi
+                            Geri Dönüş Odağı
                           </span>
                         ) : null}
                         {replayChainTargetQuoteId === audit.quote_id ? (
@@ -5152,7 +5152,7 @@ export default function AdminPage() {
                         ) : null}
                         {selectedFocusTelemetryTarget?.quoteId === audit.quote_id ? (
                           <span className="admin-page__pill-chip admin-page__pill-chip--blue">
-                            Telemetry Secimi
+                            Telemetry Seçimi
                           </span>
                         ) : null}
                         {replayChainTargetQuoteId === audit.quote_id ? (
@@ -5182,13 +5182,13 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div className="admin-page__audit-answer">{audit.answer_text}</div>
-                    {audit.rationale ? <div className="admin-page__text-xs-muted">Gerekce: {audit.rationale}</div> : null}
+                    {audit.rationale ? <div className="admin-page__text-xs-muted">Gerekçe: {audit.rationale}</div> : null}
                     <div className="admin-page__wrap-row admin-page__text-xs-muted">
                       <span>Tenant: {audit.tenant_name || audit.tenant_id || "-"}</span>
                       <span>Proje: {audit.project_name || audit.project_id || "-"}</span>
                       <span>Session: {audit.session_id || "-"}</span>
                       <span>Dosya: {audit.source_filename || "-"}</span>
-                      <span>Aktor: {audit.created_by_email || "Bilinmiyor"}</span>
+                      <span>Aktör: {audit.created_by_email || "Bilinmiyor"}</span>
                     </div>
                     <div className="admin-page__wrap-row">
                       {audit.tenant_id ? (
@@ -5206,52 +5206,52 @@ export default function AdminPage() {
                           onClick={() => openProjectsTab(audit.project_name)}
                           className="admin-page__audit-button admin-page__audit-button--indigo"
                         >
-                          Proje Akisini Ac
+                          Proje Akışını Aç
                         </button>
                       ) : null}
                     </div>
                     <div className="admin-page__space-between-row">
-                      <div className="admin-page__text-xs-muted">Kayit Zamani: {String(audit.created_at || "")}</div>
+                      <div className="admin-page__text-xs-muted">Kayıt Zamanı: {String(audit.created_at || "")}</div>
                       {audit.quote_id ? (
                         <div className="admin-page__wrap-row">
                           <a href={`/quotes/${audit.quote_id}`} className="admin-page__audit-link admin-page__audit-link--blue">
                             RFQ #{audit.quote_id}
                           </a>
                           <a href={`/quotes/${audit.quote_id}/comparison?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--violet">
-                            RFQ Karsilastirma
+                            RFQ Karşılaştırma
                           </a>
                           <a href={`/quotes/${audit.quote_id}/edit?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--amber">
-                            RFQ Akisina Git
+                            RFQ Akışına Git
                           </a>
                           <a href={`/quotes/${audit.quote_id}?insight=status-history&${buildAdminReturnQuery(audit, "status-history")}`} className="admin-page__audit-link admin-page__audit-link--soft-blue">
-                            RFQ Durum Gecmisi
+                            RFQ Durum Geçmişi
                           </a>
                           <a href={`/quotes/${audit.quote_id}?insight=full-audit-trail&${buildAdminReturnQuery(audit, "full-audit-trail")}`} className="admin-page__audit-link admin-page__audit-link--soft-violet">
-                            RFQ Denetim Izi Sayfasi
+                            RFQ Denetim İzi Sayfası
                           </a>
                           <button
                             type="button"
                             onClick={() => toggleDiscoveryQuoteInsights(audit.quote_id!)}
                             className="admin-page__audit-button admin-page__audit-button--slate"
                           >
-                            {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Gecmisini Gizle" : "RFQ Gecmisini Ac"}
+                            {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Geçmişini Gizle" : "RFQ Geçmişini Aç"}
                           </button>
                         </div>
                       ) : (
-                        <span className="admin-page__text-xs-soft">RFQ baglantisi yok</span>
+                        <span className="admin-page__text-xs-soft">RFQ bağlantısı yok</span>
                       )}
                     </div>
                     {audit.quote_id && expandedDiscoveryQuoteInsightId === audit.quote_id ? (
                       <div className="admin-page__inline-card">
                         {discoveryQuoteInsightLoadingId === audit.quote_id ? (
-                          <div className="admin-page__text-sm-muted">RFQ durum gecmisi ve denetim izi yukleniyor...</div>
+                          <div className="admin-page__text-sm-muted">RFQ durum geçmişi ve denetim izi yükleniyor...</div>
                         ) : null}
                         {discoveryQuoteInsightErrorById[audit.quote_id] ? (
                           <div className="admin-page__text-sm-error">{discoveryQuoteInsightErrorById[audit.quote_id]}</div>
                         ) : null}
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
                           <div className={`admin-page__insight-focus ${restoredQuoteInsight.section === "status-history" ? "admin-page__insight-focus--blue" : "admin-page__insight-focus--violet"}`}>
-                            <span>Admin geri donus odagi: {restoredQuoteInsight.section === "status-history" ? "RFQ durum gecmisi" : "RFQ denetim izi"}</span>
+                            <span>Admin geri dönüş odağı: {restoredQuoteInsight.section === "status-history" ? "RFQ durum geçmişi" : "RFQ denetim izi"}</span>
                             <button
                               type="button"
                               onClick={clearRestoredQuoteInsight}
@@ -5355,7 +5355,7 @@ export default function AdminPage() {
                                   : ""
                             }`}
                           >
-                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Denetim Izi</div>
+                            <div className="admin-page__subsection-title admin-page__subsection-title--muted">RFQ Denetim İzi</div>
                             {telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail" ? (
                               <div className="admin-page__wrap-row">
                                 <div className="admin-page__pill-chip admin-page__pill-chip--violet">
@@ -5382,7 +5382,7 @@ export default function AdminPage() {
                               </div>
                             ) : null}
                             <div className="admin-page__text-sm-body">
-                              Toplam olay: {discoveryQuoteAuditTrailById[audit.quote_id].total_events} - Guncel durum: {discoveryQuoteAuditTrailById[audit.quote_id].current_status}
+                              Toplam olay: {discoveryQuoteAuditTrailById[audit.quote_id].total_events} - Güncel durum: {discoveryQuoteAuditTrailById[audit.quote_id].current_status}
                             </div>
                             {discoveryQuoteAuditTrailById[audit.quote_id].summary ? (
                               <div className="admin-page__wrap-row">
