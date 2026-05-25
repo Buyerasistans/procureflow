@@ -113,485 +113,373 @@ export function TenantGovernanceTab({
   handleDeleteTenant,
 }: TenantGovernanceTabProps) {
   return (
-    <section className="tenantGovernanceTab">
-      <div className="tenantGovernanceTab__heroGrid">
-        <div className="tenantGovernanceTab__card tenantGovernanceTab__card--stacked">
+    <section className="tgTab">
+      {/* ── Hero bar ────────────────────────────────────────── */}
+      <div className="tgTab__heroGrid">
+        {/* Create panel */}
+        <div className="tgTab__card tgTab__card--stacked">
           <div>
-            <div className="tenantGovernanceTab__eyebrow">Stratejik Partner Hizli Islem</div>
-            <div className="tenantGovernanceTab__title">Super admin onayli partner acilisi</div>
+            <div className="tgTab__eyebrow">Stratejik Partner Hızlı İşlem</div>
+            <div className="tgTab__heroTitle">Süper admin onaylı partner açılışı</div>
           </div>
           {!canEditTenantGovernance ? (
-            <div className="tenantGovernanceTab__warning">
-              Platform destek personeli bu alani izleyebilir; Stratejik Partner olusturma, owner yeniden atama ve yasam dongusu degistirme yetkisi sadece super admin hesabindadir.
+            <div className="tgTab__warning">
+              Platform destek personeli bu alanı izleyebilir; oluşturma, owner yeniden atama ve yaşam döngüsü değiştirme yetkisi sadece süper admin'dedir.
             </div>
           ) : null}
-          <div className="tenantGovernanceTab__infoPanel">
-            <div className="tenantGovernanceTab__infoPanelTitle">Bu akis onboarding kuyuguna girmez.</div>
-            <div className="tenantGovernanceTab__infoPanelText">
-              Super admin buradan stratejik partneri doğrudan aktif olarak açar. İlk yöneticiye sadece şifre belirleme ve hesap aktivasyon e-postası gider.
+          <div className="tgTab__infoPanel">
+            <div className="tgTab__infoPanelTitle">Bu akış onboarding kuyuguna girmez.</div>
+            <div className="tgTab__infoPanelText">
+              Süper admin buradan stratejik partneri doğrudan aktif olarak açar. İlk yöneticiye sadece şifre belirleme ve hesap aktivasyon e-postası gider.
             </div>
           </div>
-          {tenantMessage ? <div className="tenantGovernanceTab__message">{tenantMessage}</div> : null}
-          <div className="tenantGovernanceTab__buttonRow">
+          {tenantMessage ? <div className="tgTab__message">{tenantMessage}</div> : null}
+          <div className="tgTab__buttonRow">
             <button
               type="button"
               onClick={openNewTenantModal}
               disabled={tenantSaving || !canEditTenantGovernance}
-              className="tenantGovernanceTab__button tenantGovernanceTab__button--primary"
+              className="tgTab__btn tgTab__btn--primary"
             >
-              Stratejik Partner olustur
+              Stratejik Partner Oluştur
             </button>
             <button
               type="button"
               onClick={() => handleStartOnboardingTemplate("starter")}
               disabled={!canEditTenantGovernance}
-              className="tenantGovernanceTab__button tenantGovernanceTab__button--secondary"
+              className="tgTab__btn tgTab__btn--ghost"
             >
-              Starter Taslagi
+              Starter Taslağı
             </button>
             <button
               type="button"
               onClick={() => handleStartOnboardingTemplate("growth")}
               disabled={!canEditTenantGovernance}
-              className="tenantGovernanceTab__button tenantGovernanceTab__button--secondary"
+              className="tgTab__btn tgTab__btn--ghost"
             >
-              Growth Taslagi
+              Growth Taslağı
             </button>
           </div>
         </div>
 
-        {isTenantFormModalOpen ? (
-          <div role="dialog" aria-modal="true" className="tenantGovernanceTab__modalOverlay">
-            <div className="tenantGovernanceTab__modalCard">
-              <form onSubmit={handleSubmitTenant} className="tenantGovernanceTab__form">
-                <div className="tenantGovernanceTab__modalHeader">
-                  <div>
-                    <div className="tenantGovernanceTab__eyebrow">Stratejik Partner Kaydi</div>
-                    <div className="tenantGovernanceTab__title">
-                      {editingTenantId ? "Stratejik Partner guncelle" : "Yeni Stratejik Partner olustur"}
-                    </div>
-                    <div className="tenantGovernanceTab__modalDescription">
-                      Bu kayıt super admin onaylı olarak açılır ve ilk yöneticiye sadece şifre belirleme e-postası gider.
-                    </div>
-                  </div>
-                  <button type="button" onClick={closeTenantModal} className="tenantGovernanceTab__button tenantGovernanceTab__button--close">
-                    Kapat
-                  </button>
-                </div>
-                <input
-                  disabled={!canEditTenantGovernance}
-                  value={tenantForm.legal_name}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, legal_name: e.target.value }))}
-                  placeholder="Resmi firma adi"
-                  className="tenantGovernanceTab__input"
-                />
-                <input
-                  disabled={!canEditTenantGovernance}
-                  value={tenantForm.brand_name}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, brand_name: e.target.value }))}
-                  placeholder="Marka / gorunen ad"
-                  className="tenantGovernanceTab__input"
-                />
-                <input
-                  disabled={!canEditTenantGovernance}
-                  value={tenantForm.category}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, category: e.target.value }))}
-                  placeholder="Kategori / uzmanlik alani"
-                  className="tenantGovernanceTab__input"
-                />
-                <input
-                  disabled={!canEditTenantGovernance}
-                  value={tenantForm.city}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, city: e.target.value }))}
-                  placeholder="Şehir"
-                  className="tenantGovernanceTab__input"
-                />
-                <div className="tenantGovernanceTab__sectionLabel">İlk Stratejik Partner Admin</div>
-                <input
-                  disabled={!canEditTenantGovernance || editingTenantId !== null}
-                  value={tenantForm.initial_admin_full_name}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, initial_admin_full_name: e.target.value }))}
-                  placeholder="Ad soyad"
-                  className="tenantGovernanceTab__input"
-                />
-                <input
-                  disabled={!canEditTenantGovernance || editingTenantId !== null}
-                  value={tenantForm.initial_admin_email}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, initial_admin_email: e.target.value }))}
-                  placeholder="E-posta"
-                  className="tenantGovernanceTab__input"
-                />
-                <input
-                  disabled={!canEditTenantGovernance || editingTenantId !== null}
-                  value={tenantForm.initial_admin_personal_phone}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, initial_admin_personal_phone: e.target.value }))}
-                  placeholder="Cep telefonu"
-                  className="tenantGovernanceTab__input"
-                />
-                <div className="tenantGovernanceTab__splitGrid">
-                  <input
-                    disabled={!canEditTenantGovernance}
-                    value={tenantForm.subscription_plan_code}
-                    onChange={(e) => setTenantForm((prev) => ({ ...prev, subscription_plan_code: e.target.value }))}
-                    placeholder="Plan kodu"
-                    className="tenantGovernanceTab__input"
-                  />
-                  <input
-                    disabled={!canEditTenantGovernance}
-                    value={tenantForm.onboarding_status}
-                    onChange={(e) => setTenantForm((prev) => ({ ...prev, onboarding_status: e.target.value }))}
-                    placeholder="Onboarding durumu"
-                    className="tenantGovernanceTab__input"
-                  />
-                </div>
-                <input
-                  disabled={!canEditTenantGovernance}
-                  value={tenantForm.status}
-                  onChange={(e) => setTenantForm((prev) => ({ ...prev, status: e.target.value }))}
-                  placeholder="Status"
-                  className="tenantGovernanceTab__input"
-                />
-                {tenantMessage ? <div className="tenantGovernanceTab__message">{tenantMessage}</div> : null}
-                <div className="tenantGovernanceTab__actionRow tenantGovernanceTab__actionRow--end">
-                  <button type="button" onClick={closeTenantModal} className="tenantGovernanceTab__button tenantGovernanceTab__button--close">
-                    Vazgec
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={tenantSaving || !canEditTenantGovernance}
-                    className="tenantGovernanceTab__button tenantGovernanceTab__button--primary"
-                  >
-                    {tenantSaving ? "Kaydediliyor..." : editingTenantId ? "Stratejik Partner guncelle" : "Stratejik Partner olustur"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="tenantGovernanceTab__card">
-          <div className="tenantGovernanceTab__eyebrow">Platform Yonlendirmesi</div>
-          <div className="tenantGovernanceTab__title">Stratejik Partner olgunluk siniflari</div>
-          <div className="tenantGovernanceTab__stack">
+        {/* Lifecycle legend */}
+        <div className="tgTab__card">
+          <div className="tgTab__eyebrow">Platform Yönlendirmesi</div>
+          <div className="tgTab__heroTitle">Stratejik Partner olgunluk sınıfları</div>
+          <div className="tgTab__legendGrid">
             {[
-              { label: "draft", note: "Kurulum basladi, Stratejik Partner owner ve branding eksik olabilir." },
-              { label: "onboarding", note: "İlk admin, branding ve temel organizasyon yapısı kuruluyor." },
-              { label: "aktif", note: "Operasyon kullanıma açık, proje ve tedarikçi akışları başlayabilir." },
-              { label: "duraklatildi", note: "Abonelik veya operasyon karariyla gecici durdurulmus Stratejik Partner." },
+              { label: "draft", note: "Kurulum başladı, owner ve branding eksik olabilir.", color: "slate" },
+              { label: "onboarding", note: "İlk admin, branding ve temel organizasyon yapısı kuruluyor.", color: "blue" },
+              { label: "aktif", note: "Operasyon kullanıma açık, proje ve tedarikçi akışları başlayabilir.", color: "green" },
+              { label: "duraklatıldı", note: "Abonelik veya operasyon kararıyla geçici durdurulmuş.", color: "amber" },
             ].map((item) => (
-              <div key={item.label} className="tenantGovernanceTab__statusCard">
-                <div className="tenantGovernanceTab__statusCardTitle">{item.label}</div>
-                <div className="tenantGovernanceTab__statusCardText">{item.note}</div>
+              <div key={item.label} className={`tgTab__legendItem tgTab__legendItem--${item.color}`}>
+                <span className="tgTab__legendLabel">{item.label}</span>
+                <span className="tgTab__legendNote">{item.note}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="tenantGovernanceTab__portfolioCard">
-        <div className="tenantGovernanceTab__portfolioHeader">
-          <div className="tenantGovernanceTab__eyebrow">Stratejik Partner Portfoyu</div>
-          <div className="tenantGovernanceTab__title">Müşteri olgunluk görünümü</div>
-          <div className="tenantGovernanceTab__portfolioDescription">Bu alan artık Stratejik Partner tablosundaki kayıtları doğrudan yönetir.</div>
+      {/* ── Tenant form modal ────────────────────────────────── */}
+      {isTenantFormModalOpen ? (
+        <div role="dialog" aria-modal="true" className="tgTab__modalOverlay">
+          <div className="tgTab__modalCard">
+            <form onSubmit={handleSubmitTenant} className="tgTab__form">
+              <div className="tgTab__modalHeader">
+                <div>
+                  <div className="tgTab__eyebrow">Stratejik Partner Kaydı</div>
+                  <div className="tgTab__heroTitle">
+                    {editingTenantId ? "Stratejik Partner güncelle" : "Yeni Stratejik Partner oluştur"}
+                  </div>
+                  <div className="tgTab__modalDesc">
+                    Bu kayıt süper admin onaylı olarak açılır; ilk yöneticiye sadece şifre belirleme e-postası gider.
+                  </div>
+                </div>
+                <button type="button" onClick={closeTenantModal} className="tgTab__btn tgTab__btn--ghost tgTab__btn--sm">
+                  Kapat
+                </button>
+              </div>
+              <div className="tgTab__formGrid">
+                <input disabled={!canEditTenantGovernance} value={tenantForm.legal_name} onChange={(e) => setTenantForm((p) => ({ ...p, legal_name: e.target.value }))} placeholder="Resmi firma adı" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance} value={tenantForm.brand_name} onChange={(e) => setTenantForm((p) => ({ ...p, brand_name: e.target.value }))} placeholder="Marka / görünen ad" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance} value={tenantForm.category} onChange={(e) => setTenantForm((p) => ({ ...p, category: e.target.value }))} placeholder="Kategori / uzmanlık alanı" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance} value={tenantForm.city} onChange={(e) => setTenantForm((p) => ({ ...p, city: e.target.value }))} placeholder="Şehir" className="tgTab__input" />
+              </div>
+              <div className="tgTab__sectionLabel">İlk Stratejik Partner Admin</div>
+              <div className="tgTab__formGrid">
+                <input disabled={!canEditTenantGovernance || editingTenantId !== null} value={tenantForm.initial_admin_full_name} onChange={(e) => setTenantForm((p) => ({ ...p, initial_admin_full_name: e.target.value }))} placeholder="Ad soyad" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance || editingTenantId !== null} value={tenantForm.initial_admin_email} onChange={(e) => setTenantForm((p) => ({ ...p, initial_admin_email: e.target.value }))} placeholder="E-posta" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance || editingTenantId !== null} value={tenantForm.initial_admin_personal_phone} onChange={(e) => setTenantForm((p) => ({ ...p, initial_admin_personal_phone: e.target.value }))} placeholder="Cep telefonu" className="tgTab__input" />
+              </div>
+              <div className="tgTab__formGrid tgTab__formGrid--3">
+                <input disabled={!canEditTenantGovernance} value={tenantForm.subscription_plan_code} onChange={(e) => setTenantForm((p) => ({ ...p, subscription_plan_code: e.target.value }))} placeholder="Plan kodu" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance} value={tenantForm.onboarding_status} onChange={(e) => setTenantForm((p) => ({ ...p, onboarding_status: e.target.value }))} placeholder="Onboarding durumu" className="tgTab__input" />
+                <input disabled={!canEditTenantGovernance} value={tenantForm.status} onChange={(e) => setTenantForm((p) => ({ ...p, status: e.target.value }))} placeholder="Status" className="tgTab__input" />
+              </div>
+              {tenantMessage ? <div className="tgTab__message">{tenantMessage}</div> : null}
+              <div className="tgTab__modalFooter">
+                <button type="button" onClick={closeTenantModal} className="tgTab__btn tgTab__btn--ghost">Vazgeç</button>
+                <button type="submit" disabled={tenantSaving || !canEditTenantGovernance} className="tgTab__btn tgTab__btn--primary">
+                  {tenantSaving ? "Kaydediliyor..." : editingTenantId ? "Güncelle" : "Oluştur"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ── Portfolio ─────────────────────────────────────────── */}
+      <div className="tgTab__portfolio">
+        {/* Portfolio header */}
+        <div className="tgTab__portfolioHeader">
+          <div className="tgTab__portfolioTitleRow">
+            <div>
+              <div className="tgTab__eyebrow">Stratejik Partner Portföyü</div>
+              <div className="tgTab__heroTitle">Müşteri olgunluk görünümü</div>
+              <div className="tgTab__portfolioDesc">Bu alan Stratejik Partner tablosundaki kayıtları doğrudan yönetir.</div>
+            </div>
+            <div className="tgTab__summaryStrip">
+              <div className="tgTab__summaryPill tgTab__summaryPill--blue">
+                <span className="tgTab__summaryNum">{tenantCategorySummary.length}</span>
+                <span className="tgTab__summaryLbl">Kategori</span>
+              </div>
+              <div className="tgTab__summaryPill tgTab__summaryPill--green">
+                <span className="tgTab__summaryNum">{tenantCategorySummary.reduce((s, i) => s + i.supplierCount, 0)}</span>
+                <span className="tgTab__summaryLbl">Tedarikçi</span>
+              </div>
+              <div className="tgTab__summaryPill tgTab__summaryPill--amber">
+                <span className="tgTab__summaryNum">{tenants.filter((t) => !String(t.category || "").trim()).length}</span>
+                <span className="tgTab__summaryLbl">Kategori Eksik</span>
+              </div>
+            </div>
+          </div>
+
           {tenantGovernanceFocus ? (
-            <div className="tenantGovernanceTab__focusBannerWrap">
+            <div className="tgTab__focusBanner">
               {renderAdminFocusBanner({
                 eyebrow: "Admin Focus",
-                title: `Discovery Lab odagi: ${tenantGovernanceFocus.tenantName || `Stratejik Partner #${tenantGovernanceFocus.tenantId}`}`,
+                title: `Discovery Lab odağı: ${tenantGovernanceFocus.tenantName || `Stratejik Partner #${tenantGovernanceFocus.tenantId}`}`,
                 detail: "Stratejik Partner portföyü listesi bu odağa göre daraltıldı.",
                 tone: "blue",
                 sourceLabel: "Stratejik Partner deep-link",
                 timestamp: undefined,
-                actions: [{ label: "Odagi Temizle", onClick: () => setTenantGovernanceFocus(null) }],
+                actions: [{ label: "Odağı Temizle", onClick: () => setTenantGovernanceFocus(null) }],
                 testId: "admin-focus-banner-tenant",
               })}
             </div>
           ) : null}
-          <div className="tenantGovernanceTab__filtersRow">
-            <div className="tenantGovernanceTab__pillGroup">
+
+          <div className="tgTab__filtersRow">
+            <div className="tgTab__pillGroup">
               {[
-                { key: "all", label: "Tum Stratejik Partnerler" },
-                { key: "pressure", label: "Limit Baskisi" },
-                { key: "breach", label: "Limit Asimi" },
+                { key: "all", label: "Tümü" },
+                { key: "pressure", label: "Limit Baskısı" },
+                { key: "breach", label: "Limit Aşımı" },
               ].map((item) => (
                 <button
                   key={item.key}
                   type="button"
                   onClick={() => setTenantUsageFilter(item.key as "all" | "pressure" | "breach")}
-                  className={cx(
-                    "tenantGovernanceTab__pillButton",
-                    tenantUsageFilter === item.key && "tenantGovernanceTab__pillButton--selected",
-                  )}
+                  className={cx("tgTab__pill", tenantUsageFilter === item.key && "tgTab__pill--active")}
                 >
                   {item.label}
                 </button>
               ))}
             </div>
-            <div className="tenantGovernanceTab__selectGroup">
-              <label className="tenantGovernanceTab__selectLabel">
+            <div className="tgTab__selectGroup">
+              <label className="tgTab__selectLabel">
                 Kategori
-                <select
-                  value={tenantCategoryFilter}
-                  onChange={(event) => setTenantCategoryFilter(event.target.value)}
-                  className="tenantGovernanceTab__select"
-                >
-                  <option value="all">Tum kategoriler</option>
+                <select value={tenantCategoryFilter} onChange={(e) => setTenantCategoryFilter(e.target.value)} className="tgTab__select">
+                  <option value="all">Tüm kategoriler</option>
                   <option value="uncategorized">Kategori eksik</option>
-                  {tenantCategoryOptions.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
+                  {tenantCategoryOptions.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </label>
-              <label className="tenantGovernanceTab__selectLabel">
-                Siralama
-                <select
-                  value={tenantSortMode}
-                  onChange={(event) => setTenantSortMode(event.target.value as "risk" | "name")}
-                  className="tenantGovernanceTab__select"
-                >
-                  <option value="risk">Risk onceligi</option>
-                  <option value="name">Ada gore</option>
+              <label className="tgTab__selectLabel">
+                Sıralama
+                <select value={tenantSortMode} onChange={(e) => setTenantSortMode(e.target.value as "risk" | "name")} className="tgTab__select">
+                  <option value="risk">Risk önceliği</option>
+                  <option value="name">Ada göre</option>
                 </select>
               </label>
             </div>
           </div>
-          <div className="tenantGovernanceTab__summaryGrid">
-            <div className="tenantGovernanceTab__summaryCard tenantGovernanceTab__summaryCard--blue">
-              <div className="tenantGovernanceTab__summaryEyebrow">Kategori Kapsami</div>
-              <div className="tenantGovernanceTab__summaryValue">{tenantCategorySummary.length}</div>
-              <div className="tenantGovernanceTab__summaryText">Tenant ve tedarikçi tarafında görülen ortak kategori sayısı</div>
-            </div>
-            <div className="tenantGovernanceTab__summaryCard tenantGovernanceTab__summaryCard--green">
-              <div className="tenantGovernanceTab__summaryEyebrow">Kategori Eşleşen Tedarikçi</div>
-              <div className="tenantGovernanceTab__summaryValue">
-                {tenantCategorySummary.reduce((sum, item) => sum + item.supplierCount, 0)}
-              </div>
-              <div className="tenantGovernanceTab__summaryText">Kategoriye sahip supplier portföyü sinyali</div>
-            </div>
-            <div className="tenantGovernanceTab__summaryCard tenantGovernanceTab__summaryCard--amber">
-              <div className="tenantGovernanceTab__summaryEyebrow">Kategori Eksigi</div>
-              <div className="tenantGovernanceTab__summaryValue">{tenants.filter((tenant) => !String(tenant.category || "").trim()).length}</div>
-              <div className="tenantGovernanceTab__summaryText">Esleme icin henuz kategori atanmamis tenant sayisi</div>
-            </div>
-          </div>
+
           {tenantCategorySummary.length > 0 ? (
-            <div className="tenantGovernanceTab__categoryWrap">
-              {tenantCategorySummary.slice(0, 8).map((item) => (
+            <div className="tgTab__categoryChips">
+              {tenantCategorySummary.slice(0, 10).map((item) => (
                 <button
                   key={item.category}
                   type="button"
                   onClick={() => setTenantCategoryFilter(item.category)}
-                  className={cx(
-                    "tenantGovernanceTab__categoryChip",
-                    tenantCategoryFilter === item.category && "tenantGovernanceTab__categoryChip--selected",
-                  )}
+                  className={cx("tgTab__categoryChip", tenantCategoryFilter === item.category && "tgTab__categoryChip--active")}
                 >
-                  {item.category}  {item.tenantCount} tenant / {item.supplierCount} supplier
+                  {item.category}
+                  <span className="tgTab__categoryChipMeta">{item.tenantCount}T / {item.supplierCount}S</span>
                 </button>
               ))}
             </div>
           ) : null}
         </div>
-        <div className="tenantGovernanceTab__tableWrap">
-          <table className="tenantGovernanceTab__table">
-            <thead>
-              <tr className="tenantGovernanceTab__tableHeadRow">
-                <th className="tenantGovernanceTab__tableHeader">Stratejik Partner</th>
-                <th className="tenantGovernanceTab__tableHeader">Durum</th>
-                <th className="tenantGovernanceTab__tableHeader">Plan</th>
-                <th className="tenantGovernanceTab__tableHeader">Branding</th>
-                <th className="tenantGovernanceTab__tableHeader">Stratejik Partner Owner</th>
-                <th className="tenantGovernanceTab__tableHeader">Islem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleTenants.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="tenantGovernanceTab__emptyState">
-                    Secili filtre icin gosterilecek Stratejik Partner kaydi yok.
-                  </td>
-                </tr>
-              ) : (
-                visibleTenants.map((tenant) => {
-                  const usage = tenantUsageByTenant.get(tenant.id);
-                  const normalizedTenantCategory = String(tenant.category || "").trim();
-                  const governancePaymentStatus = String(tenant.onboarding_payment_status || "not_required").toLowerCase();
-                  const governanceApprovalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
-                  const governanceOnboardingStatus = String(tenant.onboarding_status || "draft").toLowerCase();
-                  const hasPendingCategoryReview = (tenant.category_requests || []).some(
-                    (item) => !["final_approved", "rejected"].includes(String(item.status || "").toLowerCase()),
-                  );
-                  const governanceLocked =
-                    governanceOnboardingStatus !== "active" ||
-                    governanceApprovalStatus !== "approved" ||
-                    !["verified", "succeeded", "not_required"].includes(governancePaymentStatus) ||
-                    hasPendingCategoryReview;
-                  const matchingSupplierCount = normalizedTenantCategory
-                    ? tenantGovernanceSuppliers.filter((supplier) => String(supplier.category || "").trim() === normalizedTenantCategory).length
-                    : 0;
-                  const hasLimitPressure = (usage?.metrics || []).some(
-                    (metric) => metric.limit !== null && metric.limit !== undefined && metric.limit > 0 && metric.used / metric.limit >= 0.8,
-                  );
-                  const hasLimitBreach = (usage?.metrics || []).some(
-                    (metric) => metric.limit !== null && metric.limit !== undefined && metric.limit > 0 && metric.used >= metric.limit,
-                  );
 
-                  return (
-                    <tr
-                      key={tenant.id}
+        {/* Partner cards grid */}
+        <div className="tgTab__cardGrid">
+          {visibleTenants.length === 0 ? (
+            <div className="tgTab__emptyState">Seçili filtre için gösterilecek Stratejik Partner kaydı yok.</div>
+          ) : (
+            visibleTenants.map((tenant) => {
+              const usage = tenantUsageByTenant.get(tenant.id);
+              const normalizedCategory = String(tenant.category || "").trim();
+              const governancePaymentStatus = String(tenant.onboarding_payment_status || "not_required").toLowerCase();
+              const governanceApprovalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
+              const governanceOnboardingStatus = String(tenant.onboarding_status || "draft").toLowerCase();
+              const hasPendingCategoryReview = (tenant.category_requests || []).some(
+                (item) => !["final_approved", "rejected"].includes(String(item.status || "").toLowerCase()),
+              );
+              const governanceLocked =
+                governanceOnboardingStatus !== "active" ||
+                governanceApprovalStatus !== "approved" ||
+                !["verified", "succeeded", "not_required"].includes(governancePaymentStatus) ||
+                hasPendingCategoryReview;
+              const matchingSupplierCount = normalizedCategory
+                ? tenantGovernanceSuppliers.filter((s) => String(s.category || "").trim() === normalizedCategory).length
+                : 0;
+              const hasLimitPressure = (usage?.metrics || []).some(
+                (m) => m.limit != null && m.limit > 0 && m.used / m.limit >= 0.8,
+              );
+              const hasLimitBreach = (usage?.metrics || []).some(
+                (m) => m.limit != null && m.limit > 0 && m.used >= m.limit,
+              );
+
+              return (
+                <div
+                  key={tenant.id}
+                  className={cx(
+                    "tgTab__partnerCard",
+                    hasLimitBreach && "tgTab__partnerCard--breach",
+                    !hasLimitBreach && hasLimitPressure && "tgTab__partnerCard--pressure",
+                    !tenant.is_active && "tgTab__partnerCard--passive",
+                  )}
+                >
+                  {/* Card head: name + status */}
+                  <div className="tgTab__partnerHead">
+                    <div className="tgTab__partnerNameBlock">
+                      <div className="tgTab__partnerName">{tenant.brand_name || tenant.legal_name}</div>
+                      <div className="tgTab__partnerSlug">{tenant.slug}</div>
+                    </div>
+                    <span
                       className={cx(
-                        "tenantGovernanceTab__tableRow",
-                        hasLimitBreach && "tenantGovernanceTab__tableRow--breach",
-                        !hasLimitBreach && hasLimitPressure && "tenantGovernanceTab__tableRow--pressure",
+                        "tgTab__statusBadge",
+                        hasLimitBreach
+                          ? "tgTab__statusBadge--breach"
+                          : tenant.is_active
+                            ? "tgTab__statusBadge--active"
+                            : "tgTab__statusBadge--passive",
                       )}
                     >
-                      <td className="tenantGovernanceTab__cell">
-                        <div className="tenantGovernanceTab__tenantName">{tenant.brand_name || tenant.legal_name}</div>
-                        <div className="tenantGovernanceTab__tenantMeta">
-                          {tenant.slug}  {tenant.city || "Şehir eksik"}
-                        </div>
-                        <div className="tenantGovernanceTab__chipWrap">
-                          <span
-                            className={cx(
-                              "tenantGovernanceTab__chip",
-                              normalizedTenantCategory ? "tenantGovernanceTab__chip--teal" : "tenantGovernanceTab__chip--slate",
-                            )}
-                          >
-                            {normalizedTenantCategory || "Kategori eksik"}
+                      {formatPartnerLifecycleStatus(tenant.status)}
+                    </span>
+                  </div>
+
+                  {/* Meta chips */}
+                  <div className="tgTab__chipRow">
+                    <span className={cx("tgTab__chip", normalizedCategory ? "tgTab__chip--teal" : "tgTab__chip--slate")}>
+                      {normalizedCategory || "Kategori eksik"}
+                    </span>
+                    {tenant.city ? <span className="tgTab__chip tgTab__chip--slate">{tenant.city}</span> : null}
+                    <span className="tgTab__chip tgTab__chip--indigo">{tenant.subscription_plan_code || "starter"}</span>
+                    <span className={cx("tgTab__chip", tenant.logo_url ? "tgTab__chip--green" : "tgTab__chip--slate")}>
+                      {tenant.logo_url ? "Logo var" : "Logo eksik"}
+                    </span>
+                    {normalizedCategory && matchingSupplierCount > 0 ? (
+                      <span className="tgTab__chip tgTab__chip--green">{matchingSupplierCount} tedarikçi eşleşiyor</span>
+                    ) : null}
+                  </div>
+
+                  {/* Limit alert */}
+                  {hasLimitBreach ? (
+                    <div className="tgTab__alertBar tgTab__alertBar--breach">Limit aşımı var</div>
+                  ) : hasLimitPressure ? (
+                    <div className="tgTab__alertBar tgTab__alertBar--pressure">Limit baskısı var</div>
+                  ) : null}
+
+                  {/* Usage metrics */}
+                  {usage && usage.metrics.length > 0 ? (
+                    <div className="tgTab__metricsRow">
+                      {usage.metrics.map((metric) => {
+                        const ratio = metric.limit != null && metric.limit > 0 ? metric.used / metric.limit : 0;
+                        const tone =
+                          ratio >= 1 ? "breach" : ratio >= 0.8 ? "pressure" : "calm";
+                        return (
+                          <span key={`${tenant.id}-${metric.key}`} className={`tgTab__metricChip tgTab__metricChip--${tone}`}>
+                            {metric.label}: {metric.used}{metric.limit != null ? `/${metric.limit}` : ""}
                           </span>
-                          {normalizedTenantCategory ? (
-                            <span
-                              className={cx(
-                                "tenantGovernanceTab__chip",
-                                matchingSupplierCount > 0 ? "tenantGovernanceTab__chip--green" : "tenantGovernanceTab__chip--orange",
-                              )}
-                            >
-                              {matchingSupplierCount > 0 ? `${matchingSupplierCount} tedarikçi eşleşiyor` : "Eşleşen tedarikçi yok"}
-                            </span>
-                          ) : null}
-                        </div>
-                        {usage ? (
-                          <div className="tenantGovernanceTab__chipWrap">
-                            {usage.metrics.map((metric) => {
-                              const ratio = metric.limit !== null && metric.limit !== undefined && metric.limit > 0 ? metric.used / metric.limit : 0;
-                              const toneClass =
-                                ratio >= 1
-                                  ? "tenantGovernanceTab__metricChip--breach"
-                                  : ratio >= 0.8
-                                    ? "tenantGovernanceTab__metricChip--pressure"
-                                    : "tenantGovernanceTab__metricChip--calm";
-                              return (
-                                <span key={`${tenant.id}-${metric.key}`} className={cx("tenantGovernanceTab__chip tenantGovernanceTab__metricChip", toneClass)}>
-                                  {metric.label}: {metric.used}
-                                  {metric.limit !== null && metric.limit !== undefined ? `/${metric.limit}` : ""}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="tenantGovernanceTab__cell">
-                        <span
-                          className={cx(
-                            "tenantGovernanceTab__statusBadge",
-                            hasLimitBreach
-                              ? "tenantGovernanceTab__statusBadge--breach"
-                              : tenant.is_active
-                                ? "tenantGovernanceTab__statusBadge--active"
-                                : "tenantGovernanceTab__statusBadge--inactive",
-                          )}
+                        );
+                      })}
+                    </div>
+                  ) : null}
+
+                  {/* Owner section */}
+                  <div className="tgTab__ownerSection">
+                    <div className="tgTab__ownerInfo">
+                      <span className="tgTab__ownerName">{tenant.owner_full_name || "Owner atanmamış"}</span>
+                      <span className="tgTab__ownerEmail">{tenant.owner_email || "—"}</span>
+                    </div>
+                    {governanceLocked ? (
+                      <div className="tgTab__lockNote">Ödeme doğrulama veya kategori onayı tamamlanmadı — owner ataması kilitli.</div>
+                    ) : null}
+                    <select
+                      aria-label={`Owner seç: ${tenant.brand_name || tenant.legal_name}`}
+                      disabled={!canEditTenantGovernance || governanceLocked}
+                      value={tenant.owner_user_id ? String(tenant.owner_user_id) : ""}
+                      onChange={(e) => void handleReassignTenantOwner(tenant, e.target.value)}
+                      className="tgTab__ownerSelect"
+                    >
+                      <option value="">Stratejik Partner owner seç</option>
+                      {(tenantOwnerCandidates.get(tenant.id) || []).map((candidate) => (
+                        <option key={candidate.id} value={candidate.id}>
+                          {candidate.full_name}  {candidate.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Action buttons — süper admin her zaman işlem yapabilir */}
+                  {canEditTenantGovernance ? (
+                    <div className="tgTab__cardActions">
+                      <button
+                        type="button"
+                        onClick={() => handleEditTenant(tenant)}
+                        className="tgTab__actionBtn tgTab__actionBtn--edit"
+                      >
+                        Düzenle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleTenantStatusAction(tenant, tenant.is_active ? "paused" : "active")}
+                        disabled={tenantSaving}
+                        className={tenant.is_active ? "tgTab__actionBtn tgTab__actionBtn--pause" : "tgTab__actionBtn tgTab__actionBtn--activate"}
+                      >
+                        {tenant.is_active ? "Pasife Al" : "Aktif Et"}
+                      </button>
+                      {!tenant.is_active ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteTenant(tenant)}
+                          disabled={tenantSaving}
+                          className="tgTab__actionBtn tgTab__actionBtn--delete"
                         >
-                          {formatPartnerLifecycleStatus(tenant.status)}
-                        </span>
-                        {hasLimitBreach ? (
-                          <div className="tenantGovernanceTab__statusNote tenantGovernanceTab__statusNote--breach">Limit asimi var</div>
-                        ) : hasLimitPressure ? (
-                          <div className="tenantGovernanceTab__statusNote tenantGovernanceTab__statusNote--pressure">Limit yaklasiyor</div>
-                        ) : null}
-                      </td>
-                      <td className="tenantGovernanceTab__cell tenantGovernanceTab__cell--muted">
-                        {tenant.subscription_plan_code || "starter"}
-                      </td>
-                      <td className="tenantGovernanceTab__cell tenantGovernanceTab__cell--muted">
-                        {tenant.logo_url ? "Logo var" : "Logo eksik"}
-                      </td>
-                      <td className="tenantGovernanceTab__cell">
-                        <div className="tenantGovernanceTab__ownerStack">
-                          <div className="tenantGovernanceTab__ownerName">{tenant.owner_full_name || "Owner atanmamis"}</div>
-                          <div className="tenantGovernanceTab__ownerEmail">{tenant.owner_email || "Stratejik Partner admin secilmeli"}</div>
-                          {governanceLocked ? (
-                            <div className="tenantGovernanceTab__lockNote">
-                              Odeme dogrulama, kategori onayi ve uyelik aktivasyonu tamamlanana kadar bu kayit salt okunur.
-                            </div>
-                          ) : null}
-                          <select
-                            aria-label={`Stratejik Partner owner secimi: ${tenant.brand_name || tenant.legal_name}`}
-                            disabled={!canEditTenantGovernance || governanceLocked}
-                            value={tenant.owner_user_id ? String(tenant.owner_user_id) : ""}
-                            onChange={(event) => void handleReassignTenantOwner(tenant, event.target.value)}
-                            className="tenantGovernanceTab__select tenantGovernanceTab__select--owner"
-                          >
-                            <option value="">Stratejik Partner owner sec</option>
-                            {(tenantOwnerCandidates.get(tenant.id) || []).map((candidate) => (
-                              <option key={candidate.id} value={candidate.id}>
-                                {candidate.full_name}  {candidate.email}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </td>
-                      <td className="tenantGovernanceTab__cell">
-                        <div className="tenantGovernanceTab__actionRow tenantGovernanceTab__actionRow--wrap">
-                          {canEditTenantGovernance ? (
-                            <button
-                              onClick={() => handleEditTenant(tenant)}
-                              disabled={governanceLocked}
-                              className={cx(
-                                "tenantGovernanceTab__button tenantGovernanceTab__button--small",
-                                governanceLocked ? "tenantGovernanceTab__button--disabledGrey" : "tenantGovernanceTab__button--edit",
-                              )}
-                            >
-                              Duzenle
-                            </button>
-                          ) : null}
-                          {canEditTenantGovernance ? (
-                            <button
-                              onClick={() => void handleTenantStatusAction(tenant, tenant.is_active ? "paused" : "active")}
-                              disabled={tenantSaving || governanceLocked}
-                              className={cx(
-                                "tenantGovernanceTab__button tenantGovernanceTab__button--small",
-                                governanceLocked
-                                  ? "tenantGovernanceTab__button--disabledGrey"
-                                  : tenant.is_active
-                                    ? "tenantGovernanceTab__button--danger"
-                                    : "tenantGovernanceTab__button--success",
-                              )}
-                            >
-                              {tenant.is_active ? "Pasife Al" : "Aktif Et"}
-                            </button>
-                          ) : null}
-                          {canEditTenantGovernance && !tenant.is_active ? (
-                            <button
-                              onClick={() => void handleDeleteTenant(tenant)}
-                              disabled={tenantSaving || governanceLocked}
-                              className={cx(
-                                "tenantGovernanceTab__button tenantGovernanceTab__button--small",
-                                governanceLocked ? "tenantGovernanceTab__button--disabledDark" : "tenantGovernanceTab__button--delete",
-                              )}
-                            >
-                              Sil
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                          Sil
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </section>
