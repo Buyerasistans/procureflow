@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════
    TenantGovernanceTab — Stratejik Partner Yönetimi
+   Responsive: PC · tablet (≤900px) · mobil (≤640px)
    ═══════════════════════════════════════════════════════ */
 
 .tgTab {
@@ -12,6 +13,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 @media (max-width: 900px) {
@@ -48,7 +50,11 @@
   line-height: 1.25;
 }
 
-/* ── Info / warning panels ─────────────────────────────── */
+@media (max-width: 640px) {
+  .tgTab__heroTitle { font-size: 18px; }
+}
+
+/* ── Panels ────────────────────────────────────────────── */
 .tgTab__warning {
   border-radius: 12px;
   padding: 12px 14px;
@@ -56,6 +62,7 @@
   border: 1px solid var(--pf-orange-200);
   color: var(--pf-orange-800);
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .tgTab__infoPanel {
@@ -101,9 +108,10 @@
   cursor: pointer;
   transition: opacity 120ms ease, transform 120ms ease, background-color 120ms ease;
   white-space: nowrap;
+  line-height: 1;
 }
 
-.tgTab__btn:disabled { cursor: not-allowed; opacity: 0.55; }
+.tgTab__btn:disabled { cursor: not-allowed; opacity: 0.5; }
 .tgTab__btn:hover:not(:disabled) { transform: translateY(-1px); }
 
 .tgTab__btn--primary {
@@ -131,28 +139,28 @@
 .tgTab__legendGrid {
   margin-top: 12px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tgTab__legendItem {
   border-radius: 12px;
   padding: 10px 14px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: baseline;
   border: 1px solid transparent;
 }
 
-.tgTab__legendItem--slate { background: var(--pf-slate-50); border-color: var(--pf-slate-200); }
-.tgTab__legendItem--blue  { background: var(--pf-blue-25); border-color: var(--pf-blue-100); }
-.tgTab__legendItem--green { background: var(--pf-green-50); border-color: var(--pf-emerald-100); }
-.tgTab__legendItem--amber { background: var(--pf-amber-50); border-color: var(--pf-amber-200); }
+.tgTab__legendItem--slate { background: var(--pf-slate-50);  border-color: var(--pf-slate-200); }
+.tgTab__legendItem--blue  { background: var(--pf-blue-25);   border-color: var(--pf-blue-100); }
+.tgTab__legendItem--green { background: var(--pf-green-50);  border-color: var(--pf-emerald-100); }
+.tgTab__legendItem--amber { background: var(--pf-amber-50);  border-color: var(--pf-amber-200); }
 
 .tgTab__legendLabel {
   font-size: 12px;
   font-weight: 800;
-  text-transform: lowercase;
-  min-width: 100px;
+  min-width: 90px;
+  flex-shrink: 0;
 }
 
 .tgTab__legendItem--slate .tgTab__legendLabel { color: var(--pf-slate-600); }
@@ -173,46 +181,60 @@
   background: rgba(15, 23, 42, 0.45);
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 16px;
   z-index: 80;
 }
 
 .tgTab__modalCard {
-  width: min(720px, 100%);
+  width: min(680px, 100%);
   max-height: 90vh;
   overflow-y: auto;
   border-radius: 20px;
   background: var(--pf-surface);
   border: 1px solid var(--pf-border-color-alt);
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
-  padding: 24px;
+  padding: 28px;
 }
 
-.tgTab__form { display: grid; gap: 14px; }
+@media (max-width: 640px) {
+  .tgTab__modalCard { padding: 18px; border-radius: 16px; }
+}
+
+.tgTab__form { display: grid; gap: 10px; }
 
 .tgTab__modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .tgTab__modalDesc {
   color: var(--pf-slate-500);
   font-size: 13px;
   margin-top: 4px;
+  line-height: 1.5;
 }
 
+/* Form grids */
 .tgTab__formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
-.tgTab__formGrid--3 { grid-template-columns: 1fr 1fr 1fr; }
+.tgTab__formGrid--3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
 
-@media (max-width: 600px) {
+/* Single-column stack — for admin fields */
+.tgTab__formStack {
+  display: grid;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
   .tgTab__formGrid,
   .tgTab__formGrid--3 { grid-template-columns: 1fr; }
 }
@@ -223,11 +245,10 @@
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: var(--pf-amber-brown);
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
-.tgTab__input,
-.tgTab__select {
+.tgTab__input {
   padding: 11px 14px;
   border-radius: 12px;
   border: 1px solid var(--pf-border-color-alt);
@@ -235,20 +256,28 @@
   color: var(--pf-slate-900);
   font-size: 14px;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.tgTab__input:disabled,
-.tgTab__select:disabled {
+.tgTab__input:disabled {
   background: var(--pf-slate-50);
   color: var(--pf-slate-400);
   cursor: not-allowed;
+}
+
+.tgTab__input:focus {
+  outline: none;
+  border-color: var(--pf-color-primary-dark);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .tgTab__modalFooter {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pf-border-color);
+  margin-top: 4px;
 }
 
 /* ── Portfolio container ───────────────────────────────── */
@@ -266,6 +295,10 @@
   background: var(--pf-slate-50);
   display: grid;
   gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .tgTab__portfolioHeader { padding: 16px; }
 }
 
 .tgTab__portfolioTitleRow {
@@ -288,19 +321,20 @@
   gap: 10px;
   flex-wrap: wrap;
   align-items: flex-start;
+  flex-shrink: 0;
 }
 
 .tgTab__summaryPill {
   border-radius: 14px;
   padding: 10px 16px;
   text-align: center;
-  min-width: 80px;
+  min-width: 72px;
   border: 1px solid transparent;
 }
 
 .tgTab__summaryPill--blue  { background: var(--pf-color-primary-light); border-color: var(--pf-blue-100); }
-.tgTab__summaryPill--green { background: var(--pf-green-50); border-color: var(--pf-emerald-100); }
-.tgTab__summaryPill--amber { background: var(--pf-amber-50); border-color: var(--pf-amber-200); }
+.tgTab__summaryPill--green { background: var(--pf-green-50);            border-color: var(--pf-emerald-100); }
+.tgTab__summaryPill--amber { background: var(--pf-amber-50);            border-color: var(--pf-amber-200); }
 
 .tgTab__summaryNum {
   display: block;
@@ -372,6 +406,7 @@
   color: var(--pf-slate-600);
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .tgTab__select {
@@ -394,7 +429,7 @@
 .tgTab__categoryChip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--pf-border-color-alt);
@@ -425,12 +460,12 @@
 /* ── Partner cards grid ────────────────────────────────── */
 .tgTab__cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 1px;
   background: var(--pf-border-color);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 820px) {
   .tgTab__cardGrid { grid-template-columns: 1fr; }
 }
 
@@ -440,6 +475,7 @@
   color: var(--pf-slate-400);
   font-size: 14px;
   grid-column: 1 / -1;
+  background: var(--pf-surface);
 }
 
 /* ── Partner card ──────────────────────────────────────── */
@@ -451,15 +487,16 @@
   transition: background-color 120ms ease;
 }
 
-.tgTab__partnerCard:hover { background: var(--pf-slate-50); }
+@media (max-width: 640px) {
+  .tgTab__partnerCard { padding: 14px 16px; }
+}
 
+.tgTab__partnerCard:hover { background: #f8fafc; }
 .tgTab__partnerCard--pressure { background: var(--pf-amber-50); }
 .tgTab__partnerCard--pressure:hover { background: #fef3c0; }
-
 .tgTab__partnerCard--breach { background: #fff7f7; }
 .tgTab__partnerCard--breach:hover { background: #ffe8e8; }
-
-.tgTab__partnerCard--passive { opacity: 0.78; }
+.tgTab__partnerCard--passive { opacity: 0.8; }
 
 /* Card head */
 .tgTab__partnerHead {
@@ -469,34 +506,96 @@
   gap: 12px;
 }
 
+.tgTab__partnerNameBlock { flex: 1; min-width: 0; }
+
 .tgTab__partnerName {
   font-size: 16px;
   font-weight: 800;
   color: var(--pf-slate-900);
   line-height: 1.2;
+  word-break: break-word;
 }
 
 .tgTab__partnerSlug {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--pf-slate-400);
   margin-top: 2px;
   font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Status badges */
+/* Status group — top right corner, stacked */
+.tgTab__statusGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Clickable status toggle (active state) */
+.tgTab__statusToggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.tgTab__statusToggle--active {
+  background: var(--pf-green-100);
+  color: var(--pf-green-800);
+}
+
+.tgTab__statusToggle--active:hover:not(:disabled) {
+  background: var(--pf-red-100);
+  color: var(--pf-red-700);
+}
+
+.tgTab__statusToggle--active:hover:not(:disabled)::after {
+  content: " →pasif";
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.tgTab__statusToggle:disabled { cursor: not-allowed; opacity: 0.5; }
+
+/* Non-interactive status badge */
 .tgTab__statusBadge {
   display: inline-flex;
-  padding: 5px 11px;
+  padding: 5px 12px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .tgTab__statusBadge--active  { background: var(--pf-green-100); color: var(--pf-green-800); }
 .tgTab__statusBadge--passive { background: var(--pf-slate-100); color: var(--pf-slate-600); }
-.tgTab__statusBadge--breach  { background: var(--pf-red-100); color: var(--pf-red-800); }
+.tgTab__statusBadge--breach  { background: var(--pf-red-100);   color: var(--pf-red-800); }
+
+/* Sil button — appears in top-right group when passive */
+.tgTab__statusDeleteBtn {
+  padding: 4px 11px;
+  border-radius: 8px;
+  border: none;
+  background: var(--pf-red-50);
+  color: var(--pf-red-700);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.tgTab__statusDeleteBtn:hover:not(:disabled) { opacity: 0.8; transform: translateY(-1px); }
+.tgTab__statusDeleteBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Chips */
 .tgTab__chipRow {
@@ -517,7 +616,6 @@
 .tgTab__chip--slate  { background: var(--pf-slate-100); color: var(--pf-slate-500); }
 .tgTab__chip--green  { background: var(--pf-green-50);  color: var(--pf-green-800); }
 .tgTab__chip--indigo { background: var(--pf-indigo-50); color: var(--pf-indigo-700); }
-.tgTab__chip--orange { background: var(--pf-color-warning-light); color: var(--pf-orange-800); }
 
 /* Alert bar */
 .tgTab__alertBar {
@@ -527,7 +625,7 @@
   font-weight: 700;
 }
 
-.tgTab__alertBar--breach   { background: var(--pf-red-50); color: var(--pf-red-700); }
+.tgTab__alertBar--breach   { background: var(--pf-red-50);    color: var(--pf-red-700); }
 .tgTab__alertBar--pressure { background: var(--pf-amber-100); color: var(--pf-amber-800); }
 
 /* Metrics */
@@ -547,13 +645,13 @@
 
 .tgTab__metricChip--calm     { background: var(--pf-indigo-50); color: var(--pf-indigo-800); }
 .tgTab__metricChip--pressure { background: var(--pf-amber-100); color: var(--pf-amber-800); }
-.tgTab__metricChip--breach   { background: var(--pf-red-100); color: var(--pf-red-800); }
+.tgTab__metricChip--breach   { background: var(--pf-red-100);   color: var(--pf-red-800); }
 
 /* Owner section */
 .tgTab__ownerSection {
   display: grid;
   gap: 8px;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--pf-border-color);
 }
 
@@ -573,12 +671,14 @@
 .tgTab__ownerEmail {
   font-size: 12px;
   color: var(--pf-slate-400);
+  word-break: break-all;
 }
 
 .tgTab__lockNote {
   font-size: 12px;
   color: var(--pf-slate-400);
   font-style: italic;
+  line-height: 1.4;
 }
 
 .tgTab__ownerSelect {
@@ -590,6 +690,7 @@
   color: var(--pf-slate-700);
   font-size: 13px;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .tgTab__ownerSelect:disabled {
@@ -598,18 +699,17 @@
   cursor: not-allowed;
 }
 
-/* Card action buttons */
+/* Card actions — bottom */
 .tgTab__cardActions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding-top: 4px;
 }
 
 .tgTab__actionBtn {
   flex: 1;
-  min-width: 80px;
-  padding: 9px 14px;
+  min-width: 90px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: none;
   font-size: 13px;
@@ -617,12 +717,11 @@
   cursor: pointer;
   transition: opacity 120ms ease, transform 120ms ease;
   text-align: center;
+  white-space: nowrap;
 }
 
 .tgTab__actionBtn:disabled { opacity: 0.45; cursor: not-allowed; }
-.tgTab__actionBtn:hover:not(:disabled) { transform: translateY(-1px); opacity: 0.9; }
+.tgTab__actionBtn:hover:not(:disabled) { transform: translateY(-1px); opacity: 0.88; }
 
-.tgTab__actionBtn--edit     { background: var(--pf-indigo-100); color: var(--pf-indigo-800); }
-.tgTab__actionBtn--pause    { background: var(--pf-amber-100); color: var(--pf-amber-800); }
-.tgTab__actionBtn--activate { background: var(--pf-green-100); color: var(--pf-green-800); }
-.tgTab__actionBtn--delete   { background: var(--pf-red-100); color: var(--pf-red-700); }
+.tgTab__actionBtn--edit    { background: var(--pf-indigo-100); color: var(--pf-indigo-800); }
+.tgTab__actionBtn--approve { background: var(--pf-green-100);  color: var(--pf-green-800); }
