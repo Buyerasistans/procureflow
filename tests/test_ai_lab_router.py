@@ -12,6 +12,7 @@ from api.models import (
     Quote,
     QuoteItem,
 )
+from api.services.cad_convert import can_convert_dwg
 from api.services import extractor as extractor_module
 
 
@@ -23,7 +24,50 @@ def test_ai_lab_rejects_invalid_extension(client, admin_auth_headers):
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Yalnizca .dwg veya .dxf dosyalari desteklenir"
+    detail = response.json()["detail"]
+    assert detail["code"] == "UNSUPPORTED_CAD_EXTENSION"
+    assert detail["message"] == "Yalnızca .dwg veya .dxf dosyaları desteklenir."
+    assert detail["request_id"]
+
+
+def test_can_convert_dwg_reports_missing_converter_without_name_error(monkeypatch):
+    monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
+    monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
+    monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+
+    ok, reason = can_convert_dwg()
+
+    assert ok is False
+    assert "_resolve_oda_executable" not in reason
+    assert "DWG dönüştürme aracı bulunamadı" in reason
+
+
+def test_ai_lab_dwg_converter_missing_returns_sanitized_error(
+    client, monkeypatch, admin_auth_headers
+):
+    monkeypatch.setattr(
+        "api.routers.ai_lab.can_convert_dwg",
+        lambda: (False, "name '_resolve_oda_executable' is not defined"),
+    )
+
+    response = client.post(
+        "/api/v1/ai-lab/analyze",
+        files={
+            "file": (
+                "test-plan.dwg",
+                BytesIO(b"DWG"),
+                "application/acad",
+            )
+        },
+        headers=admin_auth_headers,
+    )
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail["code"] == "DWG_CONVERTER_UNAVAILABLE"
+    assert "_resolve_oda_executable" not in detail["message"]
+    assert "Lütfen dosyayı DXF olarak yükleyin" in detail["message"]
+    assert detail["request_id"]
 
 
 def test_ai_lab_returns_analysis_payload_with_fallback_ai_report(
@@ -224,6 +268,75 @@ def test_ai_lab_logs_bom_selection_decision_and_confirm_transfer(
         ]
     finally:
         db.close()
+
+
+def test_ai_lab_session_mutations_and_timeline_reject_unrelated_user(
+    client, monkeypatch, admin_auth_headers, other_user_auth_headers
+):
+    metadata = {
+        "proje_ozet": {
+            "kaynak_dosya": "guard-test.dxf",
+            "pf_katman_sayisi": 1,
+            "pf_blok_sayisi": 0,
+            "minha_adedi": 0,
+        },
+        "katmanlar": [
+            {
+                "layer_name": "PF_DUVAR",
+                "total_length": 12.0,
+                "unit": "mt",
+                "entity_count": 1,
+            }
+        ],
+        "bloklar": [],
+        "minha_elemanlari": [],
+    }
+
+    monkeypatch.setattr(
+        extractor_module.DWGExtractor, "extract_metadata", lambda self: metadata
+    )
+
+    analyze_response = client.post(
+        "/api/v1/ai-lab/analyze",
+        files={
+            "file": (
+                "guard-test.dxf",
+                BytesIO(b"0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF\n"),
+                "application/dxf",
+            )
+        },
+        headers=admin_auth_headers,
+    )
+    assert analyze_response.status_code == 200, analyze_response.text
+    session_id = analyze_response.json()["session_id"]
+
+    mutation_attempts = [
+        (
+            "/api/v1/ai-lab/bom-selection",
+            {"session_id": session_id, "item_key": "PF_DUVAR-Duvar-0", "selected": False},
+        ),
+        (
+            "/api/v1/ai-lab/decision",
+            {"session_id": session_id, "question_id": 1, "decision": "approved"},
+        ),
+        (
+            "/api/v1/ai-lab/answer",
+            {
+                "session_id": session_id,
+                "question_id": 1,
+                "answer_text": "Kontrol edilecek.",
+            },
+        ),
+    ]
+
+    for url, payload in mutation_attempts:
+        response = client.post(url, json=payload, headers=other_user_auth_headers)
+        assert response.status_code == 403, response.text
+
+    timeline_response = client.get(
+        f"/api/v1/ai-lab/{session_id}/timeline", headers=other_user_auth_headers
+    )
+    assert timeline_response.status_code == 403, timeline_response.text
 
 
 def test_ai_lab_persists_user_answer_audit_and_timeline(

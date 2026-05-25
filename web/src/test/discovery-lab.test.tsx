@@ -85,7 +85,7 @@ describe('DiscoveryLab', () => {
           status: 'analyzed',
           quote_id: null,
           timeline: [
-            { type: 'bom_selection', title: 'BOM Secimi Guncellendi', details: { target_key: 'PF_DUVAR_ISLAK-Su yalitimi harci-0', decision: 'deselected' } },
+            { type: 'bom_selection', title: 'BOM Seçimi Güncellendi', details: { target_key: 'PF_DUVAR_ISLAK-Su yalitimi harci-0', decision: 'deselected' } },
           ],
         }),
       })
@@ -99,7 +99,7 @@ describe('DiscoveryLab', () => {
           timeline: [
             {
               type: 'user_answer',
-              title: 'Kullanici Yaniti Kaydedildi',
+              title: 'Kullanıcı Yanıtı Kaydedildi',
               details: {
                 target_key: 'question:1',
                 decision: 'needs_review',
@@ -120,7 +120,7 @@ describe('DiscoveryLab', () => {
           status: 'analyzed',
           quote_id: null,
           timeline: [
-            { type: 'ai_decision', title: 'AI Teknik Karari Kaydedildi', details: { target_key: 'question:1', decision: 'approved' } },
+            { type: 'ai_decision', title: 'AI Teknik Kararı Kaydedildi', details: { target_key: 'question:1', decision: 'approved' } },
           ],
         }),
       })
@@ -138,7 +138,7 @@ describe('DiscoveryLab', () => {
           status: 'technical_locked',
           quote_id: 77,
           timeline: [
-            { type: 'technical_lock', title: 'Teknik Kilit ve Satin Alma Aktarimi', details: { target_key: 'DL-TRANSFER1', decision: 'confirmed' } },
+            { type: 'technical_lock', title: 'Teknik Kilit ve Satın Alma Aktarımı', details: { target_key: 'DL-TRANSFER1', decision: 'confirmed' } },
           ],
         }),
       });
@@ -164,7 +164,7 @@ describe('DiscoveryLab', () => {
     );
 
     expect(await screen.findByText('Canli analiz tamamlandi.')).toBeInTheDocument();
-    expect(screen.getByLabelText('Aktarim Projesi')).toHaveValue('11');
+    expect(screen.getByLabelText('Aktarım Projesi')).toHaveValue('11');
     expect(screen.getAllByText('PF_DUVAR_ISLAK')).toHaveLength(2);
     expect(screen.getByText('Zemin yalitimi eklensin mi?')).toBeInTheDocument();
     expect(screen.getByText('+Hijyenik Derz')).toBeInTheDocument();
@@ -174,7 +174,7 @@ describe('DiscoveryLab', () => {
     expect(screen.getByText('Gizle')).toBeInTheDocument();
     expect(screen.getByText('Su yalitimi harci')).toBeInTheDocument();
     expect(screen.getAllByText('BOM Alt Kalemi')).toHaveLength(2);
-    expect(screen.getAllByText('Secili')).toHaveLength(2);
+    expect(screen.getAllByText('Seçili')).toHaveLength(2);
 
     fireEvent.click(screen.getByLabelText('Su yalitimi harci teknik onay'));
 
@@ -187,10 +187,10 @@ describe('DiscoveryLab', () => {
     });
     expect(screen.getByText('Pasif')).toBeInTheDocument();
     expect(screen.getByText('Audit Timeline')).toBeInTheDocument();
-    expect(screen.getByText('BOM Secimi Guncellendi')).toBeInTheDocument();
+    expect(screen.getByText('BOM Seçimi Güncellendi')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Yanıt 1'), { target: { value: 'Sahada kontrol edelim.' } });
-    fireEvent.change(screen.getByLabelText('Gerekce 1'), { target: { value: 'Kesit doğrulaması gerekli.' } });
+    fireEvent.change(screen.getByLabelText('Gerekçe 1'), { target: { value: 'Kesit doğrulaması gerekli.' } });
     fireEvent.click(screen.getByRole('button', { name: /yaniti audit loga kaydet/i }));
 
     await waitFor(() => {
@@ -200,12 +200,12 @@ describe('DiscoveryLab', () => {
         expect.objectContaining({ method: 'POST' })
       );
     });
-    expect(screen.getByText(/Kullanici yaniti audit loga kaydedildi/i)).toBeInTheDocument();
-    expect(screen.getByText('Kullanici Yaniti Kaydedildi')).toBeInTheDocument();
+    expect(screen.getByText(/Kullanıcı yanıtı audit loga kaydedildi/i)).toBeInTheDocument();
+    expect(screen.getByText('Kullanıcı Yanıtı Kaydedildi')).toBeInTheDocument();
     expect(screen.getByText(/Soru: Zemin yalitimi eklensin mi\?/i)).toBeInTheDocument();
-    expect(screen.getByText(/Yanit: Sahada kontrol edelim\./i)).toBeInTheDocument();
-    expect(screen.getByText(/Gerekce: Kesit doğrulaması gerekli\./i)).toBeInTheDocument();
-    expect(screen.getByText(/Aktor E-postasi: admin@procureflow.dev/i)).toBeInTheDocument();
+    expect(screen.getByText(/Yanıt: Sahada kontrol edelim\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Gerekçe: Kesit doğrulaması gerekli\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Aktör E-postası: admin@procureflow.dev/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'EVET' }));
 
@@ -216,14 +216,14 @@ describe('DiscoveryLab', () => {
         expect.objectContaining({ method: 'POST' })
       );
     });
-    expect(screen.getByText('Karar kaydedildi: Onaylandi')).toBeInTheDocument();
-    expect(screen.getByText('AI Teknik Karari Kaydedildi')).toBeInTheDocument();
+    expect(screen.getByText('Karar kaydedildi: Onaylandı')).toBeInTheDocument();
+    expect(screen.getByText('AI Teknik Kararı Kaydedildi')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /katman grubu.*pf_duvar_islak.*gizle/i }));
 
     expect(screen.queryByText('Su yalitimi harci')).not.toBeInTheDocument();
-    expect(screen.getByText('Goster')).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText(/aktarim tamamlaninca olusan rfq ekranini otomatik ac/i));
+    expect(screen.getByText('Göster')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/aktarım tamamlanınca oluşan rfq ekranını otomatik aç/i));
 
     fireEvent.click(screen.getByRole('button', { name: 'KEŞFİ ONAYLA VE AKTAR' }));
 
@@ -241,18 +241,22 @@ describe('DiscoveryLab', () => {
         })
       );
     });
-    expect(screen.getByText(/Teknik kilit atildi ve satin alma aktarimi kuyruga alindi: DL-TRANSFER1/i)).toBeInTheDocument();
-    expect(screen.getByText('Teknik Kilit ve Satin Alma Aktarimi')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /olusan rfq'yu ac/i })).toHaveAttribute('href', '/quotes/77');
+    expect(screen.getByText(/Teknik kilit atıldı ve satın alma aktarımı kuyruğa alındı: DL-TRANSFER1/i)).toBeInTheDocument();
+    expect(screen.getByText('Teknik Kilit ve Satın Alma Aktarımı')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /oluşan rfq'yu aç/i })).toHaveAttribute('href', '/quotes/77');
     expect(assignMock).toHaveBeenCalledWith('/quotes/77');
     expect(localStorage.getItem('pf_discovery_lab_auto_open_quote')).toBe('true');
   });
 
-  it('backend hata dondurdugunde kullaniciya mesaj gosterir', async () => {
+  it('backend hata döndürdüğünde kullanıcıya güvenli mesaj gösterir', async () => {
     fetchMock.mockResolvedValue({
       ok: false,
       json: async () => ({
-        detail: 'Yalnizca .dwg veya .dxf dosyalari desteklenir',
+        detail: {
+          code: 'UNSUPPORTED_CAD_EXTENSION',
+          message: 'Yalnızca .dwg veya .dxf dosyaları desteklenir.',
+          request_id: 'req-1',
+        },
       }),
     });
 
@@ -264,16 +268,37 @@ describe('DiscoveryLab', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(
-      await screen.findByText('Yalnizca .dwg veya .dxf dosyalari desteklenir')
+      await screen.findByText('Yalnızca .dwg veya .dxf dosyaları desteklenir. Referans: req-1')
     ).toBeInTheDocument();
     expect(screen.queryByText('KEŞFİ ONAYLA VE AKTAR')).toBeInTheDocument();
   });
 
-  it('otomatik rfq acma tercihini localStorage uzerinden yukler', async () => {
+  it('raw teknik hata detayını kullanıcıya göstermez', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        detail: "Ayrıntı: name '_resolve_oda_executable' is not defined",
+      }),
+    });
+
+    const { container } = render(<DiscoveryLab />);
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['dwg'], 'ornek.dwg', { type: 'application/acad' });
+
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(
+      await screen.findByText('Dosya analizi tamamlanamadı. Lütfen dosyayı kontrol edip tekrar deneyin.')
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/_resolve_oda_executable/i)).not.toBeInTheDocument();
+  });
+
+  it('otomatik rfq açma tercihini localStorage üzerinden yükler', async () => {
     localStorage.setItem('pf_discovery_lab_auto_open_quote', 'true');
 
     render(<DiscoveryLab />);
 
-    expect(await screen.findByLabelText(/aktarim tamamlaninca olusan rfq ekranini otomatik ac/i)).toBeChecked();
+    expect(await screen.findByLabelText(/aktarım tamamlanınca oluşan rfq ekranını otomatik aç/i)).toBeChecked();
   });
 });
