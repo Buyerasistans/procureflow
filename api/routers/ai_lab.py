@@ -10,6 +10,7 @@ from api.services.cad_convert import (
     convert_dwg_to_dxf,
     CADConversionError,
     can_convert_dwg,
+    get_dwg_converter_diagnostics,
 )
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status, Depends
@@ -167,6 +168,13 @@ def _is_platform_staff(current_user: User) -> bool:
         "super_admin",
         "platform_support",
         "platform_operator",
+    }
+
+
+def _can_view_converter_health(current_user: User) -> bool:
+    return _is_platform_staff(current_user) or current_user.system_role in {
+        "tenant_owner",
+        "tenant_admin",
     }
 
 
@@ -761,6 +769,46 @@ def confirm_discovery_lab(
         "status": "success",
         "session_id": session_row.session_id,
         "transfer": procurement_payload,
+    }
+
+
+@router.get("/health/converter")
+def get_converter_health(
+    current_user: User = Depends(get_current_user),
+):
+    request_id = uuid4().hex
+    if not _can_view_converter_health(current_user):
+        logger.warning(
+            "discovery_lab_converter_health_forbidden",
+            extra={
+                "request_id": request_id,
+                "error_code": "CONVERTER_HEALTH_FORBIDDEN",
+                "reason": f"user_id={current_user.id}",
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_safe_error_detail(
+                code="CONVERTER_HEALTH_FORBIDDEN",
+                message="Converter sağlık bilgisini görüntüleme yetkiniz yok.",
+                request_id=request_id,
+            ),
+        )
+
+    diagnostics = get_dwg_converter_diagnostics()
+    logger.info(
+        "discovery_lab_converter_health_checked",
+        extra={
+            "request_id": request_id,
+            "error_code": "CONVERTER_HEALTH_CHECK",
+            "reason": diagnostics.get("reason") or diagnostics.get("resolver_source"),
+        },
+    )
+    return {
+        "converter_found": bool(diagnostics["converter_found"]),
+        "resolver_source": diagnostics["resolver_source"],
+        "executable_name": diagnostics["executable_name"],
+        "request_id": request_id,
     }
 
 

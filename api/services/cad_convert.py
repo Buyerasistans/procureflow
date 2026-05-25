@@ -48,6 +48,44 @@ def can_convert_dwg() -> tuple[bool, str]:
         return False, str(e)
 
 
+def get_dwg_converter_diagnostics() -> dict[str, str | bool | None]:
+    for env_key in ["DWG_TO_DXF_CONVERTER_PATH", "ODA_CONVERTER_PATH"]:
+        env_path = os.getenv(env_key, "").strip()
+        if not env_path:
+            continue
+        p = Path(env_path).expanduser()
+        if p.exists() and p.is_file():
+            return {
+                "converter_found": True,
+                "resolver_source": f"env:{env_key}",
+                "executable_name": p.name,
+                "reason": None,
+            }
+        return {
+            "converter_found": False,
+            "resolver_source": f"env:{env_key}",
+            "executable_name": p.name or None,
+            "reason": f"{env_key} tanımlı ama dosya bulunamadı",
+        }
+
+    for command_name in ["ODAFileConverter", "TeighaFileConverter"]:
+        which_path = shutil.which(command_name)
+        if which_path:
+            return {
+                "converter_found": True,
+                "resolver_source": f"path:{command_name}",
+                "executable_name": Path(which_path).name,
+                "reason": None,
+            }
+
+    return {
+        "converter_found": False,
+        "resolver_source": "unavailable",
+        "executable_name": None,
+        "reason": "DWG dönüştürme aracı bulunamadı",
+    }
+
+
 def convert_dwg_to_dxf(
     dwg_file_path: str | Path,
     output_dir: str | Path,

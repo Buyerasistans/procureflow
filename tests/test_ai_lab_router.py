@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from io import BytesIO
 
+import pytest
+
 from api.database import SessionLocal
 from api.models import (
     DiscoveryLabAnswerAudit,
@@ -14,6 +16,8 @@ from api.models import (
 )
 from api.services.cad_convert import can_convert_dwg
 from api.services import extractor as extractor_module
+
+pytestmark = pytest.mark.nodrop
 
 
 def test_ai_lab_rejects_invalid_extension(client, admin_auth_headers):
@@ -68,6 +72,28 @@ def test_ai_lab_dwg_converter_missing_returns_sanitized_error(
     assert "_resolve_oda_executable" not in detail["message"]
     assert "Lütfen dosyayı DXF olarak yükleyin" in detail["message"]
     assert detail["request_id"]
+
+
+def test_ai_lab_converter_health_returns_safe_diagnostics(
+    client, monkeypatch, admin_auth_headers
+):
+    monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
+    monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
+    monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+
+    response = client.get(
+        "/api/v1/ai-lab/health/converter", headers=admin_auth_headers
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload == {
+        "converter_found": False,
+        "resolver_source": "unavailable",
+        "executable_name": None,
+        "request_id": payload["request_id"],
+    }
+    assert payload["request_id"]
 
 
 def test_ai_lab_returns_analysis_payload_with_fallback_ai_report(
