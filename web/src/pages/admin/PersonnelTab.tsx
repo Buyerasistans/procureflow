@@ -251,7 +251,11 @@ export function PersonnelTab(props: PersonnelTabProps) {
     const groups = new Map<string, CompanyPersonnelGroup>();
     portalPersonnel.forEach((person) => {
       const decorated = decorateWithCompanyContext(person);
-      const groupName = decorated.primaryCompanyName === "Firma Ataması Yok" ? portalPrimaryCompanyName : decorated.primaryCompanyName;
+      // Platform kullanıcıları (tenant yok) daima platform ana firması altında grupla
+      const isPlatformUser = decorated.tenant_id == null;
+      const groupName = isPlatformUser
+        ? portalPrimaryCompanyName
+        : (decorated.primaryCompanyName === "Firma Ataması Yok" ? portalPrimaryCompanyName : decorated.primaryCompanyName);
       const key = `portal-${groupName}`;
       if (!groups.has(key)) {
         groups.set(key, { key, name: groupName, users: [] });

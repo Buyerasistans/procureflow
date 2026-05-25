@@ -410,24 +410,38 @@ export function CompaniesTab({
           {renderActionIcon("M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z", "#15803d")}
         </button>
       )}
-      {!readOnly && (
-        <button
-          type="button"
-          disabled={company.is_active || company.is_platform_primary}
-          onClick={() => handleDeleteCompany(company.id)}
-          title={company.is_platform_primary ? "Platform ana firma silinemez" : company.is_active ? "Silmek icin once pasife alin" : "Sil"}
-          aria-label={`Sil: ${company.name}`}
-          style={{
-            ...iconButtonBaseStyle,
-            borderColor: company.is_active || company.is_platform_primary ? "#d1d5db" : "#fecaca",
-            background: company.is_active || company.is_platform_primary ? "#f3f4f6" : "#fef2f2",
-            cursor: company.is_active || company.is_platform_primary ? "not-allowed" : "pointer",
-            opacity: company.is_active || company.is_platform_primary ? 0.6 : 1,
-          }}
-        >
-          {renderActionIcon("M3 6h18M8 6V4h8v2m-1 0v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V6m3 4v8m4-8v8", company.is_active || company.is_platform_primary ? "#94a3b8" : "#dc2626")}
-        </button>
-      )}
+      {!readOnly && (() => {
+        const hasProjects = (company.quote_count ?? 0) > 0;
+        const hasPersonnel = (company.personnel_count ?? 0) > 0;
+        const cannotDelete = company.is_active || company.is_platform_primary || hasProjects || hasPersonnel;
+        const deleteTitle = company.is_platform_primary
+          ? "Platform ana firma silinemez"
+          : company.is_active
+            ? "Silmek için önce pasife alın"
+            : hasProjects
+              ? `Firmaya bağlı ${company.quote_count} proje var; önce projeleri kaldırın`
+              : hasPersonnel
+                ? `Firmaya atanmış ${company.personnel_count} personel var; önce atamaları kaldırın`
+                : "Sil";
+        return (
+          <button
+            type="button"
+            disabled={cannotDelete}
+            onClick={() => handleDeleteCompany(company.id)}
+            title={deleteTitle}
+            aria-label={`Sil: ${company.name}`}
+            style={{
+              ...iconButtonBaseStyle,
+              borderColor: cannotDelete ? "#d1d5db" : "#fecaca",
+              background: cannotDelete ? "#f3f4f6" : "#fef2f2",
+              cursor: cannotDelete ? "not-allowed" : "pointer",
+              opacity: cannotDelete ? 0.6 : 1,
+            }}
+          >
+            {renderActionIcon("M3 6h18M8 6V4h8v2m-1 0v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V6m3 4v8m4-8v8", cannotDelete ? "#94a3b8" : "#dc2626")}
+          </button>
+        );
+      })()}
     </div>
   );
 
