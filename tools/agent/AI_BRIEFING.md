@@ -7,7 +7,7 @@
 - mode: multi-phase build
 
 ## Current Phase
-**PHASE 4 — Payout Processing** 🔄 IN PROGRESS (atomik-1 COMPLETE)
+**PHASE 4 — Payout Processing** ✅ COMPLETE
 
 ## Completed Steps
 - [x] PHASE 0: 8 SQLAlchemy models, Alembic migration 76f4c14237af, RBAC helpers
@@ -15,14 +15,14 @@
 - [x] PHASE 2: earnings router + schemas + masking
 - [x] PHASE 3A: JobsPage + jobs.service.ts + /jobs route + nav item
 - [x] PHASE 3B: TalentProfilePage + talent.service.ts + /talent/profile route + nav item
-- [x] PHASE 4/atomik-1: _PAYOUT_TRANSITIONS extended (approved→processing, processing→paid); paid_at stamp; schema pattern expanded
+- [x] PHASE 4/atomik-1: _PAYOUT_TRANSITIONS extended (approved→processing, processing→paid); paid_at stamp
+- [x] PHASE 4/atomik-2: PayoutAdminPage + payout.service.ts + /admin/payout-requests route + nav item
 
 ## In-Progress Step
-**PHASE 4 / atomik-2 — PayoutAdmin frontend OR PHASE 5**
+**PHASE 5 — Super Admin Talent Ecosystem Control Center**
 
 ## Next Atomic Action
-PHASE 4/atomik-2: PayoutAdminPage frontend (admin payout list + approve/reject/processing/paid actions)
-OR PHASE 5: Super Admin talent ecosystem control center — confirm with user.
+PHASE 5: Super Admin kontrol merkezi — talent profil listesi, KYC onayı, payout genel bakış.
 
 ## Architecture Decisions Log
 1. `TalentProfile` linked 1:1 to existing `User` (not a new user type) — reuses auth infrastructure
@@ -69,7 +69,7 @@ OR PHASE 5: Super Admin talent ecosystem control center — confirm with user.
 | PHASE 7 | 🔲 TODO | UAT + docs + go-live checklist |
 
 ## Last Successful Commit SHA
-d3cb28c (PHASE 4/atomik-1: payout approved->processing->paid backend)
+(pending — PHASE 4/atomik-2 commit henüz yapılmadı)
 
 ## Resume Command
 ```
