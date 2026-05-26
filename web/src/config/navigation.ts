@@ -32,6 +32,20 @@ export const NAV_ITEMS: NavItem[] = [
     permission: "view:admin" // Sadece admin yetkisi olanlar (Mimarlar dahil) görsün
   },
   { label: "Raporlar", to: "/reports", permission: "view:reports" },
+  {
+    label: "İş İlanları",
+    to: "/jobs",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "talent_member" ||
+        sr === "employer_company_admin" ||
+        sr === "referral_partner" ||
+        sr === "super_admin"
+      );
+    },
+  },
 ];
 
 export function getVisibleNavItems(user: AuthUser): NavItem[] {
