@@ -1,131 +1,78 @@
-# AI BRIEFING (AUTO) - MODEL AGNOSTIC
+# AI BRIEFING — Procurement Talent Network + Procurement Jobs
 
 ## Session Meta
-date: 2026-05-24
-branch: pr/strict-gate-payment-clean-v2
-mode: task
-task: Kaldım yerden devam
-domain: payment-billing
+- date: 2026-05-26
+- branch: feat/final-stabilization
+- stream: procurement-talent-network-and-jobs
+- mode: multi-phase build
 
-## Read First
-1. tools/agent/SESSION_CONTEXT.md
-2. tools/agent/RUNBOOK.md
-3. wiki/domains/payment-billing.md
-4. wiki/changelog/2026-05-24.md
-5. tools/agent/prompts/04_task_execution.md
+## Current Phase
+**PHASE 0 — Discovery + Architecture + Data Model** ✅ COMPLETE
 
-## Git Snapshot
-### status
- M .github/CODEOWNERS
- M web/.gitignore
-?? .claude/
-?? docs/runbooks/restore-drill-log.md
-?? tools/agent/STATE.md
-?? tools/agent/build_briefing.ps1
-?? tools/agent/orchestrator.ps1
-?? tools/agent/prompts/
+## Completed Steps
+- [x] Codebase scan: FastAPI + SQLAlchemy + React/TS, multi-tenant, PostgreSQL
+- [x] `api/models/talent.py` — 8 new SQLAlchemy models (TalentProfile, ProcurementJob, JobApplication, ReferralTask, ReferralSubmission, EarningsLedger, PayoutRequest, ReputationEvent)
+- [x] `api/models/__init__.py` — all 8 models registered + exported
+- [x] `api/core/authz.py` — 4 new system roles + 8 RBAC helper functions added
+- [x] Alembic migration `76f4c14237af` — 8 tables applied to local DB (83→91 tables)
+- [x] Migration verified: all 8 tables confirmed in PostgreSQL
 
-### last 5 commits
-9f09b69 chore(agent): restore session context + protect agent files with CODEOWNERS and git guards
-98a356c test(agent): restore session context + memory pipeline smoke test
-fb0e557 fix(security/dbre): PR-1..4 - deny-by-default guard, bootstrap secret, backup hardening, DB runbook
-30e1386 css: Faz-4 - token catalog genişletmesi + yeni panel CSS dosyalarının tokenizasyonu
-4842d97 feat(css): Faz-3 - token katalogu genisletme + 1197 hex gecisi + guvenlik
+## In-Progress Step
+**PHASE 1 — Auth/RBAC Foundation + API Skeleton**
 
-## Rules
-- Tek kaynak local repo.
-- Domain-aware al.
-- Wiki/changelog etkisini zorunlu yaz.
-- Çıktı sonunda soru sorma, "Next Action" ile devam et.
+## Next Atomic Action
+Create `api/routers/talent.py` — talent profile CRUD endpoints (GET /me, POST /register, PATCH /me) with RBAC guards.
 
-## Prompt Body
-# TASK EXECUTION PROMPT (DOMAIN-AWARE, STRICT)
+## Architecture Decisions Log
+1. `TalentProfile` linked 1:1 to existing `User` (not a new user type) — reuses auth infrastructure
+2. `ProcurementJob.is_procurement_only=True` always — enforced at model + API + UI levels
+3. `EarningsLedger` is append-only (immutable log) — no updates, no deletes; balance computed from ledger
+4. `ReferralSubmission` has unique constraint (task_id, submitter_user_id) — prevents double submission
+5. `JobApplication` has unique constraint (job_id, applicant_user_id) — prevents double apply
+6. New RBAC roles extend existing `system_role` field on `User` model (no schema change needed)
+7. Spurious Alembic FK drift stripped from migration — only new tables included
 
-Görev: <TASK>
-Domain: <DOMAIN>
+## Open Risks / Blockers
+- `User.system_role` field accepts string freely — new talent roles must be validated at API layer until enum migration done
+- `ai_match_score` placeholder (NULL for now) — real AI scoring deferred to PHASE 3+
+- Bank details in `PayoutRequest.bank_details_json` must be masked before API response — implement in schema layer
 
-Bu görevi domain-aware ve local-first şekilde uygula.
-AI_BRIEFING tek source of truth'tur.
+## Pending Migrations
+- None at this phase. Next migration: PHASE 4 — payout workflow state machine columns (if needed)
 
-## Hard Rules
-1. Önce plan, sonra değişiklik.
-2. Değişiklikleri atomik tut (küçük commit mantığı).
-3. Her kod değişikliğinin domain etkisini yaz.
-4. Wiki/changelog güncellemesini zorunlu kontrol et.
-5. Çıktının sonunda soru sorma.
-6. Var olmayan dosya adı uydurma. Sadece repoda gerçekten bulunan path'leri kullan.
-7. Genel/boş şablon cevap yasak. Her bölüm somut dosya ve somut aksiyon içermeli.
-8. AI_BRIEFING dışındaki tarihsel mesajları referans alma. Doğrula, uygula, raporla.
+## Pending Tests
+- RBAC unit tests for `is_talent_member`, `can_approve_payout`, `can_post_procurement_job`
+- Integration: talent profile register flow (POST /talent/register → talent_profiles row created)
+- Integration: duplicate application guard (uq_job_applicant constraint)
 
-## Mandatory Preflight (zorunlu)
-Aşağıdakileri ilk adımda çıkar:
-- git branch (HEAD)
-- git status kısa özet
-- var olan hedef dosyalar listesi (kod + wiki + changelog)
-- domain dosyası path doğrulaması (`wiki/domains/<DOMAIN>.md`)
+## Rollback Notes
+- `alembic downgrade 20260429_add_company_mailbox_team_visibility_toggle` drops all 8 talent tables cleanly
+- No existing table modified — rollback is safe
 
-Eğer domain dosyası yoksa:
-- `wiki/domains/<DOMAIN>.md` oluşturma planı yaz
-- `payment-billing` fallback gerekçesini notla
-- yine de icraya devam et (durma, soru sorma)
+## Files Changed (PHASE 0)
+- `api/models/talent.py` — NEW (8 models, ~360 lines)
+- `api/models/__init__.py` — UPDATED (import + __all__ for 8 new models)
+- `api/core/authz.py` — UPDATED (4 role sets + 8 helper functions added at end)
+- `api/alembic/versions/76f4c14237af_add_talent_network_and_procurement_jobs_.py` — NEW migration
 
-## Execution Workflow
-1) Scope çıkar (ne var / ne yok)
-2) Dosya bazlı değişiklik planı (yalnızca gerçek path)
-3) Uygulama adımları
-4) Test adımları
-5) Wiki/changelog güncellemeleri
-6) Risk ve rollback
+## Delivery Phases
+| Phase | Status | Description |
+|-------|--------|-------------|
+| PHASE 0 | ✅ DONE | Data model + RBAC roles + migration |
+| PHASE 1 | 🔲 NEXT | Auth/RBAC foundation + API skeleton (talent + jobs routers) |
+| PHASE 2 | 🔲 TODO | Talent Network backend/frontend |
+| PHASE 3 | 🔲 TODO | Procurement Jobs backend/frontend |
+| PHASE 4 | 🔲 TODO | Earnings/Payout/Dispute engine |
+| PHASE 5 | 🔲 TODO | Super Admin control center |
+| PHASE 6 | 🔲 TODO | Hardening (security/perf/a11y) |
+| PHASE 7 | 🔲 TODO | UAT + docs + go-live checklist |
 
-## Required Output Format
-1) **Technical Plan (max 10 madde)**
-2) **Files To Change (real repo paths only)**
-3) **Domain Mapping**
-4) **Implementation Notes**
-5) **Validation/Test Plan**
-6) **Wiki/Changelog Updates**
-7) **Commit Plan (atomic)**
-8) **Risks & Rollback**
-9) **Next Action** (soru sormadan, uygulanabilir tek sonraki adım)
+## Last Successful Commit SHA
+(pending — commit not yet created for this phase)
 
-## Output Quality Constraints (strict)
-- `Files To Change` bölümünde her satır tam path içermeli.
-- En az 1 kod dosyası + 1 wiki/changelog dosyası belirtmeden plan tamamlanmış sayılmaz.
-- `domain_file.txt`, `changelog.txt`, `some_file` gibi placeholder isimler yasak.
-- Her bölüm 2-6 madde arası, kısa ve operasyonel olmalı.
-
-## Quality Gates
-- Domain dosyası güncellendi mi?
-- Changelog girdisi eklendi mi?
-- Cross-domain etki varsa notlandı mı?
-
-## Mandatory End-of-Session Verification (Evidence Mode) [ZORUNLU]
-
-Oturum kapanmadan hemen önce aşağıdaki kanıt turu zorunludur:
-
-1) Komut çıktıları:
-- `git status --short`
-- `git diff -- <değişen_kod_dosyası_1>`
-- `git diff -- <değişen_kod_dosyası_2>`
-- `git diff -- wiki/domains/<domain>.md`
-- `git diff -- wiki/changelog/YYYY-MM-DD.md`
-
-2) Teknik doğrulama (kod değiştiyse):
-- Kritik guard/koşulun satır referansı (`grep -n` veya eşdeğeri)
-- Log/event/side-effect satır referansı
-- "nasıl çalışıyor" kısa akış (maks 8 satır)
-
-3) Test/Validation:
-- En az 1 pozitif + 1 negatif/duplicate senaryosu
-- Otomatik test yoksa: önerilen test dosyası ve test isimleri
-
-4) Zorunlu çıktı başlıkları:
-- `Evidence`
-- `Diff Summary`
-- `Risk Check`
-- `Next Action`
-
-Kurallar:
-- Soru sorma.
-- Varsayım yapma; yalnızca repo çıktısı ve diff ile konuş.
-- Diff çok büyükse dosya yolu + ilk 2KB preview + özet metrik ver.
+## Resume Command
+```
+git checkout feat/final-stabilization
+# Read this file, then SESSION_STATE.json
+# Start PHASE 1: create api/routers/talent.py
+```

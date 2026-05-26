@@ -20,6 +20,43 @@ ADMIN_ASSIGNABLE_SYSTEM_ROLES = TENANT_ADMIN_SYSTEM_ROLES | {
     "platform_operator",
     "finance_officer",
 }
+
+# ---------------------------------------------------------------------------
+# Talent Network + Procurement Jobs ekosistemi rolleri
+# ---------------------------------------------------------------------------
+
+# Bağımsız satınalma uzmanı — platform genelinde, tenant bağımsız
+TALENT_MEMBER_SYSTEM_ROLES = {"talent_member"}
+
+# İşveren tenant yöneticisi — iş ilanı oluşturur, başvuruları yönetir
+EMPLOYER_ADMIN_SYSTEM_ROLES = {"employer_company_admin"}
+
+# Referral/kanal iş ortağı — görevlere katkı sunar
+REFERRAL_PARTNER_SYSTEM_ROLES = {"referral_partner"}
+
+# Uyum / moderatör — içerik inceleme, ödeme onayı
+MODERATOR_COMPLIANCE_SYSTEM_ROLES = {"moderator_compliance"}
+
+# Talent ekosistemindeki tüm üye rolleri
+TALENT_ECOSYSTEM_ROLES = (
+    TALENT_MEMBER_SYSTEM_ROLES
+    | EMPLOYER_ADMIN_SYSTEM_ROLES
+    | REFERRAL_PARTNER_SYSTEM_ROLES
+    | MODERATOR_COMPLIANCE_SYSTEM_ROLES
+)
+
+# Payout onayı verebilecek roller
+PAYOUT_APPROVER_SYSTEM_ROLES = PLATFORM_STAFF_SYSTEM_ROLES | MODERATOR_COMPLIANCE_SYSTEM_ROLES
+
+# Talent profilini görebilecek / inceleyebilecek roller
+TALENT_REVIEWER_SYSTEM_ROLES = (
+    PLATFORM_STAFF_SYSTEM_ROLES
+    | MODERATOR_COMPLIANCE_SYSTEM_ROLES
+    | EMPLOYER_ADMIN_SYSTEM_ROLES
+)
+
+# Atanabilir talent ecosystem rolleri (super admin tarafından)
+TALENT_ASSIGNABLE_SYSTEM_ROLES = TALENT_ECOSYSTEM_ROLES
 PROCUREMENT_STAFF_ROLES = {
     "satinalmaci",
     "satinalma_uzmani",
@@ -186,6 +223,73 @@ def can_manage_role_catalog(user: User) -> bool:
 def get_business_role_priority(user: User) -> int:
     role = normalized_role(user)
     return BUSINESS_ROLE_PRIORITY.get(role, 999)
+
+
+# ---------------------------------------------------------------------------
+# Talent Network yetkilendirme yardımcıları
+# ---------------------------------------------------------------------------
+
+
+def is_talent_member(user: User) -> bool:
+    return normalized_system_role(user) in TALENT_MEMBER_SYSTEM_ROLES
+
+
+def is_employer_admin(user: User) -> bool:
+    return normalized_system_role(user) in EMPLOYER_ADMIN_SYSTEM_ROLES
+
+
+def is_referral_partner(user: User) -> bool:
+    return normalized_system_role(user) in REFERRAL_PARTNER_SYSTEM_ROLES
+
+
+def is_moderator_compliance(user: User) -> bool:
+    return normalized_system_role(user) in MODERATOR_COMPLIANCE_SYSTEM_ROLES
+
+
+def is_talent_ecosystem_member(user: User) -> bool:
+    return normalized_system_role(user) in TALENT_ECOSYSTEM_ROLES
+
+
+def can_approve_payout(user: User) -> bool:
+    """Ödeme talebini onaylama yetkisi."""
+    return normalized_system_role(user) in PAYOUT_APPROVER_SYSTEM_ROLES
+
+
+def can_review_talent_profile(user: User) -> bool:
+    """Talent profilini inceleme/KYC onay yetkisi."""
+    return (
+        is_super_admin(user)
+        or normalized_system_role(user) in TALENT_REVIEWER_SYSTEM_ROLES
+    )
+
+
+def can_publish_referral_task(user: User) -> bool:
+    """Referral görevi yayınlama yetkisi — sadece platform staff."""
+    return is_super_admin(user) or is_platform_staff(user)
+
+
+def can_post_procurement_job(user: User) -> bool:
+    """İş ilanı oluşturma yetkisi."""
+    return (
+        is_super_admin(user)
+        or is_employer_admin(user)
+        or is_tenant_admin(user)
+        or is_platform_staff(user)
+    )
+
+
+def can_access_talent_dashboard(user: User) -> bool:
+    """Talent paneline erişim."""
+    return is_talent_member(user) or is_referral_partner(user) or is_super_admin(user)
+
+
+def can_access_talent_admin(user: User) -> bool:
+    """Talent ekosistemi yönetim paneline erişim."""
+    return (
+        is_super_admin(user)
+        or is_moderator_compliance(user)
+        or is_platform_staff(user)
+    )
 
 
 def resolve_requested_user_system_role(
