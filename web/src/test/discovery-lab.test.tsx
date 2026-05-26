@@ -185,7 +185,7 @@ describe('DiscoveryLab', () => {
     expect(screen.getByLabelText('Aktarım Projesi')).toHaveValue('11');
     expect(screen.getAllByText('PF_DUVAR_ISLAK')).toHaveLength(2);
     expect(screen.getByText('Zemin yalitimi eklensin mi?')).toBeInTheDocument();
-    expect(screen.getByText('+Hijyenik Derz')).toBeInTheDocument();
+    expect(screen.getByText('+ Hijyenik Derz')).toBeInTheDocument();
     expect(screen.getByText('BOM Visualizer')).toBeInTheDocument();
     expect(screen.getByText('Katman Grubu')).toBeInTheDocument();
     expect(screen.getByText('2 alt kalem')).toBeInTheDocument();

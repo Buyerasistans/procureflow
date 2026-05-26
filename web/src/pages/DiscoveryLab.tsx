@@ -909,7 +909,7 @@ const DiscoveryLab: React.FC = () => {
                  <h4 className="text-gray-400 text-xs font-bold uppercase">AI Reçete İlavesi</h4>
                  {analysisResult.ai_report.recete_onerileri.map((item, idx) => (
                    <div key={idx} className="flex justify-between items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                     <span className="text-emerald-800 text-xs font-medium">+{item.kalem}</span>
+                     <span className="text-emerald-800 text-xs font-medium">+ {item.kalem}</span>
                      <span className="text-emerald-600 text-[10px] font-bold uppercase">Ekleniyor</span>
                    </div>
                  ))}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from typing import Any
 
 from api.models.bom import Recipe, RecipeItem
@@ -8,7 +9,7 @@ from api.models.bom import Recipe, RecipeItem
 FALLBACK_RECIPE_LIBRARY: dict[str, list[dict[str, Any]]] = {
     "PF_DUVAR": [
         {
-            "material_name": "Alci panel",
+            "material_name": "Alçı panel",
             "consumption_rate": 1.0,
             "unit": "m2",
             "multiplier": 3.0,
@@ -25,16 +26,28 @@ FALLBACK_RECIPE_LIBRARY: dict[str, list[dict[str, Any]]] = {
             "unit": "kg",
             "multiplier": 3.0,
         },
+        {
+            "material_name": "Astar",
+            "consumption_rate": 0.12,
+            "unit": "lt",
+            "multiplier": 3.0,
+        },
+        {
+            "material_name": "İç cephe boyası",
+            "consumption_rate": 0.18,
+            "unit": "lt",
+            "multiplier": 3.0,
+        },
     ],
     "PF_DUVAR_ISLAK": [
         {
-            "material_name": "Su yalitimi harci",
+            "material_name": "Su yalıtımı harcı",
             "consumption_rate": 2.5,
             "unit": "kg",
             "multiplier": 3.0,
         },
         {
-            "material_name": "Seramik yapistirici",
+            "material_name": "Seramik yapıştırıcı",
             "consumption_rate": 4.0,
             "unit": "kg",
             "multiplier": 3.0,
@@ -42,7 +55,7 @@ FALLBACK_RECIPE_LIBRARY: dict[str, list[dict[str, Any]]] = {
     ],
     "PF_ZEMIN_SERAMIK": [
         {
-            "material_name": "Zemin seramigi",
+            "material_name": "Zemin seramiği",
             "consumption_rate": 1.05,
             "unit": "m2",
             "multiplier": 1.0,
@@ -57,11 +70,50 @@ FALLBACK_RECIPE_LIBRARY: dict[str, list[dict[str, Any]]] = {
 }
 
 
+TECHNICAL_LAYER_TOKENS = {
+    "AKS",
+    "AXIS",
+    "DIM",
+    "GORUNUS",
+    "GÖRÜNÜŞ",
+    "NOT",
+    "OLCU",
+    "ÖLÇÜ",
+    "TEXT",
+    "YAZI",
+}
+
+LAYER_RECIPE_ALIASES: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("DUVAR", "WALL"), "PF_DUVAR"),
+    (("ISLAK", "BANYO", "WC"), "PF_DUVAR_ISLAK"),
+    (("ZEMIN_SERAMIK", "SERAMIK", "FAYANS"), "PF_ZEMIN_SERAMIK"),
+)
+
+
+def _normalize_layer_name(layer_name: str) -> str:
+    ascii_name = (
+        unicodedata.normalize("NFKD", layer_name)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
+    return ascii_name.upper().replace("-", "_").replace(" ", "_")
+
+
+def _is_technical_layer(layer_name: str) -> bool:
+    normalized = _normalize_layer_name(layer_name)
+    return any(token in normalized for token in TECHNICAL_LAYER_TOKENS)
+
+
 def _select_fallback_recipe(layer_name: str) -> list[dict[str, Any]]:
-    normalized = layer_name.upper()
+    normalized = _normalize_layer_name(layer_name)
     for key, recipe in FALLBACK_RECIPE_LIBRARY.items():
         if normalized.startswith(key):
             return recipe
+    if _is_technical_layer(layer_name):
+        return []
+    for tokens, recipe_key in LAYER_RECIPE_ALIASES:
+        if any(token in normalized for token in tokens):
+            return FALLBACK_RECIPE_LIBRARY[recipe_key]
     return []
 
 

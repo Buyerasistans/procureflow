@@ -2,26 +2,41 @@ from __future__ import annotations
 
 import json
 import os
+import unicodedata
 from importlib import import_module
 from typing import Any
+
+
+def _normalize_layer_name(layer_name: str) -> str:
+    ascii_name = (
+        unicodedata.normalize("NFKD", layer_name)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
+    return ascii_name.upper().replace("-", "_").replace(" ", "_")
 
 
 def _build_fallback_ai_report(metadata_json: dict[str, Any]) -> dict[str, Any]:
     katmanlar = metadata_json.get("katmanlar") or []
     bloklar = metadata_json.get("bloklar") or []
+    normalized_layers = [
+        _normalize_layer_name(str(item.get("layer_name", ""))) for item in katmanlar
+    ]
 
     has_islak_duvar = any(
-        "ISLAK" in str(item.get("layer_name", "")).upper() for item in katmanlar
+        "ISLAK" in layer_name for layer_name in normalized_layers
     )
     has_zemin_seramik = any(
-        "ZEMIN_SERAMIK" in str(item.get("layer_name", "")).upper() for item in katmanlar
+        "ZEMIN_SERAMIK" in layer_name or "SERAMIK" in layer_name
+        for layer_name in normalized_layers
     )
+    has_duvar = any("DUVAR" in layer_name or "WALL" in layer_name for layer_name in normalized_layers)
     has_pizza_firini = any(
         "FIRIN" in str(item.get("block_name", "")).upper() for item in bloklar
     )
     has_tesisat = any(
-        token in str(item.get("layer_name", "")).upper()
-        for item in katmanlar
+        token in layer_name
+        for layer_name in normalized_layers
         for token in ("TESISAT", "ELEKTRIK", "GAZ")
     )
 
@@ -65,18 +80,25 @@ def _build_fallback_ai_report(metadata_json: dict[str, Any]) -> dict[str, Any]:
             }
         )
 
-    if any("DUVAR" in str(item.get("layer_name", "")).upper() for item in katmanlar):
+    if has_duvar:
+        karar_destek_sorulari.append(
+            {
+                "id": len(karar_destek_sorulari) + 1,
+                "soru": "Duvar katmanları için astar, boya ve yardımcı sarf reçetesi otomatik eklensin mi?",
+                "neden": "CAD dosyasında duvar metrajı var; satın alma aktarımında duvar ana kaleminin alt malzeme reçetesiyle tamamlanması gerekir.",
+            }
+        )
         recete_onerileri.append(
             {
                 "kalem": "Astar ve boya tamamlama kalemleri",
-                "miktar_etkisi": "Duvar metrajina gore hesaplanacak",
+                "miktar_etkisi": "Duvar metrajına göre hesaplanacak",
             }
         )
 
     return {
         "teknik_analiz": (
-            f"{len(katmanlar)} PF katmani ve {len(bloklar)} PF blok grubu analiz edildi. "
-            "Harici AI yaniti alinmazsa kural bazli teknik denetim raporu kullanilir."
+            f"{len(katmanlar)} CAD katmanı ve {len(bloklar)} blok grubu analiz edildi. "
+            "Harici AI yanıtı alınmazsa kural bazlı teknik denetim raporu kullanılır."
         ),
         "kritik_uyarilar": kritik_uyarilar,
         "karar_destek_sorulari": karar_destek_sorulari,

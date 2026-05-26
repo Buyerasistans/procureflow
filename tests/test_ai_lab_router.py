@@ -390,7 +390,7 @@ def test_ai_lab_confirm_without_project_creates_default_transfer_project(
         },
         "katmanlar": [
             {
-                "layer_name": "PF_DUVAR",
+                "layer_name": "ALD_Duvar",
                 "total_length": 18.0,
                 "unit": "mt",
                 "entity_count": 1,
@@ -416,14 +416,20 @@ def test_ai_lab_confirm_without_project_creates_default_transfer_project(
         headers=admin_auth_headers,
     )
     assert analyze_response.status_code == 200, analyze_response.text
-    session_id = analyze_response.json()["session_id"]
+    analyze_payload = analyze_response.json()
+    session_id = analyze_payload["session_id"]
+    selected_keys = [
+        f"{item.get('source_layer')}-{item.get('material')}-{index}"
+        for index, item in enumerate(analyze_payload["bom"])
+    ]
+    assert selected_keys
 
     confirm_response = client.post(
         "/api/v1/ai-lab/confirm",
         json={
             "session_id": session_id,
             "project_id": None,
-            "selected_bom_item_keys": [],
+            "selected_bom_item_keys": selected_keys,
         },
         headers=admin_auth_headers,
     )
@@ -449,6 +455,13 @@ def test_ai_lab_confirm_without_project_creates_default_transfer_project(
         )
         assert session_row is not None
         assert session_row.selected_project_id == project_row.id
+        quote_items = (
+            db.query(QuoteItem)
+            .filter(QuoteItem.quote_id == session_row.procurement_quote_id)
+            .all()
+        )
+        assert len(quote_items) == len(selected_keys)
+        assert any(item.description == "Astar" for item in quote_items)
     finally:
         db.close()
 
