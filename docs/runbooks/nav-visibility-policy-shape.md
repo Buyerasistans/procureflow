@@ -83,3 +83,33 @@ Likely future options:
 
 ## Runtime Change Status
 No runtime behavior changed in this policy-shape step.
+
+## PHASE 1 / Atomik-2 Typed Module
+
+New non-invasive frontend module:
+
+- `web/src/config/navigation-policy.ts`
+
+The module defines the first typed visibility-policy contract for authenticated navigation without wiring it into the render path. Current rendering still uses `web/src/config/navigation.ts`; the new module is covered by parity tests before any future adapter step can switch runtime reads.
+
+## Evaluation Flow
+
+1. A `NavigationVisibilityPolicyItem` declares placement, route, enabled state, broad scope, role allowlists, required permissions, and responsive behavior.
+2. The caller provides `NavigationVisibilityContext` with auth state, system role, tenant/business role, permission set, and broad scope.
+3. `isPolicyItemVisible(item, context)` evaluates:
+   - `is_enabled`
+   - `visibility_scope`
+   - role allowlists
+   - required permissions
+4. `resolveVisibleNavItems(items, context)` filters visible items and sorts by `order`.
+5. Future runtime wiring must keep the existing `hasPermissionForUser`/role semantics until backend-governed policy storage is introduced.
+
+## Parity Guarantee
+
+PHASE 1 / Atomik-2 adds `web/src/test/navigation-policy.test.ts` to compare the new typed policy result against the existing authenticated top-nav resolver for:
+
+- `super_admin`
+- platform staff (`platform_support`)
+- a non-privileged authenticated user
+
+This means the new module is present and testable, but no runtime visual or route behavior changes in this step.
