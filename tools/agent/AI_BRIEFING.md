@@ -7,7 +7,7 @@
 - mode: multi-phase build
 
 ## Current Phase
-**PHASE 6 — Hardening (security / perf / a11y)** ✅ ATOMIC-2 COMPLETE
+**PHASE 7 — UAT + release readiness docs** ✅ ATOMIC-1 COMPLETE
 
 ## Completed Steps
 - [x] PHASE 0: 8 SQLAlchemy models, Alembic migration `76f4c14237af`, RBAC helpers
@@ -20,6 +20,7 @@
 - [x] PHASE 5/atomik-1: `TalentAdminControlPage` + `talent-admin.service.ts` + 2 backend endpoints + route + nav + `finance_officer` fix
 - [x] PHASE 6/atomik-1: minimal hardening for payout/talent admin surfaces
 - [x] PHASE 6/atomik-2: controlled Admin perf split for heavy tabs
+- [x] PHASE 7/atomik-1: UAT smoke checklist + release readiness docs
 
 ## PHASE 6 / Atomik-1 Notes
 - Frontend perf: `PayoutAdminPage` and `TalentAdminControlPage` were already lazy-loaded in `web/src/App.tsx`; no risky split refactor was needed.
@@ -43,6 +44,13 @@
   - After: `AdminPage-BkYyQRMo.js` 488.73 kB, gzip 114.57 kB.
   - New lazy chunks: `DeploymentPanel-CA831BzY.js` 31.27 kB, `WorkspacePanelDesignerTab-xz1cpYki.js` 47.62 kB.
 
+## PHASE 7 / Atomik-1 Notes
+- Added `docs/runbooks/talent-ecosystem-uat-smoke.md`.
+  - Covers payout transition smoke, payout rejection, KYC approve/reject, route access, and friendly error UX.
+- Added `docs/runbooks/talent-ecosystem-release-readiness.md`.
+  - Covers required env/config, release gate, Definition of Done, known risks, and commit-based rollback.
+- No runtime code, endpoint, route, migration, or UI flow change was needed.
+
 ## Architecture Decisions Log
 1. `TalentProfile` linked 1:1 to existing `User` (not a new user type) — reuses auth infrastructure.
 2. `ProcurementJob.is_procurement_only=True` always — enforced at model + API + UI levels.
@@ -63,7 +71,7 @@
 ## Tests Required For This Checkpoint
 - `tsc --noEmit`
 - `vite build`
-- Build output chunk comparison for Admin lazy split
+- Verify UAT and release readiness document headings
 
 ## Last Successful Commit SHA
 - Pre-iteration: `eeccfc0`
@@ -73,7 +81,7 @@
 ```powershell
 git checkout pr/strict-gate-payment-clean-v2
 # Read this file, then tools/agent/SESSION_STATE.json
-# PHASE 6/atomik-2 complete. Next: PHASE 6/atomik-3 smoke/UAT or PHASE 7 docs.
+# PHASE 7/atomik-1 complete. Next: PHASE 7/atomik-2 final release ticket / UAT evidence capture.
 ```
 
 ## SAFE TO RESUME: yes
