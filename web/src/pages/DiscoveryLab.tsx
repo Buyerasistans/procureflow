@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { Upload, MessageSquare, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
+import { Upload, MessageSquare, AlertTriangle, Info, CheckCircle2, Loader2 } from 'lucide-react';
 import { getProjects } from '../services/admin.service';
 import { getAccessToken } from '../lib/token';
 import type { Project } from '../services/admin.service';
@@ -66,6 +66,13 @@ interface DiscoveryTimelineResponse {
   timeline: DiscoveryTimelineEvent[];
 }
 
+interface ConverterHealthResponse {
+  converter_found: boolean;
+  resolver_source: string;
+  executable_name?: string | null;
+  request_id: string;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const AUTO_OPEN_QUOTE_PREFERENCE_KEY = 'pf_discovery_lab_auto_open_quote';
 
@@ -103,6 +110,7 @@ const DiscoveryLab: React.FC = () => {
   const { user } = useAuth();
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -118,6 +126,8 @@ const DiscoveryLab: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const [converterHealth, setConverterHealth] = useState<ConverterHealthResponse | null>(null);
+  const [converterHealthLoading, setConverterHealthLoading] = useState(true);
   const [transferQuoteId, setTransferQuoteId] = useState<number | null>(null);
   const [autoOpenQuoteAfterTransfer, setAutoOpenQuoteAfterTransfer] = useState<boolean>(() => {
     if (typeof window === 'undefined') {
@@ -137,16 +147,25 @@ const DiscoveryLab: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProjects() {
+    async function loadInitialData() {
       try {
         setProjectsLoading(true);
-        const nextProjects = await getProjects();
+        setConverterHealthLoading(true);
+        const [nextProjects, converterResponse] = await Promise.all([
+          getProjects(),
+          fetch(`${API_BASE_URL}/api/v1/ai-lab/health/converter`, {
+            headers: buildAuthHeaders(),
+          }),
+        ]);
         if (cancelled) {
           return;
         }
         const activeProjects = nextProjects.filter((project) => project.is_active);
         setProjects(activeProjects);
         setSelectedProjectId((current) => current ?? activeProjects[0]?.id ?? null);
+        if (converterResponse.ok) {
+          setConverterHealth((await converterResponse.json()) as ConverterHealthResponse);
+        }
       } catch (error) {
         if (!cancelled) {
           setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
@@ -154,11 +173,12 @@ const DiscoveryLab: React.FC = () => {
       } finally {
         if (!cancelled) {
           setProjectsLoading(false);
+          setConverterHealthLoading(false);
         }
       }
     }
 
-    loadProjects();
+    loadInitialData();
     return () => {
       cancelled = true;
     };
@@ -190,6 +210,7 @@ const DiscoveryLab: React.FC = () => {
     setTimeline([]);
     setTransferQuoteId(null);
     setIsUploading(true);
+    setUploadPhase('Dosya sunucuya aktarılıyor...');
 
     try {
       const formData = new FormData();
@@ -201,6 +222,7 @@ const DiscoveryLab: React.FC = () => {
         body: formData,
       });
 
+      setUploadPhase('CAD metadata çıkarılıyor ve AI denetimi hazırlanıyor...');
       const payload = (await response.json()) as AnalysisResponse | { detail?: unknown };
 
       if (!response.ok) {
@@ -226,6 +248,7 @@ const DiscoveryLab: React.FC = () => {
       }, {});
 
       setAnalysisResult(normalizedPayload);
+      setUploadPhase('Analiz tamamlandı, sonuçlar hazırlanıyor...');
       setSelectedBomItems(defaultSelectionState);
       setDecisionState(
         ((payload as AnalysisResponse).ai_report?.karar_destek_sorulari ?? []).reduce<Record<number, 'approved' | 'ignored' | null>>((map, question) => {
@@ -253,6 +276,7 @@ const DiscoveryLab: React.FC = () => {
       setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
     } finally {
       setIsUploading(false);
+      setUploadPhase(null);
       event.target.value = '';
     }
   };
@@ -477,13 +501,35 @@ const DiscoveryLab: React.FC = () => {
         </div>
 
         {!analysisResult ? (
-          <div className="border-3 border-dashed border-gray-300 rounded-2xl h-96 flex flex-col items-center justify-center bg-white transition-all hover:border-blue-400">
-            <div className="p-6 bg-blue-50 rounded-full mb-4">
-              <Upload size={48} className={isUploading ? "animate-bounce text-blue-500" : "text-blue-400"} />
+          <div
+            className={`border-3 border-dashed rounded-2xl h-96 flex flex-col items-center justify-center bg-white transition-all ${
+              isUploading ? 'border-blue-400 shadow-lg shadow-blue-100' : 'border-gray-300 hover:border-blue-400'
+            }`}
+            aria-busy={isUploading}
+          >
+            <div className={`p-6 rounded-full mb-4 ${isUploading ? 'bg-blue-100' : 'bg-blue-50'}`}>
+              {isUploading ? (
+                <Loader2 size={48} className="animate-spin text-blue-600" aria-hidden="true" />
+              ) : (
+                <Upload size={48} className="text-blue-400" aria-hidden="true" />
+              )}
             </div>
-            <p className="text-gray-500 font-medium">
-              {isUploading ? "Analiz ediliyor..." : "Mimari Projeyi (DWG/DXF) Yükleyin"}
+            <p className="text-gray-600 font-semibold">
+              {isUploading ? "Analiz devam ediyor..." : "Mimari Projeyi (DWG/DXF) Yükleyin"}
             </p>
+            {isUploading && (
+              <div className="mt-4 w-full max-w-md px-6 text-center" role="status" aria-live="polite">
+                <p className="text-sm font-medium text-blue-700">
+                  {uploadPhase || 'Dosya işleniyor...'}
+                </p>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-blue-100">
+                  <div className="h-full w-1/2 animate-pulse rounded-full bg-blue-600" />
+                </div>
+                <p className="mt-3 text-xs text-slate-500">
+                  Büyük DWG dosyalarında dönüştürme ve metadata çıkarma birkaç dakika sürebilir.
+                </p>
+              </div>
+            )}
             {uploadError && (
               <div className="mt-4 max-w-md rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-sm text-rose-700">
                 {uploadError}
@@ -492,7 +538,8 @@ const DiscoveryLab: React.FC = () => {
             <input
               type="file"
               aria-label="Mimari proje dosyası yükleyin"
-              className="mt-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              disabled={isUploading}
+              className="mt-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               onChange={handleFileUpload}
               accept=".dwg,.dxf"
             />
@@ -702,8 +749,41 @@ const DiscoveryLab: React.FC = () => {
 
         {!analysisResult ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-400">
-            <Info size={40} className="mb-2 opacity-20" />
-            <p className="text-sm">Analiz raporu hazırlamak için<br/>dosya yüklemesi bekleniyor.</p>
+            {isUploading ? (
+              <div className="w-full max-w-xs rounded-2xl border border-blue-100 bg-blue-50 px-5 py-6 text-blue-800">
+                <Loader2 size={40} className="mx-auto mb-3 animate-spin text-blue-600" aria-hidden="true" />
+                <p className="text-sm font-bold">İşlem devam ediyor</p>
+                <p className="mt-2 text-xs leading-relaxed text-blue-700">
+                  {uploadPhase || 'Dosya analiz kuyruğunda işleniyor.'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <Info size={40} className="mb-2 opacity-20" />
+                <p className="text-sm">Analiz raporu hazırlamak için<br/>dosya yüklemesi bekleniyor.</p>
+              </>
+            )}
+            <div className="mt-6 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">DWG Dönüştürücü Durumu</p>
+              <div className="mt-2 flex items-center gap-2">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    converterHealthLoading
+                      ? 'bg-slate-300'
+                      : converterHealth?.converter_found
+                        ? 'bg-emerald-500'
+                        : 'bg-amber-500'
+                  }`}
+                />
+                <span className="text-xs font-semibold text-slate-700">
+                  {converterHealthLoading
+                    ? 'Kontrol ediliyor...'
+                    : converterHealth?.converter_found
+                      ? `Hazır (${converterHealth.executable_name || converterHealth.resolver_source})`
+                      : 'DWG için sunucu converter ayarı bekleniyor'}
+                </span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex-1 space-y-6">

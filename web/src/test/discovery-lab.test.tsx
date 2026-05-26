@@ -28,6 +28,18 @@ const fetchMock = vi.fn();
 const alertMock = vi.fn();
 const assignMock = vi.fn();
 
+function mockConverterHealth(found = true) {
+  fetchMock.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      converter_found: found,
+      resolver_source: found ? 'default_install:ODA' : 'unavailable',
+      executable_name: found ? 'ODAFileConverter.exe' : null,
+      request_id: 'health-1',
+    }),
+  });
+}
+
 describe('DiscoveryLab', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -47,6 +59,7 @@ describe('DiscoveryLab', () => {
   });
 
   it('yuklenen dosyayi backend analiz endpointine gonderir ve sonucu gosterir', async () => {
+    mockConverterHealth();
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -151,7 +164,10 @@ describe('DiscoveryLab', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://localhost:8000/api/v1/ai-lab/analyze',
+        expect.objectContaining({ method: 'POST' })
+      );
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -180,7 +196,7 @@ describe('DiscoveryLab', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenNthCalledWith(
-        3,
+        4,
         'http://localhost:8000/api/v1/ai-lab/bom-selection',
         expect.objectContaining({ method: 'POST' })
       );
@@ -195,7 +211,7 @@ describe('DiscoveryLab', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenNthCalledWith(
-        5,
+        6,
         'http://localhost:8000/api/v1/ai-lab/answer',
         expect.objectContaining({ method: 'POST' })
       );
@@ -211,7 +227,7 @@ describe('DiscoveryLab', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenNthCalledWith(
-        7,
+        8,
         'http://localhost:8000/api/v1/ai-lab/decision',
         expect.objectContaining({ method: 'POST' })
       );
@@ -229,7 +245,7 @@ describe('DiscoveryLab', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenNthCalledWith(
-        9,
+        10,
         'http://localhost:8000/api/v1/ai-lab/confirm',
         expect.objectContaining({
           method: 'POST',
@@ -248,7 +264,25 @@ describe('DiscoveryLab', () => {
     expect(localStorage.getItem('pf_discovery_lab_auto_open_quote')).toBe('true');
   });
 
+  it('dosya islenirken kullaniciya belirgin ilerleme durumu gosterir', async () => {
+    mockConverterHealth();
+    fetchMock.mockImplementationOnce(() => new Promise(() => {}));
+
+    const { container } = render(<DiscoveryLab />);
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['large dwg'], 'buyuk-proje.dwg', { type: 'application/acad' });
+
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(await screen.findByText('Analiz devam ediyor...')).toBeInTheDocument();
+    expect(screen.getAllByText('Dosya sunucuya aktarılıyor...')).toHaveLength(2);
+    expect(screen.getByText('İşlem devam ediyor')).toBeInTheDocument();
+    expect(input).toBeDisabled();
+  });
+
   it('backend hata döndürdüğünde kullanıcıya güvenli mesaj gösterir', async () => {
+    mockConverterHealth(false);
     fetchMock.mockResolvedValue({
       ok: false,
       json: async () => ({
@@ -274,6 +308,7 @@ describe('DiscoveryLab', () => {
   });
 
   it('raw teknik hata detayını kullanıcıya göstermez', async () => {
+    mockConverterHealth();
     fetchMock.mockResolvedValue({
       ok: false,
       json: async () => ({
@@ -296,6 +331,7 @@ describe('DiscoveryLab', () => {
 
   it('otomatik rfq açma tercihini localStorage üzerinden yükler', async () => {
     localStorage.setItem('pf_discovery_lab_auto_open_quote', 'true');
+    mockConverterHealth();
 
     render(<DiscoveryLab />);
 
