@@ -70,13 +70,13 @@ PHASE 6: Güvenlik + performans + erişilebilirlik sertleştirmesi — veya PHAS
 | PHASE 7 | 🔲 TODO | UAT + docs + go-live checklist |
 
 ## Last Successful Commit SHA
-(pending — PHASE 5/atomik-1 commit henüz yapılmadı)
+88607db (PHASE 5/atomik-1: Talent Ecosystem Control — admin panel + backend)
 
 ## Resume Command
 ```
 git checkout pr/strict-gate-payment-clean-v2
 # Read this file, then SESSION_STATE.json
-# PHASE 3B complete. Next: PHASE 4 or PHASE 5 (confirm with user)
+# PHASE 5 complete. Next: PHASE 6 (hardening) or PHASE 7 (UAT + docs)
 ```
 
 ## SAFE TO RESUME: yes
