@@ -21,8 +21,7 @@ import { SuppliersTab } from "../components/SuppliersTab";
 import { SettingsTab } from "../components/SettingsTab";
 import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
 import { ApprovalDashboard } from "../components/ApprovalDashboard";
-import { WorkspacePanelDesignerTab } from "../components/admin/WorkspacePanelDesignerTab";
-import { DeploymentPanel } from "../components/admin/DeploymentPanel";
+
 import { getAccessToken } from "../lib/token";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -752,6 +751,14 @@ const PublicPricingTab = lazy(async () => ({
 
 const CampaignsTab = lazy(async () => ({
   default: (await import("./admin/adminSecondaryTabs")).CampaignsTab,
+}));
+
+const WorkspacePanelDesignerTab = lazy(async () => ({
+  default: (await import("../components/admin/WorkspacePanelDesignerTab")).WorkspacePanelDesignerTab,
+}));
+
+const DeploymentPanel = lazy(async () => ({
+  default: (await import("../components/admin/DeploymentPanel")).DeploymentPanel,
 }));
 
 export default function AdminPage() {
@@ -5733,17 +5740,19 @@ export default function AdminPage() {
       {activeTab === "settings" && <SettingsTab />}
 
       {activeTab === "panel_designer" && (isSuperAdminUser(user) || canUseSelfPanelDesigner) && (
-        <WorkspacePanelDesignerTab
-          key={JSON.stringify(mergedWorkspacePanelConfig)}
-          config={mergedWorkspacePanelConfig}
-          sourceConfig={workspacePanelConfig || undefined}
-          currentUser={user}
-          personnel={personnel}
-          mode={isSuperAdminUser(user) ? "full" : "self"}
-          lockedProfile={activeWorkspacePanelProfile}
-          saving={workspacePanelSaving}
-          onSave={handleSaveWorkspacePanels}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <WorkspacePanelDesignerTab
+            key={JSON.stringify(mergedWorkspacePanelConfig)}
+            config={mergedWorkspacePanelConfig}
+            sourceConfig={workspacePanelConfig || undefined}
+            currentUser={user}
+            personnel={personnel}
+            mode={isSuperAdminUser(user) ? "full" : "self"}
+            lockedProfile={activeWorkspacePanelProfile}
+            saving={workspacePanelSaving}
+            onSave={handleSaveWorkspacePanels}
+          />
+        </Suspense>
       )}
 
         {/* Reports Tab */}
@@ -5759,7 +5768,9 @@ export default function AdminPage() {
 
         {/* Deployment Tab */}
         {activeTab === "deployment" && canViewDeploymentTab && (
-          <DeploymentPanel />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <DeploymentPanel />
+          </Suspense>
         )}
 
         {/* Platform Analytics Tab */}

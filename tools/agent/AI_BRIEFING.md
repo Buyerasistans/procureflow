@@ -7,7 +7,7 @@
 - mode: multi-phase build
 
 ## Current Phase
-**PHASE 6 — Hardening (security / perf / a11y)** ✅ ATOMIC-1 COMPLETE
+**PHASE 6 — Hardening (security / perf / a11y)** ✅ ATOMIC-2 COMPLETE
 
 ## Completed Steps
 - [x] PHASE 0: 8 SQLAlchemy models, Alembic migration `76f4c14237af`, RBAC helpers
@@ -19,6 +19,7 @@
 - [x] PHASE 4/atomik-2: `PayoutAdminPage` + `payout.service.ts` + route + nav
 - [x] PHASE 5/atomik-1: `TalentAdminControlPage` + `talent-admin.service.ts` + 2 backend endpoints + route + nav + `finance_officer` fix
 - [x] PHASE 6/atomik-1: minimal hardening for payout/talent admin surfaces
+- [x] PHASE 6/atomik-2: controlled Admin perf split for heavy tabs
 
 ## PHASE 6 / Atomik-1 Notes
 - Frontend perf: `PayoutAdminPage` and `TalentAdminControlPage` were already lazy-loaded in `web/src/App.tsx`; no risky split refactor was needed.
@@ -33,6 +34,14 @@
 - Hygiene:
   - No `dangerouslySetInnerHTML` or raw HTML rendering was introduced in the touched files.
   - API contracts and endpoint paths were not changed.
+
+## PHASE 6 / Atomik-2 Notes
+- Controlled perf split only; no endpoint, migration, route, or UI workflow change.
+- `WorkspacePanelDesignerTab` and `DeploymentPanel` now load lazily from `AdminPage`.
+- Build comparison:
+  - Before: `AdminPage-DShVwIcw.js` 566.27 kB, gzip 132.74 kB.
+  - After: `AdminPage-BkYyQRMo.js` 488.73 kB, gzip 114.57 kB.
+  - New lazy chunks: `DeploymentPanel-CA831BzY.js` 31.27 kB, `WorkspacePanelDesignerTab-xz1cpYki.js` 47.62 kB.
 
 ## Architecture Decisions Log
 1. `TalentProfile` linked 1:1 to existing `User` (not a new user type) — reuses auth infrastructure.
@@ -54,9 +63,7 @@
 ## Tests Required For This Checkpoint
 - `tsc --noEmit`
 - `vite build`
-- Smoke evidence for:
-  - `/admin/payout-requests`
-  - `/admin/talent-ecosystem`
+- Build output chunk comparison for Admin lazy split
 
 ## Last Successful Commit SHA
 - Pre-iteration: `eeccfc0`
@@ -66,7 +73,7 @@
 ```powershell
 git checkout pr/strict-gate-payment-clean-v2
 # Read this file, then tools/agent/SESSION_STATE.json
-# PHASE 6/atomik-1 complete. Next: PHASE 6/atomik-2 or PHASE 7 UAT + docs.
+# PHASE 6/atomik-2 complete. Next: PHASE 6/atomik-3 smoke/UAT or PHASE 7 docs.
 ```
 
 ## SAFE TO RESUME: yes
