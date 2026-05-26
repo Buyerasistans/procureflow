@@ -3,14 +3,25 @@ from __future__ import annotations
 import json
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from api.core.authz import is_talent_member, can_access_talent_dashboard
+from api.core.authz import (
+    can_access_talent_admin,
+    can_access_talent_dashboard,
+    can_review_talent_profile,
+    is_talent_member,
+)
 from api.core.deps import get_current_user, get_db
 from api.models import User
 from api.models.talent import TalentProfile
-from api.schemas.talent import TalentProfileCreate, TalentProfileOut, TalentProfileUpdate
+from api.schemas.talent import (
+    PaginatedTalentProfilesOut,
+    TalentKycStatusUpdate,
+    TalentProfileCreate,
+    TalentProfileOut,
+    TalentProfileUpdate,
+)
 
 router = APIRouter(prefix="/talent", tags=["talent"])
 
@@ -121,6 +132,78 @@ def update_my_talent_profile(
         profile.category_expertise_json = json.dumps(payload.category_expertise, ensure_ascii=False)  # type: ignore[assignment]
     if payload.is_public is not None:
         profile.is_public = payload.is_public  # type: ignore[assignment]
+
+    db.commit()
+    db.refresh(profile)
+    return TalentProfileOut.model_validate(profile)
+
+
+# ---------------------------------------------------------------------------
+# GET /talent/admin/profiles
+# ---------------------------------------------------------------------------
+
+
+@router.get("/admin/profiles", response_model=PaginatedTalentProfilesOut)
+def list_talent_profiles_admin(
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    kyc_status: str | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> PaginatedTalentProfilesOut:
+    """Tüm talent profillerini listeler. Yalnızca platform admin/staff erişebilir."""
+    if not can_access_talent_admin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_err("TALENT_ADMIN_FORBIDDEN", "Talent yönetim paneline erişim yetkiniz yok"),
+        )
+
+    q = db.query(TalentProfile)
+    if kyc_status:
+        q = q.filter(TalentProfile.kyc_status == kyc_status)
+    q = q.order_by(TalentProfile.created_at.desc())
+
+    total = q.count()
+    offset = (page - 1) * size
+    rows = q.offset(offset).limit(size).all()
+
+    return PaginatedTalentProfilesOut(
+        total=total,
+        page=page,
+        size=size,
+        items=[TalentProfileOut.model_validate(r) for r in rows],
+    )
+
+
+# ---------------------------------------------------------------------------
+# PATCH /talent/admin/profiles/{profile_id}/kyc
+# ---------------------------------------------------------------------------
+
+
+@router.patch("/admin/profiles/{profile_id}/kyc", response_model=TalentProfileOut)
+def update_talent_kyc_status(
+    profile_id: int,
+    payload: TalentKycStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> TalentProfileOut:
+    """Talent profili KYC durumunu günceller. Yalnızca reviewer yetkisi olanlara açık."""
+    if not can_review_talent_profile(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_err("KYC_REVIEW_FORBIDDEN", "KYC inceleme yetkiniz yok"),
+        )
+
+    profile = db.query(TalentProfile).filter(TalentProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_err("TALENT_PROFILE_NOT_FOUND", "Talent profili bulunamadı"),
+        )
+
+    profile.kyc_status = payload.kyc_status  # type: ignore[assignment]
+    if payload.kyc_notes is not None:
+        profile.kyc_notes = payload.kyc_notes  # type: ignore[assignment]
 
     db.commit()
     db.refresh(profile)

@@ -43,6 +43,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
 const TalentProfilePage = lazy(() => import("./pages/TalentProfilePage"));
 const PayoutAdminPage = lazy(() => import("./pages/PayoutAdminPage"));
+const TalentAdminControlPage = lazy(() => import("./pages/TalentAdminControlPage"));
 const DepartmentDetailPage = lazy(() => import("./pages/DepartmentDetailPage"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
@@ -138,6 +139,7 @@ export default function App() {
               <Route path="/jobs" element={<JobsPage />} />
               <Route path="/talent/profile" element={<TalentProfilePage />} />
               <Route path="/admin/payout-requests" element={<PayoutAdminPage />} />
+              <Route path="/admin/talent-ecosystem" element={<TalentAdminControlPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/quotes" element={<QuoteListPage />} />
               <Route path="/quotes/create" element={<QuoteCreatePage />} />

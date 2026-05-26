@@ -75,6 +75,18 @@ class TalentProfileOut(BaseModel):
         return data
 
 
+class TalentKycStatusUpdate(BaseModel):
+    kyc_status: str = Field(pattern="^(approved|rejected|pending)$")
+    kyc_notes: str | None = None
+
+
+class PaginatedTalentProfilesOut(BaseModel):
+    total: int
+    page: int
+    size: int
+    items: list[TalentProfileOut]
+
+
 def _safe_parse_list(raw: str | None) -> list[str]:
     if not raw:
         return []

@@ -248,7 +248,11 @@ export function isTenantOwnerUser(user: PermissionContext | null | undefined): b
 
 export function isPlatformStaffUser(user: PermissionContext | null | undefined): boolean {
   const systemRole = normalizedSystemRole(user);
-  return systemRole === "platform_support" || systemRole === "platform_operator";
+  return (
+    systemRole === "platform_support" ||
+    systemRole === "platform_operator" ||
+    systemRole === "finance_officer"
+  );
 }
 
 export function canManageTenantIdentitySettings(user: PermissionContext | null | undefined): boolean {

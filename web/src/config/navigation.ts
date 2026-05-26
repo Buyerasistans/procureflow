@@ -74,6 +74,20 @@ export const NAV_ITEMS: NavItem[] = [
       );
     },
   },
+  {
+    label: "Talent Ekosistemi",
+    to: "/admin/talent-ecosystem",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "super_admin" ||
+        sr === "platform_support" ||
+        sr === "platform_operator" ||
+        sr === "moderator_compliance"
+      );
+    },
+  },
 ];
 
 export function getVisibleNavItems(user: AuthUser): NavItem[] {
