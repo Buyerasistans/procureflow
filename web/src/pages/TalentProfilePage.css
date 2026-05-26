@@ -1,0 +1,55 @@
+.talent-page { padding: 24px; max-width: 840px; margin: 0 auto; }
+.talent-page__title { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0 0 20px 0; }
+.talent-page__error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.talent-page__success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.talent-page__loading { text-align: center; color: #64748b; padding: 48px 0; font-size: 15px; }
+
+/* Profile card */
+.talent-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.talent-card__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.talent-card__name { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; }
+.talent-card__kyc { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 12px; font-weight: 600; }
+.talent-card__kyc--pending { background: #fef9c3; color: #854d0e; }
+.talent-card__kyc--approved { background: #dcfce7; color: #166534; }
+.talent-card__kyc--rejected { background: #fee2e2; color: #991b1b; }
+.talent-card__meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #475569; margin-bottom: 12px; }
+.talent-card__badge { background: #f1f5f9; padding: 2px 10px; border-radius: 12px; }
+.talent-card__bio { font-size: 14px; color: #64748b; margin: 0 0 12px 0; line-height: 1.55; }
+.talent-card__section-title { font-size: 13px; font-weight: 700; color: #374151; margin: 12px 0 6px 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.talent-card__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.talent-card__tag { background: #eff6ff; color: #1d4ed8; border-radius: 12px; padding: 2px 10px; font-size: 13px; }
+.talent-card__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.talent-card__stat { background: #f8fafc; border-radius: 8px; padding: 12px; text-align: center; }
+.talent-card__stat-value { font-size: 20px; font-weight: 700; color: #0f172a; }
+.talent-card__stat-label { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+/* Form */
+.talent-form { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+.talent-form__title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; }
+.talent-form__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.talent-form__field { display: flex; flex-direction: column; gap: 4px; }
+.talent-form__field--full { grid-column: 1 / -1; }
+.talent-form__label { font-size: 13px; font-weight: 600; color: #374151; }
+.talent-form__input, .talent-form__select, .talent-form__textarea { padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #1f2937; background: #fff; width: 100%; box-sizing: border-box; }
+.talent-form__textarea { min-height: 80px; resize: vertical; }
+.talent-form__hint { font-size: 12px; color: #94a3b8; }
+.talent-form__actions { display: flex; gap: 10px; margin-top: 16px; }
+.talent-form__btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+.talent-form__btn--primary { background: #0f6e57; color: #fff; }
+.talent-form__btn--primary:hover { background: #0a5441; }
+.talent-form__btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.talent-form__btn--secondary { background: #e2e8f0; color: #1e293b; }
+
+/* Earnings */
+.earnings-section { margin-top: 24px; }
+.earnings-section__title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; }
+.earnings-empty { color: #94a3b8; font-size: 14px; padding: 16px 0; }
+.earnings-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 6px; }
+.earnings-row__type { font-size: 13px; font-weight: 600; color: #374151; }
+.earnings-row__amount { font-size: 14px; font-weight: 700; }
+.earnings-row__amount--positive { color: #166534; }
+.earnings-row__amount--negative { color: #991b1b; }
+.earnings-row__meta { font-size: 12px; color: #94a3b8; }
+.earnings-pagination { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; font-size: 13px; color: #475569; }
+.earnings-pagination__btn { padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; }
+.earnings-pagination__btn:disabled { opacity: 0.4; cursor: not-allowed; }

@@ -46,6 +46,19 @@ export const NAV_ITEMS: NavItem[] = [
       );
     },
   },
+  {
+    label: "Talent Profilim",
+    to: "/talent/profile",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "talent_member" ||
+        sr === "referral_partner" ||
+        sr === "super_admin"
+      );
+    },
+  },
 ];
 
 export function getVisibleNavItems(user: AuthUser): NavItem[] {
