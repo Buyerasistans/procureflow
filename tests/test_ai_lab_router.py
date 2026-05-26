@@ -378,6 +378,81 @@ def test_ai_lab_logs_bom_selection_decision_and_confirm_transfer(
         db.close()
 
 
+def test_ai_lab_confirm_without_project_creates_default_transfer_project(
+    client, monkeypatch, admin_auth_headers
+):
+    metadata = {
+        "proje_ozet": {
+            "kaynak_dosya": "auto-project.dxf",
+            "pf_katman_sayisi": 1,
+            "pf_blok_sayisi": 0,
+            "minha_adedi": 0,
+        },
+        "katmanlar": [
+            {
+                "layer_name": "PF_DUVAR",
+                "total_length": 18.0,
+                "unit": "mt",
+                "entity_count": 1,
+            }
+        ],
+        "bloklar": [],
+        "minha_elemanlari": [],
+    }
+
+    monkeypatch.setattr(
+        extractor_module.DWGExtractor, "extract_metadata", lambda self: metadata
+    )
+
+    analyze_response = client.post(
+        "/api/v1/ai-lab/analyze",
+        files={
+            "file": (
+                "auto-project.dxf",
+                BytesIO(b"0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF\n"),
+                "application/dxf",
+            )
+        },
+        headers=admin_auth_headers,
+    )
+    assert analyze_response.status_code == 200, analyze_response.text
+    session_id = analyze_response.json()["session_id"]
+
+    confirm_response = client.post(
+        "/api/v1/ai-lab/confirm",
+        json={
+            "session_id": session_id,
+            "project_id": None,
+            "selected_bom_item_keys": [],
+        },
+        headers=admin_auth_headers,
+    )
+
+    assert confirm_response.status_code == 200, confirm_response.text
+    confirm_payload = confirm_response.json()
+    assert confirm_payload["transfer"]["status"] == "queued_for_procurement"
+    assert confirm_payload["transfer"]["project_name"] == "Discovery Lab Aktarım Projesi"
+
+    db = SessionLocal()
+    try:
+        project_row = (
+            db.query(Project)
+            .filter(Project.name == "Discovery Lab Aktarım Projesi")
+            .order_by(Project.id.desc())
+            .first()
+        )
+        assert project_row is not None
+        session_row = (
+            db.query(DiscoveryLabSession)
+            .filter(DiscoveryLabSession.session_id == session_id)
+            .first()
+        )
+        assert session_row is not None
+        assert session_row.selected_project_id == project_row.id
+    finally:
+        db.close()
+
+
 def test_ai_lab_session_mutations_and_timeline_reject_unrelated_user(
     client, monkeypatch, admin_auth_headers, other_user_auth_headers
 ):

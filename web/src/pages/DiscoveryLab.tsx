@@ -143,6 +143,9 @@ const DiscoveryLab: React.FC = () => {
     groups[sourceLayer].push(item);
     return groups;
   }, {});
+  const projectSelectionLabel = projects.length === 0
+    ? 'Otomatik Discovery Lab projesi oluşturulacak'
+    : 'Aktarım Projesi';
 
   useEffect(() => {
     let cancelled = false;
@@ -318,11 +321,6 @@ const DiscoveryLab: React.FC = () => {
     if (!analysisResult?.session_id) {
       return;
     }
-    if (!selectedProjectId) {
-      setUploadError('Discovery Lab aktarımı için önce aktif bir proje seçin.');
-      return;
-    }
-
     setIsConfirming(true);
     setUploadError(null);
     try {
@@ -499,6 +497,11 @@ const DiscoveryLab: React.FC = () => {
             </div>
           )}
         </div>
+        {analysisResult && uploadError && (
+          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            {uploadError}
+          </div>
+        )}
 
         {!analysisResult ? (
           <div
@@ -554,7 +557,7 @@ const DiscoveryLab: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                    <span>Aktarım Projesi</span>
+                    <span>{projectSelectionLabel}</span>
                     <select
                       value={selectedProjectId ?? ''}
                       onChange={(event) => setSelectedProjectId(event.target.value ? Number(event.target.value) : null)}
@@ -562,7 +565,8 @@ const DiscoveryLab: React.FC = () => {
                       className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
                       aria-label="Aktarım Projesi"
                     >
-                      {projects.length === 0 ? <option value="">Proje bulunamadı</option> : null}
+                      {projectsLoading ? <option value="">Projeler yükleniyor</option> : null}
+                      {!projectsLoading && projects.length === 0 ? <option value="">Otomatik proje</option> : null}
                       {projects.map((project) => (
                         <option key={project.id} value={project.id}>
                           {project.name}
@@ -925,6 +929,11 @@ const DiscoveryLab: React.FC = () => {
         >
           {isConfirming ? 'AKTARILIYOR...' : 'KEŞFİ ONAYLA VE AKTAR'}
         </button>
+        {analysisResult && projects.length === 0 && (
+          <p className="mt-2 text-xs text-slate-500">
+            Aktif proje bulunamadığı için aktarım sırasında varsayılan Discovery Lab projesi otomatik oluşturulacak.
+          </p>
+        )}
         <label className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-600">
           <input
             type="checkbox"

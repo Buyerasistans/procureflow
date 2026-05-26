@@ -60,7 +60,7 @@ class DiscoveryLabBomSelectionIn(BaseModel):
 
 class DiscoveryLabConfirmIn(BaseModel):
     session_id: str
-    project_id: int
+    project_id: int | None = None
     selected_bom_item_keys: list[str]
 
 
@@ -214,9 +214,58 @@ def _ensure_session_access(
     )
 
 
-def _resolve_procurement_context(
-    db: Session, *, current_user: User, project_id: int
+def _get_or_create_discovery_lab_project(
+    db: Session, *, current_user: User
 ) -> tuple[Project, User]:
+    db_user = db.get(User, current_user.id)
+    if db_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aktarım kullanıcısı bulunamadı",
+        )
+    tenant_id = current_user.tenant_id
+    project_code = "DISCOVERY-LAB" if tenant_id is not None else f"DL-USER-{current_user.id}"
+    query = db.query(Project).filter(
+        Project.code == project_code,
+        Project.is_active.is_(True),
+    )
+    if tenant_id is None:
+        query = query.filter(
+            Project.tenant_id.is_(None),
+            Project.created_by_id == current_user.id,
+        )
+    else:
+        query = query.filter(Project.tenant_id == tenant_id)
+
+    project = query.order_by(Project.id.asc()).first()
+    if project:
+        if not any(person.id == db_user.id for person in project.personnel):
+            project.personnel.append(db_user)
+            db.flush()
+        return project, db_user
+
+    project = Project(
+        name="Discovery Lab Aktarım Projesi",
+        description="Discovery Lab otomatik RFQ aktarımı için oluşturulan varsayılan proje.",
+        code=project_code,
+        budget=None,
+        project_type="merkez",
+        is_active=True,
+        tenant_id=tenant_id,
+        created_by_id=current_user.id,
+    )
+    project.personnel.append(db_user)
+    db.add(project)
+    db.flush()
+    return project, db_user
+
+
+def _resolve_procurement_context(
+    db: Session, *, current_user: User, project_id: int | None
+) -> tuple[Project, User]:
+    if project_id is None:
+        return _get_or_create_discovery_lab_project(db, current_user=current_user)
+
     project = (
         db.query(Project)
         .filter(Project.id == project_id, Project.is_active.is_(True))

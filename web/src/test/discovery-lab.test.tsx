@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DiscoveryLab from '../pages/DiscoveryLab';
+import { getProjects } from '../services/admin.service';
 
 vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 1, email: 'test@test.com', role: 'admin', system_role: 'tenant_admin' }, loading: false }),
@@ -27,6 +28,7 @@ vi.mock('../lib/token', () => ({
 const fetchMock = vi.fn();
 const alertMock = vi.fn();
 const assignMock = vi.fn();
+const mockedGetProjects = vi.mocked(getProjects);
 
 function mockConverterHealth(found = true) {
   fetchMock.mockResolvedValueOnce({
@@ -279,6 +281,77 @@ describe('DiscoveryLab', () => {
     expect(screen.getAllByText('Dosya sunucuya aktarılıyor...')).toHaveLength(2);
     expect(screen.getByText('İşlem devam ediyor')).toBeInTheDocument();
     expect(input).toBeDisabled();
+  });
+
+  it('aktif proje yoksa aktarimda otomatik Discovery Lab projesi kullanir', async () => {
+    mockedGetProjects.mockResolvedValueOnce([]);
+    mockConverterHealth();
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          status: 'success',
+          session_id: 'session-auto-project',
+          metadata: {
+            katmanlar: [
+              { layer_name: 'PF_DUVAR', total_length: 12, unit: 'mt' },
+            ],
+          },
+          bom: [],
+          ai_report: {
+            teknik_analiz: 'Analiz tamamlandı.',
+            karar_destek_sorulari: [],
+            recete_onerileri: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session_id: 'session-auto-project', status: 'analyzed', quote_id: null, timeline: [] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          status: 'success',
+          transfer: { transfer_id: 'DL-AUTO', status: 'queued_for_procurement', quote_id: 88 },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          session_id: 'session-auto-project',
+          status: 'technical_locked',
+          quote_id: 88,
+          timeline: [
+            { type: 'technical_lock', title: 'Teknik Kilit ve Satın Alma Aktarımı', details: { target_key: 'DL-AUTO', decision: 'confirmed' } },
+          ],
+        }),
+      });
+
+    const { container } = render(<DiscoveryLab />);
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['dxf'], 'auto.dxf', { type: 'application/dxf' })] } });
+
+    expect(await screen.findByText('Otomatik Discovery Lab projesi oluşturulacak')).toBeInTheDocument();
+    expect(screen.getByText(/varsayılan Discovery Lab projesi otomatik oluşturulacak/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'KEŞFİ ONAYLA VE AKTAR' }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://localhost:8000/api/v1/ai-lab/confirm',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            session_id: 'session-auto-project',
+            project_id: null,
+            selected_bom_item_keys: [],
+          }),
+        })
+      );
+    });
+    expect(await screen.findByText(/Teknik kilit atıldı ve satın alma aktarımı kuyruğa alındı: DL-AUTO/i)).toBeInTheDocument();
   });
 
   it('backend hata döndürdüğünde kullanıcıya güvenli mesaj gösterir', async () => {
