@@ -10,6 +10,19 @@ class CADConversionError(RuntimeError):
     pass
 
 
+def _iter_default_converter_candidates() -> list[Path]:
+    candidates: list[Path] = []
+    for root_env in ["ProgramFiles", "ProgramFiles(x86)"]:
+        root = os.getenv(root_env, "").strip()
+        if not root:
+            continue
+        oda_root = Path(root) / "ODA"
+        if not oda_root.exists():
+            continue
+        candidates.extend(oda_root.glob("ODAFileConverter*/ODAFileConverter.exe"))
+    return sorted(candidates, reverse=True)
+
+
 def _resolve_dwg_converter_executable() -> Path:
     """
     DWG -> DXF dönüştürücüsünü çözümleme sırası:
@@ -34,9 +47,13 @@ def _resolve_dwg_converter_executable() -> Path:
         if which_path:
             return Path(which_path).resolve()
 
+    for candidate in _iter_default_converter_candidates():
+        if candidate.exists() and candidate.is_file():
+            return candidate.resolve()
+
     raise CADConversionError(
         "DWG dönüştürme aracı bulunamadı. "
-        "Sunucuda ODA/Teigha kurun ve PATH'e ekleyin veya DWG_TO_DXF_CONVERTER_PATH/Oda_Converter_PATH tanımlayın."
+        "Sunucuda ODA/Teigha kurun ve PATH'e ekleyin veya DWG_TO_DXF_CONVERTER_PATH/ODA_CONVERTER_PATH tanımlayın."
     )
 
 
@@ -75,6 +92,15 @@ def get_dwg_converter_diagnostics() -> dict[str, str | bool | None]:
                 "converter_found": True,
                 "resolver_source": f"path:{command_name}",
                 "executable_name": Path(which_path).name,
+                "reason": None,
+            }
+
+    for candidate in _iter_default_converter_candidates():
+        if candidate.exists() and candidate.is_file():
+            return {
+                "converter_found": True,
+                "resolver_source": "default_install:ODA",
+                "executable_name": candidate.name,
                 "reason": None,
             }
 

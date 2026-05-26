@@ -38,6 +38,9 @@ def test_can_convert_dwg_reports_missing_converter_without_name_error(monkeypatc
     monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
     monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
     monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "api.services.cad_convert._iter_default_converter_candidates", lambda: []
+    )
 
     ok, reason = can_convert_dwg()
 
@@ -80,6 +83,9 @@ def test_ai_lab_converter_health_returns_safe_diagnostics(
     monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
     monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
     monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "api.services.cad_convert._iter_default_converter_candidates", lambda: []
+    )
 
     response = client.get(
         "/api/v1/ai-lab/health/converter", headers=admin_auth_headers
