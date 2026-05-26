@@ -7,21 +7,20 @@
 - mode: multi-phase build
 
 ## Current Phase
-**PHASE 0 — Discovery + Architecture + Data Model** ✅ COMPLETE
+**PHASE 3B — Talent Profile Frontend** ✅ COMPLETE
 
 ## Completed Steps
-- [x] Codebase scan: FastAPI + SQLAlchemy + React/TS, multi-tenant, PostgreSQL
-- [x] `api/models/talent.py` — 8 new SQLAlchemy models (TalentProfile, ProcurementJob, JobApplication, ReferralTask, ReferralSubmission, EarningsLedger, PayoutRequest, ReputationEvent)
-- [x] `api/models/__init__.py` — all 8 models registered + exported
-- [x] `api/core/authz.py` — 4 new system roles + 8 RBAC helper functions added
-- [x] Alembic migration `76f4c14237af` — 8 tables applied to local DB (83→91 tables)
-- [x] Migration verified: all 8 tables confirmed in PostgreSQL
+- [x] PHASE 0: 8 SQLAlchemy models, Alembic migration 76f4c14237af, RBAC helpers
+- [x] PHASE 1: 4 routers (talent, jobs, job_applications, referral_tasks) + schemas + main.py registration
+- [x] PHASE 2: earnings router + schemas + masking
+- [x] PHASE 3A: JobsPage + jobs.service.ts + /jobs route + nav item
+- [x] PHASE 3B: TalentProfilePage + talent.service.ts + /talent/profile route + nav item
 
 ## In-Progress Step
-**PHASE 1 — Auth/RBAC Foundation + API Skeleton**
+**PHASE 4 — Payout Processing OR PHASE 5 — Super Admin Control Center**
 
 ## Next Atomic Action
-Create `api/routers/talent.py` — talent profile CRUD endpoints (GET /me, POST /register, PATCH /me) with RBAC guards.
+Confirm with user: PHASE 4 (payout processing: processing → paid state + admin workflow) or PHASE 5 (Super Admin control center for talent ecosystem oversight).
 
 ## Architecture Decisions Log
 1. `TalentProfile` linked 1:1 to existing `User` (not a new user type) — reuses auth infrastructure
@@ -68,11 +67,13 @@ Create `api/routers/talent.py` — talent profile CRUD endpoints (GET /me, POST 
 | PHASE 7 | 🔲 TODO | UAT + docs + go-live checklist |
 
 ## Last Successful Commit SHA
-4dd1702 (PHASE 0: 8 talent tables + RBAC helpers)
+735dbda (PHASE 3B: Talent Profile frontend — service + page + route + nav item)
 
 ## Resume Command
 ```
-git checkout feat/final-stabilization
+git checkout pr/strict-gate-payment-clean-v2
 # Read this file, then SESSION_STATE.json
-# Start PHASE 1: create api/routers/talent.py
+# PHASE 3B complete. Next: PHASE 4 or PHASE 5 (confirm with user)
 ```
+
+## SAFE TO RESUME: yes
