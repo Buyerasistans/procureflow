@@ -3,93 +3,82 @@
 ## Session Meta
 - date: 2026-05-27
 - branch: pr/strict-gate-payment-clean-v2
-- stream: procurement-talent-network-and-jobs
-- mode: multi-phase build
+- stream: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
+- mode: long-running atomic program
 
 ## Current Phase
-**PHASE 7 — UAT + release readiness docs** ✅ ATOMIC-2 COMPLETE
+PHASE 0 - Memory bootstrap + ADR + backlog
 
-## Completed Steps
-- [x] PHASE 0: 8 SQLAlchemy models, Alembic migration `76f4c14237af`, RBAC helpers
-- [x] PHASE 1: 4 routers (talent, jobs, job_applications, referral_tasks) + schemas + `main.py` registration
-- [x] PHASE 2: earnings router + schemas + masking
-- [x] PHASE 3A: `JobsPage` + `jobs.service.ts` + `/jobs` route + nav item
-- [x] PHASE 3B: `TalentProfilePage` + `talent.service.ts` + `/talent/profile` route + nav item
-- [x] PHASE 4/atomik-1: `_PAYOUT_TRANSITIONS` extended + `paid_at` stamp
-- [x] PHASE 4/atomik-2: `PayoutAdminPage` + `payout.service.ts` + route + nav
-- [x] PHASE 5/atomik-1: `TalentAdminControlPage` + `talent-admin.service.ts` + 2 backend endpoints + route + nav + `finance_officer` fix
-- [x] PHASE 6/atomik-1: minimal hardening for payout/talent admin surfaces
-- [x] PHASE 6/atomik-2: controlled Admin perf split for heavy tabs
-- [x] PHASE 7/atomik-1: UAT smoke checklist + release readiness docs
-- [x] PHASE 7/atomik-2: UAT evidence packet + merge readiness checklist
+## Executive Summary
+This checkpoint starts the `NAV_GOVERNANCE_AND_JOB_MARKETPLACE` program. The goal is to make visible navigation surfaces governance-driven and then expand the job marketplace into public, employer, recruiter, and candidate flows.
 
-## PHASE 6 / Atomik-1 Notes
-- Frontend perf: `PayoutAdminPage` and `TalentAdminControlPage` were already lazy-loaded in `web/src/App.tsx`; no risky split refactor was needed.
-- A11y quick wins:
-  - Added label/id association for payout status and KYC filters.
-  - Added accessible table captions and `scope="col"` headers.
-  - Added `aria-label` to payout/KYC action buttons and pagination controls.
-  - Added `role="alert"` / `role="status"` where user feedback changes dynamically.
-- Error UX:
-  - `payout.service.ts` and `talent-admin.service.ts` now map backend `detail.code` to user-safe fallback messages.
-  - Raw backend `detail.message`, string detail, and generic `err.message` are no longer surfaced to these admin pages.
-- Hygiene:
-  - No `dangerouslySetInnerHTML` or raw HTML rendering was introduced in the touched files.
-  - API contracts and endpoint paths were not changed.
+No runtime code changed in this checkpoint. The work is documentation and handoff state only.
 
-## PHASE 6 / Atomik-2 Notes
-- Controlled perf split only; no endpoint, migration, route, or UI workflow change.
-- `WorkspacePanelDesignerTab` and `DeploymentPanel` now load lazily from `AdminPage`.
-- Build comparison:
-  - Before: `AdminPage-DShVwIcw.js` 566.27 kB, gzip 132.74 kB.
-  - After: `AdminPage-BkYyQRMo.js` 488.73 kB, gzip 114.57 kB.
-  - New lazy chunks: `DeploymentPanel-CA831BzY.js` 31.27 kB, `WorkspacePanelDesignerTab-xz1cpYki.js` 47.62 kB.
+## Completed This Iteration
+- Added the program ADR for navigation governance and job marketplace expansion.
+- Added the phased atomic backlog and acceptance criteria.
+- Updated this briefing so the next assistant can resume from PHASE 1 without relying on prior chat context.
+- Updated local `tools/agent/SESSION_STATE.json`; it is gitignored and must not be committed.
 
-## PHASE 7 / Atomik-1 Notes
-- Added `docs/runbooks/talent-ecosystem-uat-smoke.md`.
-  - Covers payout transition smoke, payout rejection, KYC approve/reject, route access, and friendly error UX.
-- Added `docs/runbooks/talent-ecosystem-release-readiness.md`.
-  - Covers required env/config, release gate, Definition of Done, known risks, and commit-based rollback.
-- No runtime code, endpoint, route, migration, or UI flow change was needed.
+## Files Changed
+- `docs/adr/0001-nav-governance-and-job-marketplace.md`
+- `docs/runbooks/nav-governance-and-job-marketplace-backlog.md`
+- `tools/agent/AI_BRIEFING.md`
 
-## PHASE 7 / Atomik-2 Notes
-- Added `docs/runbooks/talent-ecosystem-uat-evidence.md`.
-  - Captures command evidence, route/build evidence, sanitized error UX evidence, and data-dependent UAT steps.
-- Added `docs/runbooks/talent-ecosystem-merge-readiness.md`.
-  - Captures PHASE 4 -> PHASE 7 commit chain, test summary, merge checklist, risk notes, and rollback references.
-- No source code, endpoint, route, migration, or runtime behavior change was made.
-
-## Architecture Decisions Log
-1. `TalentProfile` linked 1:1 to existing `User` (not a new user type) — reuses auth infrastructure.
-2. `ProcurementJob.is_procurement_only=True` always — enforced at model + API + UI levels.
-3. `EarningsLedger` is append-only (immutable log) — no updates, no deletes; balance computed from ledger.
-4. `ReferralSubmission` has unique constraint `(task_id, submitter_user_id)` — prevents double submission.
-5. `JobApplication` has unique constraint `(job_id, applicant_user_id)` — prevents double apply.
-6. New RBAC roles extend existing `system_role` field on `User` model (no schema change needed).
-7. Spurious Alembic FK drift stripped from migration — only new tables included.
-
-## Open Risks / Blockers
-- `User.system_role` field accepts string freely — new talent roles must be validated at API layer until enum migration is done.
-- `ai_match_score` placeholder remains deferred to a future AI scoring phase.
-- Broader visual redesign is out of scope for PHASE 6/atomik-1.
-
-## Pending Migrations
-- None.
+## Migrations
+None.
 
 ## Tests Required For This Checkpoint
-- `tsc --noEmit`
-- `vite build`
-- Verify UAT and release readiness document headings
+- `npm run type-check`
+- `npm run build`
+- Document heading verification for the ADR, backlog, and this briefing.
+- Responsive validation is documentation-only for PHASE 0; no UI changed.
 
-## Last Successful Commit SHA
-- Pre-iteration: `eeccfc0`
-- Last major delivery: `88607db`
+## Working Tree Note
+Before this checkpoint, the repo already had unrelated modified/untracked files in API, admin UI, and local agent folders. Do not stage or revert them as part of this program unless a later atomic step explicitly owns them.
 
-## Resume Command
-```powershell
-git checkout pr/strict-gate-payment-clean-v2
-# Read this file, then tools/agent/SESSION_STATE.json
-# PHASE 7/atomik-2 complete. Next: final manual seeded-data UAT or merge readiness sign-off.
+## Program Phases
+- PHASE 0: Memory bootstrap + ADR + backlog
+- PHASE 1: Top nav governance foundation
+- PHASE 2: Panel designer professionalization
+- PHASE 3: Public jobs surface (`/is-ilanlari`, detail, CTA)
+- PHASE 4: Onboarding split (Employer vs Candidate)
+- PHASE 5: Posting/Application lifecycle
+- PHASE 6: Campaign/Growth ops (UTM + landing + KPI)
+- PHASE 7: Hardening + UAT + release governance
+
+## Product Principles
+- UI visibility must be policy/config driven, not scattered hardcoded checks.
+- Top nav, panel tabs, quick links, and page CTAs must be manageable from governance/panel design surfaces where appropriate.
+- Responsive behavior is a release gate for all UI steps.
+- Route slugs, API field keys, DB columns, enums, and technical identifiers must remain stable unless a step explicitly owns a migration/contract change.
+
+## Role Scope
+- `super_admin`
+- `platform_operator`
+- `platform_support`
+- `tenant_admin`
+- `employer_admin`
+- `employer_recruiter`
+- `candidate_user`
+- `guest_public`
+
+## Open Risks / Blockers
+- Existing unrelated dirty worktree entries must be kept separate from this program.
+- Current nav visibility sources are mixed across config, layout, admin panel data, and role checks; PHASE 1 must inventory before implementation.
+- Public jobs expansion may overlap with the existing talent network; role and onboarding separation must be explicit before runtime changes.
+
+## Next Atomic Step
+PHASE 1 / Atomik-1: inventory current top-nav and authenticated navigation sources, then document the minimal visibility policy shape without changing runtime behavior.
+
+## RESUME BLOCK
+```text
+Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
+Branch: pr/strict-gate-payment-clean-v2
+Current phase: PHASE 0 complete after checkpoint commit
+Next atomic step: PHASE 1 / Atomik-1
+Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first. Keep unrelated dirty worktree files untouched. Implement only one atomic step and commit it with AI_BRIEFING.md.
 ```
 
-## SAFE TO RESUME: yes
+## SAFE TO RESUME
+yes
