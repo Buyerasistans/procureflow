@@ -3874,9 +3874,11 @@ async def verify_onboarding_payment(
         raise HTTPException(status_code=404, detail="Tenant bulunamadi")
 
     payment_status = str(tenant.onboarding_payment_status or "not_required").lower()
-    if payment_status == "not_required":
+    # Only block if payment was already confirmed — "not_required" is allowed
+    # because EFT/Havale payments need manual super admin verification regardless
+    if payment_status in {"verified", "succeeded"}:
         raise HTTPException(
-            status_code=400, detail="Bu uyelik icin odeme dogrulamasi gerekmiyor"
+            status_code=400, detail="Ödeme zaten doğrulanmış durumda"
         )
 
     tenant.onboarding_payment_status = "verified"
@@ -3888,7 +3890,8 @@ async def verify_onboarding_payment(
             payment_txn.completed_at = utcnow()
             db.add(payment_txn)
             activate_premium_features_for_payment(db, payment_txn, tenant_id=tenant.id)
-    if str(tenant.onboarding_approval_status or "").lower() in {
+    # If approval was "not_required" or "needs_info", move it to pending after payment verify
+    if str(tenant.onboarding_approval_status or "not_required").lower() in {
         "not_required",
         "needs_info",
     }:

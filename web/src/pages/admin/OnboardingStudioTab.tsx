@@ -192,7 +192,8 @@ export function OnboardingStudioTab({
                 ? tenantGovernanceSuppliers.filter((sup) => matchingPool.includes(String(sup.category || "").trim())).length
                 : 0;
 
-              const canVerifyPayment = paymentStatus === "submitted" || paymentStatus === "processing";
+              // "Ödemeyi Doğrula" active for any unverified payment — EFT/Havale needs manual admin check
+              const canVerifyPayment = !["verified", "succeeded"].includes(paymentStatus);
               const canApprove = ["pending", "needs_info"].includes(approvalStatus)
                 && ["verified", "succeeded", "not_required"].includes(paymentStatus)
                 && !hasPendingCategoryReview;
@@ -237,7 +238,7 @@ export function OnboardingStudioTab({
                     type="button"
                     className="osTab__cardToggle"
                     onClick={() => toggleCard(tenant.id)}
-                    aria-expanded={isExpanded ? "true" : "false"}
+                    aria-expanded={isExpanded}
                   >
                     <div className="osTab__cardTitleGroup">
                       <div className="osTab__cardName">{tenant.brand_name || tenant.legal_name}</div>
