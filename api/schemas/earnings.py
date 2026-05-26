@@ -55,7 +55,7 @@ class PayoutRequestCreate(BaseModel):
 
 
 class PayoutRequestStatusUpdate(BaseModel):
-    status: str = Field(pattern="^(approved|rejected)$")
+    status: str = Field(pattern="^(approved|rejected|processing|paid)$")
     rejection_reason: str | None = None
 
 

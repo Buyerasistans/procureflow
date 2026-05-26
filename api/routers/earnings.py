@@ -26,8 +26,8 @@ router = APIRouter(tags=["earnings"])
 # Valid admin-side payout status transitions
 _PAYOUT_TRANSITIONS: dict[str, set[str]] = {
     "pending":    {"approved", "rejected"},
-    "approved":   set(),   # manual ops / payment processor (PHASE 4+)
-    "processing": set(),
+    "approved":   {"processing"},
+    "processing": {"paid"},
     "paid":       set(),
     "rejected":   set(),
 }
@@ -211,7 +211,7 @@ def update_payout_status(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PayoutRequestOut:
-    """Ödeme talebini onaylar veya reddeder. Yalnızca pending → approved/rejected geçişine izin verilir."""
+    """Ödeme talebi durum geçişi. Zincir: pending→approved→processing→paid; ya da pending→rejected."""
     if not can_approve_payout(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -242,6 +242,9 @@ def update_payout_status(
     payout.status = target_status  # type: ignore[assignment]
     payout.reviewer_user_id = current_user.id  # type: ignore[assignment]
     payout.reviewed_at = utcnow()  # type: ignore[assignment]
+
+    if target_status == "paid":
+        payout.paid_at = utcnow()  # type: ignore[assignment]
 
     if payload.rejection_reason is not None:
         payout.rejection_reason = payload.rejection_reason  # type: ignore[assignment]
