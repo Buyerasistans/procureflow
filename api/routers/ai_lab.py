@@ -318,20 +318,69 @@ def _create_procurement_quote(
     db.add(quote)
     db.flush()
 
-    for index, item in enumerate(selected_bom_items, start=1):
+    grouped_items: dict[str, dict] = {}
+    for item in selected_bom_items:
+        group_key = item.get("group_key") or item.get("source_layer") or "discovery-lab"
+        group_name = item.get("group_name") or item.get("source_layer") or "Discovery Lab Kalemleri"
+        grouped_items.setdefault(str(group_key), {"name": group_name, "items": []})
+        grouped_items[str(group_key)]["items"].append(item)
+
+    sequence = 1
+    for group_index, (group_key, group_payload) in enumerate(grouped_items.items(), start=1):
         db.add(
             QuoteItem(
                 quote_id=quote.id,
-                line_number=str(index),
+                line_number=str(group_index),
                 category_code="DISCOVERY_LAB",
-                category_name=item.get("source_layer") or "DISCOVERY_LAB",
-                description=item.get("material") or "Isimsiz malzeme",
-                unit=item.get("unit") or "adet",
-                quantity=float(item.get("quantity") or 0),
+                category_name="Discovery Lab",
+                description=str(group_payload["name"]),
+                group_key=str(group_key),
+                is_group_header=True,
+                unit="",
+                quantity=0,
                 unit_price=None,
                 total_price=None,
-                notes=f"Kaynak katman: {item.get('source_layer')}",
-                sequence=index,
+                notes="Discovery Lab reçete grubu",
+                sequence=sequence,
+            )
+        )
+        sequence += 1
+        for item_index, item in enumerate(group_payload["items"], start=1):
+            db.add(
+                QuoteItem(
+                    quote_id=quote.id,
+                    line_number=f"{group_index}.{item_index}",
+                    category_code="DISCOVERY_LAB",
+                    category_name=str(group_payload["name"]),
+                    description=item.get("material") or "İsimsiz malzeme",
+                    group_key=str(group_key),
+                    is_group_header=False,
+                    unit=item.get("unit") or "adet",
+                    quantity=float(item.get("quantity") or 0),
+                    unit_price=None,
+                    total_price=None,
+                    notes=f"Kaynak katman: {item.get('source_layer')}",
+                    sequence=sequence,
+                )
+            )
+            sequence += 1
+
+    if not grouped_items:
+        db.add(
+            QuoteItem(
+                quote_id=quote.id,
+                line_number="1",
+                category_code="DISCOVERY_LAB",
+                category_name="Discovery Lab",
+                description="Discovery Lab teknik keşif kalemleri",
+                group_key="discovery-lab",
+                is_group_header=True,
+                unit="",
+                quantity=0,
+                unit_price=None,
+                total_price=None,
+                notes="Seçili BOM kalemi bulunamadı.",
+                sequence=1,
             )
         )
 
@@ -758,6 +807,8 @@ def confirm_discovery_lab(
         if f"{item.get('source_layer')}-{item.get('material')}-{index}"
         in payload.selected_bom_item_keys
     ]
+    if not selected_bom_items and bom:
+        selected_bom_items = bom
     event_rows = (
         db.query(DiscoveryLabEvent)
         .filter(DiscoveryLabEvent.session_ref_id == session_row.id)

@@ -33,6 +33,8 @@ interface BOMItem {
   quantity: number;
   unit: string;
   source_layer: string;
+  group_name?: string;
+  group_key?: string;
 }
 
 type BOMSelectionState = Record<string, boolean>;
@@ -111,6 +113,7 @@ const DiscoveryLab: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadPhase, setUploadPhase] = useState<string | null>(null);
+  const [uploadElapsedSeconds, setUploadElapsedSeconds] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -138,14 +141,29 @@ const DiscoveryLab: React.FC = () => {
   const analysisLayers = analysisResult?.metadata.katmanlar ?? [];
   const bomItems = analysisResult?.bom ?? [];
   const groupedBomItems = bomItems.reduce<Record<string, BOMItem[]>>((groups, item) => {
-    const sourceLayer = item.source_layer || 'TANIMSIZ_KATMAN';
-    groups[sourceLayer] = groups[sourceLayer] ?? [];
-    groups[sourceLayer].push(item);
+    const groupName = item.group_name || item.source_layer || 'TANIMSIZ_GRUP';
+    groups[groupName] = groups[groupName] ?? [];
+    groups[groupName].push(item);
     return groups;
   }, {});
   const projectSelectionLabel = projects.length === 0
     ? 'Otomatik Discovery Lab projesi oluşturulacak'
     : 'Aktarım Projesi';
+  const projectAccessHint = user?.system_role === 'super_admin'
+    ? 'Süper admin görünümünde tüm aktif projeler listelenir. Firma panellerinde yalnız kullanıcının yetkili olduğu projeler görünür.'
+    : 'Bu listede yalnız bağlı olduğunuz firma ve yetkili olduğunuz aktif projeler görünür.';
+
+  useEffect(() => {
+    if (!isUploading) {
+      setUploadElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setUploadElapsedSeconds(Math.max(1, Math.floor((Date.now() - startedAt) / 1000)));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isUploading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -505,11 +523,16 @@ const DiscoveryLab: React.FC = () => {
 
         {!analysisResult ? (
           <div
-            className={`border-3 border-dashed rounded-2xl h-96 flex flex-col items-center justify-center bg-white transition-all ${
-              isUploading ? 'border-blue-400 shadow-lg shadow-blue-100' : 'border-gray-300 hover:border-blue-400'
+            className={`relative overflow-hidden border-3 border-dashed rounded-2xl h-96 flex flex-col items-center justify-center bg-white transition-all ${
+              isUploading ? 'border-blue-400 shadow-xl shadow-blue-100' : 'border-gray-300 hover:border-blue-400'
             }`}
             aria-busy={isUploading}
           >
+            {isUploading && (
+              <div className="absolute inset-x-0 top-0 h-1 overflow-hidden bg-blue-100">
+                <div className="h-full w-1/3 animate-[pulse_1.2s_ease-in-out_infinite] rounded-full bg-blue-600" />
+              </div>
+            )}
             <div className={`p-6 rounded-full mb-4 ${isUploading ? 'bg-blue-100' : 'bg-blue-50'}`}>
               {isUploading ? (
                 <Loader2 size={48} className="animate-spin text-blue-600" aria-hidden="true" />
@@ -525,11 +548,19 @@ const DiscoveryLab: React.FC = () => {
                 <p className="text-sm font-medium text-blue-700">
                   {uploadPhase || 'Dosya işleniyor...'}
                 </p>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {['Yükleme', 'Dönüştürme', 'AI denetim'].map((step, index) => (
+                    <div key={step} className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+                      <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${uploadElapsedSeconds % 3 === index ? 'bg-blue-600' : 'bg-blue-200'}`} />
+                      <div className="text-[11px] font-bold text-blue-700">{step}</div>
+                    </div>
+                  ))}
+                </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-blue-100">
-                  <div className="h-full w-1/2 animate-pulse rounded-full bg-blue-600" />
+                  <div className="h-full w-full origin-left animate-pulse rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600" />
                 </div>
                 <p className="mt-3 text-xs text-slate-500">
-                  Büyük DWG dosyalarında dönüştürme ve metadata çıkarma birkaç dakika sürebilir.
+                  İşlem süresi: {uploadElapsedSeconds}s. Büyük DWG dosyalarında dönüştürme ve metadata çıkarma birkaç dakika sürebilir.
                 </p>
               </div>
             )}
@@ -578,6 +609,9 @@ const DiscoveryLab: React.FC = () => {
                     {analysisLayers.length} katman
                   </span>
                 </div>
+              </div>
+              <div className="border-b border-slate-100 bg-slate-50 px-6 py-3 text-xs font-semibold text-slate-500">
+                {projectAccessHint}
               </div>
               <table className="w-full text-left">
                 <thead className="bg-gray-50">
@@ -634,8 +668,9 @@ const DiscoveryLab: React.FC = () => {
                       </button>
                       {!collapsedBomGroups[sourceLayer] && (
                         <div className="divide-y divide-emerald-100 bg-white">
-                          {items.map((item, index) => {
-                            const itemKey = `${sourceLayer}-${item.material}-${index}`;
+                          {items.map((item) => {
+                            const globalIndex = bomItems.indexOf(item);
+                            const itemKey = `${item.source_layer}-${item.material}-${globalIndex}`;
                             const isSelected = selectedBomItems[itemKey] ?? false;
 
                             return (

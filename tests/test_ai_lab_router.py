@@ -360,7 +360,11 @@ def test_ai_lab_logs_bom_selection_decision_and_confirm_transfer(
         quote_items = (
             db.query(QuoteItem).filter(QuoteItem.quote_id == quote_row.id).all()
         )
-        assert quote_items == []
+        group_headers = [item for item in quote_items if item.is_group_header]
+        child_items = [item for item in quote_items if not item.is_group_header]
+        assert group_headers
+        assert child_items
+        assert all(item.group_key for item in quote_items)
 
         event_rows = (
             db.query(DiscoveryLabEvent)
@@ -460,8 +464,12 @@ def test_ai_lab_confirm_without_project_creates_default_transfer_project(
             .filter(QuoteItem.quote_id == session_row.procurement_quote_id)
             .all()
         )
-        assert len(quote_items) == len(selected_keys)
-        assert any(item.description == "Astar" for item in quote_items)
+        group_headers = [item for item in quote_items if item.is_group_header]
+        child_items = [item for item in quote_items if not item.is_group_header]
+        assert len(child_items) == len(selected_keys)
+        assert any(item.description == "Alçıpan İşleri" for item in group_headers)
+        assert any(item.description == "Astar" for item in child_items)
+        assert all(item.group_key == "alcipan-isleri" for item in child_items)
     finally:
         db.close()
 

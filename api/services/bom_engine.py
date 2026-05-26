@@ -79,14 +79,30 @@ TECHNICAL_LAYER_TOKENS = {
     "NOT",
     "OLCU",
     "ÖLÇÜ",
+    "OBJ",
+    "PDF",
+    "LOGO",
+    "NOT_C",
+    "NOTC",
     "TEXT",
     "YAZI",
 }
 
 LAYER_RECIPE_ALIASES: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("ALCIPAN", "ALÇIPAN", "KARTONPIYER"), "PF_DUVAR"),
     (("DUVAR", "WALL"), "PF_DUVAR"),
     (("ISLAK", "BANYO", "WC"), "PF_DUVAR_ISLAK"),
     (("ZEMIN_SERAMIK", "SERAMIK", "FAYANS"), "PF_ZEMIN_SERAMIK"),
+)
+
+DIRECT_LAYER_RULES: tuple[tuple[tuple[str, ...], str, str, str], ...] = (
+    (("PIRIZ", "PRIZ", "ANAHTAR", "SWITCH"), "Elektrik İşleri", "Adetli elektrik ekipmanı", "adet"),
+    (("ELEKTRIK_TAVA", "TAVA_HATTI", "KABLO_TAVA"), "Elektrik İşleri", "Elektrik tava hattı", "mt"),
+    (("ELEKTRIK_KANAL", "KABLO_KANAL"), "Elektrik İşleri", "Elektrik kanal hattı", "mt"),
+    (("DOGRAM", "DOĞRAM"), "Doğrama İşleri", "Doğrama imalatı", "mt"),
+    (("DOLAP", "MOBILYA", "MOBİLYA"), "Mobilya İşleri", "Mobilya imalatı", "adet"),
+    (("DEMIR", "DEMİR", "METAL", "PROFIL", "PROFİL"), "Metal İşleri", "Metal/profil imalatı", "mt"),
+    (("CAM", "PLEKSI", "PLEKSİ"), "Cam ve Pleksi İşleri", "Cam/pleksi imalatı", "m2"),
 )
 
 
@@ -115,6 +131,27 @@ def _select_fallback_recipe(layer_name: str) -> list[dict[str, Any]]:
         if any(token in normalized for token in tokens):
             return FALLBACK_RECIPE_LIBRARY[recipe_key]
     return []
+
+
+def _resolve_direct_layer_rule(layer_name: str) -> tuple[str, str, str] | None:
+    normalized = _normalize_layer_name(layer_name)
+    if _is_technical_layer(layer_name):
+        return None
+    for tokens, group_name, material_name, unit in DIRECT_LAYER_RULES:
+        if any(token in normalized for token in tokens):
+            return group_name, material_name, unit
+    return None
+
+
+def _quantity_for_direct_layer(layer: dict[str, Any], unit: str) -> float:
+    if unit == "adet":
+        return float(
+            layer.get("entity_count")
+            or layer.get("count")
+            or layer.get("block_count")
+            or 1
+        )
+    return float(layer.get("net_length") or layer.get("total_length") or 0)
 
 
 def _load_recipe_items_from_db(db: Any, layer_name: str) -> list[dict[str, Any]]:
@@ -168,7 +205,30 @@ def generate_bom_from_metadata(
                     "quantity": round(calculated_quantity, 2),
                     "unit": item["unit"],
                     "source_layer": layer_name,
+                    "group_name": "Alçıpan İşleri",
+                    "group_key": "alcipan-isleri",
                 }
             )
+
+        if recipe_items:
+            continue
+
+        direct_rule = _resolve_direct_layer_rule(layer_name)
+        if not direct_rule:
+            continue
+        group_name, material_name, unit = direct_rule
+        quantity = _quantity_for_direct_layer(layer, unit)
+        if quantity <= 0:
+            continue
+        final_bom.append(
+            {
+                "material": material_name,
+                "quantity": round(quantity, 2),
+                "unit": unit,
+                "source_layer": layer_name,
+                "group_name": group_name,
+                "group_key": _normalize_layer_name(group_name).lower().replace("_", "-"),
+            }
+        )
 
     return final_bom
