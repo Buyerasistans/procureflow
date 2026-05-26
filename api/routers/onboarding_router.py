@@ -479,22 +479,24 @@ async def register_tenant(
             detail="Bu e-posta adresi ile kayitli bir hesap zaten mevcut.",
         )
 
-    # Tenant olu?tur
+    # Tenant oluştur — public kayıtlar süper admin onayına kadar pasif kalır
     slug = _ensure_unique_slug(db, _slugify(payload.brand_name or payload.legal_name))
     tenant = Tenant(
         slug=slug,
         legal_name=payload.legal_name,
         brand_name=payload.brand_name,
         subscription_plan_code=plan_code,
-        status="active",
+        status="onboarding",
         onboarding_status="pending_activation",
-        is_active=True,
+        is_active=False,
+        onboarding_approval_status="pending",
+        onboarding_payment_status="not_required" if not payment_verified else "submitted",
     )
     db.add(tenant)
     db.flush()
 
     ensure_tenant_subscription_for_plan(
-        db, tenant, subscription_plan_code=plan_code, status_value="active"
+        db, tenant, subscription_plan_code=plan_code, status_value="paused"
     )
     db.add(
         TenantSettings(

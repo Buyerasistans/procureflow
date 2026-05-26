@@ -572,7 +572,8 @@ def _append_tenant_category(
 def _can_activate_onboarding_tenant(tenant: Tenant) -> bool:
     payment_status = str(tenant.onboarding_payment_status or "not_required").lower()
     approval_status = str(tenant.onboarding_approval_status or "not_required").lower()
-    return approval_status == "approved" and payment_status in {
+    # "not_required" means admin-created tenant (bypasses onboarding queue)
+    return approval_status in {"approved", "not_required"} and payment_status in {
         "verified",
         "succeeded",
         "not_required",
@@ -4542,6 +4543,9 @@ async def create_tenant(
         status=payload.status,
         onboarding_status=payload.onboarding_status,
         is_active=payload.is_active,
+        # Admin-created tenants are pre-approved; no onboarding queue or payment gate
+        onboarding_approval_status="approved",
+        onboarding_payment_status="not_required",
     )
     db.add(tenant)
     db.flush()

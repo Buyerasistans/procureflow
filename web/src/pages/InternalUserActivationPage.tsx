@@ -92,7 +92,13 @@ export default function InternalUserActivationPage() {
       }, 700);
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail || "Aktivasyon tamamlanamadı");
+      const statusCode = (err as { response?: { status?: number } })?.response?.status;
+      // 403 with "onay bekliyor" means activation succeeded but tenant awaits approval
+      if (statusCode === 403 && detail && detail.includes("onayı bekliyor")) {
+        setSuccess(detail);
+      } else {
+        setError(detail || "Aktivasyon tamamlanamadı");
+      }
     } finally {
       setSubmitting(false);
     }

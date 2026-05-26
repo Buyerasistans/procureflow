@@ -211,6 +211,15 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
             detail="Kullanıcı pasif durumda",
         )
 
+    # Public onboarding kayıtları süper admin onayına kadar giriş yapamaz
+    if user.tenant_id and normalized_system_role(user) != "super_admin":
+        tenant = db.query(Tenant).filter(Tenant.id == user.tenant_id).first()
+        if tenant and str(tenant.onboarding_approval_status or "").lower() == "pending":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Üyeliğiniz henüz onaylanmadı. Süper admin onayından sonra giriş yapabilirsiniz.",
+            )
+
     logger.info("login_ok user_id=%s role=%s", user.id, user.role)
     auth_user = _build_auth_user_payload(db, user)
     access_token = create_access_token(
@@ -344,6 +353,15 @@ def activate_internal_user(
     )
     db.add(db_refresh)
     db.commit()
+
+    # Şifre kaydedildi; ancak tenant süper admin onayı bekliyorsa giriş engeli
+    if user.tenant_id and normalized_system_role(user) != "super_admin":
+        tenant = db.query(Tenant).filter(Tenant.id == user.tenant_id).first()
+        if tenant and str(tenant.onboarding_approval_status or "").lower() == "pending":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Hesabınız aktifleştirildi. Üyeliğiniz süper admin onayı bekliyor — onaylandıktan sonra giriş yapabilirsiniz.",
+            )
 
     return {
         "access_token": access_token,
