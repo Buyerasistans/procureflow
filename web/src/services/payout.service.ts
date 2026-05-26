@@ -1,9 +1,5 @@
 import { http } from "../lib/http";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export interface BankDetailsMasked {
   [key: string]: string | null;
 }
@@ -37,32 +33,26 @@ export interface PayoutStatusUpdatePayload {
   rejection_reason?: string | null;
 }
 
-// ---------------------------------------------------------------------------
-// Error helpers — backend returns detail: {code, message, request_id}
-// ---------------------------------------------------------------------------
+const PAYOUT_ERROR_MESSAGES: Record<string, string> = {
+  INVALID_PAYOUT_TRANSITION: "Bu ödeme durumu geçişi geçersiz. Lütfen sayfayı yenileyip tekrar deneyin.",
+  PAYOUT_NOT_FOUND: "Ödeme talebi bulunamadı.",
+  PAYOUT_REVIEW_FORBIDDEN: "Bu ödeme talebi için işlem yetkiniz bulunmuyor.",
+};
 
-export function extractPayoutError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data
-    ?.detail;
-  if (detail && typeof detail === "object" && "message" in detail) {
-    return String((detail as { message: string }).message);
-  }
-  if (typeof detail === "string") return detail;
-  return (err as { message?: string })?.message ?? "Bir hata oluştu";
-}
+const DEFAULT_PAYOUT_ERROR_MESSAGE = "Ödeme talebi işlemi tamamlanamadı. Lütfen tekrar deneyin.";
 
 export function getPayoutErrorCode(err: unknown): string | null {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data
-    ?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (detail && typeof detail === "object" && "code" in detail) {
     return String((detail as { code: string }).code);
   }
   return null;
 }
 
-// ---------------------------------------------------------------------------
-// API calls
-// ---------------------------------------------------------------------------
+export function extractPayoutError(err: unknown): string {
+  const code = getPayoutErrorCode(err);
+  return code ? PAYOUT_ERROR_MESSAGES[code] ?? DEFAULT_PAYOUT_ERROR_MESSAGE : DEFAULT_PAYOUT_ERROR_MESSAGE;
+}
 
 export async function fetchAdminPayoutRequests(
   page = 1,

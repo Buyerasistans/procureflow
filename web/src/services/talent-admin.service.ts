@@ -40,18 +40,17 @@ export interface PayoutSummary {
 }
 
 // ---------------------------------------------------------------------------
-// Error helpers — backend returns detail: {code, message, request_id}
+// Error helpers - backend returns detail: {code, message, request_id}
 // ---------------------------------------------------------------------------
 
-export function extractTalentAdminError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data
-    ?.detail;
-  if (detail && typeof detail === "object" && "message" in detail) {
-    return String((detail as { message: string }).message);
-  }
-  if (typeof detail === "string") return detail;
-  return (err as { message?: string })?.message ?? "Bir hata oluştu";
-}
+const TALENT_ADMIN_ERROR_MESSAGES: Record<string, string> = {
+  KYC_REVIEW_FORBIDDEN: "KYC inceleme yetkiniz bulunmuyor.",
+  TALENT_PROFILE_NOT_FOUND: "Talent profili bulunamadı.",
+  TALENT_ADMIN_FORBIDDEN: "Talent yönetim paneline erişim yetkiniz yok.",
+};
+
+const DEFAULT_TALENT_ADMIN_ERROR_MESSAGE =
+  "Talent yönetimi işlemi tamamlanamadı. Lütfen tekrar deneyin.";
 
 export function getTalentAdminErrorCode(err: unknown): string | null {
   const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data
@@ -60,6 +59,13 @@ export function getTalentAdminErrorCode(err: unknown): string | null {
     return String((detail as { code: string }).code);
   }
   return null;
+}
+
+export function extractTalentAdminError(err: unknown): string {
+  const code = getTalentAdminErrorCode(err);
+  return code
+    ? TALENT_ADMIN_ERROR_MESSAGES[code] ?? DEFAULT_TALENT_ADMIN_ERROR_MESSAGE
+    : DEFAULT_TALENT_ADMIN_ERROR_MESSAGE;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +97,7 @@ export async function updateTalentKycStatus(
 }
 
 // Payout summary: derive counts from existing paginated endpoint (size=1 per status)
-// Source: GET /admin/payout-requests?status=X&page=1&size=1 → { total }
+// Source: GET /admin/payout-requests?status=X&page=1&size=1 -> { total }
 export async function fetchPayoutSummary(): Promise<PayoutSummary> {
   const STATUSES = ["pending", "approved", "processing", "paid", "rejected"] as const;
   const results = await Promise.all(

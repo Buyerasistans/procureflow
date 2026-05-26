@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import {
   extractPayoutError,
   fetchAdminPayoutRequests,
-  getPayoutErrorCode,
   updatePayoutStatus,
   type PayoutRequest,
   type PaginatedPayoutRequestsOut,
@@ -39,11 +38,6 @@ const STATUS_FILTER_OPTIONS = [
 ];
 
 function friendlyError(err: unknown): string {
-  const code = getPayoutErrorCode(err);
-  if (code === "INVALID_PAYOUT_TRANSITION")
-    return "Bu durum geçişi geçersiz. Lütfen sayfayı yenileyip tekrar deneyin.";
-  if (code === "PAYOUT_NOT_FOUND") return "Ödeme talebi bulunamadı.";
-  if (code === "PAYOUT_REVIEW_FORBIDDEN") return "Bu işlem için yetkiniz bulunmuyor.";
   return extractPayoutError(err);
 }
 
@@ -95,7 +89,7 @@ function getActions(status: string): ActionButton[] {
 }
 
 // ---------------------------------------------------------------------------
-// RejectInlineForm — shown inline when "Reddet" is clicked
+// RejectInlineForm - shown inline when "Reddet" is clicked
 // ---------------------------------------------------------------------------
 
 interface RejectFormProps {
@@ -107,9 +101,14 @@ interface RejectFormProps {
 
 function RejectInlineForm({ payoutId, onConfirm, onCancel, busy }: RejectFormProps) {
   const [reason, setReason] = useState("");
+  const reasonInputId = useId();
   return (
     <div className="payout-reject-form">
+      <label className="payout-admin__sr-only" htmlFor={reasonInputId}>
+        Red gerekçesi
+      </label>
       <input
+        id={reasonInputId}
         className="payout-reject-form__input"
         placeholder="Red gerekçesi (isteğe bağlı)"
         value={reason}
@@ -120,10 +119,16 @@ function RejectInlineForm({ payoutId, onConfirm, onCancel, busy }: RejectFormPro
         className="payout-reject-form__submit"
         onClick={() => onConfirm(payoutId, reason)}
         disabled={busy}
+        aria-label={`Ödeme talebi #${payoutId} için reddetmeyi onayla`}
       >
         Reddet
       </button>
-      <button className="payout-reject-form__cancel" onClick={onCancel} disabled={busy}>
+      <button
+        className="payout-reject-form__cancel"
+        onClick={onCancel}
+        disabled={busy}
+        aria-label={`Ödeme talebi #${payoutId} red formunu kapat`}
+      >
         Vazgeç
       </button>
     </div>
@@ -182,6 +187,7 @@ function PayoutRow({
                     className={`payout-btn ${act.className}`}
                     disabled={busy || rejectTarget === payout.id}
                     onClick={() => onStartReject(payout.id)}
+                    aria-label={`Ödeme talebi #${payout.id}: ${act.label}`}
                   >
                     {act.label}
                   </button>
@@ -191,6 +197,7 @@ function PayoutRow({
                     className={`payout-btn ${act.className}`}
                     disabled={busy}
                     onClick={() => onAction(payout.id, act.targetStatus)}
+                    aria-label={`Ödeme talebi #${payout.id}: ${act.label}`}
                   >
                     {busy ? "…" : act.label}
                   </button>
@@ -207,7 +214,7 @@ function PayoutRow({
             )}
           </div>
         ) : (
-          <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>
+          <span className="payout-admin__muted">—</span>
         )}
       </td>
     </tr>
@@ -227,6 +234,7 @@ export default function PayoutAdminPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [actionBusy, setActionBusy] = useState<number | null>(null);
   const [rejectTarget, setRejectTarget] = useState<number | null>(null);
+  const statusFilterId = useId();
 
   const PAGE_SIZE = 20;
 
@@ -274,8 +282,11 @@ export default function PayoutAdminPage() {
       <h1 className="payout-admin__title">Ödeme Talepleri</h1>
 
       <div className="payout-admin__filters">
-        <span className="payout-admin__filter-label">Durum:</span>
+        <label className="payout-admin__filter-label" htmlFor={statusFilterId}>
+          Durum:
+        </label>
         <select
+          id={statusFilterId}
           className="payout-admin__filter-select"
           value={statusFilter}
           onChange={(e) => {
@@ -291,25 +302,36 @@ export default function PayoutAdminPage() {
         </select>
       </div>
 
-      {error && <div className="payout-admin__error">{error}</div>}
-      {actionError && <div className="payout-admin__error">{actionError}</div>}
+      {error && (
+        <div className="payout-admin__error" role="alert">
+          {error}
+        </div>
+      )}
+      {actionError && (
+        <div className="payout-admin__error" role="alert">
+          {actionError}
+        </div>
+      )}
 
       {loading ? (
-        <div className="payout-admin__loading">Yükleniyor…</div>
+        <div className="payout-admin__loading" role="status" aria-live="polite">
+          Yükleniyor…
+        </div>
       ) : !data || data.items.length === 0 ? (
         <div className="payout-admin__empty">Ödeme talebi bulunamadı.</div>
       ) : (
         <>
           <table className="payout-table">
+            <caption className="payout-admin__sr-only">Ödeme talepleri listesi</caption>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Tutar</th>
-                <th>Yöntem</th>
-                <th>Durum</th>
-                <th>Oluşturuldu</th>
-                <th>Ödeme Tarihi</th>
-                <th>İşlem</th>
+                <th scope="col">ID</th>
+                <th scope="col">Tutar</th>
+                <th scope="col">Yöntem</th>
+                <th scope="col">Durum</th>
+                <th scope="col">Oluşturuldu</th>
+                <th scope="col">Ödeme Tarihi</th>
+                <th scope="col">İşlem</th>
               </tr>
             </thead>
             <tbody>
@@ -333,6 +355,7 @@ export default function PayoutAdminPage() {
                 className="payout-pagination__btn"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
+                aria-label="Önceki ödeme talepleri sayfası"
               >
                 ← Önceki
               </button>
@@ -343,6 +366,7 @@ export default function PayoutAdminPage() {
                 className="payout-pagination__btn"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
+                aria-label="Sonraki ödeme talepleri sayfası"
               >
                 Sonraki →
               </button>

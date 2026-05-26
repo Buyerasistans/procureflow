@@ -67,8 +67,12 @@ function LegacyPublicRedirect({ to }: { to: string }) {
 
 function RouteFallback() {
   return (
-    <div style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#475569", fontSize: 14 }}>
-      Sayfa yukleniyor...
+    <div
+      style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#475569", fontSize: 14 }}
+      role="status"
+      aria-live="polite"
+    >
+      Sayfa yükleniyor...
     </div>
   );
 }

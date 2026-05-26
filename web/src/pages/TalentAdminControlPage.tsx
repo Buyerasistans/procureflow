@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import {
   extractTalentAdminError,
   fetchAdminTalentProfiles,
   fetchPayoutSummary,
-  getTalentAdminErrorCode,
   updateTalentKycStatus,
   type AdminTalentProfile,
   type PaginatedAdminTalentProfiles,
@@ -43,10 +42,6 @@ const PAYOUT_STATUS_META = [
 ];
 
 function friendlyKycError(err: unknown): string {
-  const code = getTalentAdminErrorCode(err);
-  if (code === "KYC_REVIEW_FORBIDDEN") return "KYC inceleme yetkiniz bulunmuyor.";
-  if (code === "TALENT_PROFILE_NOT_FOUND") return "Talent profili bulunamadı.";
-  if (code === "TALENT_ADMIN_FORBIDDEN") return "Talent yönetim paneline erişim yetkiniz yok.";
   return extractTalentAdminError(err);
 }
 
@@ -65,11 +60,17 @@ function PayoutOverviewSection() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="talent-admin__loading">Yükleniyor…</div>;
+  if (loading) {
+    return (
+      <div className="talent-admin__loading" role="status" aria-live="polite">
+        Yükleniyor…
+      </div>
+    );
+  }
   if (!summary) return null;
 
   return (
-    <div className="payout-overview">
+    <div className="payout-overview" aria-label="Ödeme talepleri özeti">
       {PAYOUT_STATUS_META.map(({ key, label, cls }) => (
         <div key={key} className={`payout-box ${cls}`}>
           <div className="payout-box__count">{summary[key]}</div>
@@ -104,12 +105,12 @@ function TalentProfileRow({ profile, busy, onKyc }: TalentProfileRowProps) {
       <td>{profile.reputation_score}</td>
       <td>{profile.is_active ? "Aktif" : "Pasif"}</td>
       <td>
-        {/* KYC action: approve/reject — wired to PATCH /talent/admin/profiles/{id}/kyc */}
         <div className="kyc-actions">
           <button
             className="kyc-btn kyc-btn--approve"
             disabled={busy || currentKyc === "approved"}
             onClick={() => onKyc(profile.id, "approved")}
+            aria-label={`Talent profili #${profile.id} KYC onayla`}
             title="KYC Onayla"
           >
             Onayla
@@ -118,6 +119,7 @@ function TalentProfileRow({ profile, busy, onKyc }: TalentProfileRowProps) {
             className="kyc-btn kyc-btn--reject"
             disabled={busy || currentKyc === "rejected"}
             onClick={() => onKyc(profile.id, "rejected")}
+            aria-label={`Talent profili #${profile.id} KYC reddet`}
             title="KYC Reddet"
           >
             Reddet
@@ -139,6 +141,7 @@ function TalentProfilesSection() {
   const [kycFilter, setKycFilter] = useState("");
   const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const kycFilterId = useId();
   const PAGE_SIZE = 20;
 
   const load = useCallback(async () => {
@@ -179,8 +182,11 @@ function TalentProfilesSection() {
   return (
     <>
       <div className="talent-admin__filters">
-        <span className="talent-admin__filter-label">KYC Durumu:</span>
+        <label className="talent-admin__filter-label" htmlFor={kycFilterId}>
+          KYC Durumu:
+        </label>
         <select
+          id={kycFilterId}
           className="talent-admin__filter-select"
           value={kycFilter}
           onChange={(e) => {
@@ -196,23 +202,30 @@ function TalentProfilesSection() {
         </select>
       </div>
 
-      {error && <div className="talent-admin__error">{error}</div>}
+      {error && (
+        <div className="talent-admin__error" role="alert">
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <div className="talent-admin__loading">Yükleniyor…</div>
+        <div className="talent-admin__loading" role="status" aria-live="polite">
+          Yükleniyor…
+        </div>
       ) : !data || data.items.length === 0 ? (
         <div className="talent-admin__empty">Talent profili bulunamadı.</div>
       ) : (
         <>
           <table className="talent-table">
+            <caption className="talent-admin__sr-only">Talent profilleri listesi</caption>
             <thead>
               <tr>
-                <th>Profil ID</th>
-                <th>Kullanıcı</th>
-                <th>KYC</th>
-                <th>İtibar</th>
-                <th>Durum</th>
-                <th>KYC İşlem</th>
+                <th scope="col">Profil ID</th>
+                <th scope="col">Kullanıcı</th>
+                <th scope="col">KYC</th>
+                <th scope="col">İtibar</th>
+                <th scope="col">Durum</th>
+                <th scope="col">KYC İşlem</th>
               </tr>
             </thead>
             <tbody>
@@ -233,6 +246,7 @@ function TalentProfilesSection() {
                 className="talent-admin__pagination-btn"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
+                aria-label="Önceki talent profilleri sayfası"
               >
                 ← Önceki
               </button>
@@ -243,6 +257,7 @@ function TalentProfilesSection() {
                 className="talent-admin__pagination-btn"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
+                aria-label="Sonraki talent profilleri sayfası"
               >
                 Sonraki →
               </button>
@@ -263,15 +278,19 @@ export default function TalentAdminControlPage() {
     <div className="talent-admin">
       <h1 className="talent-admin__title">Talent Ekosistemi Kontrolü</h1>
 
-      <div className="talent-admin__section">
-        <h2 className="talent-admin__section-title">Talent Profilleri</h2>
+      <section className="talent-admin__section" aria-labelledby="talent-profiles-title">
+        <h2 id="talent-profiles-title" className="talent-admin__section-title">
+          Talent Profilleri
+        </h2>
         <TalentProfilesSection />
-      </div>
+      </section>
 
-      <div className="talent-admin__section">
-        <h2 className="talent-admin__section-title">Ödeme Talepleri Özeti</h2>
+      <section className="talent-admin__section" aria-labelledby="payout-summary-title">
+        <h2 id="payout-summary-title" className="talent-admin__section-title">
+          Ödeme Talepleri Özeti
+        </h2>
         <PayoutOverviewSection />
-      </div>
+      </section>
     </div>
   );
 }
