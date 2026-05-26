@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 
@@ -97,6 +98,33 @@ def test_ai_lab_converter_health_returns_safe_diagnostics(
         "converter_found": False,
         "resolver_source": "unavailable",
         "executable_name": None,
+        "request_id": payload["request_id"],
+    }
+    assert payload["request_id"]
+
+
+def test_ai_lab_converter_health_detects_default_install_candidate(
+    client, monkeypatch, admin_auth_headers
+):
+    candidate = Path(__file__).resolve()
+    monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
+    monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
+    monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "api.services.cad_convert._iter_default_converter_candidates",
+        lambda: [candidate],
+    )
+
+    response = client.get(
+        "/api/v1/ai-lab/health/converter", headers=admin_auth_headers
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload == {
+        "converter_found": True,
+        "resolver_source": "default_install:ODA",
+        "executable_name": candidate.name,
         "request_id": payload["request_id"],
     }
     assert payload["request_id"]

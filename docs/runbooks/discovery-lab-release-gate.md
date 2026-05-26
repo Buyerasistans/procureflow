@@ -50,6 +50,10 @@ Response fields:
 
 The endpoint intentionally avoids returning absolute paths or raw converter exceptions. Operational details are logged with `request_id`, `error_code`, and `reason`.
 
+For Ubuntu/Plesk live setup, install/configure the converter with:
+
+- [Discovery Lab Ubuntu/Plesk DWG Converter Runbook](discovery-lab-ubuntu-plesk-converter.md)
+
 ## Release acceptance
 
 - Backend Discovery Lab tests pass with `PYTEST_NO_DROP=1`.

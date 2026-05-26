@@ -12,6 +12,7 @@ class CADConversionError(RuntimeError):
 
 def _iter_default_converter_candidates() -> list[Path]:
     candidates: list[Path] = []
+
     for root_env in ["ProgramFiles", "ProgramFiles(x86)"]:
         root = os.getenv(root_env, "").strip()
         if not root:
@@ -20,7 +21,23 @@ def _iter_default_converter_candidates() -> list[Path]:
         if not oda_root.exists():
             continue
         candidates.extend(oda_root.glob("ODAFileConverter*/ODAFileConverter.exe"))
-    return sorted(candidates, reverse=True)
+
+    for fixed_path in [
+        "/usr/local/bin/ODAFileConverter",
+        "/usr/bin/ODAFileConverter",
+        "/opt/ODA/ODAFileConverter/ODAFileConverter",
+        "/opt/oda-file-converter/ODAFileConverter",
+    ]:
+        candidates.append(Path(fixed_path))
+
+    for oda_root in [Path("/opt/ODA"), Path("/opt/oda-file-converter")]:
+        if not oda_root.exists():
+            continue
+        candidates.extend(oda_root.glob("ODAFileConverter*/ODAFileConverter"))
+        candidates.extend(oda_root.glob("*/ODAFileConverter"))
+
+    unique_candidates = {str(candidate): candidate for candidate in candidates}
+    return sorted(unique_candidates.values(), key=lambda item: str(item), reverse=True)
 
 
 def _resolve_dwg_converter_executable() -> Path:
@@ -30,6 +47,7 @@ def _resolve_dwg_converter_executable() -> Path:
     2) ENV: ODA_CONVERTER_PATH (geriye dönük uyumluluk)
     3) PATH: ODAFileConverter
     4) PATH: TeighaFileConverter
+    5) Standart Windows/Linux kurulum yolları
 
     Eğer hostingde ODA/Teigha kurulumu yoksa, buraya başka bir DWG->DXF
     destekli dönüştürücü yolu da verebilirsiniz.
