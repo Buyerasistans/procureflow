@@ -2,7 +2,7 @@
 
 ## Session Meta
 - date: 2026-05-26
-- branch: feat/final-stabilization
+- branch: pr/strict-gate-payment-clean-v2
 - stream: procurement-talent-network-and-jobs
 - mode: multi-phase build
 
@@ -68,7 +68,7 @@ Create `api/routers/talent.py` — talent profile CRUD endpoints (GET /me, POST 
 | PHASE 7 | 🔲 TODO | UAT + docs + go-live checklist |
 
 ## Last Successful Commit SHA
-(pending — commit not yet created for this phase)
+4dd1702 (PHASE 0: 8 talent tables + RBAC helpers)
 
 ## Resume Command
 ```
