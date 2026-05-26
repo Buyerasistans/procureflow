@@ -180,16 +180,6 @@
 .osTab__card--rejected { border-left: 4px solid #ef4444; }
 .osTab__card--needs_info { border-left: 4px solid #3b82f6; }
 
-.osTab__cardHead {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid #f1f5f9;
-  flex-wrap: wrap;
-}
-
 .osTab__cardTitleGroup {
   display: flex;
   flex-direction: column;
@@ -240,12 +230,61 @@
 .osTab__badge--rejected  { background: #fee2e2; color: #991b1b; }
 .osTab__badge--needs_info { background: #dbeafe; color: #1e40af; }
 
+/* Collapsible toggle button (acts as card header) */
+.osTab__cardToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+  cursor: pointer;
+}
+
+.osTab__cardToggle:hover {
+  background: #f8fafc;
+}
+
+.osTab__cardHeadRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.osTab__chevron {
+  font-size: 16px;
+  color: #94a3b8;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.osTab__chevron--open {
+  transform: rotate(180deg);
+}
+
 /* Card body */
 .osTab__cardBody {
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Resend message */
+.osTab__resendMsg {
+  font-size: 12px;
+  color: #0f766e;
+  padding: 6px 10px;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
 }
 
 /* Status row */

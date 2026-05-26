@@ -1,5 +1,7 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
 import type { AdminSupplierListItem, OnboardingStudioSummary } from "../../services/admin.service";
+import { resendTenantUserInvitation } from "../../services/admin.service";
 import type { AdminFocusBannerTone, AdminTabKey } from "./adminPageMeta";
 import "./OnboardingStudioTab.css";
 
@@ -53,6 +55,52 @@ export function OnboardingStudioTab({
 }: OnboardingStudioTabProps) {
   const s = onboardingStudioSummary;
 
+  // Approved/fully-onboarded cards start collapsed
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(() => {
+    const initialExpanded = new Set<number>();
+    s.recent_memberships.forEach((tenant) => {
+      const approvalStatus = String(tenant.onboarding_approval_status || "").toLowerCase();
+      if (approvalStatus !== "approved") {
+        initialExpanded.add(tenant.id);
+      }
+    });
+    return initialExpanded;
+  });
+
+  const [resendingTenantId, setResendingTenantId] = useState<number | null>(null);
+  const [resendMessages, setResendMessages] = useState<Record<number, string>>({});
+
+  function toggleCard(tenantId: number) {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(tenantId)) {
+        next.delete(tenantId);
+      } else {
+        next.add(tenantId);
+      }
+      return next;
+    });
+  }
+
+  async function handleResendActivation(tenantId: number, ownerUserId: number | null | undefined) {
+    if (!ownerUserId) {
+      setResendMessages((prev) => ({ ...prev, [tenantId]: "Owner kullanıcı bulunamadı." }));
+      return;
+    }
+    try {
+      setResendingTenantId(tenantId);
+      const result = await resendTenantUserInvitation(ownerUserId);
+      setResendMessages((prev) => ({
+        ...prev,
+        [tenantId]: result.invitation_email_sent ? "Aktivasyon maili gönderildi." : "Mail gönderilemedi, sistem logunu kontrol edin.",
+      }));
+    } catch {
+      setResendMessages((prev) => ({ ...prev, [tenantId]: "Mail gönderme başarısız." }));
+    } finally {
+      setResendingTenantId(null);
+    }
+  }
+
   return (
     <section className="osTab">
 
@@ -63,7 +111,7 @@ export function OnboardingStudioTab({
           <h2 className="osTab__title">Yeni Üyelik Onay Masası</h2>
           <p className="osTab__desc">
             Public kayıt formundan gelen stratejik partner ve tedarikçi başvuruları burada onaylanır.
-            Ücretli planlarda ödeme doğrulanmadan, ücretsiz planlarda süper admin onayı verilmeden aktivasyon tamamlanmaz.
+            Ücretli planlarda ödeme doğrulanmadan, tüm planlarda süper admin onayı verilmeden aktivasyon tamamlanmaz.
           </p>
         </div>
       </div>
@@ -107,6 +155,7 @@ export function OnboardingStudioTab({
           <div className="osTab__panelTitle">Üyelik Başvuruları</div>
           <div className="osTab__panelDesc">
             Ücretli planlarda EFT dahil tüm ödemeler doğrulanmadan ve süper admin onayı verilmeden aktivasyon tamamlanmaz.
+            Onaylanmış firmalar varsayılan olarak kapalı gelir — başlığa tıklayarak açabilirsiniz.
           </div>
         </div>
 
@@ -128,7 +177,9 @@ export function OnboardingStudioTab({
           <div className="osTab__queue">
             {s.recent_memberships.map((tenant) => {
               const paymentStatus = String(tenant.onboarding_payment_status || "not_required").toLowerCase();
-              const approvalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
+              const rawApprovalStatus = String(tenant.onboarding_approval_status || "not_required").toLowerCase();
+              // "not_required" in onboarding queue = legacy tenant without approval status set → treat as pending
+              const approvalStatus = rawApprovalStatus === "not_required" ? "pending" : rawApprovalStatus;
               const categoryTags = Array.isArray(tenant.category_tags) ? tenant.category_tags : [];
               const targetCategoryTags = Array.isArray(tenant.target_category_tags) ? tenant.target_category_tags : [];
               const categoryRequests = Array.isArray(tenant.category_requests) ? tenant.category_requests : [];
@@ -138,16 +189,18 @@ export function OnboardingStudioTab({
               const normalizedCategory = String(tenant.category || "").trim();
               const matchingPool = categoryTags.length > 0 ? categoryTags : normalizedCategory ? [normalizedCategory] : [];
               const matchingSupplierCount = matchingPool.length > 0
-                ? tenantGovernanceSuppliers.filter((s) => matchingPool.includes(String(s.category || "").trim())).length
+                ? tenantGovernanceSuppliers.filter((sup) => matchingPool.includes(String(sup.category || "").trim())).length
                 : 0;
 
               const canVerifyPayment = paymentStatus === "submitted" || paymentStatus === "processing";
               const canApprove = ["pending", "needs_info"].includes(approvalStatus)
                 && ["verified", "succeeded", "not_required"].includes(paymentStatus)
                 && !hasPendingCategoryReview;
-              const canRequestInfo = approvalStatus === "pending" || approvalStatus === "needs_info";
-              const canReject = approvalStatus === "pending" || approvalStatus === "rejected";
+              const canRequestInfo = ["pending", "needs_info"].includes(approvalStatus);
+              const canReject = ["pending", "needs_info", "rejected"].includes(approvalStatus);
+              const canResend = !tenant.initial_admin_invitation_accepted && !!tenant.owner_user_id;
               const isBusy = onboardingMembershipActionTenantId === tenant.id;
+              const isExpanded = expandedCards.has(tenant.id);
 
               const decisionGuidance = canVerifyPayment
                 ? "Dekont veya hareket kanıtı geldiği için önce ödeme doğrulama yapılmalı."
@@ -162,13 +215,30 @@ export function OnboardingStudioTab({
                         : "Kayıt ilk inceleme aşamasında. Kategori, plan, ödeme ve aktivasyon notları birlikte değerlendirilerek karar verilmeli.";
 
               const decisionTone = canApprove ? "green" : canVerifyPayment ? "orange" : approvalStatus === "needs_info" ? "blue" : approvalStatus === "rejected" ? "red" : "slate";
-              const cardTone = approvalStatus === "approved" ? "approved" : approvalStatus === "rejected" ? "rejected" : approvalStatus === "needs_info" ? "needs_info" : "pending";
+
+              // Card tone based on REAL approval status (not normalized)
+              const cardTone = rawApprovalStatus === "approved" ? "approved"
+                : rawApprovalStatus === "rejected" ? "rejected"
+                : rawApprovalStatus === "needs_info" ? "needs_info"
+                : "pending";
+
+              // Badge shows REAL status
+              const badgeLabel = rawApprovalStatus === "approved" ? "Onaylandı"
+                : rawApprovalStatus === "rejected" ? "Reddedildi"
+                : rawApprovalStatus === "needs_info" ? "Bilgi Bekliyor"
+                : rawApprovalStatus === "pending" ? "Onay Bekliyor"
+                : formatOnboardingApprovalStatus(tenant.onboarding_approval_status);
 
               return (
                 <div key={tenant.id} className={`osTab__card osTab__card--${cardTone}`}>
 
-                  {/* Card head */}
-                  <div className="osTab__cardHead">
+                  {/* ── Collapsible header ────────────────────── */}
+                  <button
+                    type="button"
+                    className="osTab__cardToggle"
+                    onClick={() => toggleCard(tenant.id)}
+                    aria-expanded={isExpanded ? "true" : "false"}
+                  >
                     <div className="osTab__cardTitleGroup">
                       <div className="osTab__cardName">{tenant.brand_name || tenant.legal_name}</div>
                       <div className="osTab__cardMeta">
@@ -179,176 +249,194 @@ export function OnboardingStudioTab({
                         <span>{String(tenant.subscription_plan_code || "").startsWith("supplier") ? "Tedarikçi" : "Stratejik Partner"}</span>
                       </div>
                     </div>
-                    <span className={`osTab__badge osTab__badge--${cardTone}`}>
-                      {formatOnboardingApprovalStatus(tenant.onboarding_approval_status)}
-                    </span>
-                  </div>
-
-                  {/* Card body */}
-                  <div className="osTab__cardBody">
-
-                    {/* Status cells */}
-                    <div className="osTab__statusRow">
-                      <div className="osTab__statusCell">
-                        <div className="osTab__cellLabel">Ödeme Durumu</div>
-                        <div className="osTab__cellValue">{formatOnboardingPaymentStatus(tenant.onboarding_payment_status)}</div>
-                        <div className="osTab__cellNote">{tenant.onboarding_payment_method || "yöntem yok"}</div>
-                      </div>
-                      <div className="osTab__statusCell">
-                        <div className="osTab__cellLabel">Kurulum Durumu</div>
-                        <div className="osTab__cellValue">{formatPartnerOnboardingStatus(tenant.onboarding_status)}</div>
-                        <div className="osTab__cellNote">{tenant.onboarding_approved_by_name || "karar bekleniyor"}</div>
-                      </div>
-                      <div className="osTab__statusCell">
-                        <div className="osTab__cellLabel">Aktivasyon</div>
-                        <div className="osTab__cellValue">{formatActivationDeliveryStatus(tenant.activation_delivery_status)}</div>
-                        <div className="osTab__cellNote">
-                          {tenant.initial_admin_invitation_accepted ? "İlk admin aktive edildi" : "Aktivasyon bekleniyor"}
-                        </div>
-                      </div>
-                      <div className="osTab__statusCell">
-                        <div className="osTab__cellLabel">Kategori Eşleşme</div>
-                        <div className="osTab__cellValue">
-                          {matchingSupplierCount > 0 ? `${matchingSupplierCount} supplier` : "Eşleşme yok"}
-                        </div>
-                        <div className="osTab__cellNote">{normalizedCategory || "Kategori eksik"}</div>
-                      </div>
+                    <div className="osTab__cardHeadRight">
+                      <span className={`osTab__badge osTab__badge--${cardTone}`}>{badgeLabel}</span>
+                      <span className={`osTab__chevron ${isExpanded ? "osTab__chevron--open" : ""}`}>▾</span>
                     </div>
+                  </button>
 
-                    {/* Category tags */}
-                    <div className="osTab__tagRow">
-                      {(categoryTags.length > 0 ? categoryTags : [normalizedCategory || "Kategori eksik"]).map((item) => (
-                        <span key={`${tenant.id}-${item}`} className={`osTab__tag osTab__tag--${item !== "Kategori eksik" ? "teal" : "slate"}`}>
-                          {item}
+                  {/* ── Collapsible body ──────────────────────── */}
+                  {isExpanded ? (
+                    <div className="osTab__cardBody">
+
+                      {/* Status cells */}
+                      <div className="osTab__statusRow">
+                        <div className="osTab__statusCell">
+                          <div className="osTab__cellLabel">Ödeme Durumu</div>
+                          <div className="osTab__cellValue">{formatOnboardingPaymentStatus(tenant.onboarding_payment_status)}</div>
+                          <div className="osTab__cellNote">{tenant.onboarding_payment_method || "yöntem yok"}</div>
+                        </div>
+                        <div className="osTab__statusCell">
+                          <div className="osTab__cellLabel">Kurulum Durumu</div>
+                          <div className="osTab__cellValue">{formatPartnerOnboardingStatus(tenant.onboarding_status)}</div>
+                          <div className="osTab__cellNote">{tenant.onboarding_approved_by_name || "karar bekleniyor"}</div>
+                        </div>
+                        <div className="osTab__statusCell">
+                          <div className="osTab__cellLabel">Aktivasyon</div>
+                          <div className="osTab__cellValue">{formatActivationDeliveryStatus(tenant.activation_delivery_status)}</div>
+                          <div className="osTab__cellNote">
+                            {tenant.initial_admin_invitation_accepted ? "İlk admin aktive edildi" : "Mail bekleniyor"}
+                          </div>
+                        </div>
+                        <div className="osTab__statusCell">
+                          <div className="osTab__cellLabel">Kategori Eşleşme</div>
+                          <div className="osTab__cellValue">
+                            {matchingSupplierCount > 0 ? `${matchingSupplierCount} supplier` : "Eşleşme yok"}
+                          </div>
+                          <div className="osTab__cellNote">{normalizedCategory || "Kategori eksik"}</div>
+                        </div>
+                      </div>
+
+                      {/* Category tags */}
+                      <div className="osTab__tagRow">
+                        {(categoryTags.length > 0 ? categoryTags : [normalizedCategory || "Kategori eksik"]).map((item) => (
+                          <span key={`${tenant.id}-${item}`} className={`osTab__tag osTab__tag--${item !== "Kategori eksik" ? "teal" : "slate"}`}>
+                            {item}
+                          </span>
+                        ))}
+                        {targetCategoryTags.map((item) => (
+                          <span key={`${tenant.id}-target-${item}`} className="osTab__tag osTab__tag--indigo">
+                            hedef: {item}
+                          </span>
+                        ))}
+                        <span className={`osTab__tag osTab__tag--${matchingSupplierCount > 0 ? "green" : "orange"}`}>
+                          {matchingSupplierCount > 0 ? `${matchingSupplierCount} supplier eşleşiyor` : "Eşleşen supplier yok"}
                         </span>
-                      ))}
-                      {targetCategoryTags.map((item) => (
-                        <span key={`${tenant.id}-target-${item}`} className="osTab__tag osTab__tag--indigo">
-                          hedef: {item}
-                        </span>
-                      ))}
-                      <span className={`osTab__tag osTab__tag--${matchingSupplierCount > 0 ? "green" : "orange"}`}>
-                        {matchingSupplierCount > 0 ? `${matchingSupplierCount} supplier eşleşiyor` : "Eşleşen supplier yok"}
-                      </span>
-                    </div>
-
-                    {/* Category requests */}
-                    {categoryRequests.length > 0 ? (
-                      <div className="osTab__catRequestList">
-                        <div className="osTab__notesLabel">Kategori Talep Onayı</div>
-                        {categoryRequests.map((item) => {
-                          const reqStatus = String(item.status || "pending_support").toLowerCase();
-                          const reqTone = reqStatus === "final_approved" ? "green" : reqStatus === "rejected" ? "red" : reqStatus === "support_approved" ? "blue" : "orange";
-                          return (
-                            <div key={`${tenant.id}-req-${String(item.name)}-${String(item.applies_to)}`} className="osTab__catRequest">
-                              <div className="osTab__catRequestHead">
-                                <span className="osTab__catRequestName">{String(item.name || "")}</span>
-                                <span className={`osTab__tag osTab__tag--${reqTone}`}>{formatCategoryRequestStatus(item.status)}</span>
-                              </div>
-                              <div className="osTab__catRequestNote">
-                                {item.applies_to === "target" ? "Hedef kategori talebi" : "Faaliyet kategorisi talebi"}
-                                {item.note ? ` • ${String(item.note)}` : ""}
-                              </div>
-                              <div className="osTab__actions">
-                                {reqStatus === "pending_support" ? (
-                                  <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "support_approved")} className="osTab__btn osTab__btn--orange osTab__btn--sm">
-                                    Destek Onayı
-                                  </button>
-                                ) : null}
-                                {["pending_support", "support_approved"].includes(reqStatus) ? (
-                                  <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "final_approved")} className="osTab__btn osTab__btn--blue osTab__btn--sm">
-                                    Final Onayla
-                                  </button>
-                                ) : null}
-                                {!["final_approved", "rejected"].includes(reqStatus) ? (
-                                  <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "rejected")} className="osTab__btn osTab__btn--red osTab__btn--sm">
-                                    Reddet
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-                          );
-                        })}
                       </div>
-                    ) : null}
 
-                    {/* Decision guide */}
-                    <div className={`osTab__guide osTab__guide--${decisionTone}`}>
-                      <strong>Karar Rehberi</strong>
-                      {decisionGuidance}
-                    </div>
-
-                    {/* Operation notes */}
-                    {tenant.onboarding_payment_receipt_url || tenant.onboarding_payment_note || tenant.onboarding_activation_notes ? (
-                      <div className="osTab__notes">
-                        <div className="osTab__notesLabel">Operasyon Notları</div>
-                        {tenant.onboarding_payment_receipt_url ? (
-                          <a href={tenant.onboarding_payment_receipt_url} target="_blank" rel="noreferrer" className="osTab__link">
-                            {tenant.onboarding_payment_receipt_name || "Dekontu Aç"}
-                          </a>
-                        ) : null}
-                        {tenant.onboarding_payment_note ? (
-                          <div className="osTab__noteText">{tenant.onboarding_payment_note}</div>
-                        ) : null}
-                        {tenant.onboarding_activation_notes ? (
-                          <div className="osTab__noteText osTab__noteText--brown">{tenant.onboarding_activation_notes}</div>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {/* Decision timeline */}
-                    {tenant.onboarding_decision_timeline && tenant.onboarding_decision_timeline.length > 0 ? (
-                      <div>
-                        <div className="osTab__notesLabel osTab__subLabel">Karar Zaman Çizelgesi</div>
-                        <div className="osTab__timeline">
-                          {tenant.onboarding_decision_timeline.slice().reverse().map((item, index) => (
-                            <div key={`${String(item.at)}-${index}`} className="osTab__timelineItem">
-                              <div className="osTab__timelineTitle">{String(item.actor_name || "")} · {String(item.action || "")}</div>
-                              <div className="osTab__timelineMeta">{new Date(String(item.at)).toLocaleString("tr-TR")} · {String(item.actor_type || "")}</div>
-                              {item.note ? <div className="osTab__timelineNote">{String(item.note)}</div> : null}
-                            </div>
-                          ))}
+                      {/* Category requests */}
+                      {categoryRequests.length > 0 ? (
+                        <div className="osTab__catRequestList">
+                          <div className="osTab__notesLabel">Kategori Talep Onayı</div>
+                          {categoryRequests.map((item) => {
+                            const reqStatus = String(item.status || "pending_support").toLowerCase();
+                            const reqTone = reqStatus === "final_approved" ? "green" : reqStatus === "rejected" ? "red" : reqStatus === "support_approved" ? "blue" : "orange";
+                            return (
+                              <div key={`${tenant.id}-req-${String(item.name)}-${String(item.applies_to)}`} className="osTab__catRequest">
+                                <div className="osTab__catRequestHead">
+                                  <span className="osTab__catRequestName">{String(item.name || "")}</span>
+                                  <span className={`osTab__tag osTab__tag--${reqTone}`}>{formatCategoryRequestStatus(item.status)}</span>
+                                </div>
+                                <div className="osTab__catRequestNote">
+                                  {item.applies_to === "target" ? "Hedef kategori talebi" : "Faaliyet kategorisi talebi"}
+                                  {item.note ? ` • ${String(item.note)}` : ""}
+                                </div>
+                                <div className="osTab__actions">
+                                  {reqStatus === "pending_support" ? (
+                                    <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "support_approved")} className="osTab__btn osTab__btn--orange osTab__btn--sm">
+                                      Destek Onayı
+                                    </button>
+                                  ) : null}
+                                  {["pending_support", "support_approved"].includes(reqStatus) ? (
+                                    <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "final_approved")} className="osTab__btn osTab__btn--blue osTab__btn--sm">
+                                      Final Onayla
+                                    </button>
+                                  ) : null}
+                                  {!["final_approved", "rejected"].includes(reqStatus) ? (
+                                    <button type="button" disabled={isBusy} onClick={() => void handleReviewTenantCategory(tenant.id, String(item.name || ""), "rejected")} className="osTab__btn osTab__btn--red osTab__btn--sm">
+                                      Reddet
+                                    </button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
+                      ) : null}
+
+                      {/* Decision guide */}
+                      <div className={`osTab__guide osTab__guide--${decisionTone}`}>
+                        <strong>Karar Rehberi</strong>
+                        {decisionGuidance}
                       </div>
-                    ) : null}
 
-                    {/* Primary action buttons */}
-                    <div className="osTab__actions">
-                      <button
-                        type="button"
-                        disabled={!canVerifyPayment || isBusy}
-                        onClick={() => void handleVerifyOnboardingPayment(tenant.id)}
-                        className="osTab__btn osTab__btn--orange"
-                      >
-                        Ödemeyi Doğrula
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!canApprove || isBusy}
-                        onClick={() => void handleApproveOnboardingMembership(tenant.id)}
-                        className="osTab__btn osTab__btn--primary"
-                      >
-                        Üyelik Aktivasyonunu Onayla
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!canRequestInfo || isBusy}
-                        onClick={() => void handleRequestOnboardingInfo(tenant.id)}
-                        className="osTab__btn osTab__btn--blue"
-                      >
-                        Ek Bilgi / Dekont İste
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!canReject || isBusy}
-                        onClick={() => void handleRejectOnboardingMembership(tenant.id)}
-                        className="osTab__btn osTab__btn--red"
-                      >
-                        Reddet
-                      </button>
+                      {/* Operation notes */}
+                      {tenant.onboarding_payment_receipt_url || tenant.onboarding_payment_note || tenant.onboarding_activation_notes ? (
+                        <div className="osTab__notes">
+                          <div className="osTab__notesLabel">Operasyon Notları</div>
+                          {tenant.onboarding_payment_receipt_url ? (
+                            <a href={tenant.onboarding_payment_receipt_url} target="_blank" rel="noreferrer" className="osTab__link">
+                              {tenant.onboarding_payment_receipt_name || "Dekontu Aç"}
+                            </a>
+                          ) : null}
+                          {tenant.onboarding_payment_note ? (
+                            <div className="osTab__noteText">{tenant.onboarding_payment_note}</div>
+                          ) : null}
+                          {tenant.onboarding_activation_notes ? (
+                            <div className="osTab__noteText osTab__noteText--brown">{tenant.onboarding_activation_notes}</div>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {/* Decision timeline */}
+                      {tenant.onboarding_decision_timeline && tenant.onboarding_decision_timeline.length > 0 ? (
+                        <div>
+                          <div className="osTab__notesLabel osTab__subLabel">Karar Zaman Çizelgesi</div>
+                          <div className="osTab__timeline">
+                            {tenant.onboarding_decision_timeline.slice().reverse().map((item, index) => (
+                              <div key={`${String(item.at)}-${index}`} className="osTab__timelineItem">
+                                <div className="osTab__timelineTitle">{String(item.actor_name || "")} · {String(item.action || "")}</div>
+                                <div className="osTab__timelineMeta">{new Date(String(item.at)).toLocaleString("tr-TR")} · {String(item.actor_type || "")}</div>
+                                {item.note ? <div className="osTab__timelineNote">{String(item.note)}</div> : null}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {/* Resend message */}
+                      {resendMessages[tenant.id] ? (
+                        <div className="osTab__resendMsg">{resendMessages[tenant.id]}</div>
+                      ) : null}
+
+                      {/* Primary action buttons */}
+                      <div className="osTab__actions">
+                        <button
+                          type="button"
+                          disabled={!canVerifyPayment || isBusy}
+                          onClick={() => void handleVerifyOnboardingPayment(tenant.id)}
+                          className="osTab__btn osTab__btn--orange"
+                        >
+                          Ödemeyi Doğrula
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!canApprove || isBusy}
+                          onClick={() => void handleApproveOnboardingMembership(tenant.id)}
+                          className="osTab__btn osTab__btn--primary"
+                        >
+                          Üyelik Aktivasyonunu Onayla
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!canRequestInfo || isBusy}
+                          onClick={() => void handleRequestOnboardingInfo(tenant.id)}
+                          className="osTab__btn osTab__btn--blue"
+                        >
+                          Ek Bilgi / Dekont İste
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!canReject || isBusy}
+                          onClick={() => void handleRejectOnboardingMembership(tenant.id)}
+                          className="osTab__btn osTab__btn--red"
+                        >
+                          Reddet
+                        </button>
+                        {canResend ? (
+                          <button
+                            type="button"
+                            disabled={resendingTenantId === tenant.id}
+                            onClick={() => void handleResendActivation(tenant.id, tenant.owner_user_id)}
+                            className="osTab__btn osTab__btn--ghost"
+                          >
+                            {resendingTenantId === tenant.id ? "Gönderiliyor..." : "Aktivasyon Mailini Tekrar Gönder"}
+                          </button>
+                        ) : null}
+                      </div>
+
                     </div>
-
-                  </div>
+                  ) : null}
                 </div>
               );
             })}
