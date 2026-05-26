@@ -38,6 +38,7 @@ from .routers.public_showcase import router as public_showcase_router
 from .routers.support_ticket_router import router as support_ticket_router
 from .routers.mail_center_router import router as mail_center_router
 from .routers.talent import router as talent_router
+from .routers.jobs import router as jobs_router
 
 try:
     from .routers.admin_deployment import router as admin_deployment_router
@@ -163,6 +164,7 @@ from api.routers.system_email_router import router as system_email_router
 
 app.include_router(system_email_router, prefix="/api/v1")
 app.include_router(talent_router, prefix="/api/v1")
+app.include_router(jobs_router, prefix="/api/v1")
 if admin_deployment_router is not None:
     app.include_router(admin_deployment_router, prefix="/api/v1")
 if mail_center_router is not None:
