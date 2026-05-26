@@ -16,6 +16,7 @@ from api.models import (
     QuoteItem,
 )
 from api.services.cad_convert import can_convert_dwg
+from api.services.cad_convert import convert_dwg_to_dxf
 from api.services import extractor as extractor_module
 
 pytestmark = pytest.mark.nodrop
@@ -128,6 +129,53 @@ def test_ai_lab_converter_health_detects_default_install_candidate(
         "request_id": payload["request_id"],
     }
     assert payload["request_id"]
+
+
+def test_convert_dwg_to_dxf_uses_oda_cli_argument_order(monkeypatch, tmp_path):
+    converter = tmp_path / "ODAFileConverter.exe"
+    converter.write_text("stub", encoding="utf-8")
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    dwg_path = input_dir / "sample.dwg"
+    dwg_path.write_bytes(b"DWG")
+    captured: dict[str, list[str]] = {}
+
+    def fake_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        captured["kwargs"] = kwargs
+        (output_dir / "sample.dxf").write_text("0\nEOF\n", encoding="utf-8")
+
+        class Result:
+            returncode = 0
+            stdout = ""
+            stderr = ""
+
+        return Result()
+
+    monkeypatch.setattr(
+        "api.services.cad_convert._resolve_dwg_converter_executable",
+        lambda: converter,
+    )
+    monkeypatch.setattr("api.services.cad_convert.subprocess.run", fake_run)
+
+    result_path = convert_dwg_to_dxf(dwg_path, output_dir, output_version="ACAD2013")
+
+    assert result_path == output_dir.resolve() / "sample.dxf"
+    assert captured["cmd"] == [
+        str(converter),
+        str(input_dir.resolve()),
+        str(output_dir.resolve()),
+        "ACAD2013",
+        "DXF",
+        "0",
+        "1",
+    ]
+    assert captured["kwargs"] == {
+        "capture_output": True,
+        "text": True,
+        "timeout": 180,
+    }
 
 
 def test_ai_lab_returns_analysis_payload_with_fallback_ai_report(

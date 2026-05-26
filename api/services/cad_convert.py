@@ -156,14 +156,13 @@ def convert_dwg_to_dxf(
         str(oda_exe),
         str(in_dir),
         str(out_dir),
-        "ACAD2018",  # input version
         output_version,  # output version
         "DXF",
         recurse,
         audit,
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
     if result.returncode != 0:
         raise CADConversionError(
             f"ODA dönüşüm hatası (rc={result.returncode}). "
