@@ -205,6 +205,35 @@ G7 (job search/filter UI) — LOW PRIORITY, deferred to PHASE 7.
 
 ---
 
+## PHASE 7 Handoff Notu
+
+PHASE 6 tamamen kapatıldı (3ecd270). Sonraki faz: PHASE 7 — Release Governance & PR to Main.
+
+Runbook: `docs/runbooks/release-governance-phase7-plan.md`
+
+Operasyonel protokoller (Atomik-2 ile eklendi):
+- Section 9: Execution Checklist — komut + kanıt + durum
+- Section 10: Dirty Files Decision Matrix — stash/branch/discard kararı
+- Section 11: PR Scope Freeze Protocol — freeze point + izin verilen dosyalar
+- Section 12: Reviewer Pack Template — PR description şablonu
+- Section 13: Go/No-Go Criteria — merge için minimum koşullar
+
+PHASE 7 Atomik Backlog:
+
+| Atomik | Hedef | Durum |
+|---|---|---|
+| A1 | Release governance inventory | COMPLETE (no commit) |
+| A2 | DRY cleanup: role helpers + ApplyForm extract (opsiyonel) | Açık |
+| A3 | Unrelated dirty files karara bağlama + PR description taslağı | Açık |
+| A4 | PR to main: final review + merge | Açık |
+| A5 | Post-merge: G7 roadmap entry + PHASE 8 bootstrap | Opsiyonel |
+
+Devredilen teknik borç (PHASE 6'dan):
+- `isEmployerAdmin` / `isTalentMember` inline her iki sayfada — `web/src/lib/role-helpers.ts`'e extract edilebilir
+- `ApplyForm` logic `JobDetailPage` + `JobsPage`'de çift — `web/src/components/jobs/ApplyForm.tsx`'e extract edilebilir
+
+---
+
 ## 4. Teknik Notlar
 
 ### fetchJob Kullanım Paterni (Atomik-2)

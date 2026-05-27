@@ -7,14 +7,74 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 6 — CLOSED (Atomik-6 COMPLETE — 19/19 PASS)
+PHASE 7 — IN PROGRESS (Atomik-2 COMPLETE — governance checklist operasyonelleştirildi)
 
 ## Executive Summary
 
-**PHASE 6 CLOSED.** Atomik-6 tamamlandı: Full PHASE 6 E2E gate 19/19 PASS.
-G6 (job detail page /jobs/:id) tamamen doğrulandı: shell render, candidate apply CTA,
-TALENT_PROFILE_REQUIRED flow, employer close/fill, entry links (card+history), role isolation regression, responsive 360/768/1280.
-Sonraki adım: PHASE 7 / Atomik-1 — release governance surface inventory.
+**PHASE 7 / Atomik-2 tamamlandı.** Governance checklist operasyonel hale getirildi (docs-only, tek commit).
+Execution Checklist, Dirty Files Decision Matrix, PR Scope Freeze Protocol, Reviewer Pack Template ve Go/No-Go Criteria eklendi.
+DRY cleanup kararı: borç kabul edildi, skip — production code değişikliği yok.
+Sonraki adım: PHASE 7 / Atomik-3 (unrelated dirty files kararı + PR description taslağı).
+
+## PHASE 7 / Atomik-2 — Governance Checklist Operasyonelleştirme — COMPLETE
+
+### Çıktılar
+- `docs/runbooks/release-governance-phase7-plan.md` — 5 yeni bölüm eklendi (Section 9-13)
+- `docs/runbooks/jobs-surface-phase6-plan.md` — governance execution runbook referansı eklendi
+- `tools/agent/AI_BRIEFING.md` — güncellendi (bu dosya)
+- `tools/agent/SESSION_STATE.json` — local güncellendi
+
+### Eklenen Bölümler
+
+| Bölüm | İçerik |
+|---|---|
+| Section 9: Execution Checklist (Operational) | T1-T4 teknik + D1-D2 dirty files + G1-G6 governance, her madde komut+kanıt+durum ile |
+| Section 10: Dirty Files Decision Matrix | stash/branch/discard/commit seçenekleri, bu proje önerisi, 5 dosya grubu |
+| Section 11: PR Scope Freeze Protocol | freeze point, izin verilen/yasak dosyalar, istisna yönetimi, doğrulama komutu |
+| Section 12: Reviewer Pack Template | PR description şablonu (scope, gate kanıtı, deferred items) |
+| Section 13: Go/No-Go Criteria | 7 zorunlu Go koşulu + 6 No-Go blocker + risk kabul süreci |
+
+### DRY Cleanup Kararı
+Atomik-2'de borç kabul edildi: `isEmployerAdmin`/`isTalentMember` ve `ApplyForm` duplikasyonu
+minor teknik borç olarak kayıt altına alındı. Production code değişikliği yapılmadı.
+Merge sonrası temizlenebilir.
+
+### Go/No-Go Durum (Anlık)
+- T1 type-check ✓, T2 build ✓, T3 PHASE5 gate ✓, T4 PHASE6 gate ✓
+- D1 dirty files kararı: Açık (Atomik-3)
+- G6 PR description: Açık (Atomik-3)
+
+## PHASE 7 / Atomik-1 — Release Governance Inventory — COMPLETE (no commit)
+
+### Çıktılar
+- `docs/runbooks/release-governance-phase7-plan.md` — YENİ (PR readiness, risk register, release checklist, atomik backlog A1-A5)
+- `docs/runbooks/jobs-surface-phase6-plan.md` — PHASE 7 handoff notu eklendi
+- `tools/agent/AI_BRIEFING.md` — güncellendi (bu dosya)
+- `tools/agent/SESSION_STATE.json` — local güncellendi
+
+### Release Readiness Özeti
+
+| Kontrol | Durum |
+|---|---|
+| type-check | PASS (son: PHASE 6/A3) |
+| build | PASS (son: PHASE 6/A3) |
+| E2E gate PHASE 5 | 16/16 PASS |
+| E2E gate PHASE 6 | 19/19 PASS |
+| PHASE 1–6 tümü kapatıldı | ✓ |
+| Gate artifact'lar committed | ✓ |
+| Unrelated dirty files PR'e dahil olmayacak | ✓ (local-only) |
+| PR description | Atomik-3'te |
+| DRY cleanup kararı | Atomik-2'de (opsiyonel) |
+
+### PR Kapsamı
+- 311 dosya changed/added vs main
+- 15 unrelated uncommitted dirty file — local only, PR'e dahil olmayacak
+- NAV_GOVERNANCE commit'leri: 30+ atomik checkpoint
+
+### Deferred Items
+- `isEmployerAdmin` / `isTalentMember` inline — extract to `web/src/lib/role-helpers.ts` (PHASE 7/A2)
+- ApplyForm duplikasyonu — extract to `web/src/components/jobs/ApplyForm.tsx` (PHASE 7/A2)
+- G7 job search/filter UI — deferred to PHASE 8 or separate backlog
 
 ## PHASE 6 / Atomik-6 — Full Phase 6 E2E Gate + Closure — COMPLETE
 
