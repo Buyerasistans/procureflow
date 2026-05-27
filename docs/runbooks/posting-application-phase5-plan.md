@@ -191,18 +191,33 @@ Backend `GET /jobs/{job_id}/applications` ve `PATCH /applications/{id}/status` m
 
 ---
 
-### Atomik-3: Employer — İlan durum aksiyonları (Kapat / Dolu İşaretle)
+### Atomik-3: Employer — İlan durum aksiyonları (Kapat / Dolu İşaretle) — COMPLETE
 
 **Amaç:** G2'yi kapat. Employer yayındaki ilanı kapatabilsin veya dolu işaretleyebilsin.
 
-**Dosyalar:**
-- `web/src/services/jobs.service.ts` — `updateJob(id, payload)` ekle
-- `web/src/pages/JobsPage.tsx` — `JobCard` employer aksiyon butonları
-- `web/src/pages/JobsPage.css` — gerekirse stilsiz kalmasın
+**Dosyalar (tamamlandı):**
+- `web/src/services/jobs.service.ts` — `updateJob(jobId, payload)` + `JobUpdatePayload` interface eklendi
+- `web/src/pages/JobsPage.tsx` — `updatingJobId` state, `handleStatusUpdate`, `JobCard`'a `onStatusUpdate` prop + "Kapat"/"Dolu İşaretle" butonları eklendi; role guard: `canEmployer && !canTalent && job.status === "published"`
+- `web/src/pages/JobsPage.css` — `.job-card__status-actions`, `.jobs-page__btn--status-close`, `.jobs-page__btn--status-fill` stilleri eklendi
 
-**Gate:** Responsive (360/768/1280) — status button görünürlük + mock PATCH success
-**Bağımlılık:** Yok (backend mevcut).
-**Risk:** Orta.
+**Buton davranışı:**
+- "Kapat" → `PATCH /jobs/{id}` `{status: "closed"}` → badge "closed" olur, butonlar kaybolur
+- "Dolu İşaretle" → `PATCH /jobs/{id}` `{status: "filled"}` → badge "filled" olur, butonlar kaybolur
+- Her iki buton PATCH süresi boyunca `disabled` (double-click önlemi, `updatingJobId`)
+- Sadece employer (`canEmployer && !canTalent`) + sadece `published` ilanlar için görünür
+
+**Selectors:**
+- `.job-card__status-actions` — aksiyon container
+- `.jobs-page__btn--status-close` — "Kapat" butonu
+- `.jobs-page__btn--status-fill` — "Dolu İşaretle" butonu
+
+**Gate:** 17/17 PASS — `tools/atomik3_employer_job_status_gate.mjs`
+- Scenario A (9): employer butonları görünür + no overflow — 360/768/1280
+- Scenario B (3): "Kapat" → PATCH mock closed → badge "closed", butonlar yok
+- Scenario C (3): "Dolu İşaretle" → PATCH mock filled → badge "filled", butonlar yok
+- Scenario D (2): candidate_user — status-actions yok, "Başvur" intact (regression)
+
+**G2 durumu:** DONE
 
 ---
 

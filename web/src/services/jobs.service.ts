@@ -69,6 +69,17 @@ export interface JobApplicationOut {
   applied_at: string;
 }
 
+export interface JobUpdatePayload {
+  title?: string;
+  description?: string;
+  category?: string;
+  employment_type?: string;
+  location_type?: string;
+  city?: string;
+  country?: string;
+  status?: string;
+}
+
 // ---------------------------------------------------------------------------
 // Error helper — backend returns detail: {code, message, request_id}
 // ---------------------------------------------------------------------------
@@ -114,5 +125,10 @@ export async function applyToJob(
   payload: JobApplicationCreatePayload,
 ): Promise<JobApplicationOut> {
   const res = await http.post<JobApplicationOut>(`/jobs/${jobId}/apply`, payload);
+  return res.data;
+}
+
+export async function updateJob(jobId: number, payload: JobUpdatePayload): Promise<ProcurementJob> {
+  const res = await http.patch<ProcurementJob>(`/jobs/${jobId}`, payload);
   return res.data;
 }

@@ -6,6 +6,7 @@ import {
   createJob,
   extractJobsError,
   fetchJobs,
+  updateJob,
   type JobCreatePayload,
   type ProcurementJob,
 } from "../services/jobs.service";
@@ -235,12 +236,14 @@ interface JobCardProps {
   canEmployer: boolean;
   canTalent: boolean;
   applyingJobId: number | null;
+  updatingJobId: number | null;
   onApplyClick: (job: ProcurementJob) => void;
   onApplySuccess: () => void;
   onApplyCancel: () => void;
+  onStatusUpdate: (jobId: number, status: string) => void;
 }
 
-function JobCard({ job, canEmployer, canTalent, applyingJobId, onApplyClick, onApplySuccess, onApplyCancel }: JobCardProps) {
+function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, onApplyClick, onApplySuccess, onApplyCancel, onStatusUpdate }: JobCardProps) {
   const statusBadgeClass =
     job.status === "published" ? "job-card__badge--published"
     : job.status === "draft" ? "job-card__badge--draft"
@@ -255,6 +258,7 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, onApplyClick, onA
   };
 
   const isApplying = applyingJobId === job.id;
+  const isUpdating = updatingJobId === job.id;
 
   return (
     <div className="job-card">
@@ -282,6 +286,26 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, onApplyClick, onA
           </span>
         )}
       </div>
+      {canEmployer && !canTalent && job.status === "published" && (
+        <div className="job-card__status-actions">
+          <button
+            type="button"
+            className="jobs-page__btn jobs-page__btn--status-close"
+            disabled={isUpdating}
+            onClick={() => onStatusUpdate(job.id, "closed")}
+          >
+            {isUpdating ? "Güncelleniyor..." : "Kapat"}
+          </button>
+          <button
+            type="button"
+            className="jobs-page__btn jobs-page__btn--status-fill"
+            disabled={isUpdating}
+            onClick={() => onStatusUpdate(job.id, "filled")}
+          >
+            {isUpdating ? "Güncelleniyor..." : "Dolu İşaretle"}
+          </button>
+        </div>
+      )}
       {isApplying && (
         <ApplyForm job={job} onSuccess={onApplySuccess} onCancel={onApplyCancel} />
       )}
@@ -306,6 +330,7 @@ export default function JobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
+  const [updatingJobId, setUpdatingJobId] = useState<number | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const PAGE_SIZE = 20;
@@ -340,6 +365,21 @@ export default function JobsPage() {
     setSuccessMsg("Başvurunuz başarıyla iletildi!");
     void loadJobs();
     setTimeout(() => setSuccessMsg(null), 4000);
+  }
+
+  async function handleStatusUpdate(jobId: number, newStatus: string) {
+    setUpdatingJobId(jobId);
+    try {
+      const updated = await updateJob(jobId, { status: newStatus });
+      setJobs((prev) => prev.map((j) => (j.id === updated.id ? updated : j)));
+      const label = newStatus === "closed" ? "Kapatıldı" : "Dolu İşaretlendi";
+      setSuccessMsg(`İlan "${label}" olarak güncellendi.`);
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      setError(extractJobsError(err));
+    } finally {
+      setUpdatingJobId(null);
+    }
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -384,9 +424,11 @@ export default function JobsPage() {
             canEmployer={canEmployer}
             canTalent={canTalent}
             applyingJobId={applyingJobId}
+            updatingJobId={updatingJobId}
             onApplyClick={(j) => setApplyingJobId(j.id)}
             onApplySuccess={handleApplySuccess}
             onApplyCancel={() => setApplyingJobId(null)}
+            onStatusUpdate={handleStatusUpdate}
           />
         ))
       )}
