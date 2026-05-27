@@ -23,6 +23,7 @@ const PUBLIC_AUTH_PATHS = new Set([
   "/supplier/login",
   "/supplier/register",
   "/employer/register",
+  "/candidate/register",
   "/activate-account",
 ]);
 

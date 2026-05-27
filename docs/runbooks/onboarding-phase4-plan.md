@@ -161,26 +161,39 @@ Body: { email, password, full_name, user_type: "employer" | "candidate" }
 
 ---
 
-### Atomik-4: Frontend — CandidateRegisterPage
+### Atomik-4: Frontend — CandidateRegisterPage — COMPLETE
 
 **Amaç:** `candidate_user` rolü ile yeni bireysel iş arayan kaydı.
 
 **Route:** `/candidate/register` (public, no auth guard)
 
-**Dosyalar:**
-- `web/src/pages/CandidateRegisterPage.tsx` (yeni)
-- `web/src/pages/CandidateRegisterPage.css` (yeni)
-- `web/src/App.tsx` — route ekleme
+**Dosyalar (tamamlandı):**
+- `web/src/pages/CandidateRegisterPage.tsx` (yeni) — form component
+- `web/src/pages/CandidateRegisterPage.css` (yeni) — blue brand responsive styles
+- `web/src/App.tsx` — lazy import + public route `/candidate/register`
+- `web/src/context/AuthProvider.tsx` — `/candidate/register` PUBLIC_AUTH_PATHS'e eklendi
 
-**Form alanları:**
-- Ad Soyad (full_name)
-- E-posta (email)
-- Şifre + Şifre Tekrar (password)
-- (Opsiyonel) Telefon
+**Form alanları (gerçekleşen):**
+- Ad Soyad (full_name) — boş validasyonu
+- E-posta (email) — boş validasyonu
+- Şifre (password) — min 8 karakter validasyonu
+- Şifre Tekrar (confirm_password) — eşleşme validasyonu
 
-**Başarı durumu:** "Hesabınız oluşturuldu." + `/talent/profile` yönlendirmesi (veya login).
+**Başarı davranışı:** token pair sessionStorage'a set → `/talent/profile` redirect (replace: true)
 
-**Responsive:** 375 / 768 / 1366 gate zorunlu.
+**Responsive gate:** 33/33 PASS — 360 / 768 / 1280 × 4 senaryo × 3 viewport
+- Senaryo 1: render (title, 4 input, submit görünürlük, kart taşma yok)
+- Senaryo 2: boş submit → client validasyonu, navigation yok
+- Senaryo 3: şifre uyumsuzluğu → hata gösterimi
+- Senaryo 4: submit mock success → /talent/profile redirect
+
+**Gates:**
+- type-check: PASS (0 hata)
+- build: PASS (CandidateRegisterPage-yhHdFi_5.js, CandidateRegisterPage-BZY9cNc3.css)
+- responsive gate: 33/33 PASS
+
+**G2 durumu:** candidate_user kayıt akışı tam stack DONE (backend Atomik-2 + frontend Atomik-4).
+**G4 durumu (candidate tarafı):** Frontend kayıt formu ve /talent/profile yönlendirmesi DONE.
 
 ---
 

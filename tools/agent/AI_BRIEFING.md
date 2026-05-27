@@ -7,49 +7,46 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 4 / Atomik-3 - COMPLETE
+PHASE 4 / Atomik-4 - COMPLETE
 
 ## Executive Summary
 
-PHASE 4 / Atomik-3 adds the public `/employer/register` page — a standalone
-registration form for `employer_company_admin` users. Calls
-`POST /auth/register` with `user_type="employer"`. On success, stores token
-pair in sessionStorage and redirects to `/jobs`. Responsive gate 33/33 PASS
-across 360/768/1280 × 4 scenarios. type-check PASS, build PASS.
+PHASE 4 / Atomik-4 adds the public `/candidate/register` page — a standalone
+registration form for `candidate_user` accounts. Calls `POST /auth/register`
+with `user_type="candidate"`. On success, stores token pair in sessionStorage
+and redirects to `/talent/profile`. Responsive gate 33/33 PASS across
+360/768/1280 x 4 scenarios. type-check PASS, build PASS.
 
 ## Changes Made
 
-**`web/src/pages/EmployerRegisterPage.tsx`** — new file:
+**`web/src/pages/CandidateRegisterPage.tsx`** — new file:
 - Form: full_name, email, password, confirm_password
 - Client-side validation: empty fields, min 8 chars password, password match
 - Loading state during submit
 - Backend error surfacing (sanitized message from Error)
-- On success: setAccessToken + setRefreshToken + sessionStorage pf_user → navigate("/jobs", replace)
+- On success: setAccessToken + setRefreshToken + sessionStorage pf_user
+  → navigate("/talent/profile", replace)
 
-**`web/src/pages/EmployerRegisterPage.css`** — new file:
-- Green-tinted design (employer brand color: #059669)
+**`web/src/pages/CandidateRegisterPage.css`** — new file:
+- Blue-tinted design (candidate brand color: #0284c7)
 - Responsive at 360 / 768 / 1280+
 - `font-size: 16px` on mobile inputs (prevents iOS zoom)
 - `box-sizing: border-box` on inputs (no overflow)
 
-**`web/src/services/auth.service.ts`** — added `registerUser()`:
-- `POST /api/v1/auth/register` with `{full_name, email, password, user_type}`
-- Returns `LoginResponse` ({accessToken, refreshToken, user})
-- Maps 409 → "Bu e-posta adresi zaten kayıtlı.", 400 → backend detail
-
 **`web/src/App.tsx`** — added:
-- `const EmployerRegisterPage = lazy(() => import("./pages/EmployerRegisterPage"))`
-- `<Route path="/employer/register" element={<EmployerRegisterPage />} />` (public, outside ProtectedRoute)
+- `const CandidateRegisterPage = lazy(() => import(...))`
+- `<Route path="/candidate/register" element={<CandidateRegisterPage />} />`
+  (public, outside ProtectedRoute)
 
 **`web/src/context/AuthProvider.tsx`** — added:
-- `"/employer/register"` to `PUBLIC_AUTH_PATHS` set (skips admin auth init)
+- `"/candidate/register"` to `PUBLIC_AUTH_PATHS` set
 
 ## Responsive Gate Results
 
-Gate script: `tools/atomik3_employer_register_gate.mjs`
-Artifacts: `tools/gate-artifacts/atomik3-employer-register/`
+Gate script: `tools/atomik4_candidate_register_gate.mjs`
+Artifacts: `tools/gate-artifacts/atomik4-candidate-register/`
 
-| Viewport | Render | Empty Validation | PW Mismatch | Submit → /jobs |
+| Viewport | Render | Empty Validation | PW Mismatch | Submit → /talent/profile |
 |---|---|---|---|---|
 | mobile-360 | PASS | PASS | PASS | PASS |
 | tablet-768 | PASS | PASS | PASS | PASS |
@@ -57,61 +54,61 @@ Artifacts: `tools/gate-artifacts/atomik3-employer-register/`
 
 **Total: 33/33 PASS**
 
-Card widths observed: 334px (360vp), 530px (768vp), 554px (1280vp) — all within viewport.
+Card widths: 334px (360vp) · 530px (768vp) · 554px (1280vp) — all within viewport.
 
-## Gap Status After Atomik-3
+## Gap Status After Atomik-4
 
 | Gap | Status |
 | --- | --- |
-| G1: No employer_company_admin onboarding path | FRONTEND DONE (employer register UI + /jobs redirect) |
-| G2: No candidate_user onboarding path | Backend DONE; Frontend PENDING (Atomik-4) |
+| G1: No employer_company_admin onboarding path | DONE (Atomik-2 backend + Atomik-3 frontend) |
+| G2: No candidate_user onboarding path | DONE (Atomik-2 backend + Atomik-4 frontend) |
 | G3: No guest_public entry point | PHASE 5/6 scope |
-| G4: No post-registration redirect | Employer side DONE (/jobs); Candidate pending |
+| G4: No post-registration redirect | DONE — employer→/jobs, candidate→/talent/profile |
 
 ## Gates Passed
 
 | Gate | Result | Detail |
 | --- | --- | --- |
 | type-check | PASS | 0 errors |
-| build | PASS | EmployerRegisterPage-CH8jiTTE.js + D44WBB_C.css emitted |
-| Responsive gate | 33/33 PASS | 360/768/1280 × 4 scenarios |
-| Existing auth tests | Not re-run (no backend change) | Last run: 22/22 PASS |
+| build | PASS | CandidateRegisterPage-yhHdFi_5.js + BZY9cNc3.css emitted |
+| Responsive gate | 33/33 PASS | 360/768/1280 x 4 scenarios |
+| Existing backend tests | Not re-run (no backend change) | Last run: 14/14 + 22/22 PASS |
 
 ## Next Atomic Step
 
-**PHASE 4 / Atomik-4:** Frontend — `CandidateRegisterPage`
+**PHASE 4 / Atomik-5:** Post-registration redirect + activation flow integration.
 
-**Goal:** New public registration page at `/candidate/register` for
-`candidate_user` accounts. Calls `POST /auth/register` with
-`user_type="candidate"`. On success, stores token + user and redirects
-to `/talent/profile`.
+**Goal:** Wire activation email flow into employer and candidate registration.
+After register, user receives activation email; links to `/activate-account`
+which then redirects to `/jobs` (employer) or `/talent/profile` (candidate)
+based on `system_role`.
 
-**Files:**
-- `web/src/pages/CandidateRegisterPage.tsx` (new)
-- `web/src/pages/CandidateRegisterPage.css` (new)
-- `web/src/App.tsx` — add public route `/candidate/register`
-- `web/src/context/AuthProvider.tsx` — add `/candidate/register` to PUBLIC_AUTH_PATHS
-- `web/src/services/auth.service.ts` — `registerUser()` already exists, no change needed
+**Files to investigate / update:**
+- `web/src/pages/InternalUserActivationPage.tsx` — add role-based redirect
+  after successful activation
+- `web/src/pages/EmployerRegisterPage.tsx` — optionally show
+  "E-postanızı kontrol edin" message instead of immediate redirect
+- `web/src/pages/CandidateRegisterPage.tsx` — same
 
-**Form fields:** full_name, email, password, confirm_password
-**Success redirect:** `/talent/profile` (replace: true)
-**Responsive gate:** 360 / 768 / 1280 — same 4 scenarios as Atomik-3.
-**Constraint:** No new backend changes needed; `registerUser()` already supports `user_type="candidate"`.
+**Constraint:** Backend `/auth/register` currently creates `is_active=True`
+(immediate login, no email gate). Atomik-5 may be documentation-only if
+activation is deferred to a later phase, or may add a "pending activation"
+state. Confirm scope with user before implementing.
 
 ## Open Risks
 
 - `api/routers/onboarding_router.py` dirty (unrelated) — not touched.
-- `web/src/JobList.tsx` orphan — dead code, still deferred.
-- Navigation guest_public CTAs for employer/candidate register — Atomik-6.
-- Activation flow enhancement — Atomik-5.
+- Navigation guest_public CTAs (employer/candidate register links) — Atomik-6.
+- Backend register currently sets `is_active=True` — no email activation gate.
+  Atomik-5 scope to be confirmed.
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 4 / Atomik-3: COMPLETE
-Next: PHASE 4 / Atomik-4 — CandidateRegisterPage at /candidate/register.
+PHASE 4 / Atomik-4: COMPLETE
+Next: PHASE 4 / Atomik-5 — post-registration redirect + activation flow.
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 ```
