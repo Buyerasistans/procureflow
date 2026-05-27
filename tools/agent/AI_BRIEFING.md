@@ -7,14 +7,42 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 7 — IN PROGRESS (Atomik-2 COMPLETE — governance checklist operasyonelleştirildi)
+PHASE 7 — IN PROGRESS (Atomik-3 COMPLETE — dirty files stash + PR description draft)
 
 ## Executive Summary
 
-**PHASE 7 / Atomik-2 tamamlandı.** Governance checklist operasyonel hale getirildi (docs-only, tek commit).
-Execution Checklist, Dirty Files Decision Matrix, PR Scope Freeze Protocol, Reviewer Pack Template ve Go/No-Go Criteria eklendi.
-DRY cleanup kararı: borç kabul edildi, skip — production code değişikliği yok.
-Sonraki adım: PHASE 7 / Atomik-3 (unrelated dirty files kararı + PR description taslağı).
+**PHASE 7 / Atomik-3 tamamlandı.** 15 unrelated tracked dirty dosya named stash ile temizlendi.
+PR description draft hazırlandı (`docs/runbooks/release-pr-description-draft.md`).
+D1 ve G6 Go/No-Go maddeleri COMPLETE. Kalan tek blocker: CI (Atomik-4).
+Sonraki adım: PHASE 7 / Atomik-4 — `gh pr create` + CI izleme.
+
+## PHASE 7 / Atomik-3 — Dirty Files Execution + PR Description Draft — COMPLETE
+
+### Çıktılar
+- Named stash uygulandı: `stash@{0}: phase7-atomik3-unrelated-dirty-hold-20260527`
+- `docs/runbooks/release-pr-description-draft.md` — YENİ (reviewer-ready PR taslağı)
+- `docs/runbooks/release-governance-phase7-plan.md` — D1, D2, G6, Go/No-Go 5-6 COMPLETE
+- `tools/agent/AI_BRIEFING.md` — güncellendi (bu dosya)
+- `tools/agent/SESSION_STATE.json` — local güncellendi
+
+### Stash Kararı
+- Stash adı: `phase7-atomik3-unrelated-dirty-hold-20260527`
+- Kapsam: 15 unrelated tracked dirty dosya (api/routers/\*, api/services/\*, web/src/pages/admin/\*, CampaignsTab.\*, AdminPage.tsx, phase3-plan.md, admin test)
+- Geri alma: `git stash apply stash@{0}` (merge sonrası ayrı branch/PR için)
+
+### Go/No-Go Durumu (Atomik-3 sonrası)
+| Koşul | Durum |
+|---|---|
+| T1 type-check | ✓ DONE |
+| T2 build | ✓ DONE |
+| T3 PHASE 5 gate 16/16 | ✓ DONE |
+| T4 PHASE 6 gate 19/19 | ✓ DONE |
+| D1 dirty files kararı | ✓ DONE |
+| G6 PR description | ✓ DONE |
+| CI yeşil | Açık (Atomik-4) |
+
+### PR Description Dosyası
+`docs/runbooks/release-pr-description-draft.md` — scope, gate evidence, deferred items, rollback notes, reviewer checklist (7 madde)
 
 ## PHASE 7 / Atomik-2 — Governance Checklist Operasyonelleştirme — COMPLETE
 

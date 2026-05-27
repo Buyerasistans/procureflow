@@ -111,8 +111,8 @@ Program kapsamı dışında olduklarından, PHASE 7 PR'ine dahil edilmezler.
 - [x] `npm run build` → başarılı (son: PHASE 6/A3)
 - [x] E2E gate PHASE 5 — 16/16 PASS
 - [x] E2E gate PHASE 6 — 19/19 PASS
-- [ ] Unrelated dirty files karara bağlandı (commit / stash / drop)
-- [ ] PR description yazıldı (scope + gate evidence)
+- [x] Unrelated dirty files karara bağlandı — stash: `phase7-atomik3-unrelated-dirty-hold-20260527` (15 dosya)
+- [x] PR description taslağı yazıldı — `docs/runbooks/release-pr-description-draft.md`
 - [ ] CI çalıştırıldı (branch'te)
 - [ ] Reviewer atandı
 
@@ -122,7 +122,7 @@ Program kapsamı dışında olduklarından, PHASE 7 PR'ine dahil edilmezler.
 - [x] Gate artifact'ları committed: `tools/gate-artifacts/`
 - [x] Runbook'lar güncel
 - [x] DRY cleanup kararı verildi — Atomik-2: borç kabul edildi, skip (risk düşük, merge sonrası yapılabilir)
-- [ ] PHASE 7 PR description taslağı hazır (Atomik-3'te)
+- [x] PHASE 7 PR description taslağı hazır — `docs/runbooks/release-pr-description-draft.md`
 - [x] G7 erteleme kararı belgelendi — deferred to PHASE 8, explicitly out-of-scope
 
 ---
@@ -189,8 +189,8 @@ Her madde için: owner, komut, beklenen kanıt, mevcut durum.
 
 | # | Kontrol | Aksiyon | Beklenen Kanıt | Durum |
 |---|---|---|---|---|
-| D1 | Unrelated dirty files karara bağlandı | Atomik-3'te karar (stash/branch/discard) | `git status --short` temiz (program dosyaları only) | Açık |
-| D2 | PR scope doğrulaması | `git diff --name-only main...HEAD` | 311 dosya, unrelated dirty yok | Açık |
+| D1 | Unrelated dirty files karara bağlandı | Named stash uygulandı | 15 dosya stash@{0}: `phase7-atomik3-unrelated-dirty-hold-20260527` | ✓ DONE |
+| D2 | PR scope doğrulaması | `git diff --name-only main...HEAD` | 312 dosya, unrelated tracked dirty stash'lendi | ✓ DONE |
 
 ### Governance Dokümantasyon
 
@@ -201,13 +201,16 @@ Her madde için: owner, komut, beklenen kanıt, mevcut durum.
 | G3 | Runbook'lar güncel | docs/runbooks/ gözden geçir | Bu dosya + phase6 plan CLOSED | ✓ DONE |
 | G4 | DRY cleanup kararı | Atomik-2 kararı | borç kabul edildi, skip | ✓ DONE |
 | G5 | G7 erteleme belgelendi | Bu runbook + phase6 plan | G7 PHASE 8'e ertelendi | ✓ DONE |
-| G6 | PR description taslağı | Atomik-3'te hazırla | scope + gate kanıtı + deferred items | Açık |
+| G6 | PR description taslağı | Atomik-3'te hazırlandı | `docs/runbooks/release-pr-description-draft.md` | ✓ DONE |
 
 ---
 
 ## 10. Dirty Files Decision Matrix
 
-15 unrelated uncommitted dirty dosya mevcut. Atomik-3'te karar verilecek.
+**ATOMIK-3 EXECUTION COMPLETE.**
+15 unrelated tracked dirty dosya named stash ile temizlendi:
+`stash@{0}: phase7-atomik3-unrelated-dirty-hold-20260527`
+Geri almak için: `git stash pop stash@{0}` veya `git stash apply stash@{0}`
 
 ### Seçenek Matrisi
 
@@ -321,8 +324,8 @@ Aşağıdaki tüm Go koşulları karşılanmadan PR `main`'e merge edilmez.
 | 2 | build başarılı | `npm run build` exit 0 | ✓ DONE |
 | 3 | E2E gate PHASE 5 ≥ 16/16 PASS | gate-artifacts/atomik8-phase5-full/report.json | ✓ DONE |
 | 4 | E2E gate PHASE 6 ≥ 19/19 PASS | gate-artifacts/atomik6-phase6-full/report.json | ✓ DONE |
-| 5 | Unrelated dirty files PR scope dışında | `git status` → unrelated dosyalar commit edilmemiş | Açık (A3) |
-| 6 | PR description tamamlandı | scope + gate kanıtı + deferred items | Açık (A3) |
+| 5 | Unrelated dirty files PR scope dışında | stash@{0}: phase7-atomik3-unrelated-dirty-hold-20260527 | ✓ DONE |
+| 6 | PR description tamamlandı | docs/runbooks/release-pr-description-draft.md | ✓ DONE |
 | 7 | CI yeşil | GitHub Actions passing | Açık (A4) |
 
 ### No-Go Koşulları (Blocker)
