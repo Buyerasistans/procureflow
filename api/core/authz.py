@@ -25,11 +25,11 @@ ADMIN_ASSIGNABLE_SYSTEM_ROLES = TENANT_ADMIN_SYSTEM_ROLES | {
 # Talent Network + Procurement Jobs ekosistemi rolleri
 # ---------------------------------------------------------------------------
 
-# Bağımsız satınalma uzmanı — platform genelinde, tenant bağımsız
-TALENT_MEMBER_SYSTEM_ROLES = {"talent_member"}
+# Bağımsız satınalma uzmanı + adaylar — platform genelinde, tenant bağımsız
+TALENT_MEMBER_SYSTEM_ROLES = {"talent_member", "candidate_user"}
 
-# İşveren tenant yöneticisi — iş ilanı oluşturur, başvuruları yönetir
-EMPLOYER_ADMIN_SYSTEM_ROLES = {"employer_company_admin"}
+# İşveren tenant yöneticisi/işe alım — iş ilanı oluşturur, başvuruları yönetir
+EMPLOYER_ADMIN_SYSTEM_ROLES = {"employer_company_admin", "employer_recruiter"}
 
 # Referral/kanal iş ortağı — görevlere katkı sunar
 REFERRAL_PARTNER_SYSTEM_ROLES = {"referral_partner"}
