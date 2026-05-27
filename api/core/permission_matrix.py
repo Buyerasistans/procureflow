@@ -119,6 +119,18 @@ _SATINALMACI_SET: list[str] = [
     "quote_workspace.submit_approval",
 ]
 
+# İK rolleri — sadece workspace home; satın alma araçlarına erişim yok
+_IK_YONETICISI_SET: list[str] = [
+    "workspace_home",
+    "workspace_home.kpi_cards",
+    "workspace_home.operation_feed",
+]
+
+_IK_UZMANI_SET: list[str] = [
+    "workspace_home",
+    "workspace_home.kpi_cards",
+]
+
 # ---------------------------------------------------------------------------
 # TEK KAYNAK: Rol Matrisi
 # Anahtar: "{business_role}:{system_role}"  (boş system_role = "")
@@ -141,6 +153,15 @@ ROLE_PERMISSION_MATRIX: dict[str, list[str]] = {
     "satinalma_uzmani:": _UZMAN_SET,
     "satinalmaci:tenant_member": _SATINALMACI_SET,
     "satinalmaci:": _SATINALMACI_SET,
+    # ── İK Rolleri (kariyer modülü, iş ilanı verme) ───────────────────────
+    "ik_yoneticisi:tenant_member": _IK_YONETICISI_SET,
+    "ik_yoneticisi:": _IK_YONETICISI_SET,
+    "ik_uzmani:tenant_member": _IK_UZMANI_SET,
+    "ik_uzmani:": _IK_UZMANI_SET,
+    "hr_manager:tenant_member": _IK_YONETICISI_SET,
+    "hr_manager:": _IK_YONETICISI_SET,
+    "hr_specialist:tenant_member": _IK_UZMANI_SET,
+    "hr_specialist:": _IK_UZMANI_SET,
     # ── Varsayılan (tanımlanmayan profil) ─────────────────────────────────
     "default": [],
 }

@@ -829,6 +829,10 @@ export function canAccessWorkspacePanel(user: PermissionContext | null | undefin
     role === "channel_owner" ||
     role === "channel_agent" ||
     role === "is_ortagi" ||
+    role === "ik_yoneticisi" ||
+    role === "ik_uzmani" ||
+    role === "hr_manager" ||
+    role === "hr_specialist" ||
     sr === "supplier_user"
   );
 }

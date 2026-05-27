@@ -4,9 +4,10 @@ import { useAuth } from "../hooks/useAuth";
 import { createJob, extractJobsError } from "../services/jobs.service";
 import "./JobCreatePage.css";
 
-function canPostJob(systemRole: string | null | undefined): boolean {
+function canPostJob(systemRole: string | null | undefined, businessRole?: string | null): boolean {
   const sr = (systemRole ?? "").toLowerCase();
-  return [
+  const br = (businessRole ?? "").toLowerCase();
+  const allowedSystemRoles = new Set([
     "employer_company_admin",
     "employer_recruiter",
     "super_admin",
@@ -15,7 +16,9 @@ function canPostJob(systemRole: string | null | undefined): boolean {
     "platform_support",
     "platform_operator",
     "finance_officer",
-  ].includes(sr);
+  ]);
+  const hrRoles = new Set(["ik_yoneticisi", "ik_uzmani", "hr_manager", "hr_specialist"]);
+  return allowedSystemRoles.has(sr) || hrRoles.has(br);
 }
 
 export default function JobCreatePage() {
@@ -40,7 +43,7 @@ export default function JobCreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canPost = user ? canPostJob(user.system_role) : false;
+  const canPost = user ? canPostJob(user.system_role, user.role) : false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

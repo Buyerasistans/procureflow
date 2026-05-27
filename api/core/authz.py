@@ -31,6 +31,15 @@ TALENT_MEMBER_SYSTEM_ROLES = {"talent_member", "candidate_user"}
 # İşveren tenant yöneticisi/işe alım — iş ilanı oluşturur, başvuruları yönetir
 EMPLOYER_ADMIN_SYSTEM_ROLES = {"employer_company_admin", "employer_recruiter"}
 
+# İnsan Kaynakları rolleri — tenant kullanıcısı, business_role ile belirlenir
+# Kariyer modülü: iş ilanı oluşturma, ik workspace erişimi
+HR_BUSINESS_ROLES = {
+    "ik_yoneticisi",   # İK Yöneticisi
+    "ik_uzmani",       # İK Uzmanı
+    "hr_manager",      # İngilizce alias
+    "hr_specialist",   # İngilizce alias
+}
+
 # Referral/kanal iş ortağı — görevlere katkı sunar
 REFERRAL_PARTNER_SYSTEM_ROLES = {"referral_partner"}
 
@@ -238,6 +247,11 @@ def is_employer_admin(user: User) -> bool:
     return normalized_system_role(user) in EMPLOYER_ADMIN_SYSTEM_ROLES
 
 
+def is_hr_member(user: User) -> bool:
+    """İK rolü — iş ilanı oluşturabilir, kariyer modülüne erişebilir."""
+    return normalized_role(user) in HR_BUSINESS_ROLES
+
+
 def is_referral_partner(user: User) -> bool:
     return normalized_system_role(user) in REFERRAL_PARTNER_SYSTEM_ROLES
 
@@ -275,6 +289,7 @@ def can_post_procurement_job(user: User) -> bool:
         or is_employer_admin(user)
         or is_tenant_admin(user)
         or is_platform_staff(user)
+        or is_hr_member(user)
     )
 
 

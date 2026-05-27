@@ -70,6 +70,8 @@ Frontend build başarılı olsa da lint sorunları mevcut:
 - Lvl 9: Teknik Uzman `firma_teknik@`
 - Lvl ★: Özel Stratejik Partner Rolü `firma_ozel@`
 - Lvl ★: Finans İzleyici `firma_finans@`
+- Lvl ★: İK Yöneticisi `firma_ik_yoneticisi@` — business_role: ik_yoneticisi, iş ilanı verme yetkisi
+- Lvl ★: İK Uzmanı `firma_ik_uzmani@` — business_role: ik_uzmani, temel workspace + iş ilanı
 
 ### Tedarikçi Rolleri (Lvl 0→7 + özel)
 
@@ -83,6 +85,7 @@ Frontend build başarılı olsa da lint sorunları mevcut:
 - Lvl 7: Teklif Uzmanı `firma_teklif@` ⚠️ teklif akışı kritik — dokunma
 - Lvl ★: Özel Tedarikçi Rolü `firma_ozel@`
 - Lvl ★: Finans İzleyici `firma_finans@`
+- Lvl ★: İK Yöneticisi `firma_ik_yoneticisi@` — business_role: ik_yoneticisi
 
 ### İş Ortağı (Kanal) Rolleri (Lvl 0→4)
 
@@ -91,6 +94,7 @@ Frontend build başarılı olsa da lint sorunları mevcut:
 - Lvl 2: Kanal Temsilcisi `firma_temsilci@`
 - Lvl 3: Kanal Finans `firma_kanal_finans@`
 - Lvl ★: Özel Kanal Rolü `firma_ozel_kanal@`
+- Lvl ★: İK Yöneticisi `firma_ik_yoneticisi@` — business_role: ik_yoneticisi
 
 ### Demo tenant email prefix tablosu
 
