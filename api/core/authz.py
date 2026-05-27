@@ -307,6 +307,29 @@ def can_access_talent_admin(user: User) -> bool:
     )
 
 
+# ---------------------------------------------------------------------------
+# Dual-Role: aynı firma hem Tedarikçi hem Stratejik Partner
+# ---------------------------------------------------------------------------
+
+
+def is_dual_role_active(supplier) -> bool:
+    """Supplier objesinin dual-role bağlantısı platform tarafından aktifleştirilmiş mi?"""
+    return (
+        getattr(supplier, "linked_tenant_id", None) is not None
+        and getattr(supplier, "dual_role_status", None) == "active"
+    )
+
+
+def can_request_dual_role(user: User) -> bool:
+    """Dual-role başvurusu yapabilir mi? Tenant admin veya owner."""
+    return is_tenant_admin(user) or is_tenant_owner(user)
+
+
+def can_approve_dual_role(user: User) -> bool:
+    """Dual-role başvurusunu onaylayabilir mi? Platform staff."""
+    return is_super_admin(user) or is_platform_staff(user)
+
+
 def resolve_requested_user_system_role(
     current_user: User,
     requested_role: str,

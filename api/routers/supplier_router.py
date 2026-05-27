@@ -30,6 +30,8 @@ from threading import Lock
 from api.database import get_db
 from api.core.authz import (
     GLOBAL_PROCUREMENT_MANAGER_ROLES,
+    can_approve_dual_role,
+    can_request_dual_role,
     is_admin_like,
     is_global_procurement_manager,
     normalized_role,
@@ -4550,4 +4552,75 @@ def get_supplier_email_change_status(
         "pending_email": pending_email,
         "email_verified": bool(supplier_user.email_verified),
         "current_email": supplier_user.email,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Dual-Role Endpoints: Tedarikçi ↔ Stratejik Partner köprüsü
+# ---------------------------------------------------------------------------
+
+
+@router.post("/{supplier_id:int}/request-dual-role", response_model=dict)
+def request_dual_role(
+    supplier_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Tenant admin'in kendi tenant'ını bir tedarikçi hesabına bağlaması için başvuru oluşturur.
+    Durum: pending → platform admin onayı bekler.
+    """
+    if not can_request_dual_role(current_user):
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok.")
+
+    supplier = db.get(Supplier, supplier_id)
+    if supplier is None:
+        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı.")
+
+    tenant_id = getattr(current_user, "tenant_id", None)
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Kullanıcının bir tenant kaydı yok.")
+
+    if supplier.linked_tenant_id and supplier.dual_role_status == "active":
+        raise HTTPException(status_code=409, detail="Bu tedarikçi zaten bir tenant ile aktif bağlantıya sahip.")
+
+    supplier.linked_tenant_id = tenant_id
+    supplier.dual_role_status = "pending"
+    db.commit()
+
+    return {"status": "pending", "linked_tenant_id": tenant_id, "supplier_id": supplier_id}
+
+
+@router.patch("/{supplier_id:int}/dual-role-status", response_model=dict)
+def update_dual_role_status(
+    supplier_id: int,
+    body: dict = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Platform admin'in dual-role başvurusunu onaylaması veya reddetmesi.
+    Body: {"status": "active" | "rejected"}
+    """
+    if not can_approve_dual_role(current_user):
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok.")
+
+    new_status = (body.get("status") or "").strip().lower()
+    if new_status not in {"active", "rejected"}:
+        raise HTTPException(status_code=422, detail="Geçerli durum: 'active' veya 'rejected'.")
+
+    supplier = db.get(Supplier, supplier_id)
+    if supplier is None:
+        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı.")
+
+    if not supplier.linked_tenant_id:
+        raise HTTPException(status_code=400, detail="Bu tedarikçinin bekleyen bir dual-role başvurusu yok.")
+
+    supplier.dual_role_status = new_status
+    db.commit()
+
+    return {
+        "status": new_status,
+        "supplier_id": supplier_id,
+        "linked_tenant_id": supplier.linked_tenant_id,
     }

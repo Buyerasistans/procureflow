@@ -75,6 +75,14 @@ class Supplier(Base):
         String(500), nullable=True
     )  # Logo/Amblem URL'si
 
+    # Çift Rol Köprüsü (Dual-Role: aynı firma hem Tedarikçi hem Stratejik Partner)
+    linked_tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id"), nullable=True, index=True
+    )
+    dual_role_status: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # None | "pending" | "active" | "rejected"
+
     # Durum
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -90,7 +98,12 @@ class Supplier(Base):
     )
 
     # İlişkiler
-    tenant: Mapped["Tenant | None"] = relationship("Tenant", back_populates="suppliers")
+    tenant: Mapped["Tenant | None"] = relationship(
+        "Tenant", foreign_keys=[tenant_id], back_populates="suppliers"
+    )
+    linked_tenant: Mapped["Tenant | None"] = relationship(
+        "Tenant", foreign_keys=[linked_tenant_id], back_populates="linked_as_supplier"
+    )
     created_by: Mapped["User"] = relationship("User", foreign_keys=[created_by_id])
     users: Mapped[list["SupplierUser"]] = relationship(
         "SupplierUser", back_populates="supplier", cascade="all, delete-orphan"
