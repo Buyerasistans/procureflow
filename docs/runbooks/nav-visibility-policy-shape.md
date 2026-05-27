@@ -82,7 +82,43 @@ Likely future options:
 - Long term: store navigation visibility policies in a dedicated backend table or versioned JSON config once admin editing, audit history, import/export, and tenant overrides are required.
 
 ## Runtime Change Status
+
 No runtime behavior changed in this policy-shape step.
+
+## PHASE 1 / Atomik-3 Adapter and Parity Scope
+
+New non-invasive proof layer:
+
+- `web/src/config/navigation-adapter.ts`
+
+`compareAuthenticatedTopNav(user)` runs both the legacy resolver and the policy resolver for a given `AuthUser` and returns `{ legacy, policy, onlyInLegacy, onlyInPolicy, inBoth, hasDivergence }`. Not wired into any runtime render path; safe to import in tests only.
+
+### Role Vocabulary Mapping
+
+| Persona | system_role | business_role | Legacy routes | Policy routes | Status |
+| --- | --- | --- | --- | --- | --- |
+| super_admin | super_admin | super_admin | all 9 | all 9 | parity |
+| platform_support | platform_support | admin | dashboard, quotes, admin, discovery-lab, reports, payout-requests, talent-ecosystem | same | parity |
+| tenant_admin | tenant_admin | admin | dashboard, quotes, admin, discovery-lab, reports | same | parity |
+| employer_company_admin | employer_company_admin | user | dashboard, quotes, jobs | same | parity |
+| employer_recruiter | employer_recruiter | user | dashboard, quotes | same | parity |
+| candidate_user | candidate_user | user | dashboard, quotes | same | parity |
+| supplier_admin | null | supplier_admin | dashboard, quotes | same | parity |
+| supplier_user | null | supplier_user | dashboard, quotes | same | parity |
+| channel_owner | tenant_member | channel_owner | dashboard, admin | dashboard, **quotes**, admin | **divergence** |
+| channel_agent | tenant_member | channel_agent | dashboard, admin | dashboard, **quotes**, admin | **divergence** |
+
+### Known Divergences
+
+**channel_owner / channel_agent**: Legacy excludes `/quotes` via a `visibleFor` callback in `navigation.ts` (`normalizedBusinessRole !== "channel_owner/agent/is_ortagi"`). The policy fixture has no equivalent exclusion. The divergence is intentional and documented here; resolving it requires either adding an `excluded_tenant_roles` field to the policy shape, or adding a negation predicate to the visibility evaluation. This must be an explicit future atomic step before the policy module is wired into the runtime render path.
+
+### Unknown Role Fallback
+
+A user whose `system_role` and `business_role` are not listed in the policy allowlists will receive only items with empty `allowed_system_roles` and `allowed_tenant_roles`. With the current fixture this means: items that require only `view:dashboard` and have no role restriction — i.e., `/dashboard` and `/quotes` — if the user has `view:dashboard` permission. Platform-only, tenant-admin-only, and talent/employer-scoped items are hidden. This matches the least-privilege fallback goal.
+
+### Parity Scope Boundary
+
+PHASE 1 / Atomik-3 proves route-list parity for authenticated top-nav only. Panel tabs, quick links, and page CTAs are not yet covered. Runtime render path still reads from `navigation.ts`; `navigation-adapter.ts` is test/dev only.
 
 ## PHASE 1 / Atomik-2 Typed Module
 
