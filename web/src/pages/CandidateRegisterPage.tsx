@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/auth.service";
 import { setAccessToken, setRefreshToken } from "../lib/token";
+import { POST_REGISTER_REDIRECT } from "../config/register-redirect-policy";
 import "./CandidateRegisterPage.css";
 
 const USER_KEY = "pf_user";
@@ -58,7 +59,7 @@ export default function CandidateRegisterPage() {
       if (data.user) {
         sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
       }
-      navigate("/talent/profile", { replace: true });
+      navigate(POST_REGISTER_REDIRECT.candidate, { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kayıt sırasında bir sorun oluştu.");
     } finally {
@@ -73,6 +74,9 @@ export default function CandidateRegisterPage() {
           <h1 className="candidate-register-page__title">Aday Kaydı</h1>
           <p className="candidate-register-page__subtitle">
             İş fırsatlarını keşfetmek ve profilinizi oluşturmak için ücretsiz hesap açın.
+          </p>
+          <p className="candidate-register-page__info">
+            Kayıt sonrası hesabınızla doğrudan devam edersiniz.
           </p>
 
           {error && (

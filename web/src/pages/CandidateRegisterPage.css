@@ -35,11 +35,19 @@
 }
 
 .candidate-register-page__subtitle {
-  margin: 0 0 28px;
+  margin: 0 0 8px;
   font-size: 14px;
   color: #64748b;
   text-align: center;
   line-height: 1.6;
+}
+
+.candidate-register-page__info {
+  margin: 0 0 20px;
+  font-size: 12px;
+  color: #0284c7;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .candidate-register-page__error {

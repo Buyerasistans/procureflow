@@ -197,18 +197,31 @@ Body: { email, password, full_name, user_type: "employer" | "candidate" }
 
 ---
 
-### Atomik-5: Post-registration redirect + aktivasyon akışı
+### Atomik-5: Post-registration redirect + aktivasyon akışı — COMPLETE
 
-**Amaç:** Kayıt sonrası rol bazlı yönlendirme + email aktivasyon entegrasyonu.
+**Amaç:** Rol bazlı redirect policy merkezileştirme + activation page hizası. Backend is_active=True davranışı değiştirilmedi.
 
-**Dosyalar:**
-- `web/src/pages/EmployerRegisterPage.tsx` (update)
-- `web/src/pages/CandidateRegisterPage.tsx` (update)
-- Mevcut `activate` page entegrasyonu
+**Not:** Aktivasyon email gate bu adımda eklenmedi — backend immediate login (is_active=True) intentional. Activation sayfası yalnızca davet edilen internal kullanıcılar içindir; kayıt akışı doğrudan token ile çalışır.
 
-**Davranış:**
-- employer kayıt → aktivasyon e-postası → `/jobs` landing
-- candidate kayıt → aktivasyon e-postası → `/talent/profile` landing
+**Dosyalar (tamamlandı):**
+- `web/src/config/register-redirect-policy.ts` (yeni) — `POST_REGISTER_REDIRECT` + `getActivationRedirectPath()`
+- `web/src/pages/EmployerRegisterPage.tsx` — `POST_REGISTER_REDIRECT.employer` kullanımı + info note
+- `web/src/pages/EmployerRegisterPage.css` — `__info` class (yeşil #059669)
+- `web/src/pages/CandidateRegisterPage.tsx` — `POST_REGISTER_REDIRECT.candidate` kullanımı + info note
+- `web/src/pages/CandidateRegisterPage.css` — `__info` class (mavi #0284c7)
+- `web/src/pages/InternalUserActivationPage.tsx` — rol bazlı redirect: employer→/jobs, candidate→/talent/profile, fallback→/app
+
+**Redirect Policy:**
+
+| user_type / system_role | Hedef |
+|---|---|
+| employer (employer_company_admin, employer_recruiter) | /jobs |
+| candidate (candidate_user) | /talent/profile |
+| fallback (diğer tüm roller) | /app |
+
+**Gate: 14/14 PASS**
+- 3 viewport × 4 assertion (info note visible, kart taşma yok) = 12
+- Activation smoke: employer→/jobs + candidate→/talent/profile = 2
 
 ---
 

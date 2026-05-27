@@ -7,108 +7,117 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 4 / Atomik-4 - COMPLETE
+PHASE 4 / Atomik-5 - COMPLETE
 
 ## Executive Summary
 
-PHASE 4 / Atomik-4 adds the public `/candidate/register` page — a standalone
-registration form for `candidate_user` accounts. Calls `POST /auth/register`
-with `user_type="candidate"`. On success, stores token pair in sessionStorage
-and redirects to `/talent/profile`. Responsive gate 33/33 PASS across
-360/768/1280 x 4 scenarios. type-check PASS, build PASS.
+PHASE 4 / Atomik-5 centralizes post-registration redirect policy into a single
+frontend module (`register-redirect-policy.ts`), wires role-based redirect into
+`InternalUserActivationPage.tsx` (employer→/jobs, candidate→/talent/profile,
+fallback→/app), and adds a UX info note to both register pages confirming
+immediate account access. Backend `is_active=True` (no email gate) is
+intentional and unchanged. Gate 14/14 PASS.
 
 ## Changes Made
 
-**`web/src/pages/CandidateRegisterPage.tsx`** — new file:
-- Form: full_name, email, password, confirm_password
-- Client-side validation: empty fields, min 8 chars password, password match
-- Loading state during submit
-- Backend error surfacing (sanitized message from Error)
-- On success: setAccessToken + setRefreshToken + sessionStorage pf_user
-  → navigate("/talent/profile", replace)
+**`web/src/config/register-redirect-policy.ts`** — new file:
+- `POST_REGISTER_REDIRECT` const: `{ employer: "/jobs", candidate: "/talent/profile" }`
+- `getActivationRedirectPath(systemRole)` — maps system_role to redirect path:
+  - employer_company_admin / employer_recruiter → /jobs
+  - candidate_user → /talent/profile
+  - fallback → /app
 
-**`web/src/pages/CandidateRegisterPage.css`** — new file:
-- Blue-tinted design (candidate brand color: #0284c7)
-- Responsive at 360 / 768 / 1280+
-- `font-size: 16px` on mobile inputs (prevents iOS zoom)
-- `box-sizing: border-box` on inputs (no overflow)
+**`web/src/pages/EmployerRegisterPage.tsx`** — updated:
+- Import `POST_REGISTER_REDIRECT` from policy module
+- `navigate(POST_REGISTER_REDIRECT.employer, { replace: true })` (was hardcoded "/jobs")
+- Added `<p className="employer-register-page__info">` info note after subtitle
 
-**`web/src/App.tsx`** — added:
-- `const CandidateRegisterPage = lazy(() => import(...))`
-- `<Route path="/candidate/register" element={<CandidateRegisterPage />} />`
-  (public, outside ProtectedRoute)
+**`web/src/pages/EmployerRegisterPage.css`** — updated:
+- Subtitle `margin: 0 0 28px` → `0 0 8px`
+- Added `.employer-register-page__info` (green #059669, 12px, centered)
 
-**`web/src/context/AuthProvider.tsx`** — added:
-- `"/candidate/register"` to `PUBLIC_AUTH_PATHS` set
+**`web/src/pages/CandidateRegisterPage.tsx`** — updated:
+- Import `POST_REGISTER_REDIRECT` from policy module
+- `navigate(POST_REGISTER_REDIRECT.candidate, { replace: true })` (was hardcoded "/talent/profile")
+- Added `<p className="candidate-register-page__info">` info note after subtitle
 
-## Responsive Gate Results
+**`web/src/pages/CandidateRegisterPage.css`** — updated:
+- Subtitle `margin: 0 0 28px` → `0 0 8px`
+- Added `.candidate-register-page__info` (blue #0284c7, 12px, centered)
 
-Gate script: `tools/atomik4_candidate_register_gate.mjs`
-Artifacts: `tools/gate-artifacts/atomik4-candidate-register/`
+**`web/src/pages/InternalUserActivationPage.tsx`** — updated:
+- Import `getActivationRedirectPath` from policy module
+- After successful activation: `const redirectPath = getActivationRedirectPath(data.user?.system_role)`
+- `navigate(redirectPath, { replace: true })` (was hardcoded "/app")
 
-| Viewport | Render | Empty Validation | PW Mismatch | Submit → /talent/profile |
-|---|---|---|---|---|
-| mobile-360 | PASS | PASS | PASS | PASS |
-| tablet-768 | PASS | PASS | PASS | PASS |
-| desktop-1280 | PASS | PASS | PASS | PASS |
+**`docs/runbooks/onboarding-phase4-plan.md`** — updated:
+- Atomik-5 section marked COMPLETE with redirect policy table and gate results
 
-**Total: 33/33 PASS**
+## Redirect Policy Table
+
+| user_type / system_role | Hedef |
+|---|---|
+| employer_company_admin | /jobs |
+| employer_recruiter | /jobs |
+| candidate_user | /talent/profile |
+| fallback (all other roles) | /app |
+
+## Gate Results
+
+Gate script: `tools/atomik5_activation_redirect_gate.mjs`
+Artifacts: `tools/gate-artifacts/atomik5-activation-redirect/`
+
+| Scenario | Viewports | Result |
+|---|---|---|
+| Employer register info note visible | 360/768/1280 | PASS (3/3) |
+| Employer card fits viewport | 360/768/1280 | PASS (3/3) |
+| Candidate register info note visible | 360/768/1280 | PASS (3/3) |
+| Candidate card fits viewport | 360/768/1280 | PASS (3/3) |
+| Activation employer_company_admin → /jobs | desktop-1280 | PASS |
+| Activation candidate_user → /talent/profile | desktop-1280 | PASS |
+
+**Total: 14/14 PASS**
 
 Card widths: 334px (360vp) · 530px (768vp) · 554px (1280vp) — all within viewport.
-
-## Gap Status After Atomik-4
-
-| Gap | Status |
-| --- | --- |
-| G1: No employer_company_admin onboarding path | DONE (Atomik-2 backend + Atomik-3 frontend) |
-| G2: No candidate_user onboarding path | DONE (Atomik-2 backend + Atomik-4 frontend) |
-| G3: No guest_public entry point | PHASE 5/6 scope |
-| G4: No post-registration redirect | DONE — employer→/jobs, candidate→/talent/profile |
 
 ## Gates Passed
 
 | Gate | Result | Detail |
 | --- | --- | --- |
 | type-check | PASS | 0 errors |
-| build | PASS | CandidateRegisterPage-yhHdFi_5.js + BZY9cNc3.css emitted |
-| Responsive gate | 33/33 PASS | 360/768/1280 x 4 scenarios |
-| Existing backend tests | Not re-run (no backend change) | Last run: 14/14 + 22/22 PASS |
+| build | PASS | register-redirect-policy-BWgjnEyh.js emitted |
+| Responsive gate | 14/14 PASS | 360/768/1280 register notes + 2 activation smoke |
 
 ## Next Atomic Step
 
-**PHASE 4 / Atomik-5:** Post-registration redirect + activation flow integration.
+**PHASE 4 / Atomik-6:** Navigation — guest_public CTA links.
 
-**Goal:** Wire activation email flow into employer and candidate registration.
-After register, user receives activation email; links to `/activate-account`
-which then redirects to `/jobs` (employer) or `/talent/profile` (candidate)
-based on `system_role`.
+**Goal:** Giriş yapmayan kullanıcılara employer/candidate kayıt entry point'lerini
+public navigation'da göster.
 
 **Files to investigate / update:**
-- `web/src/pages/InternalUserActivationPage.tsx` — add role-based redirect
-  after successful activation
-- `web/src/pages/EmployerRegisterPage.tsx` — optionally show
-  "E-postanızı kontrol edin" message instead of immediate redirect
-- `web/src/pages/CandidateRegisterPage.tsx` — same
+- `web/src/config/navigation-policy.ts` — public nav items ekleme
+  - "İşveren Kaydı" → `/employer/register` (visibility_scope: "public")
+  - "İş Arıyorum" → `/candidate/register` (visibility_scope: "public")
+- `web/src/components/NavBar.tsx` veya AppLayout — public CTA render
+- Responsive mobile collapse/hamburger davranışı test edilmeli
 
-**Constraint:** Backend `/auth/register` currently creates `is_active=True`
-(immediate login, no email gate). Atomik-5 may be documentation-only if
-activation is deferred to a later phase, or may add a "pending activation"
-state. Confirm scope with user before implementing.
+**Constraint:** Mevcut public nav yapısını bozmadan ekle. Nav governance
+policy (PHASE 2 Atomik-4) üzerinden çalış.
 
 ## Open Risks
 
 - `api/routers/onboarding_router.py` dirty (unrelated) — not touched.
-- Navigation guest_public CTAs (employer/candidate register links) — Atomik-6.
-- Backend register currently sets `is_active=True` — no email activation gate.
-  Atomik-5 scope to be confirmed.
+- Backend register currently sets `is_active=True` — intentional, no email gate.
+- Navigation guest_public CTAs — Atomik-6.
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 4 / Atomik-4: COMPLETE
-Next: PHASE 4 / Atomik-5 — post-registration redirect + activation flow.
+PHASE 4 / Atomik-5: COMPLETE
+Next: PHASE 4 / Atomik-6 — guest_public nav CTA links (employer/candidate register).
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 ```

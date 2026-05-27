@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/auth.service";
 import { setAccessToken, setRefreshToken } from "../lib/token";
+import { POST_REGISTER_REDIRECT } from "../config/register-redirect-policy";
 import "./EmployerRegisterPage.css";
 
 const USER_KEY = "pf_user";
@@ -58,7 +59,7 @@ export default function EmployerRegisterPage() {
       if (data.user) {
         sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
       }
-      navigate("/jobs", { replace: true });
+      navigate(POST_REGISTER_REDIRECT.employer, { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kayıt sırasında bir sorun oluştu.");
     } finally {
@@ -73,6 +74,9 @@ export default function EmployerRegisterPage() {
           <h1 className="employer-register-page__title">İşveren Kaydı</h1>
           <p className="employer-register-page__subtitle">
             İş ilanı yayınlamak ve aday yönetimi yapmak için ücretsiz hesap oluşturun.
+          </p>
+          <p className="employer-register-page__info">
+            Kayıt sonrası hesabınızla doğrudan devam edersiniz.
           </p>
 
           {error && (
