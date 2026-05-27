@@ -4,6 +4,8 @@ Program: `NAV_GOVERNANCE_AND_JOB_MARKETPLACE`
 
 Scope: PHASE 1 / Atomik-1. This document defines the target minimal policy shape only. No migration or runtime implementation is included in this step.
 
+> **PHASE 1 is CLOSED.** See [`nav-governance-phase-1-closure.md`](nav-governance-phase-1-closure.md) for the full closure report, parity evidence, and PHASE 2 entry criteria.
+
 ## Policy Entity
 
 ```ts
