@@ -7,14 +7,45 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 7 — IN PROGRESS (Atomik-3 COMPLETE — dirty files stash + PR description draft)
+PHASE 7 — BLOCKED (Atomik-4 CI failure — Atomik-4B gerekli)
 
 ## Executive Summary
 
-**PHASE 7 / Atomik-3 tamamlandı.** 15 unrelated tracked dirty dosya named stash ile temizlendi.
-PR description draft hazırlandı (`docs/runbooks/release-pr-description-draft.md`).
-D1 ve G6 Go/No-Go maddeleri COMPLETE. Kalan tek blocker: CI (Atomik-4).
-Sonraki adım: PHASE 7 / Atomik-4 — `gh pr create` + CI izleme.
+**PHASE 7 / Atomik-4 tamamlandı ama CI BLOCKED.** PR #27 açık ve description güncellendi.
+Branch push edildi, CI çalıştı: `test` job FAIL (20 test dosyası).
+`navigation-policy.test.ts` (4 failure) program-caused; diğerleri pre-existing şüpheli.
+Sonraki adım: PHASE 7 / Atomik-4B — navigation-policy test fix + main branch CI karşılaştırması.
+
+## PHASE 7 / Atomik-4 — PR Open + CI Watch — BLOCKED
+
+### Çıktılar
+- Branch push edildi: `origin/pr/strict-gate-payment-clean-v2` (97 commit)
+- PR #27 title + description güncellendi: `release: nav governance and job marketplace phases 0-6 with phase 7 governance`
+- PR URL: https://github.com/Buyerasistans/procureflow/pull/27
+- CI izlendi: **test job FAIL**
+
+### CI Check Matrix
+| Check | Sonuç |
+|---|---|
+| Analyze (javascript-typescript) | ✓ PASS |
+| Analyze (actions) | ✓ PASS |
+| Analyze (python) | ✓ PASS |
+| CodeQL | ✗ FAIL |
+| test | ✗ FAIL (20 dosya) |
+
+### Kritik Root Cause — navigation-policy.test.ts (4 failure)
+Program-caused: PHASE 4/A6 public nav'e `employer_register` + `candidate_register` eklendi.
+Test'in `EXPECTED_PUBLIC_KEYS` ve `EXPECTED_PUBLIC_HREFS` sabitleri güncellenmedi.
+Fix: 2 sabit'e 2 yeni key + 2 yeni href — ~4 satır değişiklik.
+
+### Diğer Failures (19 dosya) — Pre-existing şüpheli
+`login-page.test.tsx`, `premium-feature-purchase-panel.test.tsx`, `companies-tab.test.tsx`,
+vb. — program scope'uyla doğrudan ilişkisi yok; main branch'te de fail olabilir.
+Atomik-4B'de main CI karşılaştırması yapılacak.
+
+### Merge Readiness
+**BLOCKED** — Go/No-Go madde 7 (CI yeşil) karşılanmadı.
+Atomik-4B tamamlandıktan sonra Atomik-4 tekrar çalıştırılacak veya merge yapılacak.
 
 ## PHASE 7 / Atomik-3 — Dirty Files Execution + PR Description Draft — COMPLETE
 

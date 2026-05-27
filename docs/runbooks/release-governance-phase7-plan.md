@@ -133,9 +133,59 @@ Program kapsamı dışında olduklarından, PHASE 7 PR'ine dahil edilmezler.
 |---|---|---|
 | A1 | Release governance inventory (bu adım) | COMPLETE (no commit) |
 | A2 | Governance checklist operasyonelleştirme (docs-only) | COMPLETE (tek commit) |
-| A3 | Unrelated dirty files karara bağlama + PR description taslağı | İş akışı kararı |
-| A4 | PR to main: final review + merge | FINAL |
+| A3 | Unrelated dirty files karara bağlama + PR description taslağı | COMPLETE (d267e6d) |
+| A4 | PR open + CI watch | BLOCKED — CI test failure, Atomik-4B gerekli |
+| A4B | CI remediation: navigation-policy test fix | Açık |
 | A5 | Post-merge: G7 roadmap entry + PHASE 8 bootstrap | OPSIYONEL |
+
+### Atomik-4 Execution Notu — BLOCKED
+
+**PR:** https://github.com/Buyerasistans/procureflow/pull/27
+**Başlık:** `release: nav governance and job marketplace phases 0-6 with phase 7 governance`
+**Durum:** Open, not merged, not draft
+
+**CI Check Matrix:**
+
+| Check | Sonuç | Run |
+|---|---|---|
+| Analyze (javascript-typescript) | ✓ PASS | runs/26507402091 |
+| Analyze (actions) | ✓ PASS | runs/26507402091 |
+| Analyze (python) | ✓ PASS | runs/26507402091 |
+| CodeQL | ✗ FAIL | runs/78063358813 |
+| test | ✗ FAIL | runs/26507403941 |
+
+**Test Failure Özeti (20 dosya):**
+
+| Test Dosyası | Durum | Sınıf |
+|---|---|---|
+| navigation-policy.test.ts | 4/22 FAIL | **PROGRAM-CAUSED** |
+| onboarding-page.test.tsx | 3/5 FAIL | Pre-existing (şüpheli) |
+| companies-tab.test.tsx | 11/19 FAIL | Pre-existing (şüpheli) |
+| quote-page-permissions.test.tsx | 5/16 FAIL | Pre-existing (şüpheli) |
+| public-pages.test.tsx | 5/12 FAIL | Pre-existing (şüpheli) |
+| role-department-governance-tab.test.tsx | 3/4 FAIL | Pre-existing (şüpheli) |
+| permissions.test.ts | 3/11 FAIL | Pre-existing (şüpheli) |
+| channel-components.test.tsx | 3/7 FAIL | Pre-existing (şüpheli) |
+| admin-modal-workflows.test.tsx | 1/8 FAIL | Pre-existing (şüpheli) |
+| admin-readonly-tabs.test.tsx | 3/6 FAIL | Pre-existing (şüpheli) |
+| personnel-create-modal-permissions.test.tsx | 2/3 FAIL | Pre-existing (şüpheli) |
+| personnel-tab-permissions.test.tsx | 2/4 FAIL | Pre-existing (şüpheli) |
+| premium-feature-purchase-panel.test.tsx | 2/2 FAIL | Pre-existing (şüpheli) |
+| suppliers-tab-permissions.test.tsx | 2/3 FAIL | Pre-existing (şüpheli) |
+| profile-page-channel-summary.test.tsx | 1/2 FAIL | Pre-existing (şüpheli) |
+| login-page.test.tsx | 2/2 FAIL | Pre-existing (şüpheli) |
+| settings-tab.test.tsx | 1/13 FAIL | Pre-existing (şüpheli) |
+| support-ticket-admin.test.tsx | 1/7 FAIL | Pre-existing (şüpheli) |
+| supplier-selection-modals.test.tsx | 1/2 FAIL | Pre-existing (şüpheli) |
+| app-layout.test.tsx | 2/4 FAIL | Pre-existing (şüpheli) |
+
+**navigation-policy.test.ts Root Cause:**
+PHASE 4 / Atomik-6 public nav policy'e `top_nav.public.employer_register` ve
+`top_nav.public.candidate_register` eklendi, fakat `navigation-policy.test.ts`'deki
+`EXPECTED_PUBLIC_KEYS` ve `EXPECTED_PUBLIC_HREFS` sabitleri güncellenmedi.
+**Minimal fix:** 2 sabit'e 2 yeni key + 2 yeni href eklenmesi.
+
+**Sonraki Adım:** Atomik-4B — navigation-policy test fix, main branch CI durum karşılaştırması
 
 ### Atomik-2 Detayı (Governance Checklist Operasyonelleştirme) — COMPLETE
 
@@ -326,7 +376,7 @@ Aşağıdaki tüm Go koşulları karşılanmadan PR `main`'e merge edilmez.
 | 4 | E2E gate PHASE 6 ≥ 19/19 PASS | gate-artifacts/atomik6-phase6-full/report.json | ✓ DONE |
 | 5 | Unrelated dirty files PR scope dışında | stash@{0}: phase7-atomik3-unrelated-dirty-hold-20260527 | ✓ DONE |
 | 6 | PR description tamamlandı | docs/runbooks/release-pr-description-draft.md | ✓ DONE |
-| 7 | CI yeşil | GitHub Actions passing | Açık (A4) |
+| 7 | CI yeşil | GitHub Actions passing | BLOCKED — test job failure (A4B) |
 
 ### No-Go Koşulları (Blocker)
 
