@@ -72,21 +72,35 @@ Fix: Tek handler içinde `route.request().method() === "POST"` kontrolü.
 - Tedarikçi: `firma_ik_yoneticisi@` (ik_yoneticisi) eklendi
 - İş Ortağı (Kanal): `firma_ik_yoneticisi@` (ik_yoneticisi) eklendi
 
-### Bekleyen Büyük Özellikler
+### Dual-Role (Atomik-A,B,C) — TAMAMLANDI
 
-#### Dual-Role (Atomik-A,B,C) — ONAYLANDI, implement bekliyor
-- A: `Supplier.linked_tenant_id` migration
-- B: Frontend "Tedarikçi Profilim" sekmesi stratejik partner panelinde
-- C: Fiyatlandırma entegrasyonu
+**Atomik-A (commit e75dc79):**
+- `Supplier.linked_tenant_id` (nullable FK → tenants.id) + `Supplier.dual_role_status` (None|pending|active|rejected)
+- `Tenant.linked_as_supplier` back-reference (uselist=False)
+- Migration: `migrations/2026_05_28_add_dual_role_supplier_tenant_link.sql`
+- authz.py: `is_dual_role_active(supplier)`, `can_request_dual_role(user)`, `can_approve_dual_role(user)`
+- supplier_router.py: `POST /suppliers/{id}/request-dual-role` + `PATCH /suppliers/{id}/dual-role-status`
+- schemas/supplier.py: `linked_tenant_id` + `dual_role_status` eklendi SupplierOut'a
 
-#### İK Rolü Atomik-2 — Bekliyor
-- İK paneli sekmesi AdminPage'de (sadece İK kullanıcısı için)
-- Jobs menu sidebar'da İK için görünür
-- Tedarikçi portal'ında İK rolü desteği (ayrı Supplier authz)
+**Atomik-B (commit 571114b):**
+- `AdminTabKey` += `"supplier_profile"`
+- `navigation-policy.ts`: `PanelTabVisibilityFlags += can_view_supplier_profile_tab`, `PanelTabPolicyGroup += "supplier_profile"`, yeni tab definition
+- `AdminPage.tsx`: `canViewSupplierProfileTab = isTenantAdminUser && !canViewPlatformGovernance`, tab baseTabs'a eklendi, `SupplierProfileTab` import + render
+- `web/src/pages/admin/SupplierProfileTab.tsx` + `.css` — dual-role başvuru/durum UI
 
-#### Kariyer Modülü Paket Entegrasyonu — Bekliyor
-- Tenant tablosuna `can_post_jobs` feature flag
-- Subscription plan koduna `kariyer_modul` özelliği
+**Atomik-C (commit 450e2dd):**
+- `public_pricing_service.py`: `STRATEGIC_ADDON_LIMIT_KEY_BY_CODE` += dual_role/kariyer_modul; default addons listesine 2 yeni addon eklendi (9900/TRY + 4900/TRY)
+- `subscription_service.py`: `tenant_has_feature_addon()`, `tenant_has_dual_role()`, `tenant_has_kariyer_modul()` yardımcıları
+
+### İK Rolü Atomik-2 — TAMAMLANDI (commit 9144274)
+- `navigation-policy.ts`: Jobs nav linki `allowed_tenant_roles` += ik_yoneticisi/ik_uzmani/hr_manager/hr_specialist
+- `workspace-panels.ts`: İK rolleri için 4 yeni workspace panel profili (ik_yoneticisi, ik_uzmani, hr_manager, hr_specialist) + İK hızlı linkler (İş İlanları, Yeni İlan Oluştur, Kariyer Platformu)
+
+### Kalan Özellikler (bakiye)
+- **Kariyer Modülü Paket Entegrasyonu:** Tenant tablosuna `can_post_jobs` feature flag + authz'de `tenant_has_kariyer_modul()` kontrolü → şu an herkes iş ilanı açabilir, paket kısıtı yok
+- **Dual-Role Supplier Portal İK desteği:** Supplier portal'ında İK rolü authz desteği (ayrı Supplier authz)
+- **"Profil Gör" tam implementasyon:** /login'e gidiyor, gerçek profil sayfası henüz yok
+- **İşveren Girişi dedicated sayfa:** her iki button şu an /strategic-partner-login'e gidiyor
 
 ---
 
