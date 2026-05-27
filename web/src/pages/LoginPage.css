@@ -78,11 +78,157 @@
   background: var(--pf-amber-400);
 }
 
-.login-page__footer-note {
-  margin-top: 16px;
+/* Divider */
+.login-page__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 0;
+}
+
+.login-page__divider::before,
+.login-page__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.login-page__divider-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.login-page__kariyer-note {
+  margin: 12px auto 0;
   text-align: center;
+  max-width: 520px;
   font-size: 13px;
   color: var(--pf-slate-500);
+  line-height: 1.6;
+}
+
+.login-page__kariyer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.login-page__entry-button--employer {
+  background: #059669;
+  color: #fff;
+}
+
+.login-page__entry-button--candidate {
+  background: #0284c7;
+  color: #fff;
+}
+
+/* Üye Ol CTA */
+.login-page__register-cta {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.login-page__register-cta:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+.login-page__register-options {
+  margin-top: 18px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.login-page__register-options-title {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.login-page__register-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.login-page__register-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.login-page__register-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.login-page__register-btn--employer {
+  background: #059669;
+  color: #fff;
+}
+
+.login-page__register-btn--candidate {
+  background: #0284c7;
+  color: #fff;
+}
+
+.login-page__register-btn-icon {
+  font-size: 20px;
+}
+
+.login-page__register-btn-label {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.login-page__register-btn-sub {
+  font-size: 11px;
+  opacity: 0.85;
+  text-align: center;
+}
+
+.login-page__register-cancel {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+  text-align: center;
+  padding: 6px;
+}
+
+.login-page__register-cancel:hover {
+  color: #475569;
 }
 
 @media (max-width: 860px) {
@@ -96,6 +242,14 @@
   }
 
   .login-page__entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-page__kariyer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-page__register-grid {
     grid-template-columns: 1fr;
   }
 }

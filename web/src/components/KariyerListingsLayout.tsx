@@ -129,10 +129,10 @@ function JobCard({ job, mode }: { job: Job; mode: KariyerMode }) {
       <div className="kl-card__tag">🎯 Kategori: {job.category}</div>
       {salary && <div className="kl-card__salary">🥇 {salary}</div>}
       <div className="kl-card__actions">
-        <a href={isEmployer ? `/jobs/${job.id}` : "/candidate/register"} className="kl-btn kl-btn--primary">
+        <a href="/login" className="kl-btn kl-btn--primary">
           {isEmployer ? "Başvur" : "Profil Oluştur"}
         </a>
-        <a href={`/jobs/${job.id}`} className="kl-btn kl-btn--secondary">Detay Gör</a>
+        <a href="/login" className="kl-btn kl-btn--secondary">Detay Gör</a>
       </div>
     </div>
   );
@@ -153,10 +153,10 @@ function JobListRow({ job, mode }: { job: Job; mode: KariyerMode }) {
       <div className="kl-row__right">
         <span className="kl-card__days">{daysAgoText(job.daysAgo)}</span>
         <div className="kl-row__actions">
-          <a href={isEmployer ? `/jobs/${job.id}` : "/candidate/register"} className="kl-btn kl-btn--primary kl-btn--sm">
+          <a href="/login" className="kl-btn kl-btn--primary kl-btn--sm">
             {isEmployer ? "Başvur" : "Profil"}
           </a>
-          <a href={`/jobs/${job.id}`} className="kl-btn kl-btn--secondary kl-btn--sm">Detay</a>
+          <a href="/login" className="kl-btn kl-btn--secondary kl-btn--sm">Detay</a>
         </div>
       </div>
     </div>
@@ -185,8 +185,8 @@ function ProfCard({ pro }: { pro: Professional }) {
       <div className="kl-card__tag">✅ {pro.skills}</div>
       <div className="kl-card__salary">🥇 {pro.salaryExpectation}</div>
       <div className="kl-card__actions">
-        <a href="/employer/register" className="kl-btn kl-btn--primary">İletişime Geç</a>
-        <a href={`/talent/${pro.id}`} className="kl-btn kl-btn--secondary">Profil Gör</a>
+        <a href="/login" className="kl-btn kl-btn--primary">İletişime Geç</a>
+        <a href="/login" className="kl-btn kl-btn--secondary">Profil Gör</a>
       </div>
     </div>
   );
@@ -205,8 +205,8 @@ function ProfListRow({ pro }: { pro: Professional }) {
       <div className="kl-row__right">
         <span className="kl-card__days">{daysAgoText(pro.daysAgo)}</span>
         <div className="kl-row__actions">
-          <a href="/employer/register" className="kl-btn kl-btn--primary kl-btn--sm">İletişim</a>
-          <a href={`/talent/${pro.id}`} className="kl-btn kl-btn--secondary kl-btn--sm">Profil</a>
+          <a href="/login" className="kl-btn kl-btn--primary kl-btn--sm">İletişim</a>
+          <a href="/login" className="kl-btn kl-btn--secondary kl-btn--sm">Profil</a>
         </div>
       </div>
     </div>
