@@ -225,19 +225,26 @@ Body: { email, password, full_name, user_type: "employer" | "candidate" }
 
 ---
 
-### Atomik-6: Navigation — guest_public CTA'ları
+### Atomik-6: Navigation — guest_public CTA'ları — COMPLETE
 
 **Amaç:** Giriş yapmayan kullanıcılara employer/candidate kayıt entry point'leri göster.
 
-**Dosyalar:**
-- `web/src/config/navigation-policy.ts` — public nav items ekleme
-- `web/src/components/NavBar.tsx` veya `AppLayout.tsx` — public CTA render
+**Dosyalar (tamamlandı):**
+- `web/src/config/navigation-policy.ts` — iki yeni item eklendi (order 60 + 70, visibility_scope: "public")
+- `web/src/components/NavBar.tsx` — link split + `.public-nav-cta` render + popup register section
+- `web/src/components/NavBar.css` (yeni) — `.public-nav-cta` focus-visible + hover stilleri
 
-**Nav items önerisi:**
-- "İşveren Kaydı" → `/employer/register` (visibility_scope: "public")
-- "İş Arıyorum" → `/candidate/register` (visibility_scope: "public")
+**Nav items:**
+- "İşveren Kaydı" → `/employer/register` — yeşil (#059669) button-link
+- "İş Arıyorum" → `/candidate/register` — mavi (#0284c7) button-link
 
-**Responsive:** Top nav taşma davranışı (mobile collapse/hamburger) test edilmeli.
+**Responsive + collapse:**
+- 360/768/1280: CTA'lar NavBar'da inline görünür
+- Mobil: "Sisteme Giriş" popup açıldığında "Yeni Hesap" bölümünde de mevcut
+
+**Gate: 11/11 PASS**
+- 3 viewport × 3 assertion (employer visible, candidate visible, non-zero width) = 9
+- Mobile popup: employer + candidate in popup = 2
 
 ---
 

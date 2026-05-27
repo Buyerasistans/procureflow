@@ -309,6 +309,32 @@ export const PUBLIC_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[] = [
     requires_permissions: [],
     responsive_behavior: "collapse",
   },
+  {
+    key: "top_nav.public.employer_register",
+    label: "İşveren Kaydı",
+    placement: "top_nav",
+    route: "/employer/register",
+    order: 60,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
+  {
+    key: "top_nav.public.candidate_register",
+    label: "İş Arıyorum",
+    placement: "top_nav",
+    route: "/candidate/register",
+    order: 70,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
 ];
 
 export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[] = [

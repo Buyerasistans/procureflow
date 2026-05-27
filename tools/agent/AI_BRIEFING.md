@@ -7,117 +7,108 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 4 / Atomik-5 - COMPLETE
+PHASE 4 / Atomik-6 - COMPLETE
 
 ## Executive Summary
 
-PHASE 4 / Atomik-5 centralizes post-registration redirect policy into a single
-frontend module (`register-redirect-policy.ts`), wires role-based redirect into
-`InternalUserActivationPage.tsx` (employer→/jobs, candidate→/talent/profile,
-fallback→/app), and adds a UX info note to both register pages confirming
-immediate account access. Backend `is_active=True` (no email gate) is
-intentional and unchanged. Gate 14/14 PASS.
+PHASE 4 / Atomik-6 adds two guest_public onboarding CTAs to the public NavBar:
+"İşveren Kaydı" (green) and "İş Arıyorum" (blue). Items wired through
+navigation-policy.ts governance — no hardcode bypass. CTAs appear inline on
+all viewports and are also present in the mobile "Sisteme Giriş" popup under a
+"Yeni Hesap" section. Gate 11/11 PASS.
 
 ## Changes Made
 
-**`web/src/config/register-redirect-policy.ts`** — new file:
-- `POST_REGISTER_REDIRECT` const: `{ employer: "/jobs", candidate: "/talent/profile" }`
-- `getActivationRedirectPath(systemRole)` — maps system_role to redirect path:
-  - employer_company_admin / employer_recruiter → /jobs
-  - candidate_user → /talent/profile
-  - fallback → /app
+**`web/src/config/navigation-policy.ts`** — updated:
+- Added `top_nav.public.employer_register` (order 60, route /employer/register)
+- Added `top_nav.public.candidate_register` (order 70, route /candidate/register)
+- Both: visibility_scope "public", no role restrictions, responsive_behavior "collapse"
 
-**`web/src/pages/EmployerRegisterPage.tsx`** — updated:
-- Import `POST_REGISTER_REDIRECT` from policy module
-- `navigate(POST_REGISTER_REDIRECT.employer, { replace: true })` (was hardcoded "/jobs")
-- Added `<p className="employer-register-page__info">` info note after subtitle
+**`web/src/components/NavBar.tsx`** — updated:
+- Import `./NavBar.css`
+- Extended `PUBLIC_NAV_LOCALE_MAP` with both new keys (TR + EN labels)
+- Added `REGISTER_CTA_KEYS` set for splitting link types
+- Split `allVisible` items into `links` (existing behavior) + `registerCtas` (new)
+- Renders `registerCtas` as `<a className="public-nav-cta public-nav-cta--employer|candidate">`
+  after regular nav links, before right-side CTA buttons
+- Popup ("Sisteme Giriş"): added "Yeni Hesap" divider section with register links
+  inside the existing `showLoginPopup` block
 
-**`web/src/pages/EmployerRegisterPage.css`** — updated:
-- Subtitle `margin: 0 0 28px` → `0 0 8px`
-- Added `.employer-register-page__info` (green #059669, 12px, centered)
-
-**`web/src/pages/CandidateRegisterPage.tsx`** — updated:
-- Import `POST_REGISTER_REDIRECT` from policy module
-- `navigate(POST_REGISTER_REDIRECT.candidate, { replace: true })` (was hardcoded "/talent/profile")
-- Added `<p className="candidate-register-page__info">` info note after subtitle
-
-**`web/src/pages/CandidateRegisterPage.css`** — updated:
-- Subtitle `margin: 0 0 28px` → `0 0 8px`
-- Added `.candidate-register-page__info` (blue #0284c7, 12px, centered)
-
-**`web/src/pages/InternalUserActivationPage.tsx`** — updated:
-- Import `getActivationRedirectPath` from policy module
-- After successful activation: `const redirectPath = getActivationRedirectPath(data.user?.system_role)`
-- `navigate(redirectPath, { replace: true })` (was hardcoded "/app")
+**`web/src/components/NavBar.css`** — new file:
+- `.public-nav-cta` base: inline-flex, font-weight 700, fontSize 11px, border-radius 6px
+- `.public-nav-cta:focus-visible` outline 2px solid #fff (keyboard accessibility)
+- `.public-nav-cta:hover` opacity 0.88 + translateY(-1px)
+- `.public-nav-cta--employer` background rgba(5,150,105,0.92)
+- `.public-nav-cta--candidate` background rgba(2,132,199,0.92)
 
 **`docs/runbooks/onboarding-phase4-plan.md`** — updated:
-- Atomik-5 section marked COMPLETE with redirect policy table and gate results
+- Atomik-6 section marked COMPLETE with files, nav items, gate results
 
-## Redirect Policy Table
+## Nav Policy Items Added
 
-| user_type / system_role | Hedef |
-|---|---|
-| employer_company_admin | /jobs |
-| employer_recruiter | /jobs |
-| candidate_user | /talent/profile |
-| fallback (all other roles) | /app |
+| Key | Label | Route | Order |
+|---|---|---|---|
+| top_nav.public.employer_register | İşveren Kaydı | /employer/register | 60 |
+| top_nav.public.candidate_register | İş Arıyorum | /candidate/register | 70 |
 
 ## Gate Results
 
-Gate script: `tools/atomik5_activation_redirect_gate.mjs`
-Artifacts: `tools/gate-artifacts/atomik5-activation-redirect/`
+Gate script: `tools/atomik6_public_nav_cta_gate.mjs`
+Artifacts: `tools/gate-artifacts/atomik6-public-nav-cta/`
 
-| Scenario | Viewports | Result |
-|---|---|---|
-| Employer register info note visible | 360/768/1280 | PASS (3/3) |
-| Employer card fits viewport | 360/768/1280 | PASS (3/3) |
-| Candidate register info note visible | 360/768/1280 | PASS (3/3) |
-| Candidate card fits viewport | 360/768/1280 | PASS (3/3) |
-| Activation employer_company_admin → /jobs | desktop-1280 | PASS |
-| Activation candidate_user → /talent/profile | desktop-1280 | PASS |
+| Scenario | Result |
+|---|---|
+| mobile-360: employer CTA visible in nav | PASS |
+| mobile-360: candidate CTA visible in nav | PASS |
+| mobile-360: employer CTA non-zero width (91px) | PASS |
+| mobile-360: employer link in popup (2 occurrences) | PASS |
+| mobile-360: candidate link in popup (2 occurrences) | PASS |
+| tablet-768: employer CTA visible in nav | PASS |
+| tablet-768: candidate CTA visible in nav | PASS |
+| tablet-768: employer CTA non-zero width (91px) | PASS |
+| desktop-1280: employer CTA visible in nav | PASS |
+| desktop-1280: candidate CTA visible in nav | PASS |
+| desktop-1280: employer CTA non-zero width (91px) | PASS |
 
-**Total: 14/14 PASS**
-
-Card widths: 334px (360vp) · 530px (768vp) · 554px (1280vp) — all within viewport.
+**Total: 11/11 PASS**
 
 ## Gates Passed
 
 | Gate | Result | Detail |
 | --- | --- | --- |
 | type-check | PASS | 0 errors |
-| build | PASS | register-redirect-policy-BWgjnEyh.js emitted |
-| Responsive gate | 14/14 PASS | 360/768/1280 register notes + 2 activation smoke |
+| build | PASS | navigation-policy-C1GcHWie.js updated |
+| Responsive gate | 11/11 PASS | 360/768/1280 nav inline + mobile popup |
 
 ## Next Atomic Step
 
-**PHASE 4 / Atomik-6:** Navigation — guest_public CTA links.
+**PHASE 4 / Atomik-7:** Responsive gate + E2E validation of full registration flows.
 
-**Goal:** Giriş yapmayan kullanıcılara employer/candidate kayıt entry point'lerini
-public navigation'da göster.
+**Goal:** Full end-to-end validation of all PHASE 4 onboarding paths.
 
-**Files to investigate / update:**
-- `web/src/config/navigation-policy.ts` — public nav items ekleme
-  - "İşveren Kaydı" → `/employer/register` (visibility_scope: "public")
-  - "İş Arıyorum" → `/candidate/register` (visibility_scope: "public")
-- `web/src/components/NavBar.tsx` veya AppLayout — public CTA render
-- Responsive mobile collapse/hamburger davranışı test edilmeli
+**Scenarios to cover:**
+- employer register form render + submit mock (3 viewport) — regression check
+- candidate register form render + submit mock (3 viewport) — regression check
+- guest_public nav CTA -> employer/candidate register page navigation
+- activation redirect: employer → /jobs, candidate → /talent/profile
 
-**Constraint:** Mevcut public nav yapısını bozmadan ekle. Nav governance
-policy (PHASE 2 Atomik-4) üzerinden çalış.
+**Gate script:** `tools/atomik7_onboarding_gate.mjs`
+
+**Note:** This is the final PHASE 4 gate before PHASE 5 planning.
 
 ## Open Risks
 
 - `api/routers/onboarding_router.py` dirty (unrelated) — not touched.
-- Backend register currently sets `is_active=True` — intentional, no email gate.
-- Navigation guest_public CTAs — Atomik-6.
+- Backend register currently sets `is_active=True` — intentional.
+- PHASES 5-7 still pending; PR to main only after PHASE 7.
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 4 / Atomik-5: COMPLETE
-Next: PHASE 4 / Atomik-6 — guest_public nav CTA links (employer/candidate register).
+PHASE 4 / Atomik-6: COMPLETE
+Next: PHASE 4 / Atomik-7 — full PHASE 4 E2E gate (employer/candidate register + nav CTA flows).
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 ```

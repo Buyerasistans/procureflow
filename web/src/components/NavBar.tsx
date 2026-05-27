@@ -9,6 +9,7 @@ import {
   PUBLIC_NAV_CONTEXT,
   resolveVisibleNavItems,
 } from "../config/navigation-policy";
+import "./NavBar.css";
 
 type NavVariant = "platform" | "strategic" | "supplier" | "channel" | "neutral";
 
@@ -61,6 +62,8 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       "top_nav.public.suppliers": { href: "/tedarikciler", label: copy.suppliers },
       "top_nav.public.strategic": { href: "/stratejik-ortaklik", label: copy.strategic },
       "top_nav.public.partner_program": { href: "/is-ortagi-programi", label: copy.partnerProgram },
+      "top_nav.public.employer_register": { href: "/employer/register", label: "İşveren Kaydı" },
+      "top_nav.public.candidate_register": { href: "/candidate/register", label: "İş Arıyorum" },
     }
     : {
       "top_nav.public.home": { href: "/", label: copy.home },
@@ -68,11 +71,26 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       "top_nav.public.suppliers": { href: "/suppliers", label: copy.suppliers },
       "top_nav.public.strategic": { href: "/strategic-partner", label: copy.strategic },
       "top_nav.public.partner_program": { href: "/partner-program", label: copy.partnerProgram },
+      "top_nav.public.employer_register": { href: "/employer/register", label: "For Employers" },
+      "top_nav.public.candidate_register": { href: "/candidate/register", label: "Find Jobs" },
     };
 
-  const links = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)
+  const REGISTER_CTA_KEYS = new Set([
+    "top_nav.public.employer_register",
+    "top_nav.public.candidate_register",
+  ]);
+
+  const allVisible = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT);
+
+  const links = allVisible
+    .filter((item) => !REGISTER_CTA_KEYS.has(item.key))
     .map((item) => PUBLIC_NAV_LOCALE_MAP[item.key])
     .filter((link): link is { href: string; label: string } => link !== undefined);
+
+  const registerCtas = allVisible
+    .filter((item) => REGISTER_CTA_KEYS.has(item.key))
+    .map((item) => ({ key: item.key, ...PUBLIC_NAV_LOCALE_MAP[item.key] }))
+    .filter((cta): cta is { key: string; href: string; label: string } => !!cta.href);
 
   useEffect(() => {
     return () => {
@@ -150,6 +168,17 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
           );
         })}
 
+        {/* Onboarding CTA'ları — employer + candidate register */}
+        {registerCtas.map((cta) => (
+          <a
+            key={cta.href}
+            href={cta.href}
+            className={`public-nav-cta public-nav-cta--${cta.key === "top_nav.public.employer_register" ? "employer" : "candidate"}`}
+          >
+            {cta.label}
+          </a>
+        ))}
+
         {/* Sag CTA butonlari */}
         <div style={{ marginLeft: 8, display: "flex", gap: 6, position: "relative", flexShrink: 0 }}>
           {variant === "supplier" ? (
@@ -198,6 +227,27 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
                 <a href="/supplier/login" style={popupBtn("#0284c7", "#ffffff")}>{copy.supplierLogin}</a>
                 <a href="/channel/login" style={popupBtn("#f59e0b", "#2f1a0d")}>{copy.partnerLogin}</a>
               </div>
+              {registerCtas.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>
+                    Yeni Hesap
+                  </div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {registerCtas.map((cta) => (
+                      <a
+                        key={cta.href}
+                        href={cta.href}
+                        style={popupBtn(
+                          cta.key === "top_nav.public.employer_register" ? "#059669" : "#0284c7",
+                          "#ffffff",
+                        )}
+                      >
+                        {cta.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setShowLoginPopup(false)}
