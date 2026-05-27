@@ -70,6 +70,7 @@ import { useSearchParams } from "react-router-dom";
 import { QuoteStatusLabel, normalizeQuoteStatus } from "../types/quote.types";
 import { getQuote, getQuoteAuditTrail, getQuoteHistory, getQuotePendingApprovals, getQuotes, type Quote, type QuoteAuditTrail, type QuotePendingApproval, type StatusLog } from "../services/quote.service";
 import { getWorkspacePanelQuickLinks, mergeWorkspacePanelConfig, resolveWorkspacePanelProfile, WORKSPACE_PANEL_DATA_TABS, type WorkspacePanelTabKey } from "../admin/workspace-panels";
+import { buildPolicyContext, resolveVisiblePanelTabKeys } from "../config/navigation-policy";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
 import "../styles/pages/AdminPage.css";
@@ -2941,12 +2942,26 @@ export default function AdminPage() {
       });
     }
 
+    const panelPolicyContext = user
+      ? buildPolicyContext(user)
+      : { is_authenticated: false, permissions: [] };
+    const policyVisibleTabKeys = new Set(resolveVisiblePanelTabKeys(panelPolicyContext, {
+      is_role_management_only: isRoleManagementOnly,
+      can_view_platform_governance: canViewPlatformGovernance,
+      can_view_packages_tab: canViewPackagesTab,
+      can_view_deployment_tab: canViewDeploymentTab,
+      can_view_settings_tab: canViewSettingsTab,
+      show_settings_workspace_links: showSettingsWorkspaceLinks,
+      can_use_panel_designer: Boolean(isSuperAdminUser(user) || activeWorkspacePanelProfile?.allow_user_self_customization),
+    }) as AdminTabKey[]);
+    const policyFilteredTabs = baseTabs.filter((tab) => policyVisibleTabKeys.has(tab.key));
+
     if (!activeWorkspacePanelProfile) {
-      return baseTabs;
+      return policyFilteredTabs;
     }
 
     const allowedTabs = new Set(activeWorkspacePanelProfile.allowed_tabs as AdminTabKey[]);
-    return baseTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer");
+    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer");
   }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
 
   const shouldLoadAdminWorkspaceData = useMemo(

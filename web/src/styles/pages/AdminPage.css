@@ -2,6 +2,8 @@
   display: grid;
   gap: 20px;
   padding: 20px;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .admin-page__access-denied {
@@ -16,6 +18,7 @@
 .admin-page__section {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 
 .admin-page__panel {
@@ -23,6 +26,7 @@
   border: 1px solid var(--pf-border-color);
   background: var(--pf-surface);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  min-width: 0;
 }
 
 .admin-page__panel--padded {
@@ -45,6 +49,8 @@
   padding-bottom: 12px;
   flex-wrap: wrap;
   justify-content: flex-start;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .admin-page__tabs-row--stacked {
@@ -92,6 +98,28 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .admin-page {
+    padding: 12px;
+  }
+
+  .admin-page__card--padded {
+    padding: 12px;
+  }
+
+  .admin-page__tabs-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .admin-page__tab-button,
+  .admin-page__tab-link {
+    flex: 0 0 auto;
+  }
 }
 
 .admin-page__notice {
@@ -324,6 +352,7 @@
   border: 1px solid var(--pf-border-color);
   background: var(--pf-surface);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  min-width: 0;
 }
 
 .admin-page__card--padded {

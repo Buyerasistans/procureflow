@@ -20,6 +20,12 @@ Scope: PHASE 1 / Atomik-1. This document defines the target minimal policy shape
 > `navigation-adapter.ts` jsdoc updated (test-only, no runtime call-sites).
 > `auth-routing.test.tsx` stale mock removed; assertions updated to policy labels.
 > Zero runtime consumers of `getVisibleNavItems` remain.
+>
+> **PHASE 2 / Atomik-3 COMPLETE.** Admin panel tab visibility now passes through
+> the typed `panel_tab` policy resolver before render. Existing tab labels,
+> order, slugs, workspace-profile filtering, and content routes are preserved.
+> Policy parity is covered for `super_admin`, `tenant_admin`, and
+> role-management-only personas.
 
 ## Policy Entity
 
@@ -58,6 +64,67 @@ type NavigationVisibilityPolicyItem = {
 | `allowed_tenant_roles` | Business/tenant role allowlist | Empty means no tenant-role restriction beyond scope/permission. |
 | `requires_permissions` | Permission keys required | Empty means no additional permission requirement. |
 | `responsive_behavior` | Overflow behavior | `wrap`, `collapse`, or `more_menu`. |
+
+## PHASE 2 / Atomik-3 Panel Tab Governance
+
+Runtime entry point:
+
+- `web/src/pages/AdminPage.tsx`
+
+Policy module:
+
+- `web/src/config/navigation-policy.ts`
+
+The panel tab layer uses the same `NavigationVisibilityPolicyItem` entity with `placement: "panel_tab"`. `AdminPage.tsx` still builds the current tab metadata, labels, icons, and descriptions in the existing order, then filters those keys through `resolveVisiblePanelTabKeys(...)`. This keeps visual parity while moving the final visibility decision into the typed policy resolver.
+
+### Panel Tab Inventory
+
+| Tab key | Current source | Visibility input | Policy group |
+| --- | --- | --- | --- |
+| `panel_home` | `AdminPage.tsx` | normal workspace access, not role-management-only | `core` |
+| `platform_operations` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `discovery_lab_operations` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `onboarding_studio` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `tenant_governance` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `packages` | `AdminPage.tsx` | `canViewPlatformGovernance && canViewPackagesTab` | `packages` |
+| `deployment` | `AdminPage.tsx` | `canViewPlatformGovernance && canViewDeploymentTab` | `deployment` |
+| `platform_analytics` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `platform_suppliers` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `public_pricing` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `campaigns` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `commission_admin` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `support_tickets` | `AdminPage.tsx` | `canViewPlatformGovernance` | `platform` |
+| `settings` | `AdminPage.tsx` | platform settings or workspace settings links | `settings` |
+| `companies` | `AdminPage.tsx` | core workspace access | `core` |
+| `roles` | `AdminPage.tsx` | core workspace access or role-management-only | `role_management` |
+| `departments` | `AdminPage.tsx` | core workspace access | `core` |
+| `personnel` | `AdminPage.tsx` | core workspace access | `core` |
+| `projects` | `AdminPage.tsx` | core workspace access | `core` |
+| `approvals` | `AdminPage.tsx` | core workspace access | `core` |
+| `reports` | `AdminPage.tsx` | core workspace access | `core` |
+| `panel_designer` | `AdminPage.tsx` | super admin or self-customization profile flag | `panel_designer` |
+
+### Panel Tab Policy Shape
+
+```ts
+type PanelTabVisibilityFlags = {
+  is_role_management_only: boolean;
+  can_view_platform_governance: boolean;
+  can_view_packages_tab: boolean;
+  can_view_deployment_tab: boolean;
+  can_view_settings_tab: boolean;
+  show_settings_workspace_links: boolean;
+  can_use_panel_designer: boolean;
+};
+```
+
+Example policy row:
+
+| key | label | placement | route | order | enabled | scope | permissions | responsive |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+| `panel_tab.admin.tenant_governance` | Stratejik Partner Yönetimi | `panel_tab` | `/admin?tab=tenant_governance` | 50 | `can_view_platform_governance` | `authenticated` | - | `wrap` |
+
+The workspace-profile `allowed_tabs` filter remains after policy resolution. This preserves tenant/profile overrides and avoids changing existing panel designer semantics.
 
 ## Example Policy Draft
 

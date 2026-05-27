@@ -38,6 +38,16 @@ export type NavigationVisibilityContext = {
   scope?: VisibilityScope | "tenant" | "platform" | string | null;
 };
 
+export type PanelTabVisibilityFlags = {
+  is_role_management_only: boolean;
+  can_view_platform_governance: boolean;
+  can_view_packages_tab: boolean;
+  can_view_deployment_tab: boolean;
+  can_view_settings_tab: boolean;
+  show_settings_workspace_links: boolean;
+  can_use_panel_designer: boolean;
+};
+
 function normalizeRole(value?: string | null): string {
   return String(value || "").toLowerCase();
 }
@@ -122,6 +132,95 @@ export function resolveVisibleNavItems(
   return items
     .filter((item) => isPolicyItemVisible(item, context))
     .sort((left, right) => left.order - right.order);
+}
+
+type PanelTabPolicyGroup =
+  | "core"
+  | "role_management"
+  | "platform"
+  | "packages"
+  | "deployment"
+  | "settings"
+  | "panel_designer";
+
+const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
+  key: string;
+  label: string;
+  order: number;
+  group: PanelTabPolicyGroup;
+}> = [
+  { key: "panel_home", label: "Panel Ana Sayfa", order: 10, group: "core" },
+  { key: "platform_operations", label: "Platform Operasyonları", order: 20, group: "platform" },
+  { key: "discovery_lab_operations", label: "Discovery Lab Operasyonları", order: 30, group: "platform" },
+  { key: "onboarding_studio", label: "Kurulum Stüdyosu", order: 40, group: "platform" },
+  { key: "tenant_governance", label: "Stratejik Partner Yönetimi", order: 50, group: "platform" },
+  { key: "packages", label: "Paket ve Kullanım", order: 60, group: "packages" },
+  { key: "deployment", label: "Yayınlama", order: 70, group: "deployment" },
+  { key: "platform_analytics", label: "Platform Analitikleri", order: 80, group: "platform" },
+  { key: "platform_suppliers", label: "Platform Tedarikçi Havuzu", order: 90, group: "platform" },
+  { key: "public_pricing", label: "Ödeme ve Fiyatlandırma", order: 100, group: "platform" },
+  { key: "campaigns", label: "Kampanya Yönetimi", order: 110, group: "platform" },
+  { key: "commission_admin", label: "Komisyon Yönetimi", order: 120, group: "platform" },
+  { key: "support_tickets", label: "Destek Talepleri", order: 130, group: "platform" },
+  { key: "settings", label: "Ayarlar", order: 140, group: "settings" },
+  { key: "companies", label: "Firmalar", order: 150, group: "core" },
+  { key: "roles", label: "Roller ve Yetkiler", order: 160, group: "role_management" },
+  { key: "departments", label: "Departmanlar", order: 170, group: "core" },
+  { key: "personnel", label: "Personeller", order: 180, group: "core" },
+  { key: "projects", label: "Projeler", order: 190, group: "core" },
+  { key: "approvals", label: "Onay Akışları", order: 200, group: "core" },
+  { key: "reports", label: "Raporlar", order: 210, group: "core" },
+  { key: "panel_designer", label: "Panel Tasarımı", order: 220, group: "panel_designer" },
+];
+
+function isPanelTabGroupEnabled(group: PanelTabPolicyGroup, flags: PanelTabVisibilityFlags): boolean {
+  if (flags.is_role_management_only) return group === "role_management";
+
+  switch (group) {
+    case "core":
+    case "role_management":
+      return true;
+    case "platform":
+      return flags.can_view_platform_governance;
+    case "packages":
+      return flags.can_view_platform_governance && flags.can_view_packages_tab;
+    case "deployment":
+      return flags.can_view_platform_governance && flags.can_view_deployment_tab;
+    case "settings":
+      return flags.can_view_platform_governance
+        ? flags.can_view_settings_tab
+        : flags.show_settings_workspace_links;
+    case "panel_designer":
+      return flags.can_use_panel_designer;
+    default:
+      return false;
+  }
+}
+
+export function buildAdminPanelTabPolicyItems(
+  flags: PanelTabVisibilityFlags,
+): NavigationVisibilityPolicyItem[] {
+  return ADMIN_PANEL_TAB_POLICY_DEFINITIONS.map((definition) => ({
+    key: `panel_tab.admin.${definition.key}`,
+    label: definition.label,
+    placement: "panel_tab",
+    route: `/admin?tab=${definition.key}`,
+    order: definition.order,
+    is_enabled: isPanelTabGroupEnabled(definition.group, flags),
+    visibility_scope: "authenticated",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "wrap",
+  }));
+}
+
+export function resolveVisiblePanelTabKeys(
+  context: NavigationVisibilityContext,
+  flags: PanelTabVisibilityFlags,
+): string[] {
+  return resolveVisibleNavItems(buildAdminPanelTabPolicyItems(flags), context)
+    .map((item) => item.route.replace("/admin?tab=", ""));
 }
 
 /** Derives a NavigationVisibilityContext from an AuthUser. */

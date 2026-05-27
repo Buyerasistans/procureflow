@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 import { hasPermissionForUser, type Permission, type Role } from "../auth/permissions";
 import {
   AUTHENTICATED_TOP_NAV_POLICY_ITEMS,
+  buildPolicyContext,
+  resolveVisiblePanelTabKeys,
   resolveVisibleNavItems,
   type NavigationVisibilityContext,
+  type PanelTabVisibilityFlags,
 } from "../config/navigation-policy";
 import { compareAuthenticatedTopNav } from "../config/navigation-adapter";
 import { getVisibleNavItems } from "../config/navigation";
@@ -234,5 +237,94 @@ describe("parity adapter: role vocabulary coverage", () => {
     });
     const result = compareAuthenticatedTopNav(user);
     expect(result.hasDivergence).toBe(false);
+  });
+});
+
+describe("admin panel tab policy", () => {
+  const superAdminFlags: PanelTabVisibilityFlags = {
+    is_role_management_only: false,
+    can_view_platform_governance: true,
+    can_view_packages_tab: true,
+    can_view_deployment_tab: true,
+    can_view_settings_tab: true,
+    show_settings_workspace_links: false,
+    can_use_panel_designer: true,
+  };
+
+  const tenantAdminFlags: PanelTabVisibilityFlags = {
+    is_role_management_only: false,
+    can_view_platform_governance: false,
+    can_view_packages_tab: false,
+    can_view_deployment_tab: false,
+    can_view_settings_tab: true,
+    show_settings_workspace_links: true,
+    can_use_panel_designer: false,
+  };
+
+  it("super_admin panel tab setini mevcut siralama ile policy uzerinden cozer", () => {
+    const user = buildUser({
+      role: "super_admin",
+      business_role: "super_admin",
+      system_role: "super_admin",
+    });
+
+    expect(resolveVisiblePanelTabKeys(buildPolicyContext(user), superAdminFlags)).toEqual([
+      "panel_home",
+      "platform_operations",
+      "discovery_lab_operations",
+      "onboarding_studio",
+      "tenant_governance",
+      "packages",
+      "deployment",
+      "platform_analytics",
+      "platform_suppliers",
+      "public_pricing",
+      "campaigns",
+      "commission_admin",
+      "support_tickets",
+      "settings",
+      "companies",
+      "roles",
+      "departments",
+      "personnel",
+      "projects",
+      "approvals",
+      "reports",
+      "panel_designer",
+    ]);
+  });
+
+  it("tenant_admin panel tab setinde platform-only tablari gizler ve settings'i korur", () => {
+    const user = buildUser({
+      role: "admin" as Role,
+      business_role: "admin",
+      system_role: "tenant_admin",
+    });
+
+    expect(resolveVisiblePanelTabKeys(buildPolicyContext(user), tenantAdminFlags)).toEqual([
+      "panel_home",
+      "settings",
+      "companies",
+      "roles",
+      "departments",
+      "personnel",
+      "projects",
+      "approvals",
+      "reports",
+    ]);
+  });
+
+  it("role-management-only kullanicida yalniz roller sekmesini cozer", () => {
+    const user = buildUser({
+      role: "manager",
+      business_role: "manager",
+      system_role: "tenant_member",
+    });
+
+    expect(resolveVisiblePanelTabKeys(buildPolicyContext(user), {
+      ...tenantAdminFlags,
+      is_role_management_only: true,
+      show_settings_workspace_links: false,
+    })).toEqual(["roles"]);
   });
 });
