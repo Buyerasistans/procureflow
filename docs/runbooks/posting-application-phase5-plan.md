@@ -430,3 +430,21 @@ A1 (envanter)
         └── A7 (withdrawal) — A5+A6'ya bağımlı
 └── A8 (E2E gate) — tüm önceki adımlara bağımlı
 ```
+
+---
+
+## 7. PHASE 6 Bootstrap
+
+PHASE 5 kapanışı: 2026-05-27. G1–G5 tümü tamamlandı.
+
+### Deferred Gap: G6 — Job Detail Page
+
+| Alan | Durum |
+|---|---|
+| Backend: `GET /jobs/{job_id}` | **HAZIR** — `view_count++` dahil |
+| Frontend service: `fetchJob(id)` | **MEVCUT** — `jobs.service.ts:123`, hiçbir sayfada kullanılmıyor |
+| Frontend route: `/jobs/:id` | **YOK** — App.tsx'e eklenmedi |
+| Frontend page: `JobDetailPage.tsx` | **YOK** — `web/src/pages/` altında yok |
+| Entry points | **YOK** — JobsPage kart başlığından link yok; "İlan #{job_id}" plain text |
+
+PHASE 6 runbook: `docs/runbooks/jobs-surface-phase6-plan.md`

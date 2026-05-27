@@ -16,6 +16,72 @@ G1–G5 tümü doğrulandı tek gate ile; üretim koduna dokunulmadı.
 G6 (job detail page /jobs/:id) sonraki faza (PHASE 6) ertelendi.
 Sonraki adım: PHASE 6 / Atomik-1 (surface inventory + backlog definition).
 
+## PHASE 6 / Atomik-2 — JobDetailPage shell + /jobs/:id route
+
+### Dosyalar
+
+**`web/src/pages/JobDetailPage.tsx`** (YENİ)
+- `useParams<{ id: string }>()` → `jobId = Number(id)`
+- Guard: `!id || isNaN(jobId) || jobId <= 0` → `.job-detail__error` "Geçersiz ilan numarası."
+- `useEffect([id, jobId])` → `fetchJob(jobId)` → `.then(setJob)` / `.catch(setError)` / `.finally(setLoading(false))`
+- Loading: `.job-detail__loading`
+- Error/not-found: `.job-detail__error`
+- Success: `.job-detail` container
+  - `.job-detail__title` — job.title
+  - `.job-detail__meta` — status badge (`job-detail__badge--{status}`), employment_type, location_type, category, city/country, application_count + view_count
+  - `.job-detail__desc` — `white-space: pre-wrap; overflow-wrap: break-word`
+- İmport: `fetchJob`, `extractJobsError`, `ProcurementJob` — jobs.service.ts
+
+**`web/src/pages/JobDetailPage.css`** (YENİ)
+- `.job-detail` — max-width: 960px; margin: 0 auto; padding: 24px
+- `.job-detail__badge--published/draft/closed/filled` — renkli status badge'ler
+- `.job-detail__error` — kırmızı hata kutusu, overflow-wrap: break-word
+- Mobil uyumlu: flex-wrap, overflow-wrap
+
+**`web/src/App.tsx`** (değiştirildi)
+- Line 46: `const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));`
+- Line 149: `<Route path="/jobs/:id" element={<JobDetailPage />} />` (ProtectedRoute > AppLayout, `/jobs`'ın hemen altında)
+
+### Kalite Gateleri
+- type-check: PASS — 0 errors
+- build: PASS ✓
+- Smoke: App.tsx'te lazy import + route kaydı ✓; JobDetailPage.tsx'te useParams + fetchJob + tüm selector'lar ✓
+
+## PHASE 6 / Atomik-1 — Surface Inventory (docs-only, no commit)
+
+### Envanter Bulguları
+
+| Bileşen | Durum |
+|---|---|
+| Backend `GET /jobs/{job_id}` | HAZIR — view_count++, scope-aware, 404 guard |
+| Frontend `fetchJob(id)` | MEVCUT — `jobs.service.ts:123`, hiçbir sayfada import edilmiyor |
+| `/jobs/:id` route (App.tsx) | YOK |
+| `JobDetailPage.tsx` | YOK |
+| JobsPage kart başlığı linki | YOK — plain `<p>` text |
+| Candidate history `İlan #42` linki | YOK — plain `<span>` text |
+| `JobList.tsx` (web/src/JobList.tsx) | Eski prototype — hiçbir route'a kayıtlı değil (dead code) |
+
+### PHASE 6 Atomik Backlog
+
+| Atomik | Hedef | Durum |
+|---|---|---|
+| A1 | Surface inventory + backlog definition | COMPLETE (no commit) |
+| A2 | `JobDetailPage.tsx` shell + `/jobs/:id` route | Açık |
+| A3 | Candidate apply CTA on detail page | Açık |
+| A4 | Employer actions (close/fill) on detail page | Açık |
+| A5 | Entry point links (list card title + history row) | Açık |
+| A6 | Full PHASE 6 E2E gate + closure | Açık |
+
+### Teknik Hazırlık Özeti
+
+- Backend: sıfır iş — `GET /jobs/{id}` tam çalışıyor
+- Service: `fetchJob(id)` hazır, sadece import gerekiyor
+- `ApplyForm` ve `updateJob` mantığı JobsPage'de hazır — detail sayfaya kopyalanacak (DRY extract ertelendi)
+- Route: `const JobDetailPage = lazy(...)` + `<Route path="/jobs/:id" element={<JobDetailPage />} />`
+- Gate: mevcut LIFO pattern + `GET /api/v1/jobs/42` mock
+
+Runbook: `docs/runbooks/jobs-surface-phase6-plan.md`
+
 ## Atomik-8 Değişiklikleri
 
 ### `tools/atomik8_phase5_e2e_gate.mjs`
@@ -316,26 +382,30 @@ Total: 6 × 3 + 1 = 19
 
 ## Next Atomic Step
 
-**PHASE 6 / Atomik-1:** Surface inventory + backlog definition
+**PHASE 6 / Atomik-3:** Candidate apply CTA on JobDetailPage
 
-PHASE 5 tamamen kapatıldı. PHASE 6 başlıyor.
-Kapsam (Atomik-1 her zaman docs-only, commit yok):
-- PHASE 6 scope belirleme: G6 (job detail page /jobs/:id) + diğer açık yüzeyler
-- Surface inventory: route eksikleri, backend endpoint boşlukları
-- PHASE 6 backlog tanımı + AI_BRIEFING.md güncelleme
+Kapsam:
+- `web/src/pages/JobDetailPage.tsx` — `canTalent && !canEmployer && job.status === "published"` koşulunda inline ApplyForm; `useAuth` hook ile rol kontrolü; `applyToJob`, `extractJobsError` import
+- Apply logic: `ApplyForm` inline (JobsPage'deki aynı mantık, kopya — DRY extract ertelendi)
+- TALENT_PROFILE_REQUIRED hata kodu: `profileLinkRequired` state + `/talent/profile` linki
+
+Commit: `feat(jobs): add candidate apply cta on job detail page`
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 5: CLOSED — G1-G5 tümü tamamlandı, gate 16/16 PASS (Atomik-8, commit: next)
-Next: PHASE 6 / Atomik-1 — surface inventory + backlog definition (docs-only, no commit).
-Runbook: docs/runbooks/posting-application-phase5-plan.md (CLOSED)
+PHASE 6 / Atomik-2: COMPLETE — JobDetailPage shell + /jobs/:id route, type-check+build PASS
+Last commit: (bu adımın commiti — bak next_checkpoint_commit)
+Next: PHASE 6 / Atomik-3 — candidate apply CTA on JobDetailPage
+Runbook: docs/runbooks/jobs-surface-phase6-plan.md
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 Gate pattern: function predicates (NOT glob), pf_access_token session, 127.0.0.1:5175 base URL.
-G6 (job detail page /jobs/:id) deferred — fetchJob service exists, route/page missing.
+JobDetailPage selectors: .job-detail, .job-detail__title, .job-detail__meta, .job-detail__desc, .job-detail__loading, .job-detail__error
+useAuth() hook: user.system_role → canTalent/canEmployer helpers (same as JobsPage local helpers).
+No migration. No gate script in Atomik-3 (gate deferred to Atomik-6).
 ```
 
 ## SAFE TO RESUME
