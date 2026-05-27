@@ -248,17 +248,35 @@ Body: { email, password, full_name, user_type: "employer" | "candidate" }
 
 ---
 
-### Atomik-7: Responsive gate + E2E validation
+### Atomik-7: Responsive gate + E2E validation — COMPLETE
 
-**Amaç:** Tüm PHASE 4 akışlarını uçtan uca doğrula.
+**Commit:** `test(onboarding): add phase-4 end-to-end responsive gate and closure report`
 
 **Gate script:** `tools/atomik7_onboarding_gate.mjs`
+**Artifacts:** `tools/gate-artifacts/atomik7-onboarding/`
 
-**Senaryolar:**
-- employer kayıt formu render + submit mock (3 viewport)
-- candidate kayıt formu render + submit mock (3 viewport)
-- guest_public nav CTA görünürlüğü (3 viewport)
-- post-login redirect doğrulaması
+**Senaryolar (tümü PASS):**
+- A. Employer register: 11 assertion × 3 viewport = 33
+- B. Candidate register: 11 assertion × 3 viewport = 33
+- C. Public nav CTA: 3 assertion × 3 viewport + 2 popup (mobile) = 11
+- D. Activation redirect smoke: employer→/jobs + candidate→/talent/profile = 2
+
+**Gate sonucu: 79/79 PASS**
+
+---
+
+## PHASE 4 KAPANIŞ RAPORU
+
+Tüm G1–G4 gap'leri kapatıldı:
+
+| Gap | Açıklama | Durum |
+|---|---|---|
+| G1 | employer_company_admin kayıt yolu | DONE (Atomik-2 backend + Atomik-3 frontend) |
+| G2 | candidate_user kayıt yolu | DONE (Atomik-2 backend + Atomik-4 frontend) |
+| G3 | guest_public entry point (nav CTA) | DONE (Atomik-6 — NavBar CTA'ları) |
+| G4 | Post-registration redirect | DONE (Atomik-5 — register-redirect-policy.ts) |
+
+**PHASE 4 tamamlandı.** Sıradaki: PHASE 5 planlama.
 
 ---
 
