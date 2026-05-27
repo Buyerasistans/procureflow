@@ -13,6 +13,13 @@ Scope: PHASE 1 / Atomik-1. This document defines the target minimal policy shape
 > for 2 personas (tenant_admin, platform_operator); 6 screenshots in `artifacts/`.
 > No overflow at any viewport. Mobile nav chips visible but not pointer-clickable
 > (pre-existing layout gap — no media queries in `AppLayout.css`).
+>
+> **PHASE 2 / Atomik-2 COMPLETE.** Legacy cleanup complete. `routing.ts` migrated
+> to policy resolver; dead export `getDefaultRouteForRole` removed.
+> `navigation.ts` marked `@deprecated` (test-only consumers remain).
+> `navigation-adapter.ts` jsdoc updated (test-only, no runtime call-sites).
+> `auth-routing.test.tsx` stale mock removed; assertions updated to policy labels.
+> Zero runtime consumers of `getVisibleNavItems` remain.
 
 ## Policy Entity
 

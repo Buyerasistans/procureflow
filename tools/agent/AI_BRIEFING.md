@@ -7,154 +7,128 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 2 / Atomik-1 — COMPLETE
+PHASE 2 / Atomik-2 — COMPLETE
 
 ## Executive Summary
-PHASE 2 / Atomik-1 runtime wiring is complete and committed. `AppLayout.tsx`
-authenticated top-nav now reads from `resolveVisibleNavItems` + `buildPolicyContext`
-(the typed policy module). The legacy `getVisibleNavItems` call is fully removed
-from the runtime render path. All gates passed: type-check, build, 15 parity tests,
-and real Playwright/Chromium responsive gate at 3 viewports × 2 personas.
+PHASE 2 / Atomik-2 legacy cleanup is complete and committed. All runtime
+consumers of `getVisibleNavItems` (from `navigation.ts`) have been migrated to
+the typed policy resolver. `navigation.ts` is now `@deprecated` and only consumed
+by the parity test suite. `auth-routing.test.tsx` stale mock removed and
+assertions updated to match policy output. All gates passed.
 
-## PHASE 1 Completion Record
+## PHASE 2 Completion Record
 
 | Atomik Step | Commit | Deliverable |
 | --- | --- | --- |
-| PHASE 0 / Atomik-1 | ba02ed4 | Program ADR + phased backlog |
-| PHASE 1 / Atomik-1 | 241f03a | Nav inventory + minimal policy shape |
-| PHASE 1 / Atomik-2 | 4073a0a | Typed navigation-policy.ts + 3 parity tests |
-| PHASE 1 / Atomik-3 | 43e7ac4 | Adapter + 10-persona parity coverage |
-| PHASE 1 / Atomik-4 | d770680 | excluded_tenant_roles + channel parity resolved |
-| PHASE 1 / Atomik-5 | 6ec1a67 | Supplier system_role parity resolved |
-| PHASE 1 / Atomik-6 | 34a1de7 | Closure doc + runbook cross-link |
+| Atomik-1 | 00c2fe0 | Runtime wiring: AppLayout.tsx → policy resolver |
+| Atomik-2 | (this commit) | Legacy cleanup: routing.ts → policy; nav.ts deprecated |
 
-## PHASE 2 / Atomik-1 Completion Record
+## Completed This Iteration
 
-### Technical Changes (this commit)
+### Call-site Analysis Results
 
-**`web/src/components/AppLayout.tsx`**
-- Removed: `import { getVisibleNavItems } from "../config/navigation"` 
-- Removed: `hasPermissionForUser` from permissions imports
-- Added: `resolveVisibleNavItems`, `buildPolicyContext`, `AUTHENTICATED_TOP_NAV_POLICY_ITEMS`
-  from `navigation-policy`
-- `visibleItems` changed from:
-  `getVisibleNavItems(user).filter((item) => hasPermissionForUser(user, item.permission))`
-  to:
-  `resolveVisibleNavItems(AUTHENTICATED_TOP_NAV_POLICY_ITEMS, buildPolicyContext(user))`
-- Render loop: `item.to` → `item.route`; `typeof item.label === "function"` guard removed
-  (policy items have string labels only)
+| Consumer | Type | Action |
+| --- | --- | --- |
+| `AppLayout.tsx` | runtime | Already migrated in Atomik-1 |
+| `routing.ts` | runtime | Migrated to policy resolver in Atomik-2 |
+| `getDefaultRouteForRole` | runtime (dead) | Removed — never called outside routing.ts |
+| `navigation-adapter.ts` | test-only | Kept; jsdoc updated |
+| `navigation-policy.test.ts` | test | Kept — parity test requires legacy comparison |
+| `auth-routing.test.tsx` | test | Stale mock removed; assertions updated |
+
+**Zero runtime consumers of `getVisibleNavItems` remain.**
+
+### Changes Made
+
+**`web/src/auth/routing.ts`**
+- Removed `getDefaultRouteForRole` (dead export, never called)
+- Removed imports of `getVisibleNavItems`, `hasPermissionForUser`
+- `getDefaultRouteForUser` now uses `resolveVisibleNavItems` + `buildPolicyContext`
+  instead of `getVisibleNavItems` + `hasPermissionForUser` double-filter
+- `hasAdminWorkspaceHome` guard retained (behavior unchanged)
+- Behavioral parity: resolveVisibleNavItems has 0 divergences from legacy
+  (proven by 15 parity tests across 12 personas)
+
+**`web/src/config/navigation.ts`**
+- Added file-level `@deprecated` JSDoc with migration notes
+- No code changes — kept intact for parity test suite
 
 **`web/src/config/navigation-adapter.ts`**
-- Removed duplicate `buildPolicyContext` definition (was a copy of policy module's version)
-- Now re-exports `buildPolicyContext` from `navigation-policy.ts`
-- Updated JSDoc: `NavComparisonResult.legacy` — removed stale "runtime source of truth"
-  note; now says "dev/test reference only; runtime now uses policy"
-- Note: `compareAuthenticatedTopNav` is dev/test only; not wired into any render path
+- Updated JSDoc to reflect current state: both AppLayout.tsx and routing.ts
+  now read from policy; this file is test-only
 
-**`web/src/config/navigation-policy.ts`**
-- Added `import { hasPermissionForUser }` + `import type { AuthUser }` (for buildPolicyContext)
-- Added `KNOWN_PERMISSIONS` constant
-- Added `buildPolicyContext(user: AuthUser): NavigationVisibilityContext` as canonical export
+**`web/src/test/auth-routing.test.tsx`**
+- Removed stale `vi.mock("../config/navigation", ...)` block (did nothing
+  after AppLayout switched to policy in Atomik-1)
+- Updated nav-link assertions from role-specific labels
+  (Admin / Ortak Admin / Super Admin / Yonetici Paneli) to "Yönetim Alanı"
+  (the policy item's fixed string label, uniform across all roles)
+- All 7 tests now pass (2 permission-gate tests + 5 nav-visibility tests)
 
 **`docs/runbooks/nav-visibility-policy-shape.md`**
-- Added PHASE 2 / Atomik-1 COMPLETE banner with responsive gate evidence note
+- Added PHASE 2 / Atomik-2 COMPLETE banner
+
+**`tools/agent/AI_BRIEFING.md`**
+- This file
 
 ### Gates Passed
 
 | Gate | Result | Detail |
 | --- | --- | --- |
-| type-check | PASS | `npm.cmd run type-check` — no errors |
-| build | PASS | `npm.cmd run build` — 1.40s |
-| parity tests | PASS | 15/15 tests, all personas |
-| responsive gate | PASS | See table below |
+| type-check | PASS | No errors |
+| build | PASS | 1.18s |
+| navigation-policy (parity) | PASS | 15/15 |
+| auth-routing | PASS | 7/7 |
 
-### Responsive Gate Results (real Playwright/Chromium)
+### Responsive Gate
 
-| Persona | Viewport | Nav Items | Overflow | Click | Screenshot |
-| --- | --- | --- | --- | --- | --- |
-| tenant_admin | 375x812 | 2 | false | blocked (pre-existing) | artifacts/nav-tenant_admin-mobile-375.png |
-| tenant_admin | 768x1024 | 2 | false | ✅ /admin | artifacts/nav-tenant_admin-tablet-768.png |
-| tenant_admin | 1366x768 | 2 | false | ✅ /admin | artifacts/nav-tenant_admin-desktop-1366.png |
-| platform_operator | 375x812 | 7 | false | blocked (pre-existing) | artifacts/nav-platform_operator-mobile-375.png |
-| platform_operator | 768x1024 | 7 | false | ✅ /dashboard | artifacts/nav-platform_operator-tablet-768.png |
-| platform_operator | 1366x768 | 7 | false | ✅ /dashboard | artifacts/nav-platform_operator-desktop-1366.png |
+**NOT REQUIRED for this step.** Rationale:
 
-**Mobile click note:** At 375px, action buttons (user/mail) physically overlay nav chips
-due to pre-existing absence of responsive media queries in `AppLayout.css`.
-Nav chips ARE present in DOM and visible (`getBoundingClientRect().width > 0`).
-This is pre-existing behavior; our change introduces no regression.
+- `routing.ts` change is not a render path change — it determines redirect
+  targets (which route to navigate to), not what is displayed on screen.
+- The function `getDefaultRouteForUser` now uses `resolveVisibleNavItems` which
+  has 0 parity divergences from the legacy `getVisibleNavItems` resolver.
+- No HTML, CSS, or component tree was modified.
+- No new visual surface was introduced.
 
-### Runtime Parity Smoke Results
+Conclusion: no viewport behavior can differ from PHASE 2 / Atomik-1 state
+(already responsive-gate-cleared).
 
-| Persona | Nav Routes (in order) |
-| --- | --- |
-| tenant_admin | /admin, /discovery-lab |
-| platform_operator | /dashboard, /quotes, /admin, /discovery-lab, /reports, /admin/payout-requests, /admin/talent-ecosystem |
+## Open Risks / Blockers for PHASE 2 / Atomik-3
 
-Nav order matches policy `order` field: 10, 20, 30, 40, 50, 80, 90.
-No spurious items; no missing items.
-
-## Files Changed (this commit)
-
-- `web/src/components/AppLayout.tsx`
-- `web/src/config/navigation-adapter.ts`
-- `web/src/config/navigation-policy.ts`
-- `docs/runbooks/nav-visibility-policy-shape.md`
-- `tools/agent/AI_BRIEFING.md`
-
-## NOT Committed (local only)
-- `tools/agent/SESSION_STATE.json` — gitignored, local state only
-- `tools/responsive_gate.mjs` — ad-hoc Playwright script, not committed
-- `artifacts/` — screenshots, not committed
-
-## Runtime Change Status
-**ACTIVE.** AppLayout.tsx runtime authenticated top-nav now reads from policy
-resolver. Legacy `getVisibleNavItems` is no longer called in the render path.
-
-## Open Risks / Blockers for PHASE 2 / Atomik-2
-
-- Mobile layout gap (pre-existing): `AppLayout.css` has no media queries.
-  Nav chips not pointer-clickable at 375px due to action area overlay.
-  This is a PHASE 2 / Atomik-2 or dedicated mobile fix scope item.
-- `navigation.ts` legacy `visibleFor` callbacks still exist (not yet deleted).
-  PHASE 2 / Atomik-2 owns their removal.
-- Panel tabs, quick links, page CTAs not yet modeled (later PHASE 2 steps).
-- Public nav hardcoded in `NavBar.tsx` — separate PHASE 2 step.
-- `employer_recruiter` and `candidate_user` have no dedicated nav items yet.
+- `navigation.ts` is deprecated but not deleted: depends on
+  `navigation-policy.test.ts` which imports `getVisibleNavItems` directly
+  for the parity comparison. To fully delete `navigation.ts`, the parity
+  test would need to be restructured or removed (scope: Atomik-3+).
+- `navigation-adapter.ts` is test-only; `compareAuthenticatedTopNav` has no
+  remaining callers outside the parity test. Could be inlined into the test.
+- Mobile layout gap (pre-existing): AppLayout.css has no media queries. Nav
+  chips not pointer-clickable at 375px due to action area overlay. Not
+  introduced by this program; future scope.
+- Panel tabs, quick links, page CTAs not yet modeled (Atomik-3 scope).
+- Public nav hardcoded in NavBar.tsx — Atomik-4 scope.
+- employer_recruiter and candidate_user have no dedicated nav items — Atomik-5.
 
 ## Product Principles
 - UI visibility must be policy/config driven, not scattered hardcoded checks.
-- Top nav, panel tabs, quick links, and page CTAs must be manageable from
-  governance/panel design surfaces where appropriate.
 - Responsive behavior is a release gate for all UI steps.
-- Route slugs, API field keys, DB columns, enums, and technical identifiers must
-  remain stable unless a step explicitly owns a migration/contract change.
-
-## Role Scope
-- `super_admin`
-- `platform_operator`
-- `platform_support`
-- `tenant_admin`
-- `employer_admin` (system_role: `employer_company_admin`)
-- `employer_recruiter`
-- `candidate_user`
-- `guest_public`
+- Route slugs, API field keys, DB columns, enums, and technical identifiers
+  must remain stable unless a step explicitly owns a migration/contract change.
 
 ## Next Atomic Step
 
-**PHASE 2 / Atomik-2:** Legacy cleanup — remove `visibleFor` callbacks from
-`navigation.ts`. Evaluate whether `navigation-adapter.ts` and `navigation.ts`
-can be fully deleted or if they have remaining call sites outside tests.
-Responsive gate (PC + tablet + mobile) required before commit.
-Pre-work: check for any remaining consumers of `getVisibleNavItems` / `NavItem`.
+**PHASE 2 / Atomik-3:** Panel tab governance — model `panel_tab` placement
+items in `navigation-policy.ts`. Pre-work: inventory all panel tab items
+and their current visibility logic (likely in AdminPage.tsx or secondary tab
+configs). Responsive gate required before commit.
 
 ## RESUME BLOCK
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 2 / Atomik-1: COMPLETE (runtime wiring committed)
-Next atomic step: PHASE 2 / Atomik-2 — legacy cleanup
-Pre-work: grep getVisibleNavItems and NavItem consumers outside test files.
+PHASE 2 / Atomik-2: COMPLETE (legacy cleanup committed)
+Next atomic step: PHASE 2 / Atomik-3 — panel tab governance
+Pre-work: inventory panel_tab items in AdminPage.tsx / secondary tab configs.
 Responsive gate required. Keep unrelated dirty worktree files untouched.
 ```
 

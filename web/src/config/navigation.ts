@@ -1,3 +1,11 @@
+/**
+ * @deprecated
+ * The authenticated top-nav render path was migrated to `navigation-policy.ts`
+ * (PHASE 2 / Atomik-1, commit 00c2fe0). `routing.ts` was migrated to the policy
+ * resolver (PHASE 2 / Atomik-2). This file is now consumed only by the parity
+ * test suite (`navigation-policy.test.ts` via `navigation-adapter.ts`).
+ * Do not add new runtime call-sites here.
+ */
 // FILE: web\src\config\navigation.ts
 import { getWorkspacePanelNavLabel, hasAdminWorkspaceHome, normalizedBusinessRole, type Permission } from "../auth/permissions";
 import type { AuthUser } from "../context/auth-types";

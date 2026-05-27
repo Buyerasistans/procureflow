@@ -1,12 +1,13 @@
 /**
- * Non-invasive nav comparison adapter — dev/test only.
+ * Nav parity comparison adapter — test/dev only. No runtime call-sites.
  *
  * Compares the authenticated top-nav output from the legacy `navigation.ts`
- * resolver against the typed `navigation-policy.ts` resolver.
+ * resolver against the typed `navigation-policy.ts` resolver. Used by
+ * `navigation-policy.test.ts` to verify parity between the two resolvers.
  *
- * `compareAuthenticatedTopNav` is not wired into any runtime render path.
- * `buildPolicyContext` is re-exported from `navigation-policy.ts` and is used
- * by AppLayout at runtime.
+ * Both `AppLayout.tsx` and `routing.ts` now read exclusively from
+ * `navigation-policy.ts`. This file and `navigation.ts` remain only to
+ * support the parity test suite (PHASE 2 / Atomik-2, legacy cleanup complete).
  */
 import { hasPermissionForUser } from "../auth/permissions";
 import type { AuthUser } from "../context/auth-types";
