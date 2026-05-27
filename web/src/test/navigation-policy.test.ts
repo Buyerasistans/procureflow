@@ -260,9 +260,11 @@ describe("public nav policy", () => {
     "top_nav.public.suppliers",
     "top_nav.public.strategic",
     "top_nav.public.partner_program",
+    "top_nav.public.employer_register",
+    "top_nav.public.candidate_register",
   ];
 
-  const EXPECTED_TR_ROUTES = ["/", "/teklifler", "/tedarikciler", "/stratejik-ortaklik", "/is-ortagi-programi"];
+  const EXPECTED_TR_ROUTES = ["/", "/teklifler", "/tedarikciler", "/stratejik-ortaklik", "/is-ortagi-programi", "/employer/register", "/candidate/register"];
 
   it("anonim (unauthenticated) context'te tum public nav item'lari gorunur", () => {
     const visibleKeys = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)
