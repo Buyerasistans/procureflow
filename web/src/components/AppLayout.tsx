@@ -5,7 +5,11 @@ import { ChevronDown, Mail } from "lucide-react";
 
 import { useAuth } from "../hooks/useAuth";
 import { notify } from "../lib/notify";
-import { getVisibleNavItems } from "../config/navigation";
+import {
+  AUTHENTICATED_TOP_NAV_POLICY_ITEMS,
+  buildPolicyContext,
+  resolveVisibleNavItems,
+} from "../config/navigation-policy";
 import {
   canAccessProcurementSettings,
   canManageSharedEmailProfiles,
@@ -14,7 +18,6 @@ import {
   getUserDisplayRoleLabel,
   getUserScopeType,
   getWorkspaceLabelFallback,
-  hasPermissionForUser,
   isSuperAdminUser,
   normalizedBusinessRole,
 } from "../auth/permissions";
@@ -78,7 +81,7 @@ export default function AppLayout() {
   }
 
   const visibleItems = user
-    ? getVisibleNavItems(user).filter((item) => hasPermissionForUser(user, item.permission))
+    ? resolveVisibleNavItems(AUTHENTICATED_TOP_NAV_POLICY_ITEMS, buildPolicyContext(user))
     : [];
   const normalizedRole = normalizedBusinessRole(user);
   const scopeType = getUserScopeType(user);
@@ -253,16 +256,15 @@ export default function AppLayout() {
 
           <div className="app-layout__nav-row">
             {visibleItems.map((item) => {
-              const rawLabel = typeof item.label === "function" ? item.label(user!) : item.label;
               const labelMap: Record<string, string> = {
                 Dashboard: shellT.dashboard,
                 Teklifler: shellT.quotes,
                 Raporlar: shellT.reports,
                 "AI Keşif Lab": shellT.ai_lab,
               };
-              const itemLabel = labelMap[rawLabel] ?? rawLabel;
+              const itemLabel = labelMap[item.label] ?? item.label;
               return (
-                <Link key={item.to} to={item.to} className="app-layout__nav-chip">
+                <Link key={item.route} to={item.route} className="app-layout__nav-chip">
                   {itemLabel}
                 </Link>
               );

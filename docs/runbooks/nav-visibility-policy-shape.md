@@ -5,6 +5,14 @@ Program: `NAV_GOVERNANCE_AND_JOB_MARKETPLACE`
 Scope: PHASE 1 / Atomik-1. This document defines the target minimal policy shape only. No migration or runtime implementation is included in this step.
 
 > **PHASE 1 is CLOSED.** See [`nav-governance-phase-1-closure.md`](nav-governance-phase-1-closure.md) for the full closure report, parity evidence, and PHASE 2 entry criteria.
+>
+> **PHASE 2 / Atomik-1 COMPLETE.** Runtime wiring complete: `AppLayout.tsx`
+> now uses `resolveVisibleNavItems` + `buildPolicyContext`. The legacy
+> `getVisibleNavItems` call is removed from the render path.
+> Responsive gate cleared with real Playwright/Chromium evidence at 375/768/1366
+> for 2 personas (tenant_admin, platform_operator); 6 screenshots in `artifacts/`.
+> No overflow at any viewport. Mobile nav chips visible but not pointer-clickable
+> (pre-existing layout gap — no media queries in `AppLayout.css`).
 
 ## Policy Entity
 

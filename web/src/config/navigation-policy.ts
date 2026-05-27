@@ -1,4 +1,13 @@
-import type { Permission } from "../auth/permissions";
+import { hasPermissionForUser, type Permission } from "../auth/permissions";
+import type { AuthUser } from "../context/auth-types";
+
+const KNOWN_PERMISSIONS: Permission[] = [
+  "view:dashboard",
+  "view:admin",
+  "view:workspace-panel",
+  "view:reports",
+  "manage:users",
+];
 
 export type NavigationPlacement = "top_nav" | "panel_tab" | "quick_link" | "page_cta";
 export type VisibilityScope = "public" | "authenticated" | "tenant_only" | "platform_only";
@@ -113,6 +122,20 @@ export function resolveVisibleNavItems(
   return items
     .filter((item) => isPolicyItemVisible(item, context))
     .sort((left, right) => left.order - right.order);
+}
+
+/** Derives a NavigationVisibilityContext from an AuthUser. */
+export function buildPolicyContext(user: AuthUser): NavigationVisibilityContext {
+  const systemRole = String(user.system_role || "").toLowerCase();
+  const permissions = KNOWN_PERMISSIONS.filter((p) => hasPermissionForUser(user, p));
+  return {
+    is_authenticated: true,
+    system_role: user.system_role,
+    tenant_role: user.business_role || user.role,
+    business_role: user.business_role,
+    permissions,
+    scope: systemRole.startsWith("platform") || systemRole === "super_admin" ? "platform" : "tenant",
+  };
 }
 
 export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[] = [
