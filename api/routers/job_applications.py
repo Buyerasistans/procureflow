@@ -35,6 +35,8 @@ _VALID_TRANSITIONS: dict[str, set[str]] = {
     "withdrawn":   set(),
 }
 
+_WITHDRAWABLE_STATUSES: frozenset[str] = frozenset({"applied", "shortlisted", "interview"})
+
 
 def _err(code: str, message: str) -> dict:
     return {"code": code, "message": message, "request_id": str(uuid.uuid4())}
@@ -204,6 +206,64 @@ def get_my_applications(
         .all()
     )
     return [JobApplicationOut.model_validate(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# POST /applications/{application_id}/withdraw
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/applications/{application_id}/withdraw",
+    response_model=JobApplicationOut,
+)
+def withdraw_application(
+    application_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> JobApplicationOut:
+    """Candidate kendi başvurusunu geri çeker. is_talent_member zorunlu."""
+    if not is_talent_member(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_err(
+                "WITHDRAW_FORBIDDEN",
+                "Başvuru geri çekme yalnizca talent/candidate kullanicilar icin gecerlidir",
+            ),
+        )
+
+    application = (
+        db.query(JobApplication).filter(JobApplication.id == application_id).first()
+    )
+    if not application:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_err("APPLICATION_NOT_FOUND", "Başvuru bulunamadı"),
+        )
+
+    if application.applicant_user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_err(
+                "WITHDRAW_OWNERSHIP",
+                "Bu başvuruyu geri çekme yetkiniz yok",
+            ),
+        )
+
+    if application.status not in _WITHDRAWABLE_STATUSES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_err(
+                "WITHDRAW_INVALID_STATUS",
+                f"'{application.status}' durumundaki başvuru geri çekilemez. "
+                f"Geri çekilebilir durumlar: {sorted(_WITHDRAWABLE_STATUSES)}",
+            ),
+        )
+
+    application.status = "withdrawn"  # type: ignore[assignment]
+    db.commit()
+    db.refresh(application)
+    return JobApplicationOut.model_validate(application)
 
 
 # ---------------------------------------------------------------------------

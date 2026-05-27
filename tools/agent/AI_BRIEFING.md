@@ -7,16 +7,63 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 5 / Atomik-6 - COMPLETE
+PHASE 5 / Atomik-7 - COMPLETE
 
 ## Executive Summary
 
-PHASE 5 / Atomik-6 tamamlandı: Candidate başvuru geçmişi UI eklendi.
-`getMyApplications()` servis fonksiyonu + JobsPage "Başvurularım" bölümü.
-`canTalent && !canEmployer` guard — employer görmez, candidate/talent görür.
-Gate: 14/14 PASS.
+PHASE 5 / Atomik-7 tamamlandı: Candidate başvuru geri çekme (withdrawal) eklendi.
+Backend: `POST /applications/{id}/withdraw` endpoint; sadece `applied|shortlisted|interview` → `withdrawn`.
+Frontend: "Başvurularım" satırında "Geri Çek" butonu (WITHDRAWABLE_STATUSES guard); optimistic update.
+Backend tests: 19/19 PASS. E2E gate: 11/11 PASS.
 
-G4 tamamen kapatıldı (backend + frontend). G5 (withdrawal) + G6 (job detail) açık.
+G5 kapatıldı. Açık: G6 (job detail page). Sonraki adım: Atomik-8 (Full PHASE 5 E2E gate + closure).
+
+## Atomik-7 Değişiklikleri
+
+### `api/routers/job_applications.py`
+- `_WITHDRAWABLE_STATUSES = frozenset({"applied", "shortlisted", "interview"})` eklendi
+- `POST /applications/{application_id}/withdraw` endpoint eklendi
+  - Guard: `is_talent_member` → False → 403 WITHDRAW_FORBIDDEN
+  - Ownership: `applicant_user_id != current_user.id` → 403 WITHDRAW_OWNERSHIP
+  - Status check: status not in WITHDRAWABLE → 400 WITHDRAW_INVALID_STATUS
+  - Success: `application.status = "withdrawn"` → commit → refresh → `JobApplicationOut`
+
+### `api/tests/test_job_applications.py`
+- 8 yeni test eklendi (toplam 19/19 PASS)
+- `_call_withdraw()` helper fonksiyonu eklendi
+- `TestWithdrawApplicationSuccess` (3 test): applied/shortlisted/interview → withdrawn
+- `TestWithdrawApplicationInvalidStatus` (3 test): offered/rejected/withdrawn → 400
+- `TestWithdrawApplicationOwnership` (1 test): other user's app → 403 WITHDRAW_OWNERSHIP
+- `TestWithdrawApplicationEmployerForbidden` (1 test): employer → 403 WITHDRAW_FORBIDDEN
+
+### `web/src/services/jobs.service.ts`
+- `withdrawApplication(applicationId)` eklendi: `POST /applications/{id}/withdraw` → `Promise<JobApplicationOut>`
+
+### `web/src/pages/JobsPage.tsx`
+- `withdrawApplication` import eklendi
+- `WITHDRAWABLE_STATUSES = new Set(["applied", "shortlisted", "interview"])` — module-level
+- `withdrawingApplicationId` state eklendi
+- `handleWithdraw(applicationId)` handler: POST → optimistic `setMyApplications` map update
+- "Başvurularım" satırına `{WITHDRAWABLE_STATUSES.has(app.status) && <button ...>Geri Çek</button>}` eklendi
+
+### `web/src/pages/JobsPage.css`
+- `.my-application-row__actions` — margin-top: 6px
+- `.my-application-row__btn--withdraw` — red (#991b1b), hover, disabled, focus-visible
+
+### `tools/atomik7_candidate_withdrawal_gate.mjs`
+- 11 assertion, 5 senaryo
+- LIFO: catch-all → /api/v1/jobs → /api/v1/my/applications → /api/v1/applications/*/withdraw → /auth/refresh → /auth/me
+- Artifacts: `tools/gate-artifacts/atomik7-candidate-withdrawal/`
+
+### Withdrawal Contract
+| Alan | Değer |
+|---|---|
+| Path | `POST /api/v1/applications/{id}/withdraw` |
+| Auth guard | `is_talent_member` |
+| Ownership | `applicant_user_id == current_user.id` |
+| Withdrawable | applied, shortlisted, interview |
+| Terminal (400) | offered, rejected, withdrawn |
+| Response | `JobApplicationOut` (status: "withdrawn") |
 
 ## Atomik-6 Değişiklikleri
 
@@ -165,6 +212,7 @@ G4 tamamen kapatıldı (backend + frontend). G5 (withdrawal) + G6 (job detail) a
 | PHASE 5 Atomik-4 | 15/15 PASS |
 | PHASE 5 Atomik-5 | 11/11 PASS (backend unit tests) |
 | PHASE 5 Atomik-6 | 14/14 PASS (E2E — candidate UI, employer regression, 3 viewports) |
+| PHASE 5 Atomik-7 | 11/11 PASS (E2E — withdrawal click, terminal guard, employer regression, 3 viewports); backend 19/19 |
 
 ### Atomik-3 Assertion Dağılımı
 
@@ -231,7 +279,7 @@ Total: 6 × 3 + 1 = 19
 | G2 | Employer ilan kapatma/dolu işaretleme UI yok | P1 | **DONE** |
 | G3 | Employer başvuru pipeline viewer yok | P1 | **DONE** |
 | G4 | Candidate kendi başvurularını göremez (backend + frontend) | P1 | **DONE** |
-| G5 | Candidate başvuru geri çekme yok (backend + frontend) | P2 | Açık |
+| G5 | Candidate başvuru geri çekme yok (backend + frontend) | P2 | **DONE** |
 | G6 | Job detail page yok (/jobs/:id route) | P2 | Açık |
 
 ## PHASE 5 Atomik Backlog
@@ -244,29 +292,33 @@ Total: 6 × 3 + 1 = 19
 | A4 | G3: employer başvuru pipeline viewer | **COMPLETE** |
 | A5 | G4 backend: GET /my/applications endpoint | **COMPLETE** |
 | A6 | G4 frontend: candidate başvuru geçmişi UI | **COMPLETE** |
-| A7 | G5: candidate withdrawal (backend + frontend) | Açık |
+| A7 | G5: candidate withdrawal (backend + frontend) | **COMPLETE** |
 | A8 | Full PHASE 5 E2E gate + closure | Açık |
 
 ## Next Atomic Step
 
-**PHASE 5 / Atomik-7:** Backend + Frontend — Candidate başvuru geri çekme (G5)
+**PHASE 5 / Atomik-8:** Full PHASE 5 E2E gate + closure
 
 Kapsam:
-- `api/routers/job_applications.py` — `POST /applications/{id}/withdraw` endpoint; `is_talent_member` guard; `applicant_user_id == current_user.id` sahiplik kontrolü; sadece `applied/shortlisted/interview` → `withdrawn` geçişi; terminal durumlar reddedilir
-- `api/tests/test_job_applications.py` — withdrawal birim testleri
-- `web/src/services/jobs.service.ts` — `withdrawApplication(applicationId)` fonksiyonu
-- `web/src/pages/JobsPage.tsx` — "Başvurularım" bölümündeki `applied/shortlisted/interview` satırlara "Geri Çek" butonu
+- `tools/atomik8_phase5_e2e_gate.mjs` — tüm G1-G5 akışlarını tek gate ile doğrula
+- `docs/runbooks/posting-application-phase5-plan.md` — PHASE 5 CLOSED notu
+- SESSION_STATE.json + AI_BRIEFING.md güncelle
 
-Gate: Backend birim test + E2E — candidate withdrawal flow, employer cannot withdraw
-Commit: `feat(jobs): add candidate application withdrawal`
+Gate senaryoları (önerilen):
+- Employer: ilan oluştur → yayınla → pipeline toggle + durum geçişi
+- Candidate: başvur → TALENT_PROFILE_REQUIRED link → başvuru geçmişi → geri çek
+- Regression: employer görmez candidate section, candidate görmez pipeline toggle
+- Responsive: 360/768/1280
+
+Commit: `feat(jobs): phase 5 full e2e gate and closure`
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 5 / Atomik-6: COMPLETE — candidate application history UI, gate 14/14 PASS
-Next: PHASE 5 / Atomik-7 — candidate withdrawal (backend + frontend, G5).
+PHASE 5 / Atomik-7: COMPLETE — candidate withdrawal, backend 19/19, gate 11/11 PASS
+Next: PHASE 5 / Atomik-8 — Full PHASE 5 E2E gate + closure.
 Runbook: docs/runbooks/posting-application-phase5-plan.md
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.

@@ -172,3 +172,111 @@ class TestGetMyApplicationsEmptyList:
             system_role="candidate_user", user_id=1, db_rows=[]
         )
         assert result is not None
+
+
+# ---------------------------------------------------------------------------
+# Helpers for withdraw tests
+# ---------------------------------------------------------------------------
+
+def _call_withdraw(
+    system_role: str = "candidate_user",
+    user_id: int = 1,
+    app_obj=None,
+    app_id: int = 10,
+):
+    """Calls withdraw_application() with mock DB and user directly (no HTTP layer)."""
+    from api.routers.job_applications import withdraw_application
+
+    mock_user = _make_user(system_role, user_id)
+    mock_db = MagicMock()
+    mock_db.query.return_value.filter.return_value.first.return_value = app_obj
+    return withdraw_application(application_id=app_id, current_user=mock_user, db=mock_db)
+
+
+# ---------------------------------------------------------------------------
+# Scenario A/B/C — withdrawable statuses (200, status=withdrawn)
+# ---------------------------------------------------------------------------
+
+class TestWithdrawApplicationSuccess:
+
+    def test_applied_can_be_withdrawn(self):
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "applied"
+        result = _call_withdraw(user_id=1, app_obj=app)
+        assert result.status == "withdrawn"
+
+    def test_shortlisted_can_be_withdrawn(self):
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "shortlisted"
+        result = _call_withdraw(user_id=1, app_obj=app)
+        assert result.status == "withdrawn"
+
+    def test_interview_can_be_withdrawn(self):
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "interview"
+        result = _call_withdraw(user_id=1, app_obj=app)
+        assert result.status == "withdrawn"
+
+
+# ---------------------------------------------------------------------------
+# Scenario D — terminal/invalid statuses → 400
+# ---------------------------------------------------------------------------
+
+class TestWithdrawApplicationInvalidStatus:
+
+    def test_offered_raises_400(self):
+        from fastapi import HTTPException
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "offered"
+        with pytest.raises(HTTPException) as exc_info:
+            _call_withdraw(user_id=1, app_obj=app)
+        assert exc_info.value.status_code == 400
+        assert exc_info.value.detail.get("code") == "WITHDRAW_INVALID_STATUS"
+
+    def test_rejected_raises_400(self):
+        from fastapi import HTTPException
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "rejected"
+        with pytest.raises(HTTPException) as exc_info:
+            _call_withdraw(user_id=1, app_obj=app)
+        assert exc_info.value.status_code == 400
+
+    def test_withdrawn_raises_400(self):
+        from fastapi import HTTPException
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "withdrawn"
+        with pytest.raises(HTTPException) as exc_info:
+            _call_withdraw(user_id=1, app_obj=app)
+        assert exc_info.value.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Scenario E — other user's application → 403
+# ---------------------------------------------------------------------------
+
+class TestWithdrawApplicationOwnership:
+
+    def test_other_users_application_raises_403(self):
+        from fastapi import HTTPException
+        app = _FakeApplication(applicant_user_id=99, app_id=10)  # owned by user 99
+        app.status = "applied"
+        with pytest.raises(HTTPException) as exc_info:
+            _call_withdraw(user_id=1, app_obj=app)  # user 1 tries to withdraw
+        assert exc_info.value.status_code == 403
+        assert exc_info.value.detail.get("code") == "WITHDRAW_OWNERSHIP"
+
+
+# ---------------------------------------------------------------------------
+# Scenario F — employer role → 403
+# ---------------------------------------------------------------------------
+
+class TestWithdrawApplicationEmployerForbidden:
+
+    def test_employer_raises_403(self):
+        from fastapi import HTTPException
+        app = _FakeApplication(applicant_user_id=1, app_id=10)
+        app.status = "applied"
+        with pytest.raises(HTTPException) as exc_info:
+            _call_withdraw(user_id=1, system_role="employer_company_admin", app_obj=app)
+        assert exc_info.value.status_code == 403
+        assert exc_info.value.detail.get("code") == "WITHDRAW_FORBIDDEN"

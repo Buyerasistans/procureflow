@@ -325,21 +325,41 @@ Artifacts: `tools/gate-artifacts/atomik6-candidate-application-history/`
 
 ---
 
-### Atomik-7: Backend + Frontend — Başvuru geri çekme (withdrawal)
+### Atomik-7: Backend + Frontend — Başvuru geri çekme (withdrawal) — COMPLETE
 
 **Amaç:** G5'i kapat. Candidate kendi başvurusunu geri çekebilsin.
 
-**Backend dosyaları:**
-- `api/routers/job_applications.py` — `DELETE /jobs/{job_id}/applications/mine` veya `POST /applications/{id}/withdraw`
-- `api/tests/test_job_applications.py` — withdrawal test
+**Dosyalar (tamamlandı):**
+- `api/routers/job_applications.py` — `POST /applications/{id}/withdraw` eklendi; `is_talent_member` guard; `applicant_user_id == current_user.id` ownership; `applied|shortlisted|interview` → `withdrawn`; `offered|rejected|withdrawn` → 400 WITHDRAW_INVALID_STATUS
+- `api/tests/test_job_applications.py` — 8 birim testi eklendi (TestWithdrawApplicationSuccess 3, TestWithdrawApplicationInvalidStatus 3, TestWithdrawApplicationOwnership 1, TestWithdrawApplicationEmployerForbidden 1)
+- `web/src/services/jobs.service.ts` — `withdrawApplication(applicationId)`: `POST /applications/{id}/withdraw` → `Promise<JobApplicationOut>`
+- `web/src/pages/JobsPage.tsx` — `WITHDRAWABLE_STATUSES = new Set(["applied","shortlisted","interview"])`; `withdrawingApplicationId` state; `handleWithdraw` handler; "Başvurularım" satırında withdraw butonu render (sadece withdrawable durumlar); optimistic state update
+- `web/src/pages/JobsPage.css` — `.my-application-row__actions`, `.my-application-row__btn--withdraw` stilleri; hover, disabled, focus-visible
 
-**Frontend dosyaları:**
-- `web/src/services/jobs.service.ts` — `withdrawApplication()` ekle
-- `web/src/pages/TalentProfilePage.tsx` — başvuru satırına "Geri Çek" butonu
+**Withdrawal contract:**
+- Path: `POST /api/v1/applications/{id}/withdraw`
+- Auth: `is_talent_member` zorunlu (candidate_user, talent_member); employer → 403 WITHDRAW_FORBIDDEN
+- Ownership: `applicant_user_id == current_user.id`; başkasının başvurusu → 403 WITHDRAW_OWNERSHIP
+- Geçerli kaynak durumlar: `applied`, `shortlisted`, `interview` → `withdrawn`
+- Geçersiz: `offered`, `rejected`, `withdrawn` → 400 WITHDRAW_INVALID_STATUS
+- Response: `JobApplicationOut` (status: "withdrawn")
 
-**Gate:** Backend unit test (withdraw → status=withdrawn, tekrar başvuru imkanı?) + frontend responsive
-**Bağımlılık:** Atomik-5 + Atomik-6 (başvuru listesi görünmeli ki withdraw edilebilsin).
-**Risk:** Orta. Duplicate başvuru kısıtı: withdraw sonrası aynı ilana tekrar başvurulabilir mi? Açık tasarım kararı.
+**Selectors:**
+- `.my-application-row__btn--withdraw` — "Geri Çek" butonu (sadece withdrawable satırlarda)
+- `.my-application-row__actions` — aksiyon container
+
+**Backend tests:** 19/19 PASS (11 mevcut + 8 yeni) — `api/tests/test_job_applications.py`
+
+**E2E Gate:** 11/11 PASS — `tools/atomik7_candidate_withdrawal_gate.mjs`
+- Scenario A (3): applied row → "Geri Çek" visible — 360/768/1280
+- Scenario B (2): click → POST mock → badge withdrawn + button disappears
+- Scenario C (2): withdrawn + rejected rows → no button
+- Scenario D (1): employer regression — no section
+- Scenario E (3): responsive overflow — 360/768/1280
+
+Artifacts: `tools/gate-artifacts/atomik7-candidate-withdrawal/`
+
+**G5 durumu:** DONE
 
 ---
 

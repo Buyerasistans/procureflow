@@ -160,3 +160,8 @@ export async function getMyApplications(): Promise<JobApplicationOut[]> {
   const res = await http.get<JobApplicationOut[]>("/my/applications");
   return res.data;
 }
+
+export async function withdrawApplication(applicationId: number): Promise<JobApplicationOut> {
+  const res = await http.post<JobApplicationOut>(`/applications/${applicationId}/withdraw`);
+  return res.data;
+}

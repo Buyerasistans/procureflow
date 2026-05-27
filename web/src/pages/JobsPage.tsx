@@ -8,6 +8,7 @@ import {
   fetchJobs,
   getMyApplications,
   listApplications,
+  withdrawApplication,
   updateApplicationStatus,
   updateJob,
   type JobApplicationOut,
@@ -45,6 +46,8 @@ const TRANSITION_LABELS: Record<string, string> = {
   offered:     "Teklif Ver",
   rejected:    "Reddet",
 };
+
+const WITHDRAWABLE_STATUSES = new Set(["applied", "shortlisted", "interview"]);
 
 // ---------------------------------------------------------------------------
 // Create Job Form (employer)
@@ -421,6 +424,7 @@ export default function JobsPage() {
   const [myApplications, setMyApplications] = useState<JobApplicationOut[]>([]);
   const [myApplicationsLoading, setMyApplicationsLoading] = useState(false);
   const [myApplicationsError, setMyApplicationsError] = useState<string | null>(null);
+  const [withdrawingApplicationId, setWithdrawingApplicationId] = useState<number | null>(null);
 
   const PAGE_SIZE = 20;
 
@@ -514,6 +518,18 @@ export default function JobsPage() {
     }
   }
 
+  async function handleWithdraw(applicationId: number) {
+    setWithdrawingApplicationId(applicationId);
+    try {
+      const updated = await withdrawApplication(applicationId);
+      setMyApplications((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    } catch (err) {
+      setMyApplicationsError(extractJobsError(err));
+    } finally {
+      setWithdrawingApplicationId(null);
+    }
+  }
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -570,6 +586,18 @@ export default function JobsPage() {
                 </div>
                 {app.employer_note && (
                   <p className="my-application-row__note">{app.employer_note}</p>
+                )}
+                {WITHDRAWABLE_STATUSES.has(app.status) && (
+                  <div className="my-application-row__actions">
+                    <button
+                      type="button"
+                      className="jobs-page__btn my-application-row__btn--withdraw"
+                      disabled={withdrawingApplicationId === app.id}
+                      onClick={() => void handleWithdraw(app.id)}
+                    >
+                      {withdrawingApplicationId === app.id ? "..." : "Geri Çek"}
+                    </button>
+                  </div>
                 )}
               </div>
             ))
