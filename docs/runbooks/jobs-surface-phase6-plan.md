@@ -144,17 +144,21 @@ iş ilanı yüzeyini tamamlar: job detail page + list entry points.
 
 ---
 
-### Atomik-5: Entry points (links from list + history)
+### Atomik-5: Entry points (links from list + history) — COMPLETE
 
 **Amaç:** Kullanıcı `/jobs/:id`'e navigasyon yapabilsin.
 
-**Değişiklikler:**
-- `web/src/pages/JobsPage.tsx` — `JobCard` içinde:
-  `<p className="job-card__title">` → `<Link to={/jobs/${job.id}} className="job-card__title">`
-- `web/src/pages/JobsPage.tsx` — candidate history satırı:
-  `<span className="my-application-row__job">İlan #{app.job_id}</span>`
-  → `<Link to={/jobs/${app.job_id}} className="my-application-row__job">İlan #{app.job_id}</Link>`
-- `web/src/pages/JobsPage.css` — `job-card__title` link stili (color, text-decoration)
+**Tamamlanan değişiklikler:**
+- `web/src/pages/JobsPage.tsx` — `JobCard` içinde `<p className="job-card__title">` → `<Link to={/jobs/${job.id}} className="job-card__title">` (Link zaten importlu)
+- `web/src/pages/JobsPage.tsx` — candidate history satırı: `<span className="my-application-row__job">` → `<Link to={/jobs/${app.job_id}} className="my-application-row__job">`
+- `web/src/pages/JobsPage.css` — `.job-card__title`: `display: block` eklendi (p→a layout koruma); `text-decoration: none`; hover `#0f6e57`; focus-visible outline
+- `web/src/pages/JobsPage.css` — `.my-application-row__job`: `text-decoration: none`; hover `#0f6e57` + underline; focus-visible outline
+
+**Kalite gateleri:**
+- `npm run type-check` → 0 error
+- `npm run build` → ✓
+
+**Commit:** `feat(jobs): add job detail entry links from jobs list and application history`
 
 ---
 

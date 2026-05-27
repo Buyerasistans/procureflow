@@ -291,7 +291,7 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, op
 
   return (
     <div className="job-card">
-      <p className="job-card__title">{job.title}</p>
+      <Link to={`/jobs/${job.id}`} className="job-card__title">{job.title}</Link>
       <div className="job-card__meta">
         <span className={`job-card__badge ${statusBadgeClass}`}>{job.status}</span>
         <span className="job-card__badge">{employmentLabel[job.employment_type] ?? job.employment_type}</span>
@@ -571,7 +571,7 @@ export default function JobsPage() {
             myApplications.map((app) => (
               <div key={app.id} className="my-application-row">
                 <div className="my-application-row__info">
-                  <span className="my-application-row__job">İlan #{app.job_id}</span>
+                  <Link to={`/jobs/${app.job_id}`} className="my-application-row__job">İlan #{app.job_id}</Link>
                   <span className={`application-status-badge application-status-badge--${app.status}`}>
                     {app.status}
                   </span>

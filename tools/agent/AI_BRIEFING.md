@@ -7,15 +7,33 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 6 — IN PROGRESS (Atomik-4 COMPLETE)
+PHASE 6 — IN PROGRESS (Atomik-5 COMPLETE)
 
 ## Executive Summary
 
-**PHASE 6 Atomik-4 COMPLETE.** Employer status actions JobDetailPage'e eklendi.
-`canEmployer && !canTalent && job.status === "published"` guard; "Kapat" + "Dolu İşaretle" butonları;
-`handleStatusUpdate` → `updateJob` → `setJob(updated)` response-based state güncelleme;
-`updatingStatus` + `statusError` states; CSS: `.job-detail__action*` + `.job-detail__status-error`. type-check 0 error, build ✓.
-Sonraki adım: PHASE 6 / Atomik-5 — entry point links (JobsPage kart başlığı + candidate history satırı).
+**PHASE 6 Atomik-5 COMPLETE.** JobsPage'de iki entry point link eklendi.
+Job card başlığı `<p>` → `<Link to="/jobs/:id">` (display:block koruması); candidate history `İlan #id` `<span>` → `<Link to="/jobs/:id">`.
+CSS: her ikisi için `text-decoration: none`, hover `#0f6e57`, focus-visible outline.
+type-check 0 error, build ✓. Sonraki adım: PHASE 6 / Atomik-6 — full E2E gate + closure.
+
+## PHASE 6 / Atomik-5 — Entry point links from list + history — COMPLETE
+
+### Dosyalar
+
+**`web/src/pages/JobsPage.tsx`** (güncellendi)
+- `Link` zaten importlu — yeni import yok
+- `JobCard` component: `<p className="job-card__title">{job.title}</p>` → `<Link to={\`/jobs/${job.id}\`} className="job-card__title">{job.title}</Link>`
+- Candidate history map: `<span className="my-application-row__job">İlan #{app.job_id}</span>` → `<Link to={\`/jobs/${app.job_id}\`} className="my-application-row__job">İlan #{app.job_id}</Link>`
+
+**`web/src/pages/JobsPage.css`** (güncellendi)
+- `.job-card__title`: `display: block` eklendi (`<p>` block → `<a>` inline geçiş layout koruması); `text-decoration: none`; `overflow-wrap: break-word`; `:hover { color: #0f6e57 }`; `:focus-visible { outline: 2px solid #0f6e57 }`
+- `.my-application-row__job`: `text-decoration: none`; `:hover { color: #0f6e57; text-decoration: underline }`; `:focus-visible { outline: 2px solid #0f6e57 }`
+
+### Kalite Gateleri
+- type-check: PASS — 0 errors
+- build: PASS ✓
+
+**Commit:** `feat(jobs): add job detail entry links from jobs list and application history`
 
 ## PHASE 6 / Atomik-4 — Employer status actions on detail page — COMPLETE
 

@@ -16,7 +16,9 @@
 
 /* Job card */
 .job-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 12px; }
-.job-card__title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; }
+.job-card__title { display: block; font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-decoration: none; overflow-wrap: break-word; }
+.job-card__title:hover { color: #0f6e57; }
+.job-card__title:focus-visible { outline: 2px solid #0f6e57; outline-offset: 2px; border-radius: 2px; }
 .job-card__meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #475569; margin-bottom: 10px; }
 .job-card__badge { background: #f1f5f9; padding: 2px 8px; border-radius: 12px; }
 .job-card__badge--published { background: #dcfce7; color: #166534; }
@@ -80,7 +82,9 @@
 .my-application-row { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #fff; margin-bottom: 8px; }
 .my-application-row:last-child { margin-bottom: 0; }
 .my-application-row__info { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.my-application-row__job { font-size: 13px; font-weight: 600; color: #1e293b; }
+.my-application-row__job { font-size: 13px; font-weight: 600; color: #1e293b; text-decoration: none; }
+.my-application-row__job:hover { color: #0f6e57; text-decoration: underline; }
+.my-application-row__job:focus-visible { outline: 2px solid #0f6e57; outline-offset: 2px; border-radius: 2px; }
 .my-application-row__date { font-size: 12px; color: #94a3b8; }
 .my-application-row__note { font-size: 12px; color: #475569; font-style: italic; margin: 6px 0 0 0; }
 
