@@ -1,0 +1,1 @@
+var e=new Set([`employer_company_admin`,`employer_recruiter`]),t={employer:`/jobs`,candidate:`/talent/profile`};function n(n){let r=String(n||``).toLowerCase();return e.has(r)?t.employer:r===`candidate_user`?t.candidate:`/app`}export{n,t};

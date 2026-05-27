@@ -1,0 +1,1 @@
+.custom-scrollbar::-webkit-scrollbar{width:8px}.custom-scrollbar::-webkit-scrollbar-track{background:0 0}.custom-scrollbar::-webkit-scrollbar-thumb{background:var(--pf-slate-700);border:2px solid var(--pf-slate-900);border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:var(--pf-slate-600)}

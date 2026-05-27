@@ -1,0 +1,1 @@
+import{t as e}from"./QuoteList-BUpsVTi4.js";export{e as default};
