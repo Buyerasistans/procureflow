@@ -1,0 +1,155 @@
+.kariyer-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.kariyer-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+/* Hero */
+.kariyer-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.kariyer-hero__icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.kariyer-hero__title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+}
+
+.kariyer-hero__subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Cards */
+.kariyer-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.kariyer-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.kariyer-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.kariyer-card__icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1;
+}
+
+.kariyer-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem;
+}
+
+.kariyer-card__role {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kariyer-card__desc {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  flex: 1;
+}
+
+.kariyer-card__btn {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  transition: opacity 0.15s, transform 0.1s;
+  margin-bottom: 0.75rem;
+}
+
+.kariyer-card__btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.kariyer-card__btn--employer {
+  background: #059669;
+  color: #fff;
+}
+
+.kariyer-card__btn--candidate {
+  background: #0284c7;
+  color: #fff;
+}
+
+.kariyer-card__login-link {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.kariyer-card__login-link:hover {
+  color: #475569;
+}
+
+/* Tablet */
+@media (max-width: 680px) {
+  .kariyer-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .kariyer-hero__title {
+    font-size: 1.6rem;
+  }
+
+  .kariyer-main {
+    padding: 2rem 1rem 3rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 400px) {
+  .kariyer-hero__title {
+    font-size: 1.35rem;
+  }
+
+  .kariyer-card {
+    padding: 1.5rem 1.25rem;
+  }
+}

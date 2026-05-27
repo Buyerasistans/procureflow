@@ -45,6 +45,9 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
 const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
 const JobCreatePage = lazy(() => import("./pages/JobCreatePage"));
+const SatinAlmaKariyerimPage = lazy(() => import("./pages/SatinAlmaKariyerimPage"));
+const IsverenPozisyonlariPage = lazy(() => import("./pages/IsverenPozisyonlariPage"));
+const IsIlanlariPage = lazy(() => import("./pages/IsIlanlariPage"));
 const TalentProfilePage = lazy(() => import("./pages/TalentProfilePage"));
 const PayoutAdminPage = lazy(() => import("./pages/PayoutAdminPage"));
 const TalentAdminControlPage = lazy(() => import("./pages/TalentAdminControlPage"));
@@ -133,6 +136,9 @@ export default function App() {
           <Route path="/supplier/register" element={<SupplierRegisterPage />} />
           <Route path="/employer/register" element={<EmployerRegisterPage />} />
           <Route path="/candidate/register" element={<CandidateRegisterPage />} />
+          <Route path="/satin-alma-kariyerim" element={<SatinAlmaKariyerimPage />} />
+          <Route path="/isveren-pozisyonlari" element={<IsverenPozisyonlariPage />} />
+          <Route path="/is-ilanlari" element={<IsIlanlariPage />} />
           <Route path="/supplier/email-change-confirm" element={<SupplierEmailChangeConfirmPage />} />
 
           <Route element={<SupplierRoute />}>

@@ -34,3 +34,18 @@
 .public-nav-cta--candidate {
   background: rgba(2, 132, 199, 0.92);
 }
+
+.public-nav-cta--career {
+  background: #f97316;
+  color: #112a25;
+  font-weight: 800;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.15;
+  text-align: center;
+  padding: 5px 12px;
+}
+
+.public-nav-cta__line {
+  display: block;
+}

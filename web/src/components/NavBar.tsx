@@ -24,6 +24,7 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef<number | null>(null);
+  const loginContainerRef = useRef<HTMLDivElement>(null);
 
   const isTurkish = locale === "tr";
   const defaultCopy = isTurkish
@@ -87,10 +88,6 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
     .map((item) => PUBLIC_NAV_LOCALE_MAP[item.key])
     .filter((link): link is { href: string; label: string } => link !== undefined);
 
-  const registerCtas = allVisible
-    .filter((item) => REGISTER_CTA_KEYS.has(item.key))
-    .map((item) => ({ key: item.key, ...PUBLIC_NAV_LOCALE_MAP[item.key] }))
-    .filter((cta): cta is { key: string; href: string; label: string } => !!cta.href);
 
   useEffect(() => {
     return () => {
@@ -99,6 +96,17 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!showLoginPopup) return;
+    function handleOutsideClick(e: MouseEvent) {
+      if (loginContainerRef.current && !loginContainerRef.current.contains(e.target as Node)) {
+        setShowLoginPopup(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [showLoginPopup]);
 
   function handleSystemLoginClick(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -168,19 +176,14 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
           );
         })}
 
-        {/* Onboarding CTA'ları — employer + candidate register */}
-        {registerCtas.map((cta) => (
-          <a
-            key={cta.href}
-            href={cta.href}
-            className={`public-nav-cta public-nav-cta--${cta.key === "top_nav.public.employer_register" ? "employer" : "candidate"}`}
-          >
-            {cta.label}
-          </a>
-        ))}
+        {/* Kariyer CTA */}
+        <a href="/satin-alma-kariyerim" className="public-nav-cta public-nav-cta--career">
+          <span className="public-nav-cta__line">{isTurkish ? "Satın Alma" : "Procurement"}</span>
+          <span className="public-nav-cta__line">{isTurkish ? "Kariyerim" : "Career"}</span>
+        </a>
 
         {/* Sag CTA butonlari */}
-        <div style={{ marginLeft: 8, display: "flex", gap: 6, position: "relative", flexShrink: 0 }}>
+        <div ref={loginContainerRef} style={{ marginLeft: 8, display: "flex", gap: 6, position: "relative", flexShrink: 0 }}>
           {variant === "supplier" ? (
             <a href="/supplier/login" style={ctaBtn(BRAND_COLORS.supplier)}>
               {copy.supplierLogin}
@@ -197,9 +200,16 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
                 ...ctaBtn(BRAND_COLORS.strategic),
                 border: "none",
                 cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                lineHeight: 1.15,
+                padding: "5px 14px",
+                gap: 0,
               }}
             >
-              {copy.signIn}
+              <span>{isTurkish ? "Sisteme" : "System"}</span>
+              <span>{isTurkish ? "Giriş" : "Login"}</span>
             </button>
           )}
           <LanguageSwitcher compact />
@@ -207,10 +217,11 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
           {showLoginPopup && (
             <div
               style={{
-                position: "absolute",
-                top: "calc(100% + 10px)",
-                right: 0,
-                width: "min(340px, calc(100vw - 24px))",
+                position: "fixed",
+                top: 70,
+                right: 16,
+                width: 340,
+                maxWidth: "calc(100vw - 32px)",
                 background: "#ffffff",
                 borderRadius: 14,
                 border: "1px solid #e2e8f0",
@@ -227,27 +238,19 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
                 <a href="/supplier/login" style={popupBtn("#0284c7", "#ffffff")}>{copy.supplierLogin}</a>
                 <a href="/channel/login" style={popupBtn("#f59e0b", "#2f1a0d")}>{copy.partnerLogin}</a>
               </div>
-              {registerCtas.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>
-                    Yeni Hesap
-                  </div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {registerCtas.map((cta) => (
-                      <a
-                        key={cta.href}
-                        href={cta.href}
-                        style={popupBtn(
-                          cta.key === "top_nav.public.employer_register" ? "#059669" : "#0284c7",
-                          "#ffffff",
-                        )}
-                      >
-                        {cta.label}
-                      </a>
-                    ))}
-                  </div>
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>
+                  {isTurkish ? "İşveren & Kariyer" : "Employer & Career"}
                 </div>
-              )}
+                <div style={{ display: "grid", gap: 6 }}>
+                  <a href="/login" style={popupBtn("#059669", "#ffffff")}>
+                    {isTurkish ? "İşveren Giriş" : "Employer Login"}
+                  </a>
+                  <a href="/login" style={popupBtn("#0284c7", "#ffffff")}>
+                    {isTurkish ? "İş Arıyorum Giriş" : "Job Seeker Login"}
+                  </a>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowLoginPopup(false)}

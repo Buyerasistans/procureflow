@@ -7,9 +7,83 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 7 — CLOSED ✓ | NAV_GOVERNANCE_AND_JOB_MARKETPLACE MERGED TO MAIN
+PHASE 8 — IN PROGRESS | Branch: feat/final-stabilization
 
 ## Executive Summary
+
+**PHASE 8 — Kariyer Marketplace & NavBar Stabilizasyonu — IN PROGRESS.**
+Branch: `feat/final-stabilization`
+
+PHASE 8 çalışmaları: JobCreatePage (Atomik-1 COMPLETE, commit 5d011e2), NavBar popup fix + career buttons, public kariyer sayfaları (/satin-alma-kariyerim, /isveren-pozisyonlari, /is-ilanlari), KariyerListingsLayout component (employer + candidate mod), CSS class name fix, responsive design.
+
+---
+
+## PHASE 8 / Atomik-1 — JobCreatePage + Gate — COMPLETE
+
+### Dosyalar
+- `web/src/pages/JobCreatePage.tsx` — iş ilanı oluşturma formu; `canPostJob()` role guard; roller: employer_company_admin, employer_recruiter, super_admin, tenant_admin, tenant_owner, platform_support, platform_operator, finance_officer; tüm hook'lar conditional render'dan önce
+- `web/src/pages/JobCreatePage.css` — responsive 360/768/1280; mobile field stack; forbidden mesaj stili
+- `web/src/App.tsx` — lazy import + `/jobs/new` route (ProtectedRoute > AppLayout, `/jobs` öncesinde)
+- `tools/phase8_atomik1_job_create_gate.mjs` — 15/15 PASS; GET ve POST handler'ları tek method-check handler'a birleştirildi (route conflict fix)
+
+**Commit:** `5d011e2`
+
+### Gate Teknik Notu
+Route conflict: `/api/v1/jobs` için ayrı GET ve POST handler → POST'ta `route.continue()` çağrısı gerçek ağa gidiyordu.
+Fix: Tek handler içinde `route.request().method() === "POST"` kontrolü.
+
+---
+
+## PHASE 8 / NavBar & Kariyer Sayfaları — COMPLETE (uncommitted dirty files)
+
+### NavBar Değişiklikleri (`web/src/components/NavBar.tsx`)
+- Popup: `position: "fixed", top: 70, right: 16, width: 340, maxWidth: "calc(100vw - 32px)"` — viewport taşma düzeltildi
+- Popup dışı tıklama kapama: `loginContainerRef` + `mousedown` event listener
+- "İşveren Kaydı" / "İş Arıyorum" kayıt CTA'ları navbar'dan kaldırıldı
+- "Sisteme Giriş" butonu: `flex-direction: column`, iki satır: "Sisteme" / "Giriş"
+- "Satın Alma Kariyerim" CTA eklendi: iki satır "Satın Alma" / "Kariyerim", orange (#f97316)
+- Login popup: "Yeni Hesap" → "İşveren & Kariyer" başlığı; İşveren Giriş + İş Arıyorum Giriş login linkleri
+
+### NavBar.css Değişiklikleri
+- `.public-nav-cta--career`: `background: #f97316`, `color: #112a25` (BRAND_COLORS.strategic.ctaText ile eşleşiyor)
+- `.public-nav-cta__line { display: block }` — iki satır span
+
+### Yeni Sayfalar
+- `web/src/pages/SatinAlmaKariyerimPage.tsx` + `.css` — landing page; iki kart: işveren pozisyonları + profesyonel profiller
+- `web/src/pages/IsverenPozisyonlariPage.tsx` — `<KariyerListingsLayout mode="employer" />`
+- `web/src/pages/IsIlanlariPage.tsx` — `<KariyerListingsLayout mode="candidate" />` (is arayan profesyoneller)
+- `web/src/App.tsx` — lazy import + public route'lar: `/satin-alma-kariyerim`, `/isveren-pozisyonlari`, `/is-ilanlari`
+
+### KariyerListingsLayout Component
+`web/src/components/KariyerListingsLayout.tsx` + `KariyerListingsLayout.css`
+
+**employer modu:** `SAMPLE_JOBS` → `JobCard` (kart) / `JobListRow` (liste)
+**candidate modu:** `SAMPLE_PROFESSIONALS` → `ProfCard` (kart) / `ProfListRow` (liste)
+
+CSS class naming (yeni — `.kl-card`, `.kl-btn`, `.kl-row`, `.kl-row__*`, `.kl-card__*`, `.kl-pro-avatar`):
+- `.kl-card` — kart container (hover: box-shadow + translateY)
+- `.kl-card__header` — flex, space-between, baseline align
+- `.kl-card__name` — company/pro name (flex, avatar + text)
+- `.kl-card__days` — tarih (beyaz-gri, flex-shrink: 0)
+- `.kl-card__title`, `.kl-card__exp`, `.kl-card__meta`, `.kl-card__tag`, `.kl-card__salary`, `.kl-card__actions`
+- `.kl-btn`, `.kl-btn--primary` (#1e293b), `.kl-btn--secondary` (#f1f5f9), `.kl-btn--sm` (küçük)
+- `.kl-pro-avatar` — 28px circular avatar (initials)
+- `.kl-row`, `.kl-row__main`, `.kl-row__title`, `.kl-row__sub`, `.kl-row__meta`, `.kl-row__right`, `.kl-row__actions`
+
+**Düzeltilen Buglar:**
+- CSS class name mismatch: eski `.kl-job-card` → yeni `.kl-card` (tam rewrite)
+- ProfCard initials duplication: `{pro.initials} – {pro.role}` → sadece `{pro.role}` (avatar ayrı `kl-pro-avatar` span'ında)
+- Accessibility: 3 `<select>` elementine `title` attribute eklendi
+
+### Responsive Tasarım
+Tablet (≤900px): sidebar altına alınır, 2 kolon grid; cards tek kolon
+Mobile (≤580px): sidebar tek kolon; CTA bar dikey; filter selects dikey; row'lar dikey
+
+### Build/Type-check
+- tsc --noEmit: 0 error
+- vite build: ✓ built in 1.09s
+
+---
 
 **PHASE 7 / Atomik-5 COMPLETE. PR #27 MERGED.**
 Merge commit: `46d3c90ca072c44f8b9af6e9fed2ef6a20df8c02` — 313 dosya, 26546+ satır.
