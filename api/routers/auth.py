@@ -1,6 +1,7 @@
 # api\routers\auth.py
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
@@ -153,6 +154,19 @@ class ActivationVerifyIn(BaseModel):
 class ActivationCompleteIn(BaseModel):
     token: str
     password: str
+
+
+class RegisterIn(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    user_type: Literal["employer", "candidate"]
+
+
+_USER_TYPE_ROLE_MAP: dict[str, str] = {
+    "employer": "employer_company_admin",
+    "candidate": "candidate_user",
+}
 
 
 LOGIN_EMAIL_COMPATIBILITY_ALIASES: dict[str, tuple[str, ...]] = {
@@ -393,3 +407,76 @@ def logout(payload: LogoutRequest, db: Session = Depends(get_db)):
         return {"message": "Logged out successfully"}
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+
+@router.post("/register", response_model=TokenPairResponse, status_code=status.HTTP_201_CREATED)
+def register_individual(data: RegisterIn, db: Session = Depends(get_db)):
+    """
+    Public registration for individual employer and candidate users.
+    No tenant affiliation is created. Returns a token pair on success
+    so the caller can immediately use the session.
+    """
+    normalized_email = str(data.email).lower().strip()
+
+    if db.query(User).filter(User.email == normalized_email).first() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Bu e-posta adresi zaten kayıtlı.",
+        )
+
+    if len(data.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Şifre en az 8 karakter olmalı.",
+        )
+
+    if not data.full_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ad Soyad zorunludur.",
+        )
+
+    system_role = _USER_TYPE_ROLE_MAP[data.user_type]
+
+    new_user = User(
+        email=normalized_email,
+        hashed_password=get_password_hash(data.password),
+        full_name=data.full_name.strip(),
+        role="user",
+        system_role=system_role,
+        is_active=True,
+        invitation_accepted=True,
+        tenant_id=None,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    logger.info("individual_register_ok user_id=%s system_role=%s", new_user.id, system_role)
+
+    auth_user = _build_auth_user_payload(db, new_user)
+    access_token = create_access_token(
+        sub=str(new_user.id), role=new_user.role, system_role=system_role
+    )
+    refresh_token = create_refresh_token(
+        sub=str(new_user.id), role=new_user.role, system_role=system_role
+    )
+
+    payload = decode_refresh_token(refresh_token)
+    jti_hash = hash_jti(payload["jti"])
+
+    db_refresh = RefreshToken(
+        jti_hash=jti_hash,
+        user_id=new_user.id,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        revoked_at=None,
+    )
+    db.add(db_refresh)
+    db.commit()
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": auth_user,
+    }

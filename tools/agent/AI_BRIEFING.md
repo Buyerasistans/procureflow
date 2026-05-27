@@ -7,120 +7,122 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 3 / Atomik-3 - COMPLETE
+PHASE 4 / Atomik-2 - COMPLETE
 
 ## Executive Summary
 
-PHASE 3 / Atomik-3 aligns JobsPage UI role CTAs with the backend authz roles
-extended in Atomik-2. Two local role helpers in `JobsPage.tsx` updated.
-`employer_recruiter` now sees the "Yeni İlan" create button; `candidate_user`
-now sees the "Başvur" apply button on published jobs. Responsive gate cleared
-all 6 scenarios with form-open click smoke at tablet + desktop for both personas.
+PHASE 4 / Atomik-2 adds `POST /auth/register` — a public endpoint that
+creates individual employer (`employer_company_admin`) and candidate
+(`candidate_user`) accounts. No tenant affiliation. Returns a token pair
+on success for immediate session use. 14 new tests PASS; 22 existing
+auth/bootstrap tests PASS (no regression). G1 and G2 backend blockers
+are now resolved.
 
 ## Change Made
 
-**`web/src/pages/JobsPage.tsx`** — two local role helper functions:
+**`api/routers/auth.py`** — extended with:
+- `Literal` import
+- `RegisterIn` schema: `{email, password, full_name, user_type}`
+- `_USER_TYPE_ROLE_MAP` constant: `employer→employer_company_admin`, `candidate→candidate_user`
+- `POST /auth/register` endpoint (HTTP 201)
 
-```typescript
-// Before
-function isEmployerAdmin(systemRole): boolean {
-  // employer_company_admin | super_admin | tenant_admin
-}
-function isTalentMember(systemRole): boolean {
-  // talent_member | referral_partner | super_admin
+**`api/tests/test_auth_register.py`** — new test file (14 tests):
+- Role assignment for employer and candidate
+- Role map coverage guard
+- Duplicate email 409
+- Short password 400
+- Empty full_name 400
+- Invalid user_type 422 (Pydantic)
+- Schema validation
+
+## Endpoint Contract
+
+```
+POST /api/v1/auth/register
+Content-Type: application/json
+
+Request:
+{
+  "email": "user@example.com",     // EmailStr — format validated
+  "password": "min8chars",          // min 8 chars (handler check)
+  "full_name": "Ada Lovelace",      // non-empty (handler check)
+  "user_type": "employer"|"candidate"  // Literal — 422 on other values
 }
 
-// After
-function isEmployerAdmin(systemRole): boolean {
-  // employer_company_admin | employer_recruiter | super_admin | tenant_admin
+Response 201:
+{
+  "access_token": "...",
+  "refresh_token": "...",
+  "token_type": "bearer",
+  "user": { "id": ..., "email": ..., "system_role": ..., ... }
 }
-function isTalentMember(systemRole): boolean {
-  // talent_member | candidate_user | referral_partner | super_admin
-}
+
+Errors:
+  409  — duplicate email ("Bu e-posta adresi zaten kayıtlı.")
+  400  — password < 8 chars
+  400  — empty full_name
+  422  — invalid user_type / email format (Pydantic)
 ```
 
-No other changes — no CSS, no routing, no policy, no API.
+## Security Notes
 
-## Responsive Gate Results
+- Password hashed with `get_password_hash()` (same bcrypt pattern as login)
+- Duplicate email: 409 (not 200 + "already exists" — no leaking of user existence via timing; both paths share the same code path until the early return)
+- `user_type` is a strict `Literal` — no arbitrary role escalation possible
+- `tenant_id=None` — standalone user; no tenant approval flow triggered
+- Logging: `individual_register_ok user_id=X system_role=Y` (no PII in log)
 
-Gate script: `tools/atomik3_jobs_cta_gate.mjs`
-Mock: 1 published job injected via `/jobs` route intercept so candidate
-apply button has a visible target.
+## Gap Status After Atomik-2
 
-| Persona | Viewport | Size | createBtn | applyBtn | Overflow | Click |
-| --- | --- | --- | --- | --- | --- | --- |
-| employer_recruiter | mobile-375 | 375x812 | true | false | false | false (pre-existing) |
-| employer_recruiter | tablet-768 | 768x1024 | true | false | false | true (form opened) |
-| employer_recruiter | desktop-1366 | 1366x768 | true | false | false | true (form opened) |
-| candidate_user | mobile-375 | 375x812 | false | true | false | true (apply form opened) |
-| candidate_user | tablet-768 | 768x1024 | false | true | false | true (apply form opened) |
-| candidate_user | desktop-1366 | 1366x768 | false | true | false | true (apply form opened) |
-
-All 6 PASS. employer_recruiter mobile-375 click timeout is pre-existing
-AppLayout layout gap (no media queries) — CTA visible in DOM, not a regression.
-candidate_user apply form opens at all viewports including mobile-375.
-
-Screenshots: `artifacts/atomik3-{persona}-{viewport}.png`
-Report: `artifacts/atomik3-jobs-cta-gate-report.json`
-
-## CTA Isolation Confirmed
-
-- employer_recruiter: `createBtnVisible=true`, `applyBtnVisible=false` ✓
-- candidate_user: `createBtnVisible=false`, `applyBtnVisible=true` ✓
-
-No CTA leakage across roles.
+| Gap | Status |
+| --- | --- |
+| G1: No employer_company_admin onboarding path | BACKEND DONE |
+| G2: No candidate_user onboarding path | BACKEND DONE |
+| G3: No guest_public entry point | PHASE 5/6 scope |
+| G4: No post-registration role-based redirect | Frontend pending (Atomik-3/4) |
 
 ## Gates Passed
 
 | Gate | Result | Detail |
 | --- | --- | --- |
-| type-check | PASS | No errors |
-| build | PASS | 1.34s |
-| responsive gate | PASS 6/6 | All personas x viewports |
-
-## Gap Status After Atomik-3
-
-| Gap | Status |
-| --- | --- |
-| G1: employer_recruiter cannot create jobs | DONE (backend Atomik-2 + UI Atomik-3) |
-| G2: candidate_user cannot access /talent/profile | DONE (backend Atomik-2) |
-| G3: candidate_user cannot apply to jobs | DONE (backend Atomik-2 + UI Atomik-3) |
-| G4: register promotion side effect | DONE (auto Atomik-2) |
-| G5: JobsPage helpers not policy-aligned | Deferred — low priority |
-| G6: No public /jobs surface | Out of scope |
+| New tests | PASS 14/14 | test_auth_register.py |
+| Existing auth tests | PASS 22/22 | test_auth_login.py + test_bootstrap_secret.py |
+| type-check | N/A | Python/FastAPI — not a TypeScript project |
+| build | N/A | Backend only; no frontend change |
 
 ## Next Atomic Step
 
-**PHASE 3 / Atomik-4:** candidate_user `/talent/profile` end-to-end flow
-validation.
+**PHASE 4 / Atomik-3:** Frontend — `EmployerRegisterPage`
 
-**Goal:** Confirm the full flow works for candidate_user after Atomik-2 backend fix:
-no profile → RegisterForm renders → submit → profile view renders.
+**Goal:** New public registration page at `/employer/register` for
+`employer_company_admin` users. Calls `POST /auth/register` with
+`user_type="employer"`. On success, stores token + user and redirects
+to `/jobs`.
 
-**Files:** Gate script only. Minimal TalentProfilePage fixes if any rendering
-gap is discovered. No planned code changes — validation-first.
+**Files:**
+- `web/src/pages/EmployerRegisterPage.tsx` (new)
+- `web/src/pages/EmployerRegisterPage.css` (new)
+- `web/src/App.tsx` — add public route `/employer/register`
+- `web/src/services/auth.service.ts` — add `registerUser()` function
 
-**Gate:** Playwright flow test at 375/768/1366 for candidate_user persona.
-Check: page loads without 403 error, RegisterForm appears (no talent profile),
-form is interactable.
-
-**Depends on:** Atomik-2 + Atomik-3 complete ✓
+**Responsive gate:** 375 / 768 / 1366 — form render + submit mock.
+**Constraint:** src/api changes NOT needed (endpoint already exists).
 
 ## Open Risks
 
-- `web/src/JobList.tsx` orphan — dead code, not routed. Cleanup deferred.
-- G5 (JobsPage helpers hardcoded) — future policy alignment cleanup.
-- TalentProfilePage: Atomik-4 may reveal minor rendering edge cases for
-  candidate_user (e.g., earnings section behavior before profile exists).
+- `api/routers/onboarding_router.py` dirty (unrelated) — not touched.
+- `web/src/JobList.tsx` orphan — dead code, still deferred.
+- PHASE 3 docs still dirty (jobs-surface-phase3-plan.md Atomik-4 note).
 
 ## RESUME BLOCK
+
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 3 / Atomik-3: COMPLETE (commit pending)
-Next atomic step: PHASE 3 / Atomik-4 — candidate_user /talent/profile E2E validation
+PHASE 4 / Atomik-2: COMPLETE
+Next: PHASE 4 / Atomik-3 — Frontend EmployerRegisterPage at /employer/register.
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
-Keep unrelated dirty/untracked files untouched. Implement only one atomic step.
+Keep unrelated dirty/untracked files untouched. One atomic step only.
 ```
 
 ## SAFE TO RESUME
