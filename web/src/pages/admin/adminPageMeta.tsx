@@ -26,7 +26,8 @@ export type AdminTabKey =
   | "approvals"
   | "reports"
   | "mail"
-  | "settings";
+  | "settings"
+  | "supplier_profile";
 
 export type TabConfig = {
   key: AdminTabKey;

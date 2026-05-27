@@ -46,6 +46,7 @@ export type PanelTabVisibilityFlags = {
   can_view_settings_tab: boolean;
   show_settings_workspace_links: boolean;
   can_use_panel_designer: boolean;
+  can_view_supplier_profile_tab: boolean;
 };
 
 function normalizeRole(value?: string | null): string {
@@ -141,7 +142,8 @@ type PanelTabPolicyGroup =
   | "packages"
   | "deployment"
   | "settings"
-  | "panel_designer";
+  | "panel_designer"
+  | "supplier_profile";
 
 const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   key: string;
@@ -171,6 +173,7 @@ const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   { key: "approvals", label: "Onay Akışları", order: 200, group: "core" },
   { key: "reports", label: "Raporlar", order: 210, group: "core" },
   { key: "panel_designer", label: "Panel Tasarımı", order: 220, group: "panel_designer" },
+  { key: "supplier_profile", label: "Tedarikçi Profilim", order: 225, group: "supplier_profile" },
 ];
 
 function isPanelTabGroupEnabled(group: PanelTabPolicyGroup, flags: PanelTabVisibilityFlags): boolean {
@@ -192,6 +195,8 @@ function isPanelTabGroupEnabled(group: PanelTabPolicyGroup, flags: PanelTabVisib
         : flags.show_settings_workspace_links;
     case "panel_designer":
       return flags.can_use_panel_designer;
+    case "supplier_profile":
+      return flags.can_view_supplier_profile_tab;
     default:
       return false;
   }

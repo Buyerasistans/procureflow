@@ -18,6 +18,7 @@ import { RoleDepartmentGovernanceTab } from "../components/admin/RoleDepartmentG
 import { OnboardingStudioTab } from "./admin/OnboardingStudioTab";
 import { TenantGovernanceTab } from "./admin/TenantGovernanceTab";
 import { SuppliersTab } from "../components/SuppliersTab";
+import { SupplierProfileTab } from "./admin/SupplierProfileTab";
 import { SettingsTab } from "../components/SettingsTab";
 import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
 import { ApprovalDashboard } from "../components/ApprovalDashboard";
@@ -1009,6 +1010,7 @@ export default function AdminPage() {
   const canAccessRoleCatalog = canManageRoleCatalog(user);
   const canViewPlatformGovernance = isPlatformStaff || isSuperAdminUser(user);
   const canViewPackagesTab = isSuperAdminUser(user);
+  const canViewSupplierProfileTab = isTenantAdminUser(user) && !canViewPlatformGovernance;
   const canViewSettingsTab = canAccessProcurementSettings(user);
   const showSettingsWorkspaceLinks = !canViewPlatformGovernance && (canViewSettingsTab || isChannelUser);
   const isLocalhostRuntime = typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
@@ -2931,6 +2933,15 @@ export default function AdminPage() {
         : []),
     ];
 
+    if (canViewSupplierProfileTab) {
+      baseTabs.push({
+        key: "supplier_profile" as const,
+        label: "Tedarikçi Profilim",
+        icon: "TED",
+        description: "Firmanızın tedarikçi kaydını bu Stratejik Partner hesabıyla ilişkilendirin (Dual-Role).",
+      });
+    }
+
     if (isSuperAdminUser(user) || activeWorkspacePanelProfile?.allow_user_self_customization) {
       baseTabs.push({
         key: "panel_designer",
@@ -2953,6 +2964,7 @@ export default function AdminPage() {
       can_view_settings_tab: canViewSettingsTab,
       show_settings_workspace_links: showSettingsWorkspaceLinks,
       can_use_panel_designer: Boolean(isSuperAdminUser(user) || activeWorkspacePanelProfile?.allow_user_self_customization),
+      can_view_supplier_profile_tab: canViewSupplierProfileTab,
     }) as AdminTabKey[]);
     const policyFilteredTabs = baseTabs.filter((tab) => policyVisibleTabKeys.has(tab.key));
 
@@ -2961,8 +2973,8 @@ export default function AdminPage() {
     }
 
     const allowedTabs = new Set(activeWorkspacePanelProfile.allowed_tabs as AdminTabKey[]);
-    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer");
-  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
+    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer" || tab.key === "supplier_profile");
+  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, canViewSupplierProfileTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
 
   const shouldLoadAdminWorkspaceData = useMemo(
     () => tabConfigs.some((item) => WORKSPACE_PANEL_DATA_TABS.has(item.key as WorkspacePanelTabKey)),
@@ -5741,6 +5753,19 @@ export default function AdminPage() {
       {/* Suppliers Tab */}
       {activeTab === "suppliers" && (
         <SuppliersTab />
+      )}
+
+      {/* Supplier Profile Tab (Dual-Role) */}
+      {activeTab === "supplier_profile" && canViewSupplierProfileTab && (
+        <SupplierProfileTab
+          tenantName={user?.organization_name ?? user?.platform_name ?? null}
+          tenantId={typeof user?.tenant_id === "number" ? user.tenant_id : null}
+          linkedSupplierId={null}
+          dualRoleStatus="none"
+          onRequestDualRole={async (_supplierId) => {
+            // TODO: call PATCH /api/suppliers/{supplierId}/request-dual-role
+          }}
+        />
       )}
 
       {/* Approvals Tab */}
