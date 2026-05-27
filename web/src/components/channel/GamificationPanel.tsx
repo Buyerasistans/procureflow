@@ -9,7 +9,7 @@ interface GamificationPanelProps {
 }
 
 const LEVEL_LABELS: Record<string, string> = {
-  L0: "Baslangic",
+  L0: "Başlangıç",
   L1: "Bronz",
   L2: "Gumus",
   L3: "Altin",

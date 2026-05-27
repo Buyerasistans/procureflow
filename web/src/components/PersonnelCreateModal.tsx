@@ -69,21 +69,57 @@ interface PendingAssignment {
 }
 
 const BUSINESS_ROLE_OPTIONS = [
-  { value: "satinalmaci", label: "Satın Almacı", hierarchy_level: 5 },
-  { value: "satinalma_uzmani", label: "Satın Alma Uzmanı", hierarchy_level: 4 },
-  { value: "satinalma_yoneticisi", label: "Satın Alma Yöneticisi", hierarchy_level: 3 },
-  { value: "admin", label: "Satın Alma Admin", hierarchy_level: 1 },
-  { value: "satinalma_direktoru", label: "Satın Alma Direktörü", hierarchy_level: 2 },
+  // Platform
   { value: "super_admin", label: "Süper Admin", hierarchy_level: 0 },
-] as const;
+  // Stratejik Partner rolleri (v2 kataloğu)
+  { value: "partner_admin", label: "Partner Admin", hierarchy_level: 0 },
+  { value: "satinalma_direktoru", label: "Satın Alma Direktörü", hierarchy_level: 1 },
+  { value: "satinalma_muduru", label: "Satın Alma Müdürü", hierarchy_level: 2 },
+  { value: "satinalma_mudur_yrd", label: "Satın Alma Müdür Yardımcısı", hierarchy_level: 3 },
+  { value: "satinalma_yoneticisi", label: "Satın Alma Yöneticisi", hierarchy_level: 4 },
+  { value: "satinalma_kidemli_uzmani", label: "Satın Alma Kıdemli Uzmanı", hierarchy_level: 5 },
+  { value: "satinalma_uzman_yrd", label: "Satın Alma Uzman Yardımcısı", hierarchy_level: 6 },
+  { value: "satinalma_uzmani", label: "Satın Alma Uzmanı", hierarchy_level: 7 },
+  { value: "proje_mimari", label: "Proje Mimarı", hierarchy_level: 8 },
+  { value: "teknik_uzman", label: "Teknik Uzman", hierarchy_level: 9 },
+  { value: "ozel_partner_rolu", label: "Özel Stratejik Partner Rolü", hierarchy_level: 10 },
+  { value: "finans_izleyici", label: "Finans İzleyici", hierarchy_level: 10 },
+  // Kanal rolleri (v2 kataloğu)
+  { value: "kanal_hesap_sahibi", label: "Kanal Hesap Sahibi", hierarchy_level: 0 },
+  { value: "kanal_ekip_lideri", label: "Kanal Ekip Lideri", hierarchy_level: 1 },
+  { value: "kanal_temsilcisi", label: "Kanal Temsilcisi", hierarchy_level: 2 },
+  { value: "kanal_finans", label: "Kanal Finans", hierarchy_level: 3 },
+  { value: "ozel_kanal_rolu", label: "Özel Kanal Rolü", hierarchy_level: 4 },
+  // Eski kodlar — geriye dönük uyumluluk
+  { value: "admin", label: "Satın Alma Admin", hierarchy_level: 1 },
+  { value: "satinalmaci", label: "Satın Almacı", hierarchy_level: 7 },
+];
 
 const ROLE_LABELS: Record<string, string> = {
+  // Platform
   super_admin: "Süper Admin",
+  // Stratejik Partner v2
+  partner_admin: "Partner Admin",
+  satinalma_direktoru: "Satın Alma Direktörü",
+  satinalma_muduru: "Satın Alma Müdürü",
+  satinalma_mudur_yrd: "Satın Alma Müdür Yardımcısı",
+  satinalma_yoneticisi: "Satın Alma Yöneticisi",
+  satinalma_kidemli_uzmani: "Satın Alma Kıdemli Uzmanı",
+  satinalma_uzman_yrd: "Satın Alma Uzman Yardımcısı",
+  satinalma_uzmani: "Satın Alma Uzmanı",
+  proje_mimari: "Proje Mimarı",
+  teknik_uzman: "Teknik Uzman",
+  ozel_partner_rolu: "Özel Stratejik Partner Rolü",
+  finans_izleyici: "Finans İzleyici",
+  // Kanal v2
+  kanal_hesap_sahibi: "Kanal Hesap Sahibi",
+  kanal_ekip_lideri: "Kanal Ekip Lideri",
+  kanal_temsilcisi: "Kanal Temsilcisi",
+  kanal_finans: "Kanal Finans",
+  ozel_kanal_rolu: "Özel Kanal Rolü",
+  // Eski kodlar
   admin: "Satın Alma Admin",
   satinalmaci: "Satın Almacı",
-  satinalma_uzmani: "Satın Alma Uzmanı",
-  satinalma_yoneticisi: "Satın Alma Yöneticisi",
-  satinalma_direktoru: "Satın Alma Direktörü",
 };
 
 const ADMIN_SYSTEM_ROLE_OPTIONS = [
@@ -92,28 +128,31 @@ const ADMIN_SYSTEM_ROLE_OPTIONS = [
   { value: "platform_operator", label: "Platform Operasyon" },
 ] as const;
 
-const STRATEGIC_PARTNER_ROLE_ORDER = [
-  "Partner Ana Yonetici",
-  "Partner Yoneticisi",
-  "Satin Alma Muduru",
-  "Teknik Uzman ve Mimar",
-  "Denetci ve Finansal Izleyici",
-  "Ozel Partner Rolu",
-] as const;
-
-function filterAssignableBusinessRoleOptions(currentRole: string | null | undefined) {
-  const normalizedCurrentRole = String(currentRole || "").toLowerCase();
-  if (!normalizedCurrentRole || normalizedCurrentRole === "super_admin") {
-    return BUSINESS_ROLE_OPTIONS;
-  }
-
-  const currentOption = BUSINESS_ROLE_OPTIONS.find((option) => option.value === normalizedCurrentRole);
-  if (!currentOption) {
-    return BUSINESS_ROLE_OPTIONS.filter((option) => option.value !== "super_admin");
-  }
-
-  return BUSINESS_ROLE_OPTIONS.filter((option) => option.hierarchy_level >= currentOption.hierarchy_level);
-}
+const SCOPE_ROLE_CODES: Record<string, string[]> = {
+  portal: ["super_admin"],
+  partner: [
+    "partner_admin",
+    "satinalma_direktoru",
+    "satinalma_muduru",
+    "satinalma_mudur_yrd",
+    "satinalma_yoneticisi",
+    "satinalma_kidemli_uzmani",
+    "satinalma_uzman_yrd",
+    "satinalma_uzmani",
+    "proje_mimari",
+    "teknik_uzman",
+    "ozel_partner_rolu",
+    "finans_izleyici",
+  ],
+  channel: [
+    "kanal_hesap_sahibi",
+    "kanal_ekip_lideri",
+    "kanal_temsilcisi",
+    "kanal_finans",
+    "ozel_kanal_rolu",
+  ],
+  supplier: [],
+};
 
 export function PersonnelCreateModal({
   isOpen,
@@ -186,43 +225,16 @@ export function PersonnelCreateModal({
     return roles.find((item) => normalizeText(item.name) === normalizedRole);
   }, [role, roles]);
 
-  const strategicRoleOptions = useMemo(() => {
-    const byName = new Map<string, Role>();
-    for (const row of roles) {
-      byName.set(normalizeText(row.name), row);
-    }
-
-    const ordered = STRATEGIC_PARTNER_ROLE_ORDER
-      .map((name) => byName.get(normalizeText(name)))
-      .filter((item): item is Role => Boolean(item))
-      .map((item) => ({ value: item.name, label: item.name }));
-
-    const remaining = roles
-      .filter((row) => !STRATEGIC_PARTNER_ROLE_ORDER.some((name) => normalizeText(name) === normalizeText(row.name)))
-      .sort((a, b) => a.hierarchy_level - b.hierarchy_level || a.name.localeCompare(b.name, "tr"))
-      .map((row) => ({ value: row.name, label: row.name }));
-
-    return [...ordered, ...remaining];
-  }, [roles]);
-
-  const availableSystemRoleOptions = useMemo(() => {
-    const visibleOptions = filterAssignableBusinessRoleOptions(authUser?.business_role || authUser?.role);
-
+  const operationalRoleOptions = useMemo(() => {
+    const allowed = SCOPE_ROLE_CODES[contextScope] ?? SCOPE_ROLE_CODES.partner;
+    let options = BUSINESS_ROLE_OPTIONS.filter((opt) => allowed.includes(opt.value));
     if (!canAssignPrivilegedBusinessRole(authUser) && isTenantAdminUser(authUser)) {
-      return visibleOptions.filter(
-        (option) => option.value !== "admin" && option.value !== "super_admin",
+      options = options.filter(
+        (opt) => opt.value !== "admin" && opt.value !== "super_admin" && opt.value !== "partner_admin",
       );
     }
-
-    return visibleOptions;
-  }, [authUser]);
-
-  const operationalRoleOptions = useMemo(() => {
-    if (contextScope === "partner" || contextScope === "channel") {
-      return strategicRoleOptions;
-    }
-    return availableSystemRoleOptions.map((item) => ({ value: item.value, label: item.label }));
-  }, [availableSystemRoleOptions, contextScope, strategicRoleOptions]);
+    return options.map((opt) => ({ value: opt.value, label: opt.label }));
+  }, [contextScope, authUser]);
 
   const [permissionOverrides, setPermissionOverrides] = useState<PermissionOverrideMap>({});
   const [permissionOverridesLoading, setPermissionOverridesLoading] = useState(false);
@@ -670,8 +682,8 @@ export function PersonnelCreateModal({
       <div className="personnel-create-modal__container">
         <div className="personnel-create-modal__header">
           <div>
-            <h2 className="personnel-create-modal__title">{editData ? "Ekip Uyesini Duzenle" : "Yeni Ekip Uyesi Ekle"}</h2>
-            <div className="personnel-create-modal__subtitle">Kimlik, iletisim ve firma atamalarini tek ekrandan yonetin.</div>
+            <h2 className="personnel-create-modal__title">{editData ? "Ekip Üyesini Düzenle" : "Yeni Ekip Üyesi Ekle"}</h2>
+            <div className="personnel-create-modal__subtitle">Kimlik, iletişim ve firma atamalarını tek ekrandan yönetin.</div>
           </div>
           <button type="button" onClick={onClose} className="personnel-create-modal__close-button" aria-label="Kapat">X</button>
         </div>
@@ -679,13 +691,13 @@ export function PersonnelCreateModal({
           <div className="personnel-create-modal__layout">
             <div className="personnel-create-modal__profile-panel">
               <label htmlFor="personnel-photo" className="personnel-create-modal__photo-label">
-                {photoPreview ? <img src={photoPreview} alt="Vesikalik" className="personnel-create-modal__photo-preview" /> : <div className="personnel-create-modal__photo-placeholder" aria-hidden="true">+</div>}
-                <input id="personnel-photo" type="file" accept="image/*" className="personnel-create-modal__file-input" onChange={handlePhotoChange} aria-label="Vesikalik fotograf y?kle" />
+                {photoPreview ? <img src={photoPreview} alt="Vesikalık" className="personnel-create-modal__photo-preview" /> : <div className="personnel-create-modal__photo-placeholder" aria-hidden="true">+</div>}
+                <input id="personnel-photo" type="file" accept="image/*" className="personnel-create-modal__file-input" onChange={handlePhotoChange} aria-label="Vesikalık fotoğraf yükle" />
               </label>
-              <div className="personnel-create-modal__photo-help">Vesikalik fotograf y?kle</div>
+              <div className="personnel-create-modal__photo-help">Vesikalık fotoğraf yükle</div>
               <div className="personnel-create-modal__side-options">
-                <div className="personnel-create-modal__side-card"><div className="personnel-create-modal__side-card-title">Harita</div><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={!hideLocation} onChange={(e) => setHideLocation(!e.target.checked)} /><span>Detay ekraninda harita gosterilsin</span></label></div>
-                <div className="personnel-create-modal__side-card"><div className="personnel-create-modal__side-card-title">WhatsApp</div><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={shareOnWhatsApp} onChange={(e) => setShareOnWhatsApp(e.target.checked)} /><span>WhatsApp paylasimi acik olsun</span></label></div>
+                <div className="personnel-create-modal__side-card"><div className="personnel-create-modal__side-card-title">Harita</div><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={!hideLocation} onChange={(e) => setHideLocation(!e.target.checked)} /><span>Detay ekranında harita gösterilsin</span></label></div>
+                <div className="personnel-create-modal__side-card"><div className="personnel-create-modal__side-card-title">WhatsApp</div><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={shareOnWhatsApp} onChange={(e) => setShareOnWhatsApp(e.target.checked)} /><span>WhatsApp paylaşımı açık olsun</span></label></div>
                 {editData && <div className="personnel-create-modal__side-card"><label className="personnel-create-modal__checkbox-row"><input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /><span className={isActive ? "personnel-create-modal__status-text personnel-create-modal__status-text--active" : "personnel-create-modal__status-text personnel-create-modal__status-text--passive"}>{isActive ? 'Aktif' : 'Pasif'}</span></label></div>}
               </div>
             </div>
@@ -695,15 +707,15 @@ export function PersonnelCreateModal({
               <div className="personnel-create-modal__field-grid">
                 <div><label htmlFor="personnel-full-name" className="personnel-create-modal__label">Ad Soyad *</label><input id="personnel-full-name" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Ad Soyad" className="personnel-create-modal__input" /></div>
                 <div><label htmlFor="personnel-email" className="personnel-create-modal__label">Email *</label><input id="personnel-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="personnel-create-modal__input" /></div>
-                <div><label htmlFor="personnel-work-email" className="personnel-create-modal__label">Is Maili</label><input id="personnel-work-email" type="email" value={workEmail} onChange={e => setWorkEmail(e.target.value)} placeholder="Kurumsal mail eslestirmesi" className="personnel-create-modal__input" /></div>
-                {contextScope === "partner" ? <div><label htmlFor="personnel-tenant" className="personnel-create-modal__label">Stratejik Partner (Tenant) {requireTenantSelection && !editData ? "*" : ""}</label><select id="personnel-tenant" value={selectedTenantId ?? ""} onChange={(e) => setSelectedTenantId(e.target.value ? Number(e.target.value) : null)} disabled={Boolean(editData)} className="personnel-create-modal__input"><option value="">Tenant Seciniz...</option>{tenantOptions.map((tenant) => <option key={tenant.id} value={tenant.id}>{tenant.brand_name || tenant.legal_name || ('Tenant #' + tenant.id)}</option>)}</select><div className="personnel-create-modal__hint">Rol listesi secilen tenant kataloguna gore otomatik filtrelenir.</div></div> : null}
-                <div><label htmlFor="personnel-role" className="personnel-create-modal__label">Operasyonel Rol *</label>{isLockedAdminProfile ? <input id="personnel-role" type="text" value={getRoleLabel(role || editData?.role || "admin")} disabled className="personnel-create-modal__input personnel-create-modal__input--locked" /> : <select id="personnel-role" value={role} onChange={e => setRole(e.target.value)} className="personnel-create-modal__input"><option value="">Rol Seciniz...</option>{operationalRoleOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select>}<div className="personnel-create-modal__hint">{isLockedAdminProfile ? 'Admin profillerinde operasyonel rol sabittir; bu ekrandan degistirilemez.' : 'Satin alma sureclerindeki gorev ve onay yetkisini belirler.'}</div></div>
-                {canAssignPrivilegedBusinessRole(authUser) && isPrivilegedBusinessRole(role) ? <div><label htmlFor="personnel-system-role" className="personnel-create-modal__label">Sistem Rolu</label><select id="personnel-system-role" value={systemRole} onChange={e => setSystemRole(e.target.value as typeof systemRole)} className="personnel-create-modal__input">{isSuperAdminBusinessRole(role) ? <option value="super_admin">Super Admin</option> : ADMIN_SYSTEM_ROLE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select><div className="personnel-create-modal__hint">Platform erisim kapsamini belirler (yonetim paneli yetkisi).</div></div> : null}
-                <div className="personnel-create-modal__permission-panel"><div className="personnel-create-modal__panel-head"><div className="personnel-create-modal__panel-copy"><div className="personnel-create-modal__permission-title">Canli Yetki Onizlemesi</div><div className="personnel-create-modal__permission-description">Rol seciminize gore menulerin acik/kapali durumu anlik guncellenir.</div></div><button type="button" onClick={() => setShowPermissionPreview((prev) => !prev)} className="personnel-create-modal__permission-toggle">{showPermissionPreview ? 'Onizlemeyi Gizle' : 'Onizlemeyi Ac'}</button></div>{showPermissionPreview ? <>{permissionOverridesLoading && editData ? <div className="personnel-create-modal__permission-loading">Kayitli kisiye ozel izinler yukleniyor...</div> : null}<div className="personnel-create-modal__permission-grid">{menuAccessPreview.map((item) => <div key={item.key} className={item.enabled ? "personnel-create-modal__permission-card personnel-create-modal__permission-card--enabled" : "personnel-create-modal__permission-card personnel-create-modal__permission-card--disabled"}><div className="personnel-create-modal__permission-card-head"><div className="personnel-create-modal__permission-card-title">{item.label}</div><button type="button" onClick={() => setPermissionOverrides((prev) => ({ ...prev, [item.key]: !item.enabled }))} className={item.enabled ? "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--enabled" : "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--disabled"}>{item.enabled ? 'Acik' : 'Kapali'}</button></div><div className="personnel-create-modal__permission-card-description">{item.description}</div>{item.children && item.children.length > 0 ? <div className="personnel-create-modal__permission-children">{item.children.map((child) => <div key={child.key} className="personnel-create-modal__permission-child"><div><div className="personnel-create-modal__permission-child-title">{child.label}</div><div className="personnel-create-modal__permission-child-description">{child.description}</div></div><button type="button" onClick={() => setPermissionOverrides((prev) => ({ ...prev, [child.key]: !child.enabled }))} className={child.enabled ? "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--nowrap personnel-create-modal__permission-badge--enabled" : "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--nowrap personnel-create-modal__permission-badge--disabled"}>{child.enabled ? 'Acik' : 'Kapali'}</button></div>)}</div> : null}</div>)}</div></> : null}</div>
-                <div className="personnel-create-modal__assignment-panel"><div className="personnel-create-modal__assignment-head"><div><div className="personnel-create-modal__assignment-title">Firma / Departman / Alt Acilim Atamalari</div><div className="personnel-create-modal__assignment-description">Birden fazla firma ekleyebilir, her firma icin departman ve alt acilim secebilirsiniz.</div></div><button type="button" onClick={() => openAssignmentModal()} className="personnel-create-modal__primary-action">Firmalar</button></div>{pendingAssignments.length === 0 ? <div className="personnel-create-modal__empty-state">Henuz firma atamasi eklenmedi.</div> : <div className="personnel-create-modal__assignment-list">{pendingAssignments.map((assignment, index) => <div key={String(assignment.company_id) + '-' + String(assignment.department_id) + '-' + String(index)} className="personnel-create-modal__assignment-card"><div className="personnel-create-modal__assignment-card-head"><div><div className="personnel-create-modal__assignment-company">{assignment.company_name}</div><div className="personnel-create-modal__assignment-department">{assignment.department_name || 'Departman secilmedi'}</div></div><div className="personnel-create-modal__assignment-role">{assignment.role_name}</div></div>{assignment.sub_items.length > 0 && <div className="personnel-create-modal__chip-list">{assignment.sub_items.map((item) => <span key={item} className="personnel-create-modal__chip">{item}</span>)}</div>}<div className="personnel-create-modal__assignment-actions"><button type="button" onClick={() => openAssignmentModal(assignment)} className="personnel-create-modal__soft-button personnel-create-modal__soft-button--blue">Duzenle</button><button type="button" onClick={() => setPendingAssignments((prev) => prev.filter((item) => item !== assignment))} className="personnel-create-modal__soft-button personnel-create-modal__soft-button--red">Kaldir</button></div></div>)}</div>}</div>
-                <div className="personnel-create-modal__field personnel-create-modal__field--full"><label htmlFor="personnel-address" className="personnel-create-modal__label">Adres</label><div className="personnel-create-modal__address-row"><select value={selectedCity} onChange={e => { setSelectedCity(e.target.value); setSelectedDistrict(""); }} className="personnel-create-modal__input personnel-create-modal__input--address-select" aria-label="Il seciniz"><option value="">Il seciniz</option>{cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}</select><select value={selectedDistrict} onChange={e => setSelectedDistrict(e.target.value)} className="personnel-create-modal__input personnel-create-modal__input--address-select" disabled={!selectedCity} aria-label="Ilce seciniz"><option value="">Ilce seciniz</option>{districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}</select></div><input id="personnel-address" type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Detayli adres" className="personnel-create-modal__input" />{(selectedCity && selectedDistrict && address) && <div className="personnel-create-modal__map-panel"><button type="button" onClick={() => setShowMap((v: boolean) => !v)} className="personnel-create-modal__map-toggle">{showMap ? 'Haritayi Gizle' : 'Haritada Goster'}</button>{showMap && <iframe title="Personel adres haritasi" width="100%" height="220" className="personnel-create-modal__map-frame" loading="lazy" allowFullScreen src={'https://www.google.com/maps?q=' + encodeURIComponent(address + ', ' + selectedDistrict + ', ' + selectedCity + ', Turkiye') + '&output=embed'}></iframe>}</div>}</div>
-                <div><label htmlFor="personnel-personal-phone" className="personnel-create-modal__label">Sahsi Telefon</label><div className="personnel-create-modal__phone-row"><input id="personnel-personal-phone" type="text" value={personalPhone} onChange={e => setPersonalPhone(e.target.value)} placeholder="05xx..." className="personnel-create-modal__input" /><a href={personalPhone ? 'https://wa.me/' + personalPhone.replace(/\D/g, '') : undefined} target="_blank" rel="noopener noreferrer" title="WhatsApp" className={personalPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--whatsapp" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>WA</a><a href={toSafeTelHref(personalPhone)} title="Ara" className={personalPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--call" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>Tel</a></div></div>
-                <div><label htmlFor="personnel-company-phone" className="personnel-create-modal__label">Firma Telefon</label><div className="personnel-create-modal__phone-row"><input id="personnel-company-phone" type="text" value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} placeholder="0xxx..." className="personnel-create-modal__input" /><input type="text" value={companyPhoneShort} onChange={e => setCompanyPhoneShort(e.target.value)} placeholder="Kisa Kod" className="personnel-create-modal__input personnel-create-modal__input--short-code" aria-label="Firma telefon kisa kodu" /><a href={companyPhone ? 'https://wa.me/' + companyPhone.replace(/\D/g, '') : undefined} target="_blank" rel="noopener noreferrer" title="WhatsApp" className={companyPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--whatsapp" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>WA</a><a href={toSafeTelHref(companyPhone)} title="Ara" className={companyPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--call" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>Tel</a></div></div>
+                <div><label htmlFor="personnel-work-email" className="personnel-create-modal__label">İş Maili</label><input id="personnel-work-email" type="email" value={workEmail} onChange={e => setWorkEmail(e.target.value)} placeholder="Kurumsal mail eşleştirmesi" className="personnel-create-modal__input" /></div>
+                {contextScope === "partner" ? <div><label htmlFor="personnel-tenant" className="personnel-create-modal__label">Stratejik Partner (Tenant) {requireTenantSelection && !editData ? "*" : ""}</label><select id="personnel-tenant" value={selectedTenantId ?? ""} onChange={(e) => setSelectedTenantId(e.target.value ? Number(e.target.value) : null)} disabled={Boolean(editData)} className="personnel-create-modal__input"><option value="">Tenant Seçiniz...</option>{tenantOptions.map((tenant) => <option key={tenant.id} value={tenant.id}>{tenant.brand_name || tenant.legal_name || ('Tenant #' + tenant.id)}</option>)}</select><div className="personnel-create-modal__hint">Rol listesi seçilen tenant kataloğuna göre otomatik filtrelenir.</div></div> : null}
+                <div><label htmlFor="personnel-role" className="personnel-create-modal__label">Operasyonel Rol *</label>{isLockedAdminProfile ? <input id="personnel-role" type="text" value={getRoleLabel(role || editData?.role || "admin")} disabled className="personnel-create-modal__input personnel-create-modal__input--locked" /> : <select id="personnel-role" value={role} onChange={e => setRole(e.target.value)} className="personnel-create-modal__input"><option value="">Rol Seçiniz...</option>{operationalRoleOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select>}<div className="personnel-create-modal__hint">{isLockedAdminProfile ? 'Admin profillerinde operasyonel rol sabittir; bu ekrandan değiştirilemez.' : 'Satın alma süreçlerindeki görev ve onay yetkisini belirler.'}</div></div>
+                {canAssignPrivilegedBusinessRole(authUser) && isPrivilegedBusinessRole(role) ? <div><label htmlFor="personnel-system-role" className="personnel-create-modal__label">Sistem Rolü</label><select id="personnel-system-role" value={systemRole} onChange={e => setSystemRole(e.target.value as typeof systemRole)} className="personnel-create-modal__input">{isSuperAdminBusinessRole(role) ? <option value="super_admin">Super Admin</option> : ADMIN_SYSTEM_ROLE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select><div className="personnel-create-modal__hint">Platform erişim kapsamını belirler (yönetim paneli yetkisi).</div></div> : null}
+                <div className="personnel-create-modal__permission-panel"><div className="personnel-create-modal__panel-head"><div className="personnel-create-modal__panel-copy"><div className="personnel-create-modal__permission-title">Canlı Yetki Önizlemesi</div><div className="personnel-create-modal__permission-description">Rol seçiminize göre menülerin açık/kapalı durumu anlık güncellenir.</div></div><button type="button" onClick={() => setShowPermissionPreview((prev) => !prev)} className="personnel-create-modal__permission-toggle">{showPermissionPreview ? 'Önizlemeyi Gizle' : 'Önizlemeyi Aç'}</button></div>{showPermissionPreview ? <>{permissionOverridesLoading && editData ? <div className="personnel-create-modal__permission-loading">Kayıtlı kişiye özel izinler yükleniyor...</div> : null}<div className="personnel-create-modal__permission-grid">{menuAccessPreview.map((item) => <div key={item.key} className={item.enabled ? "personnel-create-modal__permission-card personnel-create-modal__permission-card--enabled" : "personnel-create-modal__permission-card personnel-create-modal__permission-card--disabled"}><div className="personnel-create-modal__permission-card-head"><div className="personnel-create-modal__permission-card-title">{item.label}</div><button type="button" onClick={() => setPermissionOverrides((prev) => ({ ...prev, [item.key]: !item.enabled }))} className={item.enabled ? "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--enabled" : "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--disabled"}>{item.enabled ? 'Açık' : 'Kapalı'}</button></div><div className="personnel-create-modal__permission-card-description">{item.description}</div>{item.children && item.children.length > 0 ? <div className="personnel-create-modal__permission-children">{item.children.map((child) => <div key={child.key} className="personnel-create-modal__permission-child"><div><div className="personnel-create-modal__permission-child-title">{child.label}</div><div className="personnel-create-modal__permission-child-description">{child.description}</div></div><button type="button" onClick={() => setPermissionOverrides((prev) => ({ ...prev, [child.key]: !child.enabled }))} className={child.enabled ? "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--nowrap personnel-create-modal__permission-badge--enabled" : "personnel-create-modal__permission-badge personnel-create-modal__permission-badge--nowrap personnel-create-modal__permission-badge--disabled"}>{child.enabled ? 'Açık' : 'Kapalı'}</button></div>)}</div> : null}</div>)}</div></> : null}</div>
+                <div className="personnel-create-modal__assignment-panel"><div className="personnel-create-modal__assignment-head"><div><div className="personnel-create-modal__assignment-title">Firma / Departman / Alt Açılım Atamaları</div><div className="personnel-create-modal__assignment-description">Birden fazla firma ekleyebilir, her firma için departman ve alt açılım seçebilirsiniz.</div></div><button type="button" onClick={() => openAssignmentModal()} className="personnel-create-modal__primary-action">Firmalar</button></div>{pendingAssignments.length === 0 ? <div className="personnel-create-modal__empty-state">Henüz firma ataması eklenmedi.</div> : <div className="personnel-create-modal__assignment-list">{pendingAssignments.map((assignment, index) => <div key={String(assignment.company_id) + '-' + String(assignment.department_id) + '-' + String(index)} className="personnel-create-modal__assignment-card"><div className="personnel-create-modal__assignment-card-head"><div><div className="personnel-create-modal__assignment-company">{assignment.company_name}</div><div className="personnel-create-modal__assignment-department">{assignment.department_name || 'Departman seçilmedi'}</div></div><div className="personnel-create-modal__assignment-role">{assignment.role_name}</div></div>{assignment.sub_items.length > 0 && <div className="personnel-create-modal__chip-list">{assignment.sub_items.map((item) => <span key={item} className="personnel-create-modal__chip">{item}</span>)}</div>}<div className="personnel-create-modal__assignment-actions"><button type="button" onClick={() => openAssignmentModal(assignment)} className="personnel-create-modal__soft-button personnel-create-modal__soft-button--blue">Düzenle</button><button type="button" onClick={() => setPendingAssignments((prev) => prev.filter((item) => item !== assignment))} className="personnel-create-modal__soft-button personnel-create-modal__soft-button--red">Kaldır</button></div></div>)}</div>}</div>
+                <div className="personnel-create-modal__field personnel-create-modal__field--full"><label htmlFor="personnel-address" className="personnel-create-modal__label">Adres</label><div className="personnel-create-modal__address-row"><select value={selectedCity} onChange={e => { setSelectedCity(e.target.value); setSelectedDistrict(""); }} className="personnel-create-modal__input personnel-create-modal__input--address-select" aria-label="İl seçiniz"><option value="">İl seçiniz</option>{cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}</select><select value={selectedDistrict} onChange={e => setSelectedDistrict(e.target.value)} className="personnel-create-modal__input personnel-create-modal__input--address-select" disabled={!selectedCity} aria-label="İlçe seçiniz"><option value="">İlçe seçiniz</option>{districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}</select></div><input id="personnel-address" type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Detaylı adres" className="personnel-create-modal__input" />{(selectedCity && selectedDistrict && address) && <div className="personnel-create-modal__map-panel"><button type="button" onClick={() => setShowMap((v: boolean) => !v)} className="personnel-create-modal__map-toggle">{showMap ? 'Haritayı Gizle' : 'Haritada Göster'}</button>{showMap && <iframe title="Personel adres haritası" width="100%" height="220" className="personnel-create-modal__map-frame" loading="lazy" allowFullScreen src={'https://www.google.com/maps?q=' + encodeURIComponent(address + ', ' + selectedDistrict + ', ' + selectedCity + ', Turkiye') + '&output=embed'}></iframe>}</div>}</div>
+                <div><label htmlFor="personnel-personal-phone" className="personnel-create-modal__label">Şahsi Telefon</label><div className="personnel-create-modal__phone-row"><input id="personnel-personal-phone" type="text" value={personalPhone} onChange={e => setPersonalPhone(e.target.value)} placeholder="05xx..." className="personnel-create-modal__input" /><a href={personalPhone ? 'https://wa.me/' + personalPhone.replace(/\D/g, '') : undefined} target="_blank" rel="noopener noreferrer" title="WhatsApp" className={personalPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--whatsapp" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>WA</a><a href={toSafeTelHref(personalPhone)} title="Ara" className={personalPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--call" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>Tel</a></div></div>
+                <div><label htmlFor="personnel-company-phone" className="personnel-create-modal__label">Firma Telefon</label><div className="personnel-create-modal__phone-row"><input id="personnel-company-phone" type="text" value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} placeholder="0xxx..." className="personnel-create-modal__input" /><input type="text" value={companyPhoneShort} onChange={e => setCompanyPhoneShort(e.target.value)} placeholder="Kısa Kod" className="personnel-create-modal__input personnel-create-modal__input--short-code" aria-label="Firma telefon kısa kodu" /><a href={companyPhone ? 'https://wa.me/' + companyPhone.replace(/\D/g, '') : undefined} target="_blank" rel="noopener noreferrer" title="WhatsApp" className={companyPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--whatsapp" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>WA</a><a href={toSafeTelHref(companyPhone)} title="Ara" className={companyPhone ? "personnel-create-modal__phone-action personnel-create-modal__phone-action--call" : "personnel-create-modal__phone-action personnel-create-modal__phone-action--disabled"}>Tel</a></div></div>
               </div>
             </div>
           </div>

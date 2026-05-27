@@ -1,4 +1,4 @@
-.support-ticket-admin-tab {
+﻿.support-ticket-admin-tab {
   padding: 20px 0;
 }
 
@@ -9,12 +9,12 @@
 .support-ticket-admin-tab__title {
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .support-ticket-admin-tab__subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   margin-top: 4px;
 }
 
@@ -26,8 +26,8 @@
 }
 
 .support-ticket-admin-tab__summary-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-slate-200);
   border-radius: 10px;
   padding: 10px 16px;
   min-width: 90px;
@@ -40,12 +40,12 @@
 
 .support-ticket-admin-tab__summary-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   margin-top: 2px;
 }
 
 .support-ticket-admin-tab__summary-value--open {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .support-ticket-admin-tab__summary-value--in-progress {
@@ -53,15 +53,15 @@
 }
 
 .support-ticket-admin-tab__summary-value--urgent {
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .support-ticket-admin-tab__summary-value--breached {
-  color: #b45309;
+  color: var(--pf-color-warning);
 }
 
 .support-ticket-admin-tab__summary-value--total {
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .support-ticket-admin-tab__filters {
@@ -75,34 +75,34 @@
 .support-ticket-admin-tab__filter-select {
   padding: 6px 10px;
   border-radius: 7px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pf-slate-300);
   font-size: 13px;
-  background: #fff;
-  color: #0f172a;
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
 }
 
 .support-ticket-admin-tab__refresh-button {
   padding: 6px 14px;
   border-radius: 7px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
   font-size: 13px;
   cursor: pointer;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .support-ticket-admin-tab__record-count {
   margin-left: auto;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--pf-slate-400);
 }
 
 .support-ticket-admin-tab__error {
   border-radius: 8px;
   padding: 10px 14px;
-  background: #fef2f2;
+  background: var(--pf-red-50);
   border: 1px solid #fca5a5;
-  color: #dc2626;
+  color: var(--pf-red-600);
   font-size: 13px;
   margin-bottom: 12px;
 }
@@ -114,11 +114,11 @@
 }
 
 .support-ticket-admin-tab__loading {
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .support-ticket-admin-tab__empty-state {
-  color: #94a3b8;
+  color: var(--pf-slate-400);
 }
 
 .support-ticket-admin-tab__ticket-list {
@@ -128,10 +128,10 @@
 }
 
 .support-ticket-admin-tab__ticket-row {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
+  background: var(--pf-surface);
 }
 
 .support-ticket-admin-tab__ticket-row--breached {
@@ -155,19 +155,19 @@
 .support-ticket-admin-tab__ticket-main-title {
   font-weight: 600;
   font-size: 13px;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   line-height: 1.4;
 }
 
 .support-ticket-admin-tab__ticket-main-meta {
   font-size: 11px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   margin-top: 2px;
 }
 
 .support-ticket-admin-tab__ticket-category {
   font-size: 11px;
-  color: #475569;
+  color: var(--pf-slate-600);
   white-space: nowrap;
 }
 
@@ -178,11 +178,11 @@
 }
 
 .support-ticket-admin-tab__ticket-priority--low {
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .support-ticket-admin-tab__ticket-priority--medium {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .support-ticket-admin-tab__ticket-priority--high {
@@ -190,20 +190,20 @@
 }
 
 .support-ticket-admin-tab__ticket-priority--urgent {
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .support-ticket-admin-tab__ticket-status {
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  color: var(--pf-surface);
   border-radius: 6px;
   padding: 2px 8px;
   white-space: nowrap;
 }
 
 .support-ticket-admin-tab__ticket-status--open {
-  background: #1d4ed8;
+  background: var(--pf-color-primary-dark);
 }
 
 .support-ticket-admin-tab__ticket-status--in_progress {
@@ -211,15 +211,15 @@
 }
 
 .support-ticket-admin-tab__ticket-status--waiting_response {
-  background: #7c3aed;
+  background: var(--pf-violet-600);
 }
 
 .support-ticket-admin-tab__ticket-status--resolved {
-  background: #15803d;
+  background: var(--pf-green-700);
 }
 
 .support-ticket-admin-tab__ticket-status--closed {
-  background: #64748b;
+  background: var(--pf-slate-500);
 }
 
 .support-ticket-admin-tab__ticket-sla {
@@ -228,44 +228,44 @@
 }
 
 .support-ticket-admin-tab__ticket-sla--ok {
-  color: #94a3b8;
+  color: var(--pf-slate-400);
 }
 
 .support-ticket-admin-tab__ticket-sla--breached {
-  color: #dc2626;
+  color: var(--pf-red-600);
 }
 
 .support-ticket-admin-tab__ticket-details {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pf-slate-200);
   padding: 12px 14px;
-  background: #f8fafc;
+  background: var(--pf-slate-50);
 }
 
 .support-ticket-admin-tab__ticket-description {
   font-size: 12px;
-  color: #475569;
+  color: var(--pf-slate-600);
   margin-bottom: 10px;
   line-height: 1.6;
 }
 
 .support-ticket-admin-tab__ticket-resolution {
   font-size: 12px;
-  color: #15803d;
+  color: var(--pf-green-700);
   margin-bottom: 10px;
-  background: #f0fdf4;
+  background: var(--pf-color-success-light);
   border-radius: 6px;
   padding: 6px 10px;
 }
 
 .support-ticket-admin-tab__ticket-assignee {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--pf-slate-400);
   margin-bottom: 12px;
 }
 
 .support-ticket-admin-tab__inline-form {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pf-slate-50);
+  border: 1px solid var(--pf-slate-200);
   border-radius: 10px;
   padding: 14px 16px;
   display: grid;
@@ -286,17 +286,17 @@
 
 .support-ticket-admin-tab__inline-form-label-text {
   font-weight: 600;
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .support-ticket-admin-tab__inline-form-select,
 .support-ticket-admin-tab__inline-form-textarea {
   padding: 5px 8px;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pf-slate-300);
   font-size: 13px;
-  background: #fff;
-  color: #0f172a;
+  background: var(--pf-surface);
+  color: var(--pf-slate-900);
 }
 
 .support-ticket-admin-tab__inline-form-textarea {
@@ -306,7 +306,7 @@
 
 .support-ticket-admin-tab__inline-form-error {
   grid-column: 1 / -1;
-  color: #dc2626;
+  color: var(--pf-red-600);
   font-size: 12px;
 }
 
@@ -320,17 +320,17 @@
 .support-ticket-admin-tab__button {
   padding: 6px 14px;
   border-radius: 7px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
   font-size: 13px;
   cursor: pointer;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .support-ticket-admin-tab__button--primary {
   border: none;
-  background: #1d4ed8;
-  color: #fff;
+  background: var(--pf-color-primary-dark);
+  color: var(--pf-surface);
   font-weight: 600;
 }
 

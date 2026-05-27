@@ -25,6 +25,8 @@ const ChannelLoginPage = lazy(() => import("./pages/ChannelLoginPage"));
 const InternalUserActivationPage = lazy(() => import("./pages/InternalUserActivationPage"));
 const SupplierLoginPage = lazy(() => import("./pages/SupplierPortalLoginPage"));
 const SupplierRegisterPage = lazy(() => import("./pages/SupplierRegisterPage"));
+const EmployerRegisterPage = lazy(() => import("./pages/EmployerRegisterPage"));
+const CandidateRegisterPage = lazy(() => import("./pages/CandidateRegisterPage"));
 const SupplierDashboard = lazy(() => import("./pages/SupplierDashboard"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -40,6 +42,11 @@ const AdminSupplierWorkspacePage = lazy(() => import("./pages/AdminSupplierWorks
 const AdminQuoteManagementPage = lazy(() => import("./pages/AdminQuoteManagementPage"));
 const PersonnelProfileEditorPage = lazy(() => import("./pages/PersonnelProfileEditorPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const JobsPage = lazy(() => import("./pages/JobsPage"));
+const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
+const TalentProfilePage = lazy(() => import("./pages/TalentProfilePage"));
+const PayoutAdminPage = lazy(() => import("./pages/PayoutAdminPage"));
+const TalentAdminControlPage = lazy(() => import("./pages/TalentAdminControlPage"));
 const DepartmentDetailPage = lazy(() => import("./pages/DepartmentDetailPage"));
 const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
@@ -63,8 +70,12 @@ function LegacyPublicRedirect({ to }: { to: string }) {
 
 function RouteFallback() {
   return (
-    <div style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#475569", fontSize: 14 }}>
-      Sayfa yukleniyor...
+    <div
+      style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#475569", fontSize: 14 }}
+      role="status"
+      aria-live="polite"
+    >
+      Sayfa yükleniyor...
     </div>
   );
 }
@@ -119,6 +130,8 @@ export default function App() {
           <Route path="/activate-account" element={<InternalUserActivationPage />} />
           <Route path="/supplier/login" element={<SupplierLoginPage />} />
           <Route path="/supplier/register" element={<SupplierRegisterPage />} />
+          <Route path="/employer/register" element={<EmployerRegisterPage />} />
+          <Route path="/candidate/register" element={<CandidateRegisterPage />} />
           <Route path="/supplier/email-change-confirm" element={<SupplierEmailChangeConfirmPage />} />
 
           <Route element={<SupplierRoute />}>
@@ -132,6 +145,11 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/jobs" element={<JobsPage />} />
+              <Route path="/jobs/:id" element={<JobDetailPage />} />
+              <Route path="/talent/profile" element={<TalentProfilePage />} />
+              <Route path="/admin/payout-requests" element={<PayoutAdminPage />} />
+              <Route path="/admin/talent-ecosystem" element={<TalentAdminControlPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/quotes" element={<QuoteListPage />} />
               <Route path="/quotes/create" element={<QuoteCreatePage />} />

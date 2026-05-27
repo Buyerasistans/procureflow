@@ -60,8 +60,8 @@ export function CompaniesTab({
   };
 
   const tenantScopeMap = useMemo(
-    () => buildTenantScopeMap(tenants, [...personnel, ...channelUsers], suppliers),
-    [tenants, personnel, channelUsers, suppliers],
+    () => buildTenantScopeMap(tenants, [...personnel, ...channelUsers], suppliers, companies),
+    [tenants, personnel, channelUsers, suppliers, companies],
   );
 
   // Classify companies into segments
@@ -316,9 +316,9 @@ export function CompaniesTab({
           try {
             await updateAdminSupplierManagementDetail(supplier.id, { is_active: !isActive });
             await loadData();
-            setNotice({ type: "success", text: isActive ? "Tedarikci pasife alindi." : "Tedarikci aktife alindi." });
+            setNotice({ type: "success", text: isActive ? "Tedarikçi pasife alındı." : "Tedarikçi aktife alındı." });
           } catch {
-            setNotice({ type: "error", text: "Tedarikci durumu degistirilemedi." });
+            setNotice({ type: "error", text: "Tedarikçi durumu değiştirilemedi." });
           } finally {
             setSupplierTogglingId(null);
           }
@@ -346,7 +346,7 @@ export function CompaniesTab({
 
   const resolveCompanyRoleLabel = (company: Company): string => {
     if (segment === "partner") return company.is_primary ? "Ana Firma" : "Alt Firma";
-    if (segment === "channel") return "Is Ortagi";
+    if (segment === "channel") return "İş Ortağı";
     return company.is_platform_primary ? "Platform Ana" : "Portal Firma";
   };
 
@@ -410,24 +410,38 @@ export function CompaniesTab({
           {renderActionIcon("M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z", "#15803d")}
         </button>
       )}
-      {!readOnly && (
-        <button
-          type="button"
-          disabled={company.is_active || company.is_platform_primary}
-          onClick={() => handleDeleteCompany(company.id)}
-          title={company.is_platform_primary ? "Platform ana firma silinemez" : company.is_active ? "Silmek icin once pasife alin" : "Sil"}
-          aria-label={`Sil: ${company.name}`}
-          style={{
-            ...iconButtonBaseStyle,
-            borderColor: company.is_active || company.is_platform_primary ? "#d1d5db" : "#fecaca",
-            background: company.is_active || company.is_platform_primary ? "#f3f4f6" : "#fef2f2",
-            cursor: company.is_active || company.is_platform_primary ? "not-allowed" : "pointer",
-            opacity: company.is_active || company.is_platform_primary ? 0.6 : 1,
-          }}
-        >
-          {renderActionIcon("M3 6h18M8 6V4h8v2m-1 0v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V6m3 4v8m4-8v8", company.is_active || company.is_platform_primary ? "#94a3b8" : "#dc2626")}
-        </button>
-      )}
+      {!readOnly && (() => {
+        const hasProjects = (company.quote_count ?? 0) > 0;
+        const hasPersonnel = (company.personnel_count ?? 0) > 0;
+        const cannotDelete = company.is_active || company.is_platform_primary || hasProjects || hasPersonnel;
+        const deleteTitle = company.is_platform_primary
+          ? "Platform ana firma silinemez"
+          : company.is_active
+            ? "Silmek için önce pasife alın"
+            : hasProjects
+              ? `Firmaya bağlı ${company.quote_count} proje var; önce projeleri kaldırın`
+              : hasPersonnel
+                ? `Firmaya atanmış ${company.personnel_count} personel var; önce atamaları kaldırın`
+                : "Sil";
+        return (
+          <button
+            type="button"
+            disabled={cannotDelete}
+            onClick={() => handleDeleteCompany(company.id)}
+            title={deleteTitle}
+            aria-label={`Sil: ${company.name}`}
+            style={{
+              ...iconButtonBaseStyle,
+              borderColor: cannotDelete ? "#d1d5db" : "#fecaca",
+              background: cannotDelete ? "#f3f4f6" : "#fef2f2",
+              cursor: cannotDelete ? "not-allowed" : "pointer",
+              opacity: cannotDelete ? 0.6 : 1,
+            }}
+          >
+            {renderActionIcon("M3 6h18M8 6V4h8v2m-1 0v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V6m3 4v8m4-8v8", cannotDelete ? "#94a3b8" : "#dc2626")}
+          </button>
+        );
+      })()}
     </div>
   );
 
@@ -461,14 +475,14 @@ export function CompaniesTab({
           aria-label={`Sil: ${supplier.company_name}`}
           onClick={async () => {
             if (supplier.is_active !== false) return;
-            const approved = window.confirm(`Tedarikci devre disi birakilsin mi? (${supplier.company_name})`);
+            const approved = window.confirm(`Tedarikçi devre dışı bırakılsın mı? (${supplier.company_name})`);
             if (!approved) return;
             try {
               await deleteAdminSupplier(supplier.id);
               await loadData();
-              setNotice({ type: "success", text: "Tedarikci devre disi birakildi." });
+              setNotice({ type: "success", text: "Tedarikçi devre dışı bırakıldı." });
             } catch {
-              setNotice({ type: "error", text: "Tedarikci silinemedi." });
+              setNotice({ type: "error", text: "Tedarikçi silinemedi." });
             }
           }}
           style={{
@@ -488,8 +502,8 @@ export function CompaniesTab({
   const segmentTabs: { key: CompanySegment; label: string }[] = [
     { key: "portal", label: `Portal Ana Firmalar (${segmentCounts.portal})` },
     { key: "partner", label: `Stratejik Partner Firmalar (${segmentCounts.partner})` },
-    { key: "supplier", label: `Tedarikci Firmalar (${segmentCounts.supplier})` },
-    { key: "channel", label: `Is Ortagi Firmalar (${segmentCounts.channel})` },
+    { key: "supplier", label: `Tedarikçi Firmalar (${segmentCounts.supplier})` },
+    { key: "channel", label: `İş Ortağı Firmalar (${segmentCounts.channel})` },
   ];
 
   const renderCompaniesTable = (rows: Company[]) => {
@@ -608,7 +622,7 @@ export function CompaniesTab({
     <div style={{ overflowX: "auto" }}>
       {rows.length === 0 ? (
         <div style={{ padding: "24px 16px", textAlign: "center", color: "#94a3b8", fontSize: 14 }}>
-          Bu segmentte tedarikci bulunamadi.
+          Bu segmentte tedarikçi bulunamadı.
         </div>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
@@ -630,7 +644,7 @@ export function CompaniesTab({
 
             const groupName = supplier.tenant_id != null
               ? (supplier.inviter_company_name || tenantPrimaryCompany?.name || supplier.tenant_name || `Tenant #${supplier.tenant_id}`)
-              : "Buyera Asistans Ozel Tedarikci";
+              : "Buyera Asistans Özel Tedarikçi";
 
             if (!map.has(key)) {
               map.set(key, { key, name: groupName, suppliers: [] as AdminSupplierListItem[] });
@@ -647,7 +661,7 @@ export function CompaniesTab({
                   <tr style={{ background: "#f3f4f6", borderBottom: "2px solid #ddd" }}>
                     <th style={tableColumnStyles.logo}>Logo</th>
                     <th style={tableColumnStyles.name}>Firma Adi</th>
-                    <th style={tableColumnStyles.responsible}>Yetkili Kullanici</th>
+                    <th style={tableColumnStyles.responsible}>Yetkili Kullanıcı</th>
                     <th style={tableColumnStyles.role}>Rol</th>
                     <th style={tableColumnStyles.status}>Durum</th>
                     <th style={tableColumnStyles.action}>Islem</th>
@@ -672,7 +686,7 @@ export function CompaniesTab({
                       <td style={responsibleCellStyle} title={resolveSupplierResponsible(supplier)}>{resolveSupplierResponsible(supplier)}</td>
                       <td style={roleCellStyle}>
                         <span style={{ display: "inline-flex", padding: "2px 8px", borderRadius: 999, fontWeight: 700, background: "#ede9fe", color: "#5b21b6" }}>
-                          Tedarikci
+                          Tedarikçi
                         </span>
                       </td>
                       <td style={statusCellStyle}>{renderSupplierStatusToggle(supplier)}</td>
@@ -692,7 +706,7 @@ export function CompaniesTab({
     <div>
       {readOnly && (
         <div style={{ marginBottom: 16, padding: 12, borderRadius: 12, background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa", fontSize: 13 }}>
-          Platform personeli firma portfoyunu inceleyebilir; yeni firma ekleme, duzenleme ve silme aksiyonlari bu yuzeyde salt okunur moda alinmistir.
+          Platform personeli firma portföyünü inceleyebilir; yeni firma ekleme, düzenleme ve silme aksiyonları bu yüzeyde salt okunur moda alınmıştır.
         </div>
       )}
 
@@ -744,7 +758,7 @@ export function CompaniesTab({
               cursor: "pointer",
             }}
           >
-            {f === "all" ? "Tumu" : f === "active" ? "Aktif" : "Pasif"}
+            {f === "all" ? "Tümü" : f === "active" ? "Aktif" : "Pasif"}
           </button>
         ))}
         <div style={{ flex: 1 }} />
@@ -810,7 +824,7 @@ export function CompaniesTab({
                   {entityModal.edit ? "Duzenle" : "Detay"}: {entityModal.entityName}
                 </strong>
                 <span style={{ color: "#64748b", fontSize: 12 }}>
-                  {entityModal.entityType === "company" ? "Firma" : "Tedarikci"} bilgisi popup icinde acildi.
+                  {entityModal.entityType === "company" ? "Firma" : "Tedarikçi"} bilgisi popup içinde açıldı.
                 </span>
               </div>
               <button

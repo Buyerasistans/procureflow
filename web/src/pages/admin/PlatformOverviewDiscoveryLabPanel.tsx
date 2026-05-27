@@ -54,14 +54,14 @@ export function PlatformOverviewDiscoveryLabPanel({
                   onClick={() => setExpandedDiscoverySessionId((current) => current === session.session_id ? null : session.session_id)}
                   className="platform-overview-discovery-lab-panel__button"
                 >
-                  {expandedDiscoverySessionId === session.session_id ? "Detayi Gizle" : "Detayi Goster"}
+                  {expandedDiscoverySessionId === session.session_id ? "Detayı Gizle" : "Detayı Göster"}
                 </button>
               </div>
               {expandedDiscoverySessionId === session.session_id && (
                 <div className="platform-overview-discovery-lab-panel__session-expanded">
                   <span>Son olay: {session.latest_event_title}</span>
-                  <span>Aktor: {session.latest_actor || "Discovery Lab"}</span>
-                  <span>Guncellenme: {String(session.updated_at || "")}</span>
+                  <span>Aktör: {session.latest_actor || "Discovery Lab"}</span>
+                  <span>Güncellenme: {String(session.updated_at || "")}</span>
                   <span>Proje No: {session.project_id || "-"}</span>
                 </div>
               )}
@@ -71,11 +71,11 @@ export function PlatformOverviewDiscoveryLabPanel({
       </div>
       <div className="platform-overview-discovery-lab-panel">
         <div className="platform-overview-discovery-lab-panel__filter-row">
-          <div className="platform-overview-discovery-lab-panel__session-title">Son Kullanici Yanitlari</div>
+          <div className="platform-overview-discovery-lab-panel__session-title">Son Kullanıcı Yanıtları</div>
           <div className="platform-overview-discovery-lab-panel__filter-group">
             {[
               { key: "all", label: "Tum Kararlar" },
-              { key: "needs_review", label: "Inceleme" },
+              { key: "needs_review", label: "İnceleme" },
               { key: "approved", label: "Onay" },
               { key: "ignored", label: "Pas" },
             ].map((item) => (
@@ -92,7 +92,7 @@ export function PlatformOverviewDiscoveryLabPanel({
         </div>
         {discoveryLabAnswerAudits.length === 0 ? (
           <div className="platform-overview-discovery-lab-panel__empty">
-            Filtreye uyan kullanici yaniti kaydi bulunmuyor.
+            Filtreye uyan kullanıcı yanıtı kaydı bulunmuyor.
           </div>
         ) : (
           discoveryLabAnswerAudits.slice(0, 5).map((audit) => (
@@ -104,13 +104,13 @@ export function PlatformOverviewDiscoveryLabPanel({
                 </span>
               </div>
               <div className="platform-overview-discovery-lab-panel__audit-detail">{audit.answer_text}</div>
-              {audit.rationale ? <div className="platform-overview-discovery-lab-panel__audit-meta">Gerekce: {audit.rationale}</div> : null}
+              {audit.rationale ? <div className="platform-overview-discovery-lab-panel__audit-meta">Gerekçe: {audit.rationale}</div> : null}
               <div className="platform-overview-discovery-lab-panel__audit-meta">
                 <span>Session: {audit.session_id || "-"}</span>
                 <span>Tenant: {audit.tenant_name || audit.tenant_id || "-"}</span>
                 <span>Proje: {audit.project_name || audit.project_id || "-"}</span>
                 <span>Dosya: {audit.source_filename || "-"}</span>
-                <span>Aktor: {audit.created_by_email || "Bilinmiyor"}</span>
+                <span>Aktör: {audit.created_by_email || "Bilinmiyor"}</span>
               </div>
               <div className="platform-overview-discovery-lab-panel__audit-footer">
                 <div />
@@ -119,7 +119,7 @@ export function PlatformOverviewDiscoveryLabPanel({
                   onClick={() => setExpandedDiscoveryAuditId((current) => current === audit.id ? null : audit.id)}
                   className="platform-overview-discovery-lab-panel__button"
                 >
-                  {expandedDiscoveryAuditId === audit.id ? "Detayi Gizle" : "Detayi Goster"}
+                  {expandedDiscoveryAuditId === audit.id ? "Detayı Gizle" : "Detayı Göster"}
                 </button>
               </div>
               {expandedDiscoveryAuditId === audit.id && (
@@ -130,7 +130,7 @@ export function PlatformOverviewDiscoveryLabPanel({
                   <span>Proje: {audit.project_name || audit.project_id || "-"}</span>
                   <span>Quote/RFQ: {audit.quote_id || "-"}</span>
                   <span>Karar: {audit.decision || "answered"}</span>
-                  <span>Kayit Zamanı: {String(audit.created_at || "")}</span>
+                  <span>Kayıt Zamanı: {String(audit.created_at || "")}</span>
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-.revise-request-modal__overlay {
+﻿.revise-request-modal__overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -9,7 +9,7 @@
 }
 
 .revise-request-modal__dialog {
-  background: #fff;
+  background: var(--pf-surface);
   border-radius: 8px;
   padding: 24px;
   max-width: 500px;
@@ -70,13 +70,13 @@
 }
 
 .revise-request-modal__button--cancel {
-  background: #e5e7eb;
-  color: #1f2937;
+  background: var(--pf-border-color);
+  color: var(--pf-gray-800);
 }
 
 .revise-request-modal__button--submit {
-  background: #f59e0b;
-  color: #fff;
+  background: var(--pf-amber-400);
+  color: var(--pf-surface);
 }
 
 .revise-request-modal__button--submit:disabled,

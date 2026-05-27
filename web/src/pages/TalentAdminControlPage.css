@@ -1,0 +1,57 @@
+.talent-admin { padding: 24px; max-width: 1080px; margin: 0 auto; }
+.talent-admin__title { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0 0 24px 0; }
+.talent-admin__error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.talent-admin__loading { text-align: center; color: #64748b; padding: 32px 0; font-size: 14px; }
+.talent-admin__empty { color: #94a3b8; font-size: 14px; padding: 16px 0; }
+.talent-admin__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.talent-admin__section { margin-bottom: 36px; }
+.talent-admin__section-title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 14px 0; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+
+/* Filters */
+.talent-admin__filters { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.talent-admin__filter-label { font-size: 13px; font-weight: 600; color: #374151; }
+.talent-admin__filter-select { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #1f2937; background: #fff; }
+
+/* Talent table */
+.talent-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+.talent-table th { background: #f8fafc; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; padding: 9px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.talent-table td { padding: 9px 12px; font-size: 13px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.talent-table tr:last-child td { border-bottom: none; }
+
+/* KYC badge */
+.kyc-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 12px; }
+.kyc-badge--pending  { background: #fef9c3; color: #854d0e; }
+.kyc-badge--approved { background: #dcfce7; color: #166534; }
+.kyc-badge--rejected { background: #fee2e2; color: #991b1b; }
+
+/* KYC action buttons */
+.kyc-actions { display: flex; gap: 5px; }
+.kyc-btn { padding: 4px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.kyc-btn--approve { background: #0f6e57; color: #fff; }
+.kyc-btn--approve:hover { background: #0a5441; }
+.kyc-btn--reject  { background: #dc2626; color: #fff; }
+.kyc-btn--reject:hover { background: #b91c1c; }
+.kyc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Payout overview */
+.payout-overview { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.payout-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; }
+.payout-box__count { font-size: 28px; font-weight: 700; color: #0f172a; }
+.payout-box__label { font-size: 12px; color: #64748b; margin-top: 4px; }
+.payout-box--pending    { border-top: 3px solid #f59e0b; }
+.payout-box--approved   { border-top: 3px solid #3b82f6; }
+.payout-box--processing { border-top: 3px solid #8b5cf6; }
+.payout-box--paid       { border-top: 3px solid #22c55e; }
+.payout-box--rejected   { border-top: 3px solid #ef4444; }
+
+/* Pagination */
+.talent-admin__pagination { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; font-size: 13px; color: #475569; }
+.talent-admin__pagination-btn { padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; }
+.talent-admin__pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (max-width: 768px) {
+  .payout-overview { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 480px) {
+  .payout-overview { grid-template-columns: repeat(2, 1fr); }
+}

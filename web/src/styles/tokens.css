@@ -1,0 +1,227 @@
+/* ================================================================
+   ProcureFlow Design Tokens
+   Tek gerçek kaynak: renk, spacing, type, radius, shadow.
+   Bileşen CSS'leri var(--pf-*) kullanacak; hardcoded hex yasak.
+   Tenant override'ları yalnızca --tenant-* slot'larına yazılır.
+   ================================================================ */
+:root {
+  /* ── Brand ───────────────────────────────────────── */
+  --pf-color-primary:         #2563eb;
+  --pf-color-primary-light:   #eff6ff;
+  --pf-color-primary-dark:    #1d4ed8;
+
+  --pf-color-success:         #16a34a;
+  --pf-color-success-light:   #f0fdf4;
+  --pf-color-success-border:  #86efac;
+  --pf-color-danger:          #be123c;
+  --pf-color-danger-light:    #fff1f2;
+  --pf-color-danger-border:   #fecaca;
+  --pf-color-warning:         #b45309;
+  --pf-color-warning-light:   #fff7ed;
+
+  /* ── Neutral Palette (Slate) ─────────────────────── */
+  --pf-slate-50:   #f8fafc;
+  --pf-slate-100:  #f1f5f9;
+  --pf-slate-200:  #e2e8f0;
+  --pf-slate-300:  #cbd5e1;
+  --pf-slate-400:  #94a3b8;
+  --pf-slate-500:  #64748b;
+  --pf-slate-600:  #475569;
+  --pf-slate-700:  #334155;
+  --pf-slate-800:  #1e293b;
+  --pf-slate-900:  #0f172a;
+
+  /* ── Neutral Palette (Gray) ──────────────────────── */
+  --pf-gray-50:  #f9fafb;
+  --pf-gray-100: #f3f4f6;
+  --pf-gray-300: #d1d5db;
+  --pf-gray-400: #9ca3af;
+  --pf-gray-500: #6b7280;
+  --pf-gray-700: #374151;
+  --pf-gray-800: #1f2937;
+  --pf-gray-900: #111827;
+
+  /* ── Blue Scale ──────────────────────────────────── */
+  --pf-blue-25:  #f8fbff;
+  --pf-blue-100: #dbeafe;
+  --pf-blue-200: #bfdbfe;
+  --pf-blue-300: #93c5fd;
+  --pf-blue-400: #60a5fa;
+  --pf-blue-500: #3b82f6;
+  --pf-blue-900: #1e3a8a;
+
+  /* ── Sky Scale ───────────────────────────────────── */
+  --pf-sky-100: #e0f2fe;
+  --pf-sky-700: #0369a1;
+
+  /* ── Cyan Scale ──────────────────────────────────── */
+  --pf-cyan-50: #ecfeff;
+
+  /* ── Red Scale ───────────────────────────────────── */
+  --pf-red-50:  #fef2f2;
+  --pf-red-100: #fee2e2;
+  --pf-red-500: #ef4444;
+  --pf-red-600: #dc2626;
+  --pf-red-700: #b91c1c;
+  --pf-red-800: #991b1b;
+
+  /* ── Green Scale ─────────────────────────────────── */
+  --pf-green-50:  #ecfdf5;
+  --pf-green-100: #dcfce7;
+  --pf-green-200: #bbf7d0;
+  --pf-green-500: #10b981;
+  --pf-green-700: #15803d;
+  --pf-green-800: #166534;
+
+  /* ── Emerald Scale ───────────────────────────────── */
+  --pf-emerald-100: #d1fae5;
+  --pf-emerald-600: #059669;
+
+  /* ── Teal ────────────────────────────────────────── */
+  --pf-teal-50:  #f0fdfa;
+  --pf-teal-700: #0f766e;
+
+  /* ── Amber Scale ─────────────────────────────────── */
+  --pf-amber-50:    #fffbeb;
+  --pf-amber-100:   #fef3c7;
+  --pf-amber-200:   #fde68a;
+  --pf-amber-300:   #fcd34d;
+  --pf-amber-400:   #f59e0b;
+  --pf-amber-600:   #d97706;
+  --pf-amber-800:   #92400e;
+  --pf-amber-900:   #78350f;
+  --pf-amber-brown: #8a5b2b;
+
+  /* ── Orange Scale ────────────────────────────────── */
+  --pf-orange-200: #fed7aa;
+  --pf-orange-700: #c2410c;
+  --pf-orange-800: #9a3412;
+
+  /* ── Indigo Scale ────────────────────────────────── */
+  --pf-indigo-50:  #eef2ff;
+  --pf-indigo-100: #e0e7ff;
+  --pf-indigo-500: #6366f1;
+  --pf-indigo-600: #4f46e5;
+  --pf-indigo-800: #3730a3;
+
+  /* ── Violet ──────────────────────────────────────── */
+  --pf-violet-600: #7c3aed;
+
+  /* ── Surface / Background ────────────────────────── */
+  --pf-surface:         #ffffff;
+  --pf-surface-raised:  #f8fafc;
+  --pf-surface-sunken:  #f1f5f9;
+  --pf-background:      #f4f5f2;
+  --pf-overlay-bg:      rgba(15, 23, 42, 0.5);
+
+  /* ── Border ──────────────────────────────────────── */
+  --pf-border-color:      #e5e7eb;
+  --pf-border-color-alt:  #dbe3ee;
+
+  /* ── Border Radius ───────────────────────────────── */
+  --pf-radius-sm:   8px;
+  --pf-radius:      12px;
+  --pf-radius-lg:   16px;
+  --pf-radius-xl:   20px;
+  --pf-radius-2xl:  24px;
+  --pf-radius-pill: 999px;
+
+  /* ── Typography ──────────────────────────────────── */
+  --pf-font-sans:    Arial, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --pf-font-mono:    ui-monospace, Consolas, monospace;
+
+  --pf-text-xs:   11px;
+  --pf-text-sm:   12px;
+  --pf-text-base: 13px;
+  --pf-text-md:   14px;
+  --pf-text-lg:   16px;
+  --pf-text-xl:   18px;
+  --pf-text-2xl:  24px;
+  --pf-text-3xl:  28px;
+
+  --pf-font-normal: 400;
+  --pf-font-medium: 500;
+  --pf-font-bold:   700;
+  --pf-font-black:  800;
+
+  --pf-leading:     1.5;
+
+  /* ── Spacing Scale ───────────────────────────────── */
+  --pf-space-1:  4px;
+  --pf-space-2:  8px;
+  --pf-space-3:  12px;
+  --pf-space-4:  16px;
+  --pf-space-5:  20px;
+  --pf-space-6:  24px;
+  --pf-space-8:  32px;
+  --pf-space-10: 40px;
+
+  /* ── Shadow ──────────────────────────────────────── */
+  --pf-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --pf-shadow:    0 10px 24px rgba(15, 23, 42, 0.05);
+  --pf-shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --pf-shadow-xl: 0 14px 30px rgba(15, 23, 42, 0.12);
+
+  /* ── Focus Ring ──────────────────────────────────── */
+  --pf-focus-ring:        0 0 0 3px rgba(37, 99, 235, 0.28);
+  --pf-focus-ring-color:  rgba(37, 99, 235, 0.28);
+  --pf-focus-ring-offset: 2px;
+
+  /* ── Z-Index ─────────────────────────────────────── */
+  --pf-z-modal:   9000;
+  --pf-z-tooltip: 9500;
+  --pf-z-top:     9999;
+
+  /* ── Tenant Slots ────────────────────────────────── */
+  /* Yalnızca bu değişkenler runtime'da override edilebilir.
+     Backend; sadece hex/rgb/hsl değerlerini doğrulayarak yazar. */
+  --tenant-color-primary:       var(--pf-color-primary);
+  --tenant-color-primary-light: var(--pf-color-primary-light);
+  --tenant-header-bg:           var(--pf-slate-900);
+  --tenant-header-text:         #f8fafc;
+  --tenant-footer-bg:           var(--pf-slate-900);
+  --tenant-footer-text:         #e2e8f0;
+  --tenant-hero-bg:             var(--pf-slate-900);
+  --tenant-hero-text:           #ffffff;
+}
+
+/* ── Dark Mode ───────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pf-surface:        #16171d;
+    --pf-surface-raised: #1f2028;
+    --pf-surface-sunken: #13141a;
+    --pf-background:     #0d0e12;
+    --pf-border-color:   #2e303a;
+    --pf-border-color-alt: #3a3d4a;
+  }
+}
+
+/* ── Reduced Motion ──────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Global Focus Visible (a11y — WCAG 2.2 AA) ──────── */
+:focus-visible {
+  outline: 2px solid var(--pf-color-primary);
+  outline-offset: var(--pf-focus-ring-offset);
+  box-shadow: var(--pf-focus-ring);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--pf-color-primary);
+  outline-offset: var(--pf-focus-ring-offset);
+  box-shadow: var(--pf-focus-ring);
+  border-radius: 4px;
+}

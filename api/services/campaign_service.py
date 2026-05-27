@@ -93,7 +93,7 @@ def record_campaign_event(
         .first()
     )
     if not campaign:
-        raise ValueError("Kampanya bulunamadi")
+        raise ValueError("Kampanya bulunamad?")
     if campaign.status not in {"active", "draft"}:
         raise ValueError("Bu kampanya event kabul etmiyor")
     if campaign.trigger_event != event_type.strip().lower():
@@ -186,7 +186,7 @@ def apply_campaign_reward_grant(
         db.query(CampaignRewardGrant).filter(CampaignRewardGrant.id == grant_id).first()
     )
     if not grant:
-        raise ValueError("Odul kaydi bulunamadi")
+        raise ValueError("?d?l kayd? bulunamad?")
     if grant.status == "applied":
         return grant
 

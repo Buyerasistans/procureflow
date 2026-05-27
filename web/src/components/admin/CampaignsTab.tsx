@@ -25,8 +25,8 @@ export function CampaignsAdminTab() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     code: "supplier-growth-bonus",
-    name: "Tedarikci Buyume Bonusu",
-    description: "Getirilen aktif tedarikci sayisina gore gorunurluk ve ozel liste odulleri.",
+    name: "Tedarikçi Büyüme Bonusu",
+    description: "Getirilen aktif tedarikçi sayısına göre görünürlük ve özel liste ödülleri.",
     audience_type: "supplier",
     trigger_event: "supplier_referral_activated",
     status: "active",
@@ -83,7 +83,7 @@ export function CampaignsAdminTab() {
       setSelectedProviderCode(fallbackCode);
       hydrateProviderDraft(providerRows.find((item) => item.code === fallbackCode) || null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kampanya verileri alinamadi");
+      setError(err instanceof Error ? err.message : "Kampanya verileri al?namad?");
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export function CampaignsAdminTab() {
       });
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kampanya olusturulamadi");
+      setError(err instanceof Error ? err.message : "Kampanya olu?turulamad?");
     }
   };
 
@@ -182,9 +182,9 @@ export function CampaignsAdminTab() {
     <div className="campaigns-admin-tab">
       <div className="campaigns-admin-tab__header">
         <div>
-          <h2 className="campaigns-admin-tab__title">Kampanyalar ve Odeme Ayarlari</h2>
+          <h2 className="campaigns-admin-tab__title">Kampanyalar ve ?deme Ayarlar?</h2>
           <p className="campaigns-admin-tab__description">
-            Odeme saglayicilarinin aktif/pasif ve credential ayarlarini yonetin; pasif olanlar odeme ekranina dusmez.
+            Ödeme sağlayıcılarının aktif/pasif ve credential ayarlarını yönetin; pasif olanlar ödeme ekranına düşmez.
           </p>
         </div>
         <button
@@ -199,7 +199,7 @@ export function CampaignsAdminTab() {
       {error ? <div className="campaigns-admin-tab__error">{error}</div> : null}
 
       <section className="campaigns-admin-tab__section">
-        <div className="campaigns-admin-tab__section-title">Odeme Saglayici Ayarlari</div>
+        <div className="campaigns-admin-tab__section-title">?deme Sa?lay?c? Ayarlar?</div>
         <div className="campaigns-admin-tab__layout">
           <div className="campaigns-admin-tab__provider-list">
             {providers.map((provider) => (
@@ -252,7 +252,7 @@ export function CampaignsAdminTab() {
 
           <div className="campaigns-admin-tab__settings-panel">
             {!selectedProvider ? (
-              <div className="campaigns-admin-tab__settings-empty">Saglayici secin.</div>
+              <div className="campaigns-admin-tab__settings-empty">Sa?lay?c? se?in.</div>
             ) : (
               <div className="campaigns-admin-tab__settings-content">
                 <div className="campaigns-admin-tab__settings-header">
@@ -268,7 +268,7 @@ export function CampaignsAdminTab() {
                       checked={providerActiveDraft}
                       onChange={(e) => setProviderActiveDraft(e.target.checked)}
                     />
-                    Odeme ekraninda aktif
+                    ?deme ekran?nda aktif
                   </label>
                 </div>
 
@@ -385,7 +385,7 @@ export function CampaignsAdminTab() {
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((c) => ({ ...c, description: e.target.value }))}
-                placeholder="Aciklama"
+                placeholder="Açıklama"
                 className="campaigns-admin-tab__input campaigns-admin-tab__textarea campaigns-admin-tab__textarea--full"
               />
             </label>
@@ -399,13 +399,13 @@ export function CampaignsAdminTab() {
               onClick={() => void handleCreateCampaign()}
               className="campaigns-admin-tab__button campaigns-admin-tab__button--primary"
             >
-              Kampanya Olustur
+              Kampanya Olu?tur
             </button>
           </div>
         </div>
 
         <div className="campaigns-admin-tab__section">
-          <div className="campaigns-admin-tab__section-title">Test Event Gonder</div>
+          <div className="campaigns-admin-tab__section-title">Test Event Gönder</div>
           <div className="campaigns-admin-tab__stack">
             <label className="campaigns-admin-tab__field">
               <span className="campaigns-admin-tab__label">Kampanya</span>
@@ -418,7 +418,7 @@ export function CampaignsAdminTab() {
                 title="Event için kampanya seçimi"
                 className="campaigns-admin-tab__select"
               >
-                <option value={0}>Kampanya secin</option>
+                <option value={0}>Kampanya se?in</option>
                 {campaigns.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>
                     {campaign.name}
@@ -493,7 +493,7 @@ export function CampaignsAdminTab() {
                   {campaign.code} · {campaign.audience_type} · {campaign.trigger_event}
                 </div>
                 <div className="campaigns-admin-tab__campaign-description">
-                  {campaign.description || "Aciklama yok"}
+                  {campaign.description || "Açıklama yok"}
                 </div>
               </div>
               <span

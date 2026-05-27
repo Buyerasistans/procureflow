@@ -101,7 +101,7 @@ export function BusinessPartnerCommissionDashboard() {
           💰 Business Partner Komisyon Payi
         </h1>
         <p className="business-partner-commission-dashboard__header-description">
-          Tedarikci davetleri ve islem komisyonlarini izleyin.
+          Tedarikçi davetleri ve işlem komisyonlarını izleyin.
         </p>
       </div>
 

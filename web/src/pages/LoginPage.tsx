@@ -15,10 +15,10 @@ export default function LoginPage() {
             <PublicBrandLogo height={42} maxWidth={220} />
           </div>
 
-          <h1 className="login-page__title">Giris Tipinizi Secin</h1>
+          <h1 className="login-page__title">Giriş Tipinizi Seçin</h1>
           <p className="login-page__description">
-            Her giris kendi rolune ozel ekrana yonlendirir. Stratejik partner, tedarikci ve is
-            ortagi girisleri birbirinden ayridir.
+            Her giriş kendi rolüne özel ekrana yönlendirir. Stratejik partner, tedarikçi ve iş
+            ortağı girişleri birbirinden ayrıdır.
           </p>
 
           <div className="login-page__entry-grid">
@@ -27,26 +27,26 @@ export default function LoginPage() {
               onClick={() => navigate("/strategic-partner-login")}
               className="login-page__entry-button login-page__entry-button--strategic"
             >
-              Stratejik Partner Girisi
+              Stratejik Partner Girişi
             </button>
             <button
               type="button"
               onClick={() => navigate("/supplier/login")}
               className="login-page__entry-button login-page__entry-button--supplier"
             >
-              Tedarikci Girisi
+              Tedarikçi Girişi
             </button>
             <button
               type="button"
               onClick={() => navigate("/channel/login")}
               className="login-page__entry-button login-page__entry-button--channel"
             >
-              Is Ortagi Girisi
+              İş Ortağı Girişi
             </button>
           </div>
 
           <div className="login-page__footer-note">
-            Platform yonetici girisi guvenlik nedeniyle ozel erisim akisi ile acilir.
+            Platform yönetici girişi güvenlik nedeniyle özel erişim akışı ile açılır.
           </div>
         </div>
       </div>

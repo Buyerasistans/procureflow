@@ -1,0 +1,36 @@
+.public-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.15s, transform 0.1s;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.public-nav-cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.public-nav-cta:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.public-nav-cta:active {
+  transform: translateY(0);
+}
+
+.public-nav-cta--employer {
+  background: rgba(5, 150, 105, 0.92);
+}
+
+.public-nav-cta--candidate {
+  background: rgba(2, 132, 199, 0.92);
+}

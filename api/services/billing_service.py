@@ -257,7 +257,7 @@ def process_billing_webhook_event(
         if tenant is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Webhook tenant bulunamadi",
+                detail="Webhook tenant bulunamad?",
             )
 
     event = BillingWebhookEvent(
@@ -338,7 +338,7 @@ def retry_billing_webhook_event(
     if not event.payload_json:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Webhook payload'i bulunamadi",
+            detail="Webhook payload'i bulunamad?",
         )
 
     try:
@@ -355,7 +355,7 @@ def retry_billing_webhook_event(
         if tenant is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Webhook tenant bulunamadi",
+                detail="Webhook tenant bulunamad?",
             )
 
     event.processing_status = "pending"

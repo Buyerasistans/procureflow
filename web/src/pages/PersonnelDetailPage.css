@@ -1,6 +1,6 @@
-.personnel-detail-page {
+﻿.personnel-detail-page {
   padding: 24px;
-  background: #f8fafc;
+  background: var(--pf-slate-50);
 }
 
 .personnel-detail-page__shell {
@@ -19,11 +19,11 @@
 }
 
 .personnel-detail-page__status--loading {
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .personnel-detail-page__status--error {
-  color: #b91c1c;
+  color: var(--pf-red-700);
 }
 
 .personnel-detail-page__back-button,
@@ -49,9 +49,9 @@
 
 .personnel-detail-page__back-button {
   width: fit-content;
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #111827;
+  background: var(--pf-gray-100);
+  border-color: var(--pf-gray-300);
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__header {
@@ -71,18 +71,18 @@
   margin: 0;
   font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .personnel-detail-page__subtitle {
   margin: 0;
-  color: #6b7280;
+  color: var(--pf-gray-500);
   font-size: 13px;
 }
 
 .personnel-detail-page__readonly-note {
   margin: 0;
-  color: #92400e;
+  color: var(--pf-amber-800);
   font-size: 12px;
 }
 
@@ -102,8 +102,8 @@
 }
 
 .personnel-detail-page__alert--error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--pf-red-100);
+  color: var(--pf-red-800);
 }
 
 .personnel-detail-page__dismiss-button {
@@ -116,8 +116,8 @@
 }
 
 .personnel-detail-page__section {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
   border-radius: 10px;
   padding: 20px;
   display: grid;
@@ -135,7 +135,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #111827;
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__info-grid {
@@ -143,11 +143,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px 24px;
   font-size: 14px;
-  color: #111827;
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__label-text {
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .personnel-detail-page__stack {
@@ -172,20 +172,20 @@
 }
 
 .personnel-detail-page__field-label {
-  color: #374151;
+  color: var(--pf-gray-700);
   font-size: 12px;
   font-weight: 700;
 }
 
 .personnel-detail-page__control {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pf-gray-300);
   border-radius: 5px;
   box-sizing: border-box;
   font-size: 13px;
   padding: 7px 10px;
-  background: #fff;
-  color: #111827;
+  background: var(--pf-surface);
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__control--compact {
@@ -200,29 +200,29 @@
 }
 
 .personnel-detail-page__button--primary {
-  background: #3b82f6;
-  color: #fff;
+  background: var(--pf-blue-500);
+  color: var(--pf-surface);
 }
 
 .personnel-detail-page__button--success {
-  background: #10b981;
-  color: #fff;
+  background: var(--pf-green-500);
+  color: var(--pf-surface);
 }
 
 .personnel-detail-page__button--warning {
-  background: #f59e0b;
-  color: #fff;
+  background: var(--pf-amber-400);
+  color: var(--pf-surface);
 }
 
 .personnel-detail-page__button--danger {
-  background: #ef4444;
-  color: #fff;
+  background: var(--pf-red-500);
+  color: var(--pf-surface);
 }
 
 .personnel-detail-page__button--secondary {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #111827;
+  background: var(--pf-gray-100);
+  border-color: var(--pf-gray-300);
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__button--small {
@@ -243,8 +243,8 @@
 }
 
 .personnel-detail-page__subsection {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--pf-gray-50);
+  border: 1px solid var(--pf-border-color);
   border-radius: 6px;
   padding: 14px;
   display: grid;
@@ -253,7 +253,7 @@
 
 .personnel-detail-page__empty-state {
   margin: 0;
-  color: #9ca3af;
+  color: var(--pf-gray-400);
   font-size: 13px;
 }
 
@@ -272,13 +272,13 @@
   padding: 8px 10px;
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--pf-gray-100);
 }
 
 .personnel-detail-page__table thead th {
-  background: #f9fafb;
-  border-bottom: 2px solid #e5e7eb;
-  color: #111827;
+  background: var(--pf-gray-50);
+  border-bottom: 2px solid var(--pf-border-color);
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__table-actions-col {
@@ -294,8 +294,8 @@
   display: inline-flex;
   align-items: center;
   border-radius: 4px;
-  background: #3b82f6;
-  color: #fff;
+  background: var(--pf-blue-500);
+  color: var(--pf-surface);
   font-size: 12px;
   padding: 2px 8px;
   max-width: 100%;
@@ -303,25 +303,25 @@
 }
 
 .personnel-detail-page__muted {
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .personnel-detail-page__assignment-summary {
   margin-top: 14px;
   padding: 10px 14px;
-  background: #eff6ff;
+  background: var(--pf-color-primary-light);
   border-radius: 6px;
   font-size: 12px;
 }
 
 .personnel-detail-page__assignment-summary-title {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .personnel-detail-page__assignment-list {
   margin: 6px 0 0;
   padding-left: 18px;
-  color: #374151;
+  color: var(--pf-gray-700);
 }
 
 .personnel-detail-page__modal-backdrop {
@@ -336,7 +336,7 @@
 }
 
 .personnel-detail-page__modal {
-  background: #fff;
+  background: var(--pf-surface);
   border-radius: 10px;
   padding: 24px;
   width: min(420px, 100%);
@@ -348,24 +348,24 @@
 .personnel-detail-page__modal-title {
   margin: 0;
   font-size: 16px;
-  color: #111827;
+  color: var(--pf-gray-900);
 }
 
 .personnel-detail-page__modal-text,
 .personnel-detail-page__modal-note {
   margin: 0;
   font-size: 14px;
-  color: #374151;
+  color: var(--pf-gray-700);
 }
 
 .personnel-detail-page__modal-note {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .personnel-detail-page__password-chip {
   padding: 10px 14px;
-  background: #f3f4f6;
+  background: var(--pf-gray-100);
   border-radius: 6px;
   font-family: monospace;
   font-size: 16px;

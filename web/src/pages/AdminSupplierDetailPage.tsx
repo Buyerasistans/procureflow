@@ -634,14 +634,14 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
     setResendingMagicUserId(teamUser.id);
     const result = await resendAdminSupplierMagicLink(Number(id), teamUser.id);
     if (result.magic_link_sent) {
-      setSuccess(`Magic link tekrar gonderildi: ${teamUser.email}`);
+      setSuccess(`Magic link tekrar gönderildi: ${teamUser.email}`);
       setError(null);
     } else {
-      setError(result.message || "Magic link yenilendi ancak e-posta gonderilemedi");
+      setError(result.message || "Magic link yenilendi ancak e-posta gönderilemedi");
     }
     await load();
   } catch (e) {
-    setError(e instanceof Error ? e.message : "Magic link tekrar gonderilemedi");
+    setError(e instanceof Error ? e.message : "Magic link tekrar gönderilemedi");
   } finally {
     setResendingMagicUserId(null);
   }
@@ -927,7 +927,7 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
                                 onClick={() => void handleResendUserMagicLink(teamUser)}
                                 disabled={resendingMagicUserId === teamUser.id}
                               >
-                                {resendingMagicUserId === teamUser.id ? "Gonderiliyor..." : "Magic Link Tekrar Gonder"}
+                                {resendingMagicUserId === teamUser.id ? "Gönderiliyor..." : "Magic Link Tekrar Gönder"}
                               </MailBtn>
                             )}
                           </ActionInline>

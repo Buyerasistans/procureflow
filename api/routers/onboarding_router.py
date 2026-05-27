@@ -83,19 +83,19 @@ class OnboardingRegisterRequest(BaseModel):
         ..., min_length=2, max_length=255, description="Firma ticari unvani"
     )
     brand_name: str | None = Field(
-        default=None, max_length=255, description="Marka adi (opsiyonel)"
+        default=None, max_length=255, description="Marka ad? (opsiyonel)"
     )
     full_name: str = Field(
         ...,
         min_length=2,
         max_length=255,
-        description="Ilk admin kullanicisinin tam adi",
+        description="?lk admin kullan?c?s?n?n tam ad?",
     )
-    email: EmailStr = Field(..., description="Ilk admin kullanicisinin is e-postasi")
+    email: EmailStr = Field(..., description="?lk admin kullan?c?s?n?n i? e-postas?")
     phone: str | None = Field(default=None, max_length=32)
     payment_transaction_id: int | None = Field(
         default=None,
-        description="Ucretli planlar icin /payment/initiate ile olusan islem numarasi",
+        description="Ücretli planlar için /payment/initiate ile oluşan işlem numarası",
     )
     referral_code: str | None = Field(
         default=None,
@@ -334,7 +334,7 @@ def _create_onboarding_mailboxes(
 @router.get("/plans", response_model=OnboardingCatalogOut)
 def list_onboarding_plans(db: Session = Depends(get_db)):
     """
-    Herkese acik plan katalogu.
+    Herkese a??k plan katalo?u.
     Kayit formunda plan secimi icin kullanilir.
     """
     catalog = build_subscription_catalog()
@@ -400,7 +400,7 @@ async def register_tenant(
 ):
     """
     Self-serve tenant kaydi.
-    Yeni firma + ilk admin kullanicisi olusturur ve aktivasyon e-postasi gonderir.
+    Yeni firma + ilk admin kullan?c?s? olu?turur ve aktivasyon e-postas? g?nderir.
     Rate limiting ve CAPTCHA entegrasyonu icin API gateway katmaninda uygulanmalidir.
     """
     # Plan dogrulama
@@ -411,7 +411,7 @@ async def register_tenant(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
         ) from exc
 
-    # Ucretli planlar icin odeme zorunlulugu
+    # Ücretli planlar için ödeme zorunluluğu
     payment_verified = False
     price_lookup = _build_public_plan_price_lookup(db)
     selected_plan_price = int(
@@ -425,7 +425,7 @@ async def register_tenant(
         if payload.payment_transaction_id is None:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Ucretli plan secimi icin odeme adimi tamamlanmalidir.",
+                detail="?cretli plan se?imi i?in ?deme ad?m? tamamlanmal?d?r.",
             )
 
         txn = db.get(PaymentTransaction, payload.payment_transaction_id)
@@ -438,20 +438,20 @@ async def register_tenant(
         if (txn.transaction_type or "").lower() != "subscription":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Odeme islemi abonelik tipi degil.",
+                detail="Ödeme işlemi abonelik tipi değil.",
             )
 
         if (txn.status or "").lower() not in {"processing", "succeeded"}:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Odeme islemi tamamlanmadi veya basarisiz.",
+                detail="?deme i?lemi tamamlanmad? veya ba?ar?s?z.",
             )
 
         txn_currency = (txn.currency or "TRY").upper()
         if txn_currency != selected_plan_currency.upper():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Odeme para birimi secilen plan ile uyusmuyor.",
+                detail="Ödeme para birimi seçilen plan ile uyuşmuyor.",
             )
 
         try:
@@ -460,13 +460,13 @@ async def register_tenant(
         except (InvalidOperation, TypeError, ValueError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Odeme tutari dogrulanamadi.",
+                detail="?deme tutar? do?rulanamad?.",
             )
 
         if paid_amount < required_amount:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Odeme tutari secilen plan tutarindan dusuk.",
+                detail="Ödeme tutarı seçilen plan tutarından düşük.",
             )
 
         payment_verified = True
@@ -479,22 +479,24 @@ async def register_tenant(
             detail="Bu e-posta adresi ile kayitli bir hesap zaten mevcut.",
         )
 
-    # Tenant olustur
+    # Tenant oluştur — public kayıtlar süper admin onayına kadar pasif kalır
     slug = _ensure_unique_slug(db, _slugify(payload.brand_name or payload.legal_name))
     tenant = Tenant(
         slug=slug,
         legal_name=payload.legal_name,
         brand_name=payload.brand_name,
         subscription_plan_code=plan_code,
-        status="active",
+        status="onboarding",
         onboarding_status="pending_activation",
-        is_active=True,
+        is_active=False,
+        onboarding_approval_status="pending",
+        onboarding_payment_status="not_required" if not payment_verified else "submitted",
     )
     db.add(tenant)
     db.flush()
 
     ensure_tenant_subscription_for_plan(
-        db, tenant, subscription_plan_code=plan_code, status_value="active"
+        db, tenant, subscription_plan_code=plan_code, status_value="paused"
     )
     db.add(
         TenantSettings(
@@ -506,7 +508,7 @@ async def register_tenant(
         )
     )
 
-    # Ilk admin kullanicisi
+    # ?lk admin kullan?c?s?
     placeholder_pw = secrets.token_urlsafe(24)
     invitation_token = secrets.token_urlsafe(32)
     invitation_expires = datetime.now(timezone.utc) + timedelta(hours=48)
@@ -530,7 +532,7 @@ async def register_tenant(
     db.flush()
     tenant.owner_user_id = admin_user.id
 
-    # Varsayilan firma + yonetici atamasi (magic link sonrasi role/firma baglantisi hazir olsun)
+    # Varsay?lan firma + y?netici atamas? (magic link sonras? role/firma ba?lant?s? haz?r olsun)
     default_company = Company(
         name=payload.brand_name or payload.legal_name,
         trade_name=payload.legal_name,
@@ -578,7 +580,7 @@ async def register_tenant(
     db.refresh(tenant)
     db.refresh(admin_user)
 
-    # Davet e-postasi
+    # Davet e-postas?
     invitation_sent = False
     try:
         invitation_sent = email_service.send_internal_user_invitation(
@@ -596,7 +598,7 @@ async def register_tenant(
         if invitation_sent
         else "Kaydınız alındı. Aktivasyon bağlantısı sistem yöneticiniz tarafından iletilecektir."
     )
-    message += " Is maili olusturma ve mailbox bilgileri aktivasyon sonrasi otomatik gonderilecektir."
+    message += " ?? maili olu?turma ve mailbox bilgileri aktivasyon sonras? otomatik g?nderilecektir."
 
     return OnboardingRegisterOut(
         tenant_id=tenant.id,

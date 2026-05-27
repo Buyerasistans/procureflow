@@ -9,7 +9,7 @@ import { ProjectSuppliersModal } from "../components/ProjectSuppliersModal";
 import { isPlatformStaffUser } from "../auth/permissions";
 import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
-import { modalStyles } from "../styles/modalStyles";
+import "../styles/modal.css";
 import type { Project, ProjectFile } from "../types/project";
 import type { Quote } from "../types/quote";
 import type { Company } from "../services/admin.service";
@@ -447,19 +447,13 @@ export default function ProjectDetailPage() {
             <>
               <button
                 onClick={() => setShowEditModal(true)}
-                style={{
-                  ...modalStyles.primaryButton,
-                  flex: "0 1 auto",
-                }}
+                className="ms-btn ms-btn--primary ms-btn--auto-flex"
               >
                 ✏️ Düzenle
               </button>
               <button
                 onClick={handleDelete}
-                style={{
-                  ...modalStyles.dangerButton,
-                  flex: "0 1 auto",
-                }}
+                className="ms-btn ms-btn--danger ms-btn--auto-flex"
               >
                 🗑️ Sil
               </button>
@@ -1088,11 +1082,11 @@ export default function ProjectDetailPage() {
 
       {/* Edit Modal */}
       {!readOnly && showEditModal && (
-        <div style={modalStyles.backdrop}>
-          <div style={modalStyles.container}>
-            <div style={modalStyles.header}>
-              <h2 style={modalStyles.title}>✏️ Proje Düzenle</h2>
-              <button onClick={() => setShowEditModal(false)} style={modalStyles.closeButton}>
+        <div className="ms-backdrop">
+          <div className="ms-container">
+            <div className="ms-header">
+              <h2 className="ms-title">✏️ Proje Düzenle</h2>
+              <button onClick={() => setShowEditModal(false)} className="ms-close-btn">
                 ✕
               </button>
             </div>
@@ -1102,84 +1096,84 @@ export default function ProjectDetailPage() {
                 e.preventDefault();
                 handleUpdate();
               }}
-              style={modalStyles.content}
+              className="ms-content"
             >
-              <div style={modalStyles.grid}>
+              <div className="ms-grid">
                 <div>
-                  <label style={modalStyles.label}>Proje Adı</label>
+                  <label className="ms-label">Proje Adı</label>
                   <input
                     type="text"
                     value={editData.name || ""}
                     onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    style={modalStyles.input}
+                    className="ms-input"
                   />
                 </div>
                 <div>
-                  <label style={modalStyles.label}>Proje Kodu</label>
+                  <label className="ms-label">Proje Kodu</label>
                   <input
                     type="text"
                     value={editData.code || ""}
                     onChange={(e) => setEditData({ ...editData, code: e.target.value })}
-                    style={modalStyles.input}
+                    className="ms-input"
                   />
                 </div>
               </div>
 
-              <div style={modalStyles.grid}>
+              <div className="ms-grid">
                 <div>
-                  <label style={modalStyles.label}>Yetkilisi</label>
+                  <label className="ms-label">Yetkilisi</label>
                   <input
                     type="text"
                     value={editData.manager_name || ""}
                     onChange={(e) => setEditData({ ...editData, manager_name: e.target.value })}
-                    style={modalStyles.input}
+                    className="ms-input"
                   />
                 </div>
                 <div>
-                  <label style={modalStyles.label}>Telefon</label>
+                  <label className="ms-label">Telefon</label>
                   <input
                     type="tel"
                     value={editData.manager_phone || ""}
                     onChange={(e) => setEditData({ ...editData, manager_phone: e.target.value })}
-                    style={modalStyles.input}
+                    className="ms-input"
                   />
                 </div>
               </div>
 
-              <div style={modalStyles.fullWidth}>
-                <label style={modalStyles.label}>Adres</label>
+              <div className="ms-full-width">
+                <label className="ms-label">Adres</label>
                 <textarea
                   value={editData.address || ""}
                   onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                   rows={2}
-                  style={modalStyles.textarea}
+                  className="ms-textarea"
                 />
               </div>
 
-              <div style={modalStyles.fullWidth}>
-                <label style={modalStyles.label}>Bütçe</label>
+              <div className="ms-full-width">
+                <label className="ms-label">Bütçe</label>
                 <input
                   type="number"
                   value={editData.budget || ""}
                   onChange={(e) => setEditData({ ...editData, budget: parseFloat(e.target.value) })}
                   step="0.01"
                   min="0"
-                  style={modalStyles.input}
+                  className="ms-input"
                 />
               </div>
 
-              <div style={modalStyles.footer}>
+              <div className="ms-footer">
                 <button
                   type="submit"
                   disabled={editLoading}
-                  style={editLoading ? modalStyles.primaryButtonDisabled : modalStyles.primaryButton}
+                  className={editLoading ? "ms-btn ms-btn--primary ms-btn--disabled" : "ms-btn ms-btn--primary"}
                 >
                   {editLoading ? "⏳ Kaydediliyor..." : "✅ Güncelle"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  style={modalStyles.secondaryButton}
+                  className="ms-btn ms-btn--secondary"
                 >
                   ❌ İptal
                 </button>

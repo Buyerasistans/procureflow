@@ -11,7 +11,7 @@ export function ReportsTabContent() {
     <div style={{ padding: "24px 0" }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Raporlar</h2>
       <p style={{ color: "#6b7280", marginBottom: 20, fontSize: 14 }}>
-        RFQ karsilastirma, tedarikci performans ve satin alma sureci raporlarinizi goruntuleyin.
+        RFQ karşılaştırma, tedarikçi performans ve satın alma süreci raporlarınızı görüntüleyin.
       </p>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
         <a
@@ -95,7 +95,7 @@ export function ChannelReportsTabContent() {
   return (
     <div style={{ padding: "24px 0", display: "grid", gap: 20 }}>
       <div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Is Ortagi Raporlari</h2>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>İş Ortağı Raporları</h2>
         <p style={{ color: "#6b7280", fontSize: 14, margin: 0 }}>
           Komisyon kazanclariniz, referans donusum performansiniz ve ekip aktivite ozetiniz.
         </p>
@@ -123,7 +123,7 @@ export function ChannelReportsTabContent() {
         {[
           { label: "Toplam Ekip Buyuklugu", value: summary?.total_team_size ?? 0 },
           { label: "Aktif Ekip Uyeleri", value: summary?.active_team_size ?? 0 },
-          { label: "Son 30 Gunde Yeni Musteri", value: summary?.last_30d_new_customers ?? 0 },
+          { label: "Son 30 Günde Yeni Müşteri", value: summary?.last_30d_new_customers ?? 0 },
           { label: "Performans Skoru", value: `${Math.round(summary?.performance_score ?? 0)} / 100` },
         ].map(kpi => (
           <div key={kpi.label} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px" }}>
@@ -168,7 +168,7 @@ export function ChannelReportsTabContent() {
 
       {(!report || !report.entries || report.entries.length === 0) && (
         <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "24px 20px", textAlign: "center" as const, color: "#94a3b8", fontSize: 14 }}>
-          Henuz komisyon kaydı bulunmuyor. Referans linkleri ile musteri yonlendirmeleri yaptiginizda komisyon kazanclariniz burada gorunecek.
+          Henüz komisyon kaydı bulunmuyor. Referans linkleri ile müşteri yönlendirmeleri yaptığınızda komisyon kazançlarınız burada görünecek.
         </div>
       )}
     </div>
@@ -248,17 +248,17 @@ export function PlatformAnalyticsTab() {
   const metricCards: Array<{ label: string; value: number; color: string; bg: string }> = [
     { label: "Toplam Tenant", value: summary.total_tenants ?? 0, color: "#4f46e5", bg: "#eef2ff" },
     { label: "Aktif Tenant", value: summary.active_tenants ?? 0, color: "#059669", bg: "#ecfdf5" },
-    { label: "Aktif Kullanici", value: summary.total_internal_users ?? 0, color: "#0284c7", bg: "#e0f2fe" },
-    { label: "Toplam Tedarikci", value: summary.total_suppliers ?? 0, color: "#7c3aed", bg: "#f5f3ff" },
-    { label: "Platform Tedarikci", value: summary.platform_suppliers ?? 0, color: "#b45309", bg: "#fffbeb" },
-    { label: "Ozel Tedarikci", value: summary.private_suppliers ?? 0, color: "#0f766e", bg: "#f0fdfa" },
+    { label: "Aktif Kullanıcı", value: summary.total_internal_users ?? 0, color: "#0284c7", bg: "#e0f2fe" },
+    { label: "Toplam Tedarikçi", value: summary.total_suppliers ?? 0, color: "#7c3aed", bg: "#f5f3ff" },
+    { label: "Platform Tedarikçi", value: summary.platform_suppliers ?? 0, color: "#b45309", bg: "#fffbeb" },
+    { label: "Özel Tedarikçi", value: summary.private_suppliers ?? 0, color: "#0f766e", bg: "#f0fdfa" },
     { label: "Toplam Proje", value: summary.total_projects ?? 0, color: "#be185d", bg: "#fdf2f8" },
     { label: "Toplam Teklif", value: summary.total_quotes ?? 0, color: "#0369a1", bg: "#f0f9ff" },
   ];
 
   const publicMetricCards: Array<{ label: string; value: number; color: string; bg: string }> = [
     { label: "Partner Plan", value: publicSummary.strategic_partner_plan_count ?? 0, color: "#0f766e", bg: "#ecfdf5" },
-    { label: "Tedarikci Plan", value: publicSummary.supplier_plan_count ?? 0, color: "#0369a1", bg: "#f0f9ff" },
+    { label: "Tedarikçi Plan", value: publicSummary.supplier_plan_count ?? 0, color: "#0369a1", bg: "#f0f9ff" },
     { label: "Public Kampanya", value: publicSummary.public_campaign_count ?? 0, color: "#7c3aed", bg: "#f5f3ff" },
     { label: "Aktif Kampanya", value: publicSummary.active_public_campaign_count ?? 0, color: "#b45309", bg: "#fffbeb" },
     { label: "Campaign Event", value: publicSummary.campaign_event_count ?? 0, color: "#be185d", bg: "#fdf2f8" },
@@ -303,7 +303,7 @@ export function PlatformAnalyticsTab() {
       </div>
 
       <div style={{ marginTop: 28 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Public Web KPI Ozeti</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Public Web KPI Özeti</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>
           {publicMetricCards.map((m) => (
             <div key={m.label} style={{ background: m.bg, border: `1px solid ${m.color}30`, borderRadius: 10, padding: "14px 16px" }}>
@@ -314,7 +314,7 @@ export function PlatformAnalyticsTab() {
         </div>
 
         <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Domain Intent Ozeti</div>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Domain Intent Özeti</div>
           <div style={{ display: "grid", gap: 10 }}>
             {domainIntentSummary.map((row) => (
               <div key={row.host} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "10px 12px", borderRadius: 10, background: "#fff", border: "1px solid #e5e7eb" }}>
@@ -360,7 +360,7 @@ export function PlatformAnalyticsTab() {
               </select>
             </label>
             <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569" }}>
-              Baslangic tarihi
+              Başlangıç tarihi
               <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #cbd5e1", minWidth: 160 }} />
             </label>
             <label style={{ display: "grid", gap: 4, fontSize: 12, color: "#475569" }}>
@@ -414,7 +414,7 @@ export function PlatformSuppliersTab() {
           throw new Error(
             typeof payload?.detail === "string"
               ? payload.detail
-              : "Platform tedarikci havuzu okunamadi"
+              : "Platform tedarikçi havuzu okunamadı"
           );
         }
         return Array.isArray(payload) ? payload : [];
@@ -422,7 +422,7 @@ export function PlatformSuppliersTab() {
       .then(setSuppliers)
       .catch((loadError) => {
         setSuppliers([]);
-        setErr(loadError instanceof Error ? loadError.message : "Platform tedarikci havuzu okunamadi");
+        setErr(loadError instanceof Error ? loadError.message : "Platform tedarikçi havuzu okunamadı");
       })
       .finally(() => setLoading(false));
   }, [apiBase]);
@@ -459,13 +459,13 @@ export function PlatformSuppliersTab() {
   return (
     <div style={{ padding: "24px 0" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Platform Tedarikci Havuzu</h2>
+        <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Platform Tedarikçi Havuzu</h2>
         {canCreate ? (
           <button
             onClick={() => setShowForm(!showForm)}
             style={{ background: "#4f46e5", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
           >
-            {showForm ? "Iptal" : "+ Yeni Tedarikci"}
+            {showForm ? "İptal" : "+ Yeni Tedarikçi"}
           </button>
         ) : null}
       </div>
@@ -491,7 +491,7 @@ export function PlatformSuppliersTab() {
       {err ? (
         <div style={{ color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: 12 }}>{err}</div>
       ) : suppliers.length === 0 ? (
-        <div style={{ color: "#6b7280", fontStyle: "italic" }}>Platform havuzunda henuz tedarikci yok.</div>
+        <div style={{ color: "#6b7280", fontStyle: "italic" }}>Platform havuzunda henüz tedarikçi yok.</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
           {suppliers.map((s) => (
@@ -569,11 +569,11 @@ export function PublicPricingTab() {
   return (
     <div style={{ padding: "24px 0" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Public Fiyatlandirma Yonetimi</h2>
+        <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Public Fiyatlandırma Yönetimi</h2>
         <div style={{ fontSize: 12, color: "#64748b" }}>Yetki: {canWritePricing ? "Yazma" : "Salt Okuma"}</div>
       </div>
       <p style={{ marginTop: 0, color: "#64748b", fontSize: 13 }}>
-        Bu konfigurasyon public `/fiyatlandirma` sayfasinda Stratejik Partner ve Tedarikci planlarini belirler.
+        Bu konfigürasyon public `/fiyatlandirma` sayfasında Stratejik Partner ve Tedarikçi planlarını belirler.
       </p>
 
       {loadingConfig ? (
@@ -615,4 +615,3 @@ export function PublicPricingTab() {
 export function CampaignsTab() {
   return <CampaignsAdminTab />;
 }
-

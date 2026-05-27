@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { getRoleLabel, getUserDisplayRoleLabel } from "../auth/permissions";
 import { activateInternalUserRequest, verifyInternalActivationToken } from "../services/auth.service";
 import { setAccessToken, setRefreshToken } from "../lib/token";
+import { getActivationRedirectPath } from "../config/register-redirect-policy";
 
 export default function InternalUserActivationPage() {
   const [searchParams] = useSearchParams();
@@ -87,12 +88,19 @@ export default function InternalUserActivationPage() {
         sessionStorage.setItem("pf_user", JSON.stringify(data.user));
       }
       setSuccess("Hesabınız aktifleştirildi. Yönlendiriliyorsunuz...");
+      const redirectPath = getActivationRedirectPath(data.user?.system_role);
       window.setTimeout(() => {
-        navigate("/app", { replace: true });
+        navigate(redirectPath, { replace: true });
       }, 700);
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail || "Aktivasyon tamamlanamadı");
+      const statusCode = (err as { response?: { status?: number } })?.response?.status;
+      // 403 with "onay bekliyor" means activation succeeded but tenant awaits approval
+      if (statusCode === 403 && detail && detail.includes("onayı bekliyor")) {
+        setSuccess(detail);
+      } else {
+        setError(detail || "Aktivasyon tamamlanamadı");
+      }
     } finally {
       setSubmitting(false);
     }

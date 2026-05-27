@@ -894,7 +894,7 @@ async def test_email_settings(
     if effective_settings["use_ssl"] and effective_settings["use_tls"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="SMTP icin SSL ve TLS ayni anda secilemez. Tek bir baglanti yontemi secin.",
+            detail="SMTP için SSL ve TLS aynı anda seçilemez. Tek bir bağlantı yöntemi seçin.",
         )
 
     try:
@@ -1013,7 +1013,7 @@ async def test_email_settings(
                 raise last_auth_error
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="SMTP gonderimi basarisiz. Host, port ve kimlik bilgilerini kontrol edin.",
+                detail="SMTP gönderimi başarısız. Host, port ve kimlik bilgilerini kontrol edin.",
             )
         print("[EMAIL] Email başarıyla gönderildi")
 
@@ -1078,9 +1078,9 @@ async def test_email_settings(
 
         return {
             "success": True,
-            "message": "Gonderme basarili!"
+            "message": "Gönderme başarılı!"
             if not incoming_test_success
-            else f"Gonderme ve alma baglantisi dogrulandi. Test email {to_email} adresine gonderildi.",
+            else f"Gönderme ve alma bağlantısı doğrulandı. Test email {to_email} adresine gönderildi.",
         }
 
     except SMTPAuthenticationError as e:
@@ -1119,7 +1119,7 @@ async def test_email_settings(
         print(f"[EMAIL] [ERROR] Sunucu bağlantısı koptu: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="SMTP sunucusu baglantiyi kabul etmedi veya secilen SSL/TLS yontemiyle uyumlu degil.",
+            detail="SMTP sunucusu bağlantıyı kabul etmedi veya seçilen SSL/TLS yöntemiyle uyumlu değil.",
         )
     except SMTPException as e:
         print(f"[EMAIL] [ERROR] SMTP Hatası: {str(e)}")
@@ -1131,13 +1131,13 @@ async def test_email_settings(
         print(f"[EMAIL] [ERROR] Gelen kutusu kimlik/baglanti hatasi: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Gelen kutusu baglantisi basarisiz: {str(e)}",
+            detail=f"Gelen kutusu bağlantısı başarısız: {str(e)}",
         )
     except (ssl.SSLError, OSError) as e:
         print(f"[EMAIL] [ERROR] SSL/Baglanti hatasi: {type(e).__name__}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="SSL/TLS baglanti hatasi. Port ve guvenlik tipini kontrol edin; genelde 465+SSL veya 587+TLS kullanilmalidir.",
+            detail="SSL/TLS bağlantı hatası. Port ve güvenlik tipini kontrol edin; genelde 465+SSL veya 587+TLS kullanılmalıdır.",
         )
     except Exception as e:
         print(f"[EMAIL] [ERROR] Beklenmeyen hatası: {type(e).__name__}: {str(e)}")

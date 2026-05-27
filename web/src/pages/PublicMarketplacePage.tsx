@@ -69,10 +69,10 @@ export default function PublicMarketplacePage() {
   }, []);
 
   const title =
-    mode === "offers" ? "Acik Ihaleler" :
-    mode === "suppliers" ? "Tedarikci Havuzu" :
+    mode === "offers" ? "Açık İhaleler" :
+    mode === "suppliers" ? "Tedarikçi Havuzu" :
     mode === "strategic" ? "Stratejik Partnerlerimiz" :
-    "Basarili Is Ortaklarimiz";
+    "Başarılı İş Ortaklarımız";
 
   const rows =
     mode === "offers" ? data?.open_tenders ?? [] :
@@ -115,11 +115,11 @@ export default function PublicMarketplacePage() {
   function handleOfferClick(row: any) {
     const token = getToken();
     if (!token) {
-      setOfferMessage("Teklif vermek icin once giris yapmalisiniz. Giris sonrasi yetkiniz kontrol edilip otomatik devam edilir.");
+      setOfferMessage("Teklif vermek için önce giriş yapmalısınız. Giriş sonrası yetkiniz kontrol edilip otomatik devam edilir.");
       return;
     }
     if (!row.offer_allowed) {
-      setOfferMessage("Bu ihale icin havuz hakkiniz aktif degil. Uyeliginizi yukselterek veya havuz odemesi ile teklif hakki acabilirsiniz.");
+      setOfferMessage("Bu ihale i?in havuz hakk?n?z aktif de?il. ?yeli?inizi y?kselterek veya havuz ?demesi ile teklif hakk? a?abilirsiniz.");
       return;
     }
     window.location.href = `/quotes/create?source=public_tender&quote_id=${row.id}`;
@@ -245,8 +245,8 @@ export default function PublicMarketplacePage() {
             <article style={{ gridColumn: "1 / -1", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: 12, color: "#9a3412" }}>
               <div>{offerMessage}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <a href="/supplier/login" style={{ background: "#1d4ed8", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Giris Yap</a>
-                <a href="/fiyatlandirma#tedarikci" style={{ background: "#0f766e", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Uyeligi Yukselti</a>
+                <a href="/supplier/login" style={{ background: "#1d4ed8", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Giriş Yap</a>
+                <a href="/fiyatlandirma#tedarikci" style={{ background: "#0f766e", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Üyeliği Yükselt</a>
                 <button type="button" onClick={() => setOfferMessage(null)} style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>Kapat</button>
               </div>
             </article>
@@ -261,10 +261,10 @@ export default function PublicMarketplacePage() {
                       <div style={{ fontWeight: 800, color: "#0f172a", textAlign: "left" }}>{row.title}</div>
                       <div style={{ color: "#475569", marginTop: 6, textAlign: "left" }}>{row.company_name} / {row.project_name}</div>
                       <div style={{ color: "#64748b", marginTop: 4, textAlign: "left" }}>
-                        Sehir: {row.project_city || "-"} | Proje No: {row.project_code || "-"}
+                        Şehir: {row.project_city || "-"} | Proje No: {row.project_code || "-"}
                       </div>
                       <div style={{ marginTop: 8, color: "#0b5d4a", fontWeight: 700, textAlign: "left" }}>
-                        Tedarikci sayisi: {row.supplier_count || 0} | Teklif sayisi: {row.bidder_count || 0}
+                        Tedarikçi sayısı: {row.supplier_count || 0} | Teklif sayısı: {row.bidder_count || 0}
                       </div>
                     </div>
                   </div>
@@ -274,7 +274,7 @@ export default function PublicMarketplacePage() {
                       onClick={() => void loadFiles(row.id)}
                       style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}
                     >
-                      Dosyalari Goruntule
+                      Dosyaları Görüntüle
                     </button>
                     <button
                       type="button"
@@ -301,7 +301,7 @@ export default function PublicMarketplacePage() {
                   </div>
                   {filesByQuote[row.id] ? (
                     <ul style={{ marginTop: 8, paddingLeft: 18, color: "#475569", fontSize: 13 }}>
-                      {filesByQuote[row.id].length === 0 ? <li>Dosya bulunamadi.</li> : filesByQuote[row.id].map((item) => <li key={item.id}>{item.name}</li>)}
+                      {filesByQuote[row.id].length === 0 ? <li>Dosya bulunamad?.</li> : filesByQuote[row.id].map((item) => <li key={item.id}>{item.name}</li>)}
                     </ul>
                   ) : null}
                 </>
@@ -339,7 +339,7 @@ export default function PublicMarketplacePage() {
                         {row.name}
                       </div>
                       <div style={{ color: "#475569", marginTop: 6 }}>
-                        Sehir: {row.city} | Proje: {row.project_count} | Ihale: {row.tender_count ?? 0}
+                        Şehir: {row.city} | Proje: {row.project_count} | İhale: {row.tender_count ?? 0}
                       </div>
                     </div>
                   </div>

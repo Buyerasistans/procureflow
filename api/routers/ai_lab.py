@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 from uuid import uuid4
 
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -10,6 +10,7 @@ from api.services.cad_convert import (
     convert_dwg_to_dxf,
     CADConversionError,
     can_convert_dwg,
+    get_dwg_converter_diagnostics,
 )
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status, Depends
@@ -33,6 +34,7 @@ from api.services.bom_engine import generate_bom_from_metadata
 from api.services.extractor import DWGExtractor
 
 router = APIRouter(prefix="/ai-lab", tags=["AI Laboratuvari"])
+logger = logging.getLogger(__name__)
 
 
 class DiscoveryLabDecisionIn(BaseModel):
@@ -58,8 +60,30 @@ class DiscoveryLabBomSelectionIn(BaseModel):
 
 class DiscoveryLabConfirmIn(BaseModel):
     session_id: str
-    project_id: int
+    project_id: int | None = None
     selected_bom_item_keys: list[str]
+
+
+def _safe_error_detail(*, code: str, message: str, request_id: str) -> dict[str, str]:
+    return {"code": code, "message": message, "request_id": request_id}
+
+
+def _raise_discovery_lab_error(
+    *,
+    status_code: int,
+    code: str,
+    message: str,
+    request_id: str,
+    reason: str | None = None,
+) -> None:
+    log_payload = {"request_id": request_id, "error_code": code}
+    if reason:
+        log_payload["reason"] = reason
+    logger.warning("discovery_lab_user_safe_error", extra=log_payload)
+    raise HTTPException(
+        status_code=status_code,
+        detail=_safe_error_detail(code=code, message=message, request_id=request_id),
+    )
 
 
 def _filter_discovery_lab_sessions(
@@ -147,6 +171,13 @@ def _is_platform_staff(current_user: User) -> bool:
     }
 
 
+def _can_view_converter_health(current_user: User) -> bool:
+    return _is_platform_staff(current_user) or current_user.system_role in {
+        "tenant_owner",
+        "tenant_admin",
+    }
+
+
 def _can_manage_project(current_user: User, project: Project) -> bool:
     if not current_user.is_active:
         return False
@@ -162,9 +193,79 @@ def _can_manage_project(current_user: User, project: Project) -> bool:
     return any(user_project.id == project.id for user_project in current_user.projects)
 
 
-def _resolve_procurement_context(
-    db: Session, *, current_user: User, project_id: int
+def _ensure_session_access(
+    db: Session, *, session_row: DiscoveryLabSession, current_user: User
+) -> None:
+    if _is_platform_staff(current_user):
+        return
+    if session_row.created_by_user_id == current_user.id:
+        return
+    if session_row.selected_project_id:
+        project = (
+            db.query(Project)
+            .filter(Project.id == session_row.selected_project_id)
+            .first()
+        )
+        if project and _can_manage_project(current_user, project):
+            return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Bu Discovery Lab oturumuna erişim yetkiniz yok",
+    )
+
+
+def _get_or_create_discovery_lab_project(
+    db: Session, *, current_user: User
 ) -> tuple[Project, User]:
+    db_user = db.get(User, current_user.id)
+    if db_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aktarım kullanıcısı bulunamadı",
+        )
+    tenant_id = current_user.tenant_id
+    project_code = "DISCOVERY-LAB" if tenant_id is not None else f"DL-USER-{current_user.id}"
+    query = db.query(Project).filter(
+        Project.code == project_code,
+        Project.is_active.is_(True),
+    )
+    if tenant_id is None:
+        query = query.filter(
+            Project.tenant_id.is_(None),
+            Project.created_by_id == current_user.id,
+        )
+    else:
+        query = query.filter(Project.tenant_id == tenant_id)
+
+    project = query.order_by(Project.id.asc()).first()
+    if project:
+        if not any(person.id == db_user.id for person in project.personnel):
+            project.personnel.append(db_user)
+            db.flush()
+        return project, db_user
+
+    project = Project(
+        name="Discovery Lab Aktarım Projesi",
+        description="Discovery Lab otomatik RFQ aktarımı için oluşturulan varsayılan proje.",
+        code=project_code,
+        budget=None,
+        project_type="merkez",
+        is_active=True,
+        tenant_id=tenant_id,
+        created_by_id=current_user.id,
+    )
+    project.personnel.append(db_user)
+    db.add(project)
+    db.flush()
+    return project, db_user
+
+
+def _resolve_procurement_context(
+    db: Session, *, current_user: User, project_id: int | None
+) -> tuple[Project, User]:
+    if project_id is None:
+        return _get_or_create_discovery_lab_project(db, current_user=current_user)
+
     project = (
         db.query(Project)
         .filter(Project.id == project_id, Project.is_active.is_(True))
@@ -173,12 +274,12 @@ def _resolve_procurement_context(
     if not project:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aktif satin alma projesi bulunamadi",
+            detail="Aktif satın alma projesi bulunamadı",
         )
     if not _can_manage_project(current_user, project):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu proje icin Discovery Lab aktarim yetkiniz yok",
+            detail="Bu proje için Discovery Lab aktarım yetkiniz yok",
         )
     return project, current_user
 
@@ -203,7 +304,7 @@ def _create_procurement_quote(
         project_id=project.id,
         created_by_id=user.id,
         title=f"Discovery Lab RFQ - {filename}",
-        description="Discovery Lab teknik onayindan satin alma kuyruguna aktarilan kesif kaydi.",
+        description="Discovery Lab teknik onayından satın alma kuyruğuna aktarılan keşif kaydı.",
         status=QuoteStatus.DRAFT,
         company_name="ProcureFlow Discovery Lab",
         company_contact_name=user.full_name or user.email,
@@ -217,20 +318,69 @@ def _create_procurement_quote(
     db.add(quote)
     db.flush()
 
-    for index, item in enumerate(selected_bom_items, start=1):
+    grouped_items: dict[str, dict] = {}
+    for item in selected_bom_items:
+        group_key = item.get("group_key") or item.get("source_layer") or "discovery-lab"
+        group_name = item.get("group_name") or item.get("source_layer") or "Discovery Lab Kalemleri"
+        grouped_items.setdefault(str(group_key), {"name": group_name, "items": []})
+        grouped_items[str(group_key)]["items"].append(item)
+
+    sequence = 1
+    for group_index, (group_key, group_payload) in enumerate(grouped_items.items(), start=1):
         db.add(
             QuoteItem(
                 quote_id=quote.id,
-                line_number=str(index),
+                line_number=str(group_index),
                 category_code="DISCOVERY_LAB",
-                category_name=item.get("source_layer") or "DISCOVERY_LAB",
-                description=item.get("material") or "Isimsiz malzeme",
-                unit=item.get("unit") or "adet",
-                quantity=float(item.get("quantity") or 0),
+                category_name="Discovery Lab",
+                description=str(group_payload["name"]),
+                group_key=str(group_key),
+                is_group_header=True,
+                unit="",
+                quantity=0,
                 unit_price=None,
                 total_price=None,
-                notes=f"Kaynak katman: {item.get('source_layer')}",
-                sequence=index,
+                notes="Discovery Lab reçete grubu",
+                sequence=sequence,
+            )
+        )
+        sequence += 1
+        for item_index, item in enumerate(group_payload["items"], start=1):
+            db.add(
+                QuoteItem(
+                    quote_id=quote.id,
+                    line_number=f"{group_index}.{item_index}",
+                    category_code="DISCOVERY_LAB",
+                    category_name=str(group_payload["name"]),
+                    description=item.get("material") or "İsimsiz malzeme",
+                    group_key=str(group_key),
+                    is_group_header=False,
+                    unit=item.get("unit") or "adet",
+                    quantity=float(item.get("quantity") or 0),
+                    unit_price=None,
+                    total_price=None,
+                    notes=f"Kaynak katman: {item.get('source_layer')}",
+                    sequence=sequence,
+                )
+            )
+            sequence += 1
+
+    if not grouped_items:
+        db.add(
+            QuoteItem(
+                quote_id=quote.id,
+                line_number="1",
+                category_code="DISCOVERY_LAB",
+                category_name="Discovery Lab",
+                description="Discovery Lab teknik keşif kalemleri",
+                group_key="discovery-lab",
+                is_group_header=True,
+                unit="",
+                quantity=0,
+                unit_price=None,
+                total_price=None,
+                notes="Seçili BOM kalemi bulunamadı.",
+                sequence=1,
             )
         )
 
@@ -246,7 +396,7 @@ def _get_session_or_404(db: Session, session_id: str) -> DiscoveryLabSession:
     if not session_row:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Discovery Lab oturumu bulunamadi",
+            detail="Discovery Lab oturumu bulunamadı",
         )
     return session_row
 
@@ -280,11 +430,11 @@ def _serialize_timeline(event_rows: list[DiscoveryLabEvent]) -> list[dict]:
                 "timestamp": event.created_at,
                 "type": event.event_type,
                 "title": {
-                    "analysis_created": "Analiz Olusturuldu",
-                    "bom_selection": "BOM Secimi Guncellendi",
-                    "ai_decision": "AI Teknik Karari Kaydedildi",
-                    "user_answer": "Kullanici Yaniti Kaydedildi",
-                    "technical_lock": "Teknik Kilit ve Satin Alma Aktarimi",
+                    "analysis_created": "Analiz Oluşturuldu",
+                    "bom_selection": "BOM Seçimi Güncellendi",
+                    "ai_decision": "AI Teknik Kararı Kaydedildi",
+                    "user_answer": "Kullanıcı Yanıtı Kaydedildi",
+                    "technical_lock": "Teknik Kilit ve Satın Alma Aktarımı",
                 }.get(event.event_type, event.event_type),
                 "actor": payload.get("actor_name")
                 or payload.get("actor_email")
@@ -363,21 +513,21 @@ def _build_fallback_ai_report(metadata: dict) -> dict:
         karar_destek_sorulari.append(
             {
                 "id": 1,
-                "soru": "Islak hacim icin zemin seramik veya su yalitimi katmani ekleyelim mi?",
-                "neden": "PF_ islak hacim duvarlari bulundu ancak zeminde tamamlayici katman sinyali gorulmedi.",
+                "soru": "Islak hacim için zemin seramik veya su yalıtımı katmanı ekleyelim mi?",
+                "neden": "PF_ ıslak hacim duvarları bulundu ancak zeminde tamamlayıcı katman sinyali görülmedi.",
             }
         )
     if duvar_katmanlari:
         karar_destek_sorulari.append(
             {
                 "id": len(karar_destek_sorulari) + 1,
-                "soru": "Duvar katmanlari icin alt recete kalemleri otomatik tamamlansin mi?",
-                "neden": "Duvar metrajlari bulundu; boya, astar ve yardimci sarf kalemleri eksik olabilir.",
+                "soru": "Duvar katmanları için alt reçete kalemleri otomatik tamamlansın mı?",
+                "neden": "Duvar metrajları bulundu; boya, astar ve yardımcı sarf kalemleri eksik olabilir.",
             }
         )
 
     return {
-        "teknik_analiz": f"{len(katmanlar)} PF katmani ve {len(metadata.get('bloklar') or [])} PF blok grubu analiz edildi.",
+        "teknik_analiz": f"{len(katmanlar)} PF katmanı ve {len(metadata.get('bloklar') or [])} PF blok grubu analiz edildi.",
         "kritik_uyarilar": [],
         "karar_destek_sorulari": karar_destek_sorulari,
         "recete_onerileri": [],
@@ -390,11 +540,15 @@ async def start_ai_audit(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    request_id = uuid4().hex
     suffix = Path(file.filename or "upload.dxf").suffix.lower() or ".dxf"
     if suffix not in {".dxf", ".dwg"}:
-        raise HTTPException(
+        _raise_discovery_lab_error(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Yalnizca .dwg veya .dxf dosyalari desteklenir",
+            code="UNSUPPORTED_CAD_EXTENSION",
+            message="Yalnızca .dwg veya .dxf dosyaları desteklenir.",
+            request_id=request_id,
+            reason=f"suffix={suffix}",
         )
 
     temp_path: str | None = None
@@ -416,14 +570,16 @@ async def start_ai_audit(
             if not metadata:
                 ok, reason = can_convert_dwg()
                 if not ok:
-                    raise HTTPException(
+                    _raise_discovery_lab_error(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail=(
-                            "DWG dosyalarinin metadata cikartilmasi "
-                            "basarisiz oldu. Sunucuda DWG->DXF "
-                            "donusturme araci bulunamadi. "
-                            f"Ayrinti: {reason}."
+                        code="DWG_CONVERTER_UNAVAILABLE",
+                        message=(
+                            "DWG dosyasının metadata çıkarılması başarısız oldu. "
+                            "Sunucuda DWG->DXF dönüştürme aracı bulunamadı. "
+                            "Lütfen dosyayı DXF olarak yükleyin veya destek ekibine iletin."
                         ),
+                        request_id=request_id,
+                        reason=reason,
                     )
 
                 temp_dir_ctx = TemporaryDirectory()
@@ -434,9 +590,15 @@ async def start_ai_audit(
                         output_version="ACAD2013",
                     )
                 except CADConversionError as conv_err:
-                    raise HTTPException(
+                    _raise_discovery_lab_error(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail=f"DWG dosyasi DXF'e cevrilemedi: {conv_err}",
+                        code="DWG_CONVERSION_FAILED",
+                        message=(
+                            "DWG dosyası DXF formatına dönüştürülemedi. "
+                            "Lütfen dosyayı DXF olarak yükleyin veya destek ekibine iletin."
+                        ),
+                        request_id=request_id,
+                        reason=str(conv_err),
                     )
 
                 extractor = DWGExtractor(str(source_for_extractor))
@@ -446,9 +608,14 @@ async def start_ai_audit(
             extractor = DWGExtractor(str(source_for_extractor))
             metadata = extractor.extract_metadata()
         if not metadata:
-            raise HTTPException(
+            _raise_discovery_lab_error(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="CAD dosyasindan metadata cikartilamadi. Lutfen dosyanin gecerli oldugunu kontrol edin.",
+                code="CAD_METADATA_EXTRACTION_FAILED",
+                message=(
+                    "CAD dosyasından metadata çıkarılamadı. "
+                    "Lütfen dosyanın geçerli olduğunu kontrol edip tekrar deneyin."
+                ),
+                request_id=request_id,
             )
 
         try:
@@ -509,6 +676,7 @@ def save_bom_selection(
     current_user: User = Depends(get_current_user),
 ):
     session_row = _get_session_or_404(db, payload.session_id)
+    _ensure_session_access(db, session_row=session_row, current_user=current_user)
     _create_event(
         db,
         session_row=session_row,
@@ -533,10 +701,11 @@ def save_ai_decision(
     current_user: User = Depends(get_current_user),
 ):
     session_row = _get_session_or_404(db, payload.session_id)
+    _ensure_session_access(db, session_row=session_row, current_user=current_user)
     normalized_decision = payload.decision.lower()
     if normalized_decision not in {"approved", "ignored"}:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Gecersiz karar"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Geçersiz karar"
         )
 
     _create_event(
@@ -563,11 +732,12 @@ def save_ai_answer(
     current_user: User = Depends(get_current_user),
 ):
     session_row = _get_session_or_404(db, payload.session_id)
+    _ensure_session_access(db, session_row=session_row, current_user=current_user)
     answer_text = payload.answer_text.strip()
     if not answer_text:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kullanici yaniti bos olamaz",
+            detail="Kullanıcı yanıtı boş olamaz",
         )
 
     normalized_decision = payload.decision.strip().lower() if payload.decision else None
@@ -577,7 +747,7 @@ def save_ai_answer(
         "needs_review",
     }:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Gecersiz cevap karari"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Geçersiz cevap kararı"
         )
 
     audit_row = DiscoveryLabAnswerAudit(
@@ -624,6 +794,7 @@ def confirm_discovery_lab(
     current_user: User = Depends(get_current_user),
 ):
     session_row = _get_session_or_404(db, payload.session_id)
+    _ensure_session_access(db, session_row=session_row, current_user=current_user)
     metadata = json.loads(session_row.metadata_json)
     bom = json.loads(session_row.bom_json)
     project, user = _resolve_procurement_context(
@@ -636,6 +807,8 @@ def confirm_discovery_lab(
         if f"{item.get('source_layer')}-{item.get('material')}-{index}"
         in payload.selected_bom_item_keys
     ]
+    if not selected_bom_items and bom:
+        selected_bom_items = bom
     event_rows = (
         db.query(DiscoveryLabEvent)
         .filter(DiscoveryLabEvent.session_ref_id == session_row.id)
@@ -699,6 +872,46 @@ def confirm_discovery_lab(
     }
 
 
+@router.get("/health/converter")
+def get_converter_health(
+    current_user: User = Depends(get_current_user),
+):
+    request_id = uuid4().hex
+    if not _can_view_converter_health(current_user):
+        logger.warning(
+            "discovery_lab_converter_health_forbidden",
+            extra={
+                "request_id": request_id,
+                "error_code": "CONVERTER_HEALTH_FORBIDDEN",
+                "reason": f"user_id={current_user.id}",
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_safe_error_detail(
+                code="CONVERTER_HEALTH_FORBIDDEN",
+                message="Converter sağlık bilgisini görüntüleme yetkiniz yok.",
+                request_id=request_id,
+            ),
+        )
+
+    diagnostics = get_dwg_converter_diagnostics()
+    logger.info(
+        "discovery_lab_converter_health_checked",
+        extra={
+            "request_id": request_id,
+            "error_code": "CONVERTER_HEALTH_CHECK",
+            "reason": diagnostics.get("reason") or diagnostics.get("resolver_source"),
+        },
+    )
+    return {
+        "converter_found": bool(diagnostics["converter_found"]),
+        "resolver_source": diagnostics["resolver_source"],
+        "executable_name": diagnostics["executable_name"],
+        "request_id": request_id,
+    }
+
+
 @router.get("/admin/sessions")
 def list_discovery_lab_sessions(
     limit: int = 6,
@@ -754,14 +967,14 @@ def list_discovery_lab_sessions(
                 "created_at": session_row.created_at,
                 "updated_at": session_row.updated_at,
                 "latest_event_title": {
-                    "analysis_created": "Analiz Olusturuldu",
-                    "bom_selection": "BOM Secimi Guncellendi",
-                    "ai_decision": "AI Teknik Karari Kaydedildi",
-                    "user_answer": "Kullanici Yaniti Kaydedildi",
-                    "technical_lock": "Teknik Kilit ve Satin Alma Aktarimi",
+                    "analysis_created": "Analiz Oluşturuldu",
+                    "bom_selection": "BOM Seçimi Güncellendi",
+                    "ai_decision": "AI Teknik Kararı Kaydedildi",
+                    "user_answer": "Kullanıcı Yanıtı Kaydedildi",
+                    "technical_lock": "Teknik Kilit ve Satın Alma Aktarımı",
                 }.get(latest_event.event_type, latest_event.event_type)
                 if latest_event
-                else "Kayit bekleniyor",
+                else "Kayıt bekleniyor",
                 "latest_actor": latest_payload.get("actor_name")
                 or latest_payload.get("actor_email"),
             }
@@ -911,9 +1124,10 @@ def list_discovery_lab_answer_audits(
 def get_discovery_lab_timeline(
     session_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     session_row = _get_session_or_404(db, session_id)
+    _ensure_session_access(db, session_row=session_row, current_user=current_user)
     event_rows = (
         db.query(DiscoveryLabEvent)
         .filter(DiscoveryLabEvent.session_ref_id == session_row.id)

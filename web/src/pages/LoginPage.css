@@ -1,4 +1,4 @@
-.login-page {
+﻿.login-page {
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, rgba(236, 201, 130, 0.35), transparent 28%),
@@ -34,7 +34,7 @@
   text-align: center;
   font-size: 42px;
   line-height: 1.06;
-  color: #0f172a;
+  color: var(--pf-slate-900);
   font-weight: 900;
 }
 
@@ -42,7 +42,7 @@
   margin: 14px auto 0;
   text-align: center;
   max-width: 640px;
-  color: #475569;
+  color: var(--pf-slate-600);
   font-size: 15px;
   line-height: 1.7;
 }
@@ -64,25 +64,25 @@
 }
 
 .login-page__entry-button--strategic {
-  color: #fff;
+  color: var(--pf-surface);
   background: #21453d;
 }
 
 .login-page__entry-button--supplier {
-  color: #fff;
+  color: var(--pf-surface);
   background: #0284c7;
 }
 
 .login-page__entry-button--channel {
   color: #2f1a0d;
-  background: #f59e0b;
+  background: var(--pf-amber-400);
 }
 
 .login-page__footer-note {
   margin-top: 16px;
   text-align: center;
   font-size: 13px;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 @media (max-width: 860px) {

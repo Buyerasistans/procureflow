@@ -1,4 +1,4 @@
-.platform-overview-discovery-lab-stats {
+﻿.platform-overview-discovery-lab-stats {
   margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -7,8 +7,8 @@
 
 .platform-overview-discovery-lab-stats__card {
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--pf-slate-200);
+  background: var(--pf-slate-50);
   padding: 14px;
   display: grid;
   gap: 6px;
@@ -19,7 +19,7 @@
   font-weight: 800;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--pf-slate-500);
 }
 
 .platform-overview-discovery-lab-stats__value {
@@ -28,22 +28,22 @@
 }
 
 .platform-overview-discovery-lab-stats__value--teal {
-  color: #0f766e;
+  color: var(--pf-teal-700);
 }
 
 .platform-overview-discovery-lab-stats__value--green {
-  color: #166534;
+  color: var(--pf-green-800);
 }
 
 .platform-overview-discovery-lab-stats__value--blue {
-  color: #1d4ed8;
+  color: var(--pf-color-primary-dark);
 }
 
 .platform-overview-discovery-lab-stats__value--violet {
-  color: #7c3aed;
+  color: var(--pf-violet-600);
 }
 
 .platform-overview-discovery-lab-stats__note {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
 }

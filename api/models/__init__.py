@@ -83,6 +83,16 @@ from .onboarding_saas import (
     BusinessPartnerLedger,
 )
 from .translation_cache import TranslationCacheEntry
+from .talent import (
+    TalentProfile,
+    ProcurementJob,
+    JobApplication,
+    ReferralTask,
+    ReferralSubmission,
+    EarningsLedger,
+    PayoutRequest,
+    ReputationEvent,
+)
 
 __all__ = [
     "User",
@@ -153,6 +163,14 @@ __all__ = [
     "BusinessPartnerCommission",
     "BusinessPartnerLedger",
     "TranslationCacheEntry",
+    "TalentProfile",
+    "ProcurementJob",
+    "JobApplication",
+    "ReferralTask",
+    "ReferralSubmission",
+    "EarningsLedger",
+    "PayoutRequest",
+    "ReputationEvent",
     "user_company",
     "user_department",
     "company_department",

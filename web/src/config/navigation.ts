@@ -1,3 +1,11 @@
+/**
+ * @deprecated
+ * The authenticated top-nav render path was migrated to `navigation-policy.ts`
+ * (PHASE 2 / Atomik-1, commit 00c2fe0). `routing.ts` was migrated to the policy
+ * resolver (PHASE 2 / Atomik-2). This file is now consumed only by the parity
+ * test suite (`navigation-policy.test.ts` via `navigation-adapter.ts`).
+ * Do not add new runtime call-sites here.
+ */
 // FILE: web\src\config\navigation.ts
 import { getWorkspacePanelNavLabel, hasAdminWorkspaceHome, normalizedBusinessRole, type Permission } from "../auth/permissions";
 import type { AuthUser } from "../context/auth-types";
@@ -32,6 +40,62 @@ export const NAV_ITEMS: NavItem[] = [
     permission: "view:admin" // Sadece admin yetkisi olanlar (Mimarlar dahil) görsün
   },
   { label: "Raporlar", to: "/reports", permission: "view:reports" },
+  {
+    label: "İş İlanları",
+    to: "/jobs",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "talent_member" ||
+        sr === "employer_company_admin" ||
+        sr === "referral_partner" ||
+        sr === "super_admin"
+      );
+    },
+  },
+  {
+    label: "Talent Profilim",
+    to: "/talent/profile",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "talent_member" ||
+        sr === "referral_partner" ||
+        sr === "super_admin"
+      );
+    },
+  },
+  {
+    label: "Ödeme Talepleri",
+    to: "/admin/payout-requests",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "super_admin" ||
+        sr === "platform_support" ||
+        sr === "platform_operator" ||
+        sr === "finance_officer" ||
+        sr === "moderator_compliance"
+      );
+    },
+  },
+  {
+    label: "Talent Ekosistemi",
+    to: "/admin/talent-ecosystem",
+    permission: "view:dashboard",
+    visibleFor: (user) => {
+      const sr = (user?.system_role || "").toLowerCase();
+      return (
+        sr === "super_admin" ||
+        sr === "platform_support" ||
+        sr === "platform_operator" ||
+        sr === "moderator_compliance"
+      );
+    },
+  },
 ];
 
 export function getVisibleNavItems(user: AuthUser): NavItem[] {

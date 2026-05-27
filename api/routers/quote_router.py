@@ -230,7 +230,7 @@ def import_quote_from_excel(
         effective_department_id = resolve_effective_department_id(db, current_user)
 
     if not is_admin_like(current_user) and effective_department_id is None:
-        raise HTTPException(status_code=422, detail="Kullaniciya departman atanmamis")
+        raise HTTPException(status_code=422, detail="Kullanıcıya departman atanmamış")
 
     try:
         # Excel dosyasını oku
@@ -423,7 +423,7 @@ def send_quote_to_supplier(
                 db,
                 supplier_id,
                 current_user,
-                detail="Bu tedarikciye gonderim yetkiniz yok",
+                detail="Bu tedarik?iye g?nderim yetkiniz yok",
                 allow_platform_network_for_tenant=True,
             )
 
@@ -478,7 +478,7 @@ def send_quote_to_supplier(
                 db,
                 supplier_id,
                 current_user,
-                detail="Bu tedarikciye gonderim yetkiniz yok",
+                detail="Bu tedarik?iye g?nderim yetkiniz yok",
                 allow_platform_network_for_tenant=True,
             )
             # Tedarikçiye bağlı tüm aktif kullanıcılara mail gönder
@@ -546,7 +546,7 @@ def select_supplier(
         db,
         supplier_id,
         current_user,
-        detail="Bu tedarikciyi secme yetkiniz yok",
+        detail="Bu tedarik?iyi se?me yetkiniz yok",
         allow_platform_network_for_tenant=True,
     )
 

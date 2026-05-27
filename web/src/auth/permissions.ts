@@ -63,9 +63,26 @@ const roleLabels: Record<string, string> = {
   tenant_member: "Tenant Üyesi",
   platform_support: "Platform Destek",
   platform_operator: "Platform Operasyon",
+  // Stratejik Partner v2
+  partner_admin: "Partner Admin",
   satinalma_direktoru: "Satın Alma Direktörü",
+  satinalma_muduru: "Satın Alma Müdürü",
+  satinalma_mudur_yrd: "Satın Alma Müdür Yardımcısı",
   satinalma_yoneticisi: "Satın Alma Yöneticisi",
+  satinalma_kidemli_uzmani: "Satın Alma Kıdemli Uzmanı",
+  satinalma_uzman_yrd: "Satın Alma Uzman Yardımcısı",
   satinalma_uzmani: "Satın Alma Uzmanı",
+  proje_mimari: "Proje Mimarı",
+  teknik_uzman: "Teknik Uzman",
+  ozel_partner_rolu: "Özel Stratejik Partner Rolü",
+  finans_izleyici: "Finans İzleyici",
+  // Kanal v2
+  kanal_hesap_sahibi: "Kanal Hesap Sahibi",
+  kanal_ekip_lideri: "Kanal Ekip Lideri",
+  kanal_temsilcisi: "Kanal Temsilcisi",
+  kanal_finans: "Kanal Finans",
+  ozel_kanal_rolu: "Özel Kanal Rolü",
+  // Eski / genel
   satinalmaci: "Satın Almacı",
   manager: "Yönetici",
   buyer: "Satın Alma",
@@ -182,7 +199,7 @@ export function getUserDisplayRoleLabel(user: PermissionContext | null | undefin
     return getRoleLabel(systemRole);
   }
 
-  return getRoleLabel(normalizedRole(user)) || "Kullanici";
+  return getRoleLabel(normalizedRole(user)) || "Kullanıcı";
 }
 
 export function isSuperAdminBusinessRole(role: string | null | undefined): boolean {
@@ -231,7 +248,11 @@ export function isTenantOwnerUser(user: PermissionContext | null | undefined): b
 
 export function isPlatformStaffUser(user: PermissionContext | null | undefined): boolean {
   const systemRole = normalizedSystemRole(user);
-  return systemRole === "platform_support" || systemRole === "platform_operator";
+  return (
+    systemRole === "platform_support" ||
+    systemRole === "platform_operator" ||
+    systemRole === "finance_officer"
+  );
 }
 
 export function canManageTenantIdentitySettings(user: PermissionContext | null | undefined): boolean {
@@ -449,9 +470,9 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "workspace_home",
-        label: "Yonetim Ana Sayfasi",
+        label: "Yönetim Ana Sayfası",
         enabled: workspaceHome,
-        description: "Admin is alani acilis kartlari ve yonetim ozetleri.",
+        description: "Admin iş alanı açılış kartları ve yönetim özetleri.",
       },
       [
         {
@@ -471,9 +492,9 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "admin_surface",
-        label: "Yonetim Alani",
+        label: "Yönetim Alanı",
         enabled: adminSurface,
-        description: "Personel, firma, departman ve benzeri yonetim ekranlari.",
+        description: "Personel, firma, departman ve benzeri yönetim ekranları.",
       },
       [
         {
@@ -484,42 +505,42 @@ export function getRoleMenuAccessPreview(
         },
         {
           key: "admin_surface.user_create",
-          label: "Personel Olusturma",
+          label: "Personel Oluşturma",
           enabled: applyOverride("admin_surface.user_create", adminSurface, overrides),
-          description: "Yeni personel kaydi acma.",
+          description: "Yeni personel kaydı açma.",
         },
         {
           key: "admin_surface.user_edit",
-          label: "Personel Duzenleme",
+          label: "Personel Düzenleme",
           enabled: applyOverride("admin_surface.user_edit", adminSurface, overrides),
-          description: "Var olan personel kayitlarini guncelleme.",
+          description: "Var olan personel kayıtlarını güncelleme.",
         },
         {
           key: "admin_surface.user_disable",
           label: "Personel Pasife Alma",
           enabled: applyOverride("admin_surface.user_disable", adminSurface, overrides),
-          description: "Personel kaydini pasif duruma cekme.",
+          description: "Personel kaydını pasif duruma çekme.",
         },
         {
           key: "admin_surface.user_delete",
           label: "Personel Silme",
           enabled: applyOverride("admin_surface.user_delete", adminSurface, overrides),
-          description: "Pasif personel kaydini kaldirma.",
+          description: "Pasif personel kaydını kaldırma.",
         },
       ],
     ),
     {
       key: "manage_users",
-      label: "Kullanici Yonetimi",
+      label: "Kullanıcı Yönetimi",
       enabled: manageUsers,
-      description: "Kullanici olusturma, rol atama ve duzenleme akislarina erisim.",
+      description: "Kullanıcı oluşturma, rol atama ve düzenleme akışlarına erişim.",
     },
     withChildren(
       {
         key: "quote_workspace",
-        label: "Teklif Calisma Alani",
+        label: "Teklif Çalışma Alanı",
         enabled: quoteWorkspace,
-        description: "Teklif olusturma, listeleme ve ilgili satin alma operasyonu.",
+        description: "Teklif oluşturma, listeleme ve ilgili satın alma operasyonu.",
       },
       [
         {
@@ -530,21 +551,21 @@ export function getRoleMenuAccessPreview(
         },
         {
           key: "quote_workspace.create",
-          label: "Teklif Olusturma",
+          label: "Teklif Oluşturma",
           enabled: applyOverride("quote_workspace.create", quoteWorkspace, overrides),
-          description: "Yeni teklif olusturma.",
+          description: "Yeni teklif oluşturma.",
         },
         {
           key: "quote_workspace.edit",
-          label: "Teklif Duzenleme",
+          label: "Teklif Düzenleme",
           enabled: applyOverride("quote_workspace.edit", quoteWorkspace, overrides),
-          description: "Mevcut teklif kaydini duzenleme.",
+          description: "Mevcut teklif kaydını düzenleme.",
         },
         {
           key: "quote_workspace.submit_approval",
-          label: "Onaya Gonderme",
+          label: "Onaya Gönderme",
           enabled: applyOverride("quote_workspace.submit_approval", quoteWorkspace, overrides),
-          description: "Teklifi onay surecine gonderme.",
+          description: "Teklifi onay sürecine gönderme.",
         },
         {
           key: "quote_workspace.comparison",
@@ -558,14 +579,14 @@ export function getRoleMenuAccessPreview(
       key: "approval_review",
       label: "Onay Inceleme",
       enabled: approvalReview,
-      description: "Onay gerektiren kayitlari goruntuleme/degerlendirme.",
+      description: "Onay gerektiren kayıtları görüntüleme/değerlendirme.",
     },
     withChildren(
       {
         key: "tenant_governance_read",
-        label: "Stratejik Partner Yonetimi (Okuma)",
+        label: "Stratejik Partner Yönetimi (Okuma)",
         enabled: governanceRead,
-        description: "Stratejik partner yonetim kayitlarini goruntuleme.",
+        description: "Stratejik partner yönetim kayıtlarını görüntüleme.",
       },
       [
         {
@@ -585,16 +606,16 @@ export function getRoleMenuAccessPreview(
     withChildren(
       {
         key: "tenant_governance_write",
-        label: "Stratejik Partner Yonetimi (Yazma)",
+        label: "Stratejik Partner Yönetimi (Yazma)",
         enabled: governanceWrite,
-        description: "Stratejik partner yonetim alaninda degisiklik yapma.",
+        description: "Stratejik partner yönetim alanında değişiklik yapma.",
       },
       [
         {
           key: "tenant_governance_write.detail_edit",
-          label: "Detay Duzenleme",
+          label: "Detay Düzenleme",
           enabled: applyOverride("tenant_governance_write.detail_edit", governanceWrite, overrides),
-          description: "Stratejik partner alanlarini duzenleme.",
+          description: "Stratejik partner alanlarını düzenleme.",
         },
       ],
     ),
@@ -602,7 +623,7 @@ export function getRoleMenuAccessPreview(
       key: "support_workflow",
       label: "Destek Akisi Guncelleme",
       enabled: supportWorkflow,
-      description: "Support workflow alanlarini guncelleme yetkisi.",
+      description: "Support workflow alanlarını güncelleme yetkisi.",
     },
     {
       key: "tenant_identity",
@@ -614,7 +635,7 @@ export function getRoleMenuAccessPreview(
       key: "shared_email",
       label: "Ortak E-Posta Profilleri",
       enabled: sharedEmail,
-      description: "Platform genel SMTP/profil yonetimi.",
+      description: "Platform genel SMTP/profil yönetimi.",
     },
   ];
 }
@@ -697,13 +718,13 @@ export function resolveApprovalRoleLabel(approval: ApprovalRoleInfo): string {
 }
 
 // ---------------------------------------------------------------------------
-// TEK KAYNAK: Matris tabanli �nizleme yardimcilari
-// Backend /admin/role-permission-matrix endpointinden gelen veriyle �alisir.
+// TEK KAYNAK: Matris tabanlı önizleme yardımcıları
+// Backend /admin/role-permission-matrix endpointinden gelen veriyle çalışır.
 // ---------------------------------------------------------------------------
 
 /**
  * Backend matris verisinden profil anahtari olusturur.
- * �nce kesin eslesme, sonra system_role='' fallback, sonra default=[].
+ * Önce kesin eşleşme, sonra system_role='' fallback, sonra default=[].
  */
 export function resolveMatrixProfileKey(
   businessRole: string,
@@ -719,8 +740,8 @@ export function resolveMatrixProfileKey(
 }
 
 /**
- * Backend matris + katalog agaci verisinden MenuAccessPreviewItem[] �retir.
- * (Matris verisi yoksa bos liste d�ner.)
+ * Backend matris + katalog ağacı verisinden MenuAccessPreviewItem[] üretir.
+ * (Matris verisi yoksa boş liste döner.)
  */
 export function buildMenuPreviewFromMatrix(
   businessRole: string | null | undefined,
@@ -785,8 +806,8 @@ export function getUserScopeType(user: PermissionContext | null | undefined): st
 export function getScopeLabel(scopeType: string): string {
   const labels: Record<string, string> = {
     platform: "Platform",
-    tenant: "Kiraci",
-    supplier: "Tedarik�i",
+    tenant: "Kiracı",
+    supplier: "Tedarikçi",
     channel: "Kanal",
     none: "Yok",
   };
@@ -826,17 +847,17 @@ export function canAccessProcurementSettings(user: PermissionContext | null | un
 }
 
 export function getWorkspacePanelNavLabel(user: PermissionContext | null | undefined): string {
-  if (!user) return "�alisma Alani";
+  if (!user) return "Çalışma Alanı";
   if (isSuperAdminUser(user)) return "Super Admin";
   const sr = normalizedSystemRole(user);
   if (sr === "tenant_owner") return "Ortak Admin";
-  if (sr === "tenant_admin") return "Yonetim Alani";
+  if (sr === "tenant_admin") return "Yönetim Alanı";
   const role = normalizedBusinessRole(user);
-  if (role === "manager") return "Yonetici Paneli";
+  if (role === "manager") return "Yönetici Paneli";
   if (role === "channel_owner") return "Kanal Sahibi Paneli";
   if (role === "channel_agent" || role === "is_ortagi") return "Kanal Temsilcisi";
-  if (sr === "supplier_user") return "Tedarikci Paneli";
-  return "Calisma Alani";
+  if (sr === "supplier_user") return "Tedarikçi Paneli";
+  return "Çalışma Alanı";
 }
 
 

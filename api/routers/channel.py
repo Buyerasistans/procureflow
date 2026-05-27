@@ -428,7 +428,7 @@ def get_channel_profile_summary(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     org_id = _resolve_channel_org_id(db, current_user)
@@ -463,7 +463,7 @@ def get_channel_profile_summary(
 
     org = db.get(ChannelOrganization, org_id)
     if not org:
-        raise HTTPException(status_code=404, detail="Channel organizasyonu bulunamadi.")
+        raise HTTPException(status_code=404, detail="Channel organizasyonu bulunamad?.")
 
     total_team_size = (
         db.query(func.count(ChannelMember.id))
@@ -545,7 +545,7 @@ def get_channel_referral_links(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     if not _referral_tables_ready(db):
@@ -599,7 +599,7 @@ def create_channel_referral_link(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
     if not _referral_tables_ready(db):
         raise HTTPException(
@@ -660,7 +660,7 @@ def create_channel_referral_event(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
     if not _referral_tables_ready(db):
         raise HTTPException(
@@ -678,7 +678,7 @@ def create_channel_referral_event(
         .first()
     )
     if not link:
-        raise HTTPException(status_code=404, detail="Referral link bulunamadi.")
+        raise HTTPException(status_code=404, detail="Referral link bulunamad?.")
 
     event = ChannelReferralEvent(
         referral_link_id=link.id,
@@ -703,7 +703,7 @@ def get_channel_conversion_metrics(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
     if not _referral_tables_ready(db):
         return ChannelConversionMetricsOut(
@@ -949,7 +949,7 @@ def recalculate_channel_commissions(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
     if not _referral_tables_ready(db):
         return ChannelCommissionRecalcOut(
@@ -979,7 +979,7 @@ def get_channel_commission_report(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     owner_user_id = _resolve_referral_owner_user_id(db, current_user)
@@ -1012,7 +1012,7 @@ def get_channel_team_hierarchy(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     org_id = _resolve_channel_org_id(db, current_user)
@@ -1207,11 +1207,11 @@ def get_channel_campaigns(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Channel kullanicisinin katilabilecegi / katildigi aktif kampanyalari dondurur."""
+    """Channel kullan?c?s?n?n kat?labilece?i / kat?ld??? aktif kampanyalar? d?nd?r?r."""
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     if not _campaign_tables_ready(db):
@@ -1327,7 +1327,7 @@ def get_channel_social_links(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     owner_user_id = _resolve_referral_owner_user_id(db, current_user)
@@ -1360,7 +1360,7 @@ def get_channel_social_links(
         )
 
     message = (
-        "Satin Alma Asistaninizin size sagladigi kolayliklari denemek icin "
+        "Sat?n Alma Asistan?n?z?n size sa?lad??? kolayl?klar? denemek i?in "
         f"linkimi kullanabilirsiniz. - {display_name}"
     )
     if short_url:
@@ -1385,7 +1385,7 @@ def get_channel_team_performance(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     org_id = _resolve_channel_org_id(db, current_user)
@@ -1506,7 +1506,7 @@ LEVEL_THRESHOLDS = [
 ]
 
 BADGE_DEFINITIONS = [
-    ("first_referral", "Ilk Referans", lambda r, _a, _s: r >= 1),
+    ("first_referral", "İlk Referans", lambda r, _a, _s: r >= 1),
     ("referral_10", "10 Referans", lambda r, _a, _s: r >= 10),
     ("referral_25", "25 Referans", lambda r, _a, _s: r >= 25),
     ("team_builder", "Ekip Kurucusu", lambda _r, a, _s: a >= 3),
@@ -1542,7 +1542,7 @@ def get_channel_gamification(
     if not _is_channel_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint yalnizca is ortagi kullanicilari icindir.",
+            detail="Bu endpoint yaln?zca i? orta?? kullan?c?lar? i?indir.",
         )
 
     owner_user_id = _resolve_referral_owner_user_id(db, current_user)
@@ -1631,7 +1631,7 @@ def get_public_referral_info(link_code: str, db: Session = Depends(get_db)):
     """Referral landing sayfasi icin public endpoint — auth gerektirmez.
     Tiklama eventi de kayit eder."""
     if not _referral_tables_ready(db):
-        raise HTTPException(status_code=404, detail="Referral link bulunamadi.")
+        raise HTTPException(status_code=404, detail="Referral link bulunamad?.")
 
     link = (
         db.query(ChannelReferralLink)
@@ -1639,7 +1639,7 @@ def get_public_referral_info(link_code: str, db: Session = Depends(get_db)):
         .first()
     )
     if not link:
-        raise HTTPException(status_code=404, detail="Referral link bulunamadi.")
+        raise HTTPException(status_code=404, detail="Referral link bulunamad?.")
 
     # Tiklama eventi kaydet
     if bool(link.is_active):

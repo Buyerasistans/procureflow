@@ -227,7 +227,7 @@ export default function CompanyDetailPage() {
             </div>
             {/* Satır 4: Yetkili Kullanici + E-posta */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Yetkili Kullanici</span><div style={{ marginTop: 2 }}>{company.owner_full_name || "-"}</div></div>
+              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Yetkili Kullanıcı</span><div style={{ marginTop: 2 }}>{company.owner_full_name || "-"}</div></div>
               <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>E-posta</span><div style={{ marginTop: 2 }}>{company.owner_email || "-"}</div></div>
             </div>
             {/* Satır 5: İl + İlçe + Posta Kodu + Durum */}

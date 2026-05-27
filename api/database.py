@@ -16,7 +16,10 @@ load_dotenv(BASE_DIR / ".env")
 # ✅ Çalışma dizininden bağımsız olarak .env'i bul ve yükle
 _env_path = Path(__file__).resolve().parent / ".env"
 if _env_path.exists():
-    load_dotenv(str(_env_path), override=True)
+    load_dotenv(
+        str(_env_path),
+        override=os.getenv("PROCUREFLOW_SKIP_DOTENV_OVERRIDE", "").strip() != "1",
+    )
 
 # Artık DATABASE_URL güvenle okunabilir
 DATABASE_URL = os.getenv("DATABASE_URL")

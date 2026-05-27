@@ -345,7 +345,7 @@ export function ScopeWorkspaceHome({
                           <div className="scope-workspace-home__request-card-title">{item.proposed_name}</div>
                           <div className="scope-workspace-home__request-card-subtitle">
                             {item.entity_type === "role" ? "Rol talebi" : "Departman talebi"} •{" "}
-                            {item.requested_by_name || item.requested_by_email || `Kullanici #${item.requested_by_user_id}`}
+                            {item.requested_by_name || item.requested_by_email || `Kullanıcı #${item.requested_by_user_id}`}
                           </div>
                         </div>
                         <span

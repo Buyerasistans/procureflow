@@ -1,4 +1,4 @@
-.platform-overview-discovery-lab-panel {
+﻿.platform-overview-discovery-lab-panel {
   display: grid;
   gap: 10px;
 }
@@ -7,17 +7,17 @@
 .platform-overview-discovery-lab-panel__empty,
 .platform-overview-discovery-lab-panel__audit {
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   padding: 12px 14px;
 }
 
 .platform-overview-discovery-lab-panel__empty {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--pf-slate-50);
+  color: var(--pf-slate-500);
 }
 
 .platform-overview-discovery-lab-panel__session {
-  background: #f8fafc;
+  background: var(--pf-slate-50);
   display: grid;
   gap: 6px;
 }
@@ -37,7 +37,7 @@
 .platform-overview-discovery-lab-panel__session-title,
 .platform-overview-discovery-lab-panel__audit-title {
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .platform-overview-discovery-lab-panel__session-meta,
@@ -46,7 +46,7 @@
 .platform-overview-discovery-lab-panel__audit-meta,
 .platform-overview-discovery-lab-panel__audit-detail,
 .platform-overview-discovery-lab-panel__audit-expanded {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
 }
 
@@ -63,23 +63,23 @@
 .platform-overview-discovery-lab-panel__session-pill--locked,
 .platform-overview-discovery-lab-panel__audit-pill--selected,
 .platform-overview-discovery-lab-panel__filter-pill--selected {
-  background: #e0f2fe;
-  border: 1px solid #bfdbfe;
-  color: #0369a1;
+  background: var(--pf-sky-100);
+  border: 1px solid var(--pf-blue-200);
+  color: var(--pf-sky-700);
 }
 
 .platform-overview-discovery-lab-panel__session-pill--open,
 .platform-overview-discovery-lab-panel__audit-pill--open {
-  background: #dbeafe;
-  border: 1px solid #bfdbfe;
-  color: #1d4ed8;
+  background: var(--pf-blue-100);
+  border: 1px solid var(--pf-blue-200);
+  color: var(--pf-color-primary-dark);
 }
 
 .platform-overview-discovery-lab-panel__session-expanded,
 .platform-overview-discovery-lab-panel__audit-expanded {
   border-radius: 12px;
-  border: 1px solid #dbeafe;
-  background: #f8fbff;
+  border: 1px solid var(--pf-blue-100);
+  background: var(--pf-blue-25);
   padding: 10px 12px;
   display: grid;
   gap: 6px;
@@ -102,23 +102,23 @@
 .platform-overview-discovery-lab-panel__filter-button {
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid #dbe3ee;
-  background: #ffffff;
-  color: #475569;
+  border: 1px solid var(--pf-border-color-alt);
+  background: var(--pf-surface);
+  color: var(--pf-slate-600);
   font-weight: 700;
   cursor: pointer;
   font-size: 12px;
 }
 
 .platform-overview-discovery-lab-panel__filter-button--selected {
-  border-color: #0369a1;
-  background: #e0f2fe;
-  color: #0369a1;
+  border-color: var(--pf-sky-700);
+  background: var(--pf-sky-100);
+  color: var(--pf-sky-700);
 }
 
 .platform-overview-discovery-lab-panel__audit {
-  background: #f8fbff;
-  border-color: #dbeafe;
+  background: var(--pf-blue-25);
+  border-color: var(--pf-blue-100);
   display: grid;
   gap: 6px;
 }
@@ -127,8 +127,8 @@
   display: inline-flex;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #e0f2fe;
-  color: #0369a1;
+  background: var(--pf-sky-100);
+  color: var(--pf-sky-700);
   font-size: 11px;
   font-weight: 700;
 }
@@ -136,9 +136,9 @@
 .platform-overview-discovery-lab-panel__button {
   padding: 6px 10px;
   border-radius: 10px;
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border: 1px solid var(--pf-blue-200);
+  background: var(--pf-color-primary-light);
+  color: var(--pf-color-primary-dark);
   font-weight: 700;
   cursor: pointer;
 }

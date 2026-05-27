@@ -15,7 +15,7 @@ export default function ReferralLandingPage() {
     setLoading(true);
     getPublicReferralInfo(code)
       .then((data) => setInfo(data))
-      .catch(() => setError("Bu referral link bulunamadi veya artik gecerli degil."))
+      .catch(() => setError("Bu referral link bulunamadı veya artık geçerli değil."))
       .finally(() => setLoading(false));
   }, [code]);
 
@@ -28,9 +28,9 @@ export default function ReferralLandingPage() {
   const effectiveTarget = forcedTarget || info?.target_type || "mixed";
   const targetLabel =
     effectiveTarget === "partner"
-      ? "Stratejik Partner Programi"
+      ? "Stratejik Partner Programı"
       : effectiveTarget === "supplier"
-      ? "Tedarikci Programi"
+      ? "Tedarikçi Programı"
       : "Platform Programlari";
 
   const strategicPartnerPath = `/onboarding?tenant_type=strategic_partner&ref=${code}`;
@@ -67,7 +67,7 @@ export default function ReferralLandingPage() {
           Buyer Asistans
         </div>
         <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 4 }}>
-          Tedarik ve Is Ortagi Platformu
+          Tedarik ve İş Ortağı Platformu
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default function ReferralLandingPage() {
               Link Artik Aktif Degil
             </div>
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-              Bu referral link pasife alinmis. Daha guncel bir link icin ilgili is ortagiyla iletisime gecin.
+              Bu referral link pasife alınmış. Daha güncel bir link için ilgili iş ortağıyla iletişime geçin.
             </div>
             <Link to="/" style={{ fontSize: 14, color: "#2563eb", textDecoration: "none" }}>
               Ana sayfaya don &rarr;
@@ -185,13 +185,13 @@ export default function ReferralLandingPage() {
                     textDecoration: "none",
                   }}
                 >
-                  Tedarikci Olarak Devam Et
+                  Tedarikçi Olarak Devam Et
                 </Link>
               </div>
             )}
 
             <div style={{ marginTop: 16, textAlign: "center", fontSize: 12, color: "#94a3b8" }}>
-              Zaten hesabiniz var mi? <Link to="/login" style={{ color: "#2563eb", textDecoration: "none" }}>Giris yapin</Link>
+              Zaten hesabınız var mı? <Link to="/login" style={{ color: "#2563eb", textDecoration: "none" }}>Giriş yapın</Link>
             </div>
           </>
         )}

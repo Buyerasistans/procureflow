@@ -92,7 +92,7 @@ PROVIDER_DEFINITIONS: list[dict] = [
             },
             {
                 "key": "username",
-                "label": "Kullanici Adi",
+                "label": "Kullanıcı Adı",
                 "secret": False,
                 "required": True,
                 "placeholder": "PARAM_USERNAME",

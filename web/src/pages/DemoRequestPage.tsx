@@ -30,7 +30,7 @@ export default function DemoRequestPage() {
     : requestedAddon
       ? `${requestedAddon} icin ek hak talebi`
       : isSupplierDemo
-        ? "Tedarikci demo talebi"
+        ? "Tedarikçi demo talebi"
         : "Stratejik partner demo talebi";
   const requestNote = intent === "package_upgrade"
     ? `Talep konusu: ${requestedPlan} paketine gecis`
@@ -75,10 +75,10 @@ export default function DemoRequestPage() {
       <section style={{ background: `linear-gradient(135deg, ${c.bg} 0%, ${isSupplierDemo ? "#1e4976" : "#1e4a3d"} 100%)`, padding: "40px 24px", textAlign: "center" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `rgba(${isSupplierDemo ? "14,165,233" : "212,175,55"},0.12)`, border: `1px solid rgba(${isSupplierDemo ? "14,165,233" : "212,175,55"},0.35)`, color: c.accent, borderRadius: 999, padding: "6px 16px", fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase" as const, marginBottom: 16 }}>
-            {isSupplierDemo ? "Tedarikci Demosu" : "Stratejik Partner Demosu"}
+            {isSupplierDemo ? "Tedarikçi Demosu" : "Stratejik Partner Demosu"}
           </div>
           <h1 style={{ margin: "0 0 10px", fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 900, color: "#fff" }}>
-            {isSupplierDemo ? "Tedarikci Deneyimini Birlikte Kesfedelim" : "Kurumsal Demo - Sizin Surecinizle"}
+            {isSupplierDemo ? "Tedarikçi Deneyimini Birlikte Keşfedelim" : "Kurumsal Demo - Sizin Sürecinizle"}
           </h1>
           <p style={{ margin: 0, color: "rgba(255,255,255,0.75)", fontSize: 15, lineHeight: 1.6 }}>
             {isSupplierDemo
@@ -91,7 +91,7 @@ export default function DemoRequestPage() {
               Stratejik Partner Demosu
             </a>
             <a href="/demo?audience=supplier" style={{ background: isSupplierDemo ? BRAND_COLORS.supplier.accent : "rgba(255,255,255,0.12)", color: isSupplierDemo ? "#fff" : "rgba(255,255,255,0.75)", padding: "8px 18px", borderRadius: 8, textDecoration: "none", fontWeight: 800, fontSize: 13, border: isSupplierDemo ? "none" : "1px solid rgba(255,255,255,0.2)" }}>
-              Tedarikci Demosu
+              Tedarikçi Demosu
             </a>
           </div>
         </div>
@@ -105,17 +105,17 @@ export default function DemoRequestPage() {
           <ul style={{ margin: "0 0 16px", paddingLeft: 20, lineHeight: 2, fontSize: 14, color: "#334155" }}>
             {isSupplierDemo ? (
               <>
-                <li>Tedarikci onboarding ve profil devreye alma</li>
-                <li>Ihale daveti alma ve teklif gonderme akisi</li>
+                <li>Tedarikçi onboarding ve profil devreye alma</li>
+                <li>İhale daveti alma ve teklif gönderme akışı</li>
                 <li>Kategori bazli gorunurluk stratejisi</li>
                 <li>Performans paneli ve geri bildirim sistemi</li>
-                <li>Tedarikci paketi fiyatlandirma rehberi</li>
+                <li>Tedarikçi paketi fiyatlandırma rehberi</li>
               </>
             ) : (
               <>
-                <li>45 dakika canli urun senaryosu</li>
-                <li>Mevcut surecine ozel gap analizi</li>
-                <li>Ilk 90 gun onboarding plani</li>
+                <li>45 dakika canlı ürün senaryosu</li>
+                <li>Mevcut sürecine özel gap analizi</li>
+                <li>İlk 90 gün onboarding planı</li>
                 <li>Rol bazli onay ve denetim akislari</li>
                 <li>Kurumsal fiyatlandirma ve entegrasyon rehberi</li>
               </>
@@ -130,7 +130,7 @@ export default function DemoRequestPage() {
         <article style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
           <h2 style={{ marginTop: 0, fontSize: 20, color: "#0f172a", fontWeight: 900 }}>Demo Talep Formu</h2>
           <div style={{ marginBottom: 16, borderRadius: 12, border: `1px solid ${isSupplierDemo ? "#bae6fd" : "#bbf7d0"}`, background: isSupplierDemo ? "#f0f9ff" : "#f0fdf4", padding: 14, color: "#334155", fontSize: 13, lineHeight: 1.6 }}>
-            <strong>Talep Ozeti:</strong> {requestSummary}
+            <strong>Talep Özeti:</strong> {requestSummary}
             <div style={{ marginTop: 6 }}>{requestNote}</div>
           </div>
           {sent ? (
@@ -140,15 +140,15 @@ export default function DemoRequestPage() {
           ) : (
             <form data-telemetry-name="demo-request-form" onSubmit={handleSubmit} style={{ display: "grid", gap: 10 }}>
               <input required value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Ad Soyad *" style={inputStyle} />
-              <input required type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} placeholder="Is e-postasi *" style={inputStyle} />
+              <input required type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} placeholder="İş e-postası *" style={inputStyle} />
               <input value={form.companyName} onChange={(event) => setForm((current) => ({ ...current, companyName: event.target.value }))} placeholder="Firma" style={inputStyle} />
-              <input value={form.roleTitle} onChange={(event) => setForm((current) => ({ ...current, roleTitle: event.target.value }))} placeholder={isSupplierDemo ? "Urun / Hizmet Kategorisi" : "Pozisyon"} style={inputStyle} />
+              <input value={form.roleTitle} onChange={(event) => setForm((current) => ({ ...current, roleTitle: event.target.value }))} placeholder={isSupplierDemo ? "Ürün / Hizmet Kategorisi" : "Pozisyon"} style={inputStyle} />
               <input value={form.monthlyVolumeNote} onChange={(event) => setForm((current) => ({ ...current, monthlyVolumeNote: event.target.value }))} placeholder={isSupplierDemo ? "Yillik ihale yanit adedi" : "Aylik ihale adedi"} style={inputStyle} />
               <input value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Telefon" style={inputStyle} />
               <textarea value={form.note || requestNote} onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Notunuz" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} />
               {error ? <div style={{ borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", padding: 12, fontSize: 13 }}>{error}</div> : null}
               <button type="submit" style={{ background: `linear-gradient(135deg, ${c.bg} 0%, ${isSupplierDemo ? "#1e4976" : "#1e4a3d"} 100%)`, color: isSupplierDemo ? c.accent : c.accent, border: "none", borderRadius: 10, padding: "12px 16px", fontWeight: 800, cursor: "pointer", fontSize: 15, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                {submitting ? "Talep Kaydediliyor..." : "Talep Gonder"}
+                {submitting ? "Talep Kaydediliyor..." : "Talep Gönder"}
               </button>
             </form>
           )}
@@ -170,4 +170,3 @@ const inputStyle: CSSProperties = {
   width: "100%",
   boxSizing: "border-box" as const,
 };
-

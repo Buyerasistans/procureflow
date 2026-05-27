@@ -3520,7 +3520,7 @@ class DeploymentService:
 
             self._add_log("=" * 60, "info", "db-sync")
             self._add_log(
-                f"Yerel DB hostinge basariyla gonderildi: {local_db} -> {remote_db}",
+                f"Yerel DB hostinge başarıyla gönderildi: {local_db} -> {remote_db}",
                 "success",
                 "db-sync",
             )
@@ -3537,12 +3537,12 @@ class DeploymentService:
 
         except Exception as e:
             tb = traceback.format_exc()
-            self._add_log(f"DB gonderme hatasi:\n{tb[:1200]}", "error", "db-sync")
+            self._add_log(f"DB gönderme hatası:\n{tb[:1200]}", "error", "db-sync")
             errors.append(str(e))
             return SystemSetupResponse(
                 success=False,
                 logs=self.deployment_logs,
-                summary=f"Yerel DB hostinge gonderilemedi: {str(e)}",
+                summary=f"Yerel DB hostinge gönderilemedi: {str(e)}",
                 errors=errors,
             )
         finally:

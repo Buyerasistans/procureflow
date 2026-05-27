@@ -65,8 +65,10 @@ function inferTenantScope(tenant: Tenant): EntityScope {
   const blob = getTenantTokenBlob(tenant);
   if (containsAnyToken(blob, SUPPLIER_TOKENS)) return "supplier";
   if (containsAnyToken(blob, CHANNEL_TOKENS)) return "channel";
-  if (containsAnyToken(blob, PLATFORM_TOKENS)) return "portal";
+  // PARTNER before PLATFORM: a slug like "demo-stratejik-ortak" must win over
+  // a legal_name prefix like "Buyera Asistans …" that happens to match PLATFORM_TOKENS.
   if (containsAnyToken(blob, PARTNER_TOKENS)) return "partner";
+  if (containsAnyToken(blob, PLATFORM_TOKENS)) return "portal";
   return "partner";
 }
 
@@ -95,11 +97,10 @@ export function buildTenantScopeMap(
     map.set(tenant.id, inferTenantScope(tenant));
   }
 
-  for (const supplier of suppliers) {
-    if (typeof supplier.tenant_id === "number") {
-      map.set(supplier.tenant_id, "supplier");
-    }
-  }
+  // Intentionally not overriding tenant scope from the suppliers list.
+  // Suppliers in the suppliers table are *external parties invited by a tenant*,
+  // not the tenant's own identity. A partner tenant that has linked suppliers
+  // must stay classified as "partner", not "supplier".
 
   // Company names provide strong scope hints when tenant catalog is noisy.
   for (const company of companies) {

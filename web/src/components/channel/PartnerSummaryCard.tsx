@@ -11,7 +11,7 @@ export function PartnerSummaryCard({ summary, loading }: PartnerSummaryCardProps
   return (
     <SectionCard backgroundColor="#f8fafc" borderColor="#e2e8f0">
       <SectionHeader
-        title="Is Ortagi Ozet Karti"
+        title="İş Ortağı Özet Kartı"
         right={
           <span style={{ fontSize: 12, color: "#475569" }}>
           {loading ? "Guncelleniyor..." : summary?.display_name || "-"}
@@ -35,7 +35,7 @@ export function PartnerSummaryCard({ summary, loading }: PartnerSummaryCardProps
           labelColor="#334155"
         />
         <StatCard
-          label="Son 30 Gun Yeni Musteri"
+          label="Son 30 Gün Yeni Müşteri"
           value={<span style={{ fontSize: 20 }}>{summary?.last_30d_new_customers ?? "-"}</span>}
           borderColor="#fde68a"
           backgroundColor="#fffbeb"

@@ -14,13 +14,13 @@ const cards = [
   {
     label: "Filtrelenen Oturum",
     valueKey: "total_sessions",
-    note: "Secili filtre sonucunda listelenen kayit",
+    note: "Seçili filtre sonucunda listelenen kayıt",
     tone: "teal",
   },
   {
     label: "Teknik Kilit",
     valueKey: "locked_sessions",
-    note: "Aktarima gecen oturum",
+    note: "Aktarıma geçen oturum",
     tone: "green",
   },
   {
@@ -36,9 +36,9 @@ const cards = [
     tone: "violet",
   },
   {
-    label: "Yanit Audit",
+    label: "Yanıt Audit",
     valueKey: "answer_audit_count",
-    note: "Kayit altina alinan kullanici cevabi",
+    note: "Kayıt altına alınan kullanıcı cevabı",
     tone: "teal",
   },
 ] as const;

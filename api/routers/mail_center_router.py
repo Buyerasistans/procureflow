@@ -90,7 +90,7 @@ def _ensure_mail_center_access(
 def _get_account_or_404(db: Session, account_id: int) -> SystemEmail:
     account = db.query(SystemEmail).filter(SystemEmail.id == account_id).first()
     if not account:
-        raise HTTPException(status_code=404, detail="Mail hesabi bulunamadi")
+        raise HTTPException(status_code=404, detail="Mail hesab? bulunamad?")
     return account
 
 
@@ -377,7 +377,7 @@ def _upsert_supplier_mailbox_account(db: Session, current_user: SupplierUser) ->
                 password=password_value,
                 tenant_id=supplier.tenant_id if supplier else None,
                 owner_user_id=None,
-                description="Tedarikci Is Maili (SMTP)",
+                description="Tedarik?i ?? Maili (SMTP)",
                 is_active=True,
                 imap_host=imap_host_value,
                 imap_port=smtp_settings.imap_port,
@@ -399,7 +399,7 @@ def _upsert_supplier_mailbox_account(db: Session, current_user: SupplierUser) ->
         return
 
     account.tenant_id = account.tenant_id or (supplier.tenant_id if supplier else None)
-    account.description = account.description or "Tedarikci Is Maili (SMTP)"
+    account.description = account.description or "Tedarik?i ?? Maili (SMTP)"
     account.is_active = True
     if smtp_secret:
         account.password = smtp_secret
@@ -495,7 +495,7 @@ def _upsert_personal_smtp_account(
                 email=from_email,
                 password=password_value,
                 owner_user_id=owner_user_id,
-                description="Is Maili (SMTP)",
+                description="?? Maili (SMTP)",
                 is_active=True,
                 imap_host=(
                     smtp_settings.imap_host or smtp_settings.smtp_host or ""
@@ -519,7 +519,7 @@ def _upsert_personal_smtp_account(
             db.rollback()
         return
 
-    account.description = account.description or "Is Maili (SMTP)"
+    account.description = account.description or "?? Maili (SMTP)"
     account.is_active = True
     if smtp_secret:
         account.password = smtp_secret
@@ -626,11 +626,11 @@ def _open_mailbox_connection(account: SystemEmail, settings: EmailSettings):
         or ""
     ).strip()
     if not imap_host:
-        raise RuntimeError("IMAP host bulunamadi")
+        raise RuntimeError("IMAP host bulunamad?")
     imap_username = (account.imap_username or account.email or "").strip()
     imap_password = (account.imap_password or account.password or "").strip()
     if not imap_username or not imap_password:
-        raise RuntimeError("IMAP kullanici adi veya sifresi eksik")
+        raise RuntimeError("IMAP kullan?c? ad? veya ?ifresi eksik")
     mailbox_name = (account.mailbox_folder or "INBOX").strip() or "INBOX"
     use_ssl = bool(
         account.imap_use_ssl
@@ -691,17 +691,17 @@ def _diagnose_mailbox_connection(
     if not imap_host:
         status_value = "error"
         connection["error_type"] = "missing_imap_host"
-        connection["error_message"] = "IMAP host bulunamadi"
+        connection["error_message"] = "IMAP host bulunamad?"
     elif not username:
         status_value = "error"
         connection["error_type"] = "missing_username"
-        connection["error_message"] = "IMAP kullanici adi bulunamadi"
+        connection["error_message"] = "IMAP kullan?c? ad? bulunamad?"
     elif not has_password:
         status_value = "error"
         connection["error_type"] = "missing_password"
-        connection["error_message"] = "IMAP sifresi bulunamadi"
+        connection["error_message"] = "IMAP ?ifresi bulunamad?"
         if is_gmail:
-            hints.append("Gmail icin app password tanimlanmadiysa auth basarisiz olur.")
+            hints.append("Gmail i?in app password tan?mlanmad?ysa auth ba?ar?s?z olur.")
     else:
         mailbox = None
         try:
@@ -730,14 +730,14 @@ def _diagnose_mailbox_connection(
             if "authenticationfailed" in lowered or "invalid credentials" in lowered:
                 if is_gmail:
                     hints.append(
-                        "Gmail auth hatasi: 2FA acik hesapta app password kullanin."
+                        "Gmail auth hatas?: 2FA a??k hesapta app password kullan?n."
                     )
                     hints.append(
-                        "Gmail IMAP ayari acik olmali ve kullanici adi tam e-posta olmali."
+                        "Gmail IMAP ayar? a??k olmal? ve kullan?c? ad? tam e-posta olmal?."
                     )
                 else:
                     hints.append(
-                        "Kimlik bilgilerini ve IMAP kullanici adini tekrar kontrol edin."
+                        "Kimlik bilgilerini ve IMAP kullan?c? ad?n? tekrar kontrol edin."
                     )
             if "certificate" in lowered or "ssl" in lowered:
                 hints.append(
@@ -756,7 +756,7 @@ def _diagnose_mailbox_connection(
 
     if is_gmail and has_password and len(password_value.replace(" ", "")) < 16:
         hints.append(
-            "Gmail app password genellikle 16 karakterdir; normal hesap sifresi calismayabilir."
+            "Gmail app password genellikle 16 karakterdir; normal hesap ?ifresi ?al??mayabilir."
         )
 
     return {
@@ -917,7 +917,7 @@ def update_company_mail_visibility(
     _ensure_super_admin(current_user)
     company = db.query(Company).filter(Company.id == company_id).first()
     if company is None:
-        raise HTTPException(status_code=404, detail="Firma bulunamadi")
+        raise HTTPException(status_code=404, detail="Firma bulunamad?")
     company.mailbox_team_visibility_enabled = bool(payload.enabled)
     db.add(company)
     db.commit()
@@ -1082,7 +1082,7 @@ def send_test_mail_from_account(
         system_email_id=account.id,
     )
     if not sent:
-        raise HTTPException(status_code=500, detail="E-posta gonderilemedi")
+        raise HTTPException(status_code=500, detail="E-posta g?nderilemedi")
     message = SystemEmailMessage(
         system_email_id=account.id,
         direction="outbound",
@@ -1100,7 +1100,7 @@ def send_test_mail_from_account(
     )
     db.add(message)
     db.commit()
-    return {"status": "success", "message": "Test e-postasi gonderildi"}
+    return {"status": "success", "message": "Test e-postas? g?nderildi"}
 
 
 @router.patch("/accounts/{account_id}/messages/{message_id}")
@@ -1124,7 +1124,7 @@ def update_mail_message(
         .first()
     )
     if not message:
-        raise HTTPException(status_code=404, detail="Mail mesaji bulunamadi")
+        raise HTTPException(status_code=404, detail="Mail mesaj? bulunamad?")
 
     action = (payload.action or "").strip().lower()
     action_status_map = {
@@ -1203,7 +1203,7 @@ def download_mail_attachment(
         .first()
     )
     if not message:
-        raise HTTPException(status_code=404, detail="Mail mesaji bulunamadi")
+        raise HTTPException(status_code=404, detail="Mail mesaj? bulunamad?")
     if not message.message_uid:
         raise HTTPException(
             status_code=400, detail="Bu mesaj icin attachment indirilemiyor"
@@ -1221,7 +1221,7 @@ def download_mail_attachment(
         )
         if fetch_status != "OK" or not message_data or not message_data[0]:
             raise HTTPException(
-                status_code=404, detail="Mesaj icerigi IMAP uzerinden alinamadi"
+                status_code=404, detail="Mesaj i?eri?i IMAP ?zerinden al?namad?"
             )
         raw_message = message_data[0][1]
         parsed = email.message_from_bytes(raw_message)
@@ -1232,7 +1232,7 @@ def download_mail_attachment(
                 continue
             attachments.append(part)
         if attachment_index < 0 or attachment_index >= len(attachments):
-            raise HTTPException(status_code=404, detail="Attachment bulunamadi")
+            raise HTTPException(status_code=404, detail="Attachment bulunamad?")
         attachment_part = attachments[attachment_index]
         filename = (
             _decode_header_value(attachment_part.get_filename())

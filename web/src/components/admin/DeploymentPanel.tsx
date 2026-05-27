@@ -1,5 +1,6 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useRef, useState } from "react";
+import "./DeploymentPanel.css";
 import { getAccessToken, getRefreshToken, setAccessToken, setRefreshToken } from "../../lib/token";
 import { refreshRequest } from "../../services/auth.service";
 
@@ -1234,7 +1235,7 @@ export function DeploymentPanel() {
                       Isaretli domainlerde buton islemleri sira ile calisir. Alanlar birincil secili domaine gore otomatik doldurulur.
                     </div>
                     <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
-                      Domain Mode: localde pasif tutulur, <span className="font-black">Hostinge Gonder</span> adiminda otomatik aktif edilir.
+                      Domain Mode: localde pasif tutulur, <span className="font-black">Hostinge Gönder</span> adımında otomatik aktif edilir.
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1593,15 +1594,6 @@ export function DeploymentPanel() {
 
       </div>
 
-      {/* Scrollbar stili */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 2px solid #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-      `
-      }} />
     </div>
   );
 }

@@ -164,8 +164,8 @@ export default function DashboardPage() {
         {isChannelWorkspace && (
           <section className="dashboard-page__channel">
             <div className="dashboard-page__channel-banner">
-              Is ortagi dashboardinda teklif listesi kapali. Bu alan kanal performansi, komisyon
-              ve ekip yonetimi odakli calisir.
+              İş ortağı dashboardında teklif listesi kapalı. Bu alan kanal performansı, komisyon
+              ve ekip yönetimi odaklı çalışır.
             </div>
 
             <div className="dashboard-page__metrics-grid">
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="dashboard-page__metric-card">
-                <div className="dashboard-page__metric-label">30 Gun Yeni Musteri</div>
+                <div className="dashboard-page__metric-label">30 Gün Yeni Müşteri</div>
                 <div className="dashboard-page__metric-value">
                   {channelLoading ? "..." : channelSummary?.last_30d_new_customers ?? 0}
                 </div>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="dashboard-page__howto">
-              <div className="dashboard-page__howto-title">Nasil Kullanilir?</div>
+              <div className="dashboard-page__howto-title">Nasıl Kullanılır?</div>
               <div className="dashboard-page__howto-text">
                 1) Kanal panel ayarlari icin{" "}
                 <Link to="/admin" className="dashboard-page__inline-link">

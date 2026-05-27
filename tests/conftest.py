@@ -2,6 +2,7 @@
 import os
 import re
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from dotenv import dotenv_values, load_dotenv
@@ -14,11 +15,22 @@ from sqlalchemy.schema import DropTable
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SQLITE_TEST_DB_PATH = ROOT_DIR / "tests" / ".runtime" / "procureflow_test.sqlite3"
+NO_DROP_TEST_DB_PATH = (
+    ROOT_DIR / "tests" / ".runtime" / f"procureflow_nodrop_{os.getpid()}_{uuid4().hex}.sqlite3"
+)
 load_dotenv(ROOT_DIR / "api" / ".env")
 ENV_FILE_VALUES = dotenv_values(ROOT_DIR / "api" / ".env")
 
 
+def _is_no_drop_profile() -> bool:
+    return os.getenv("PYTEST_NO_DROP", "").strip().lower() in {"1", "true", "yes"}
+
+
 def _build_test_database_url() -> str:
+    if _is_no_drop_profile():
+        NO_DROP_TEST_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        return f"sqlite:///{NO_DROP_TEST_DB_PATH.as_posix()}"
+
     explicit = ENV_FILE_VALUES.get("TEST_DATABASE_URL")
     if explicit:
         return str(explicit)
@@ -74,6 +86,8 @@ def _prepare_test_database_url() -> str:
 
 # 1) Test DB
 os.environ["DATABASE_URL"] = _prepare_test_database_url()
+if _is_no_drop_profile():
+    os.environ["PROCUREFLOW_SKIP_DOTENV_OVERRIDE"] = "1"
 
 # 2) App import (env set edildikten sonra)
 from api.main import app
@@ -104,7 +118,8 @@ def _drop_all_test_tables() -> None:
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
     # temiz başlangıç
-    _drop_all_test_tables()
+    if not _is_no_drop_profile():
+        _drop_all_test_tables()
     Base.metadata.create_all(bind=engine)
 
     # admin + user seed
@@ -194,7 +209,8 @@ def setup_test_db():
     yield
 
     # test sonrası temizlik
-    _drop_all_test_tables()
+    if not _is_no_drop_profile():
+        _drop_all_test_tables()
 
 
 @pytest.fixture(scope="session")

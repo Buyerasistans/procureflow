@@ -382,7 +382,7 @@ def _ensure_supplier_scope(
     supplier: Supplier,
     current_user: User,
     *,
-    detail: str = "Bu tedarikci üzerinde yetkiniz yok",
+    detail: str = "Bu tedarikçi üzerinde yetkiniz yok",
 ) -> None:
     if _can_bypass_supplier_scope(current_user):
         return
@@ -1424,7 +1424,7 @@ def resend_supplier_user_magic_link(
             owner_user_id=supplier.created_by_id,
         )
     except Exception:
-        logger.exception("[SUPPLIER_MAGIC] Magic link yeniden gonderilemedi")
+        logger.exception("[SUPPLIER_MAGIC] Magic link yeniden gönderilemedi")
         email_sent = False
 
     return {
@@ -1764,7 +1764,7 @@ def resend_supplier_invitation(
         db,
         supplier_id,
         current_user,
-        detail="Bu tedarikciye davetiye yeniden gonderme yetkiniz yok",
+        detail="Bu tedarikçiye davetiye yeniden gönderme yetkiniz yok",
         allow_platform_network_for_tenant=True,
     )
 
@@ -1940,13 +1940,13 @@ def register_supplier_user(
         try:
             email_service.send_custom_email(
                 to_email=supplier_user.email,
-                subject="ProcureFlow Is Maili Bilgileriniz",
+                subject="ProcureFlow İş Maili Bilgileriniz",
                 body=(
                     "Merhaba,\n\n"
-                    "Kaydiniz tamamlandi. Platform varsayilan SMTP/POP3/IMAP ayarlari icin otomatik bir is maili olusturuldu.\n\n"
-                    f"Is maili: {work_mailbox_credentials['work_email']}\n"
-                    f"Sifre: {work_mailbox_credentials['password']}\n\n"
-                    "Not: Sisteme giris her zaman uye oldugunuz kisisel e-posta ve sifreniz ile yapilir.\n"
+                    "Kaydınız tamamlandı. Platform varsayılan SMTP/POP3/IMAP ayarları için otomatik bir iş maili oluşturuldu.\n\n"
+                    f"İş maili: {work_mailbox_credentials['work_email']}\n"
+                    f"Şifre: {work_mailbox_credentials['password']}\n\n"
+                    "Not: Sisteme giriş her zaman üye olduğunuz kişisel e-posta ve şifreniz ile yapılır.\n"
                     "Ozel SMTP/POP3/IMAP ayarlarinizi tanimlarsaniz mailbox islemleri bu ozel profil uzerinden calisir."
                 ),
                 owner_user_id=None,

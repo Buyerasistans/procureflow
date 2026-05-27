@@ -1,4 +1,4 @@
-.quote-tab {
+﻿.quote-tab {
   padding: 20px;
 }
 
@@ -16,7 +16,7 @@
 
 .quote-tab__button {
   padding: 8px 16px;
-  color: #fff;
+  color: var(--pf-surface);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -24,31 +24,31 @@
 }
 
 .quote-tab__button--primary {
-  background-color: #3b82f6;
+  background-color: var(--pf-blue-500);
 }
 
 .quote-tab__button--primary:hover {
-  background-color: #2563eb;
+  background-color: var(--pf-color-primary);
 }
 
 .quote-tab__button--danger {
-  background-color: #ef4444;
+  background-color: var(--pf-red-500);
 }
 
 .quote-tab__button--danger:hover {
-  background-color: #dc2626;
+  background-color: var(--pf-red-600);
 }
 
 .quote-tab__button--success {
-  background-color: #10b981;
+  background-color: var(--pf-green-500);
 }
 
 .quote-tab__button--info {
-  background-color: #3b82f6;
+  background-color: var(--pf-blue-500);
 }
 
 .quote-tab__button:disabled {
-  background-color: #9ca3af;
+  background-color: var(--pf-gray-400);
   cursor: not-allowed;
 }
 
@@ -62,16 +62,16 @@
 .quote-tab__table td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pf-border-color);
 }
 
 .quote-tab__table th {
-  background-color: #f3f4f6;
+  background-color: var(--pf-gray-100);
   font-weight: 600;
 }
 
 .quote-tab__table tr:hover {
-  background-color: #f9fafb;
+  background-color: var(--pf-gray-50);
 }
 
 .quote-tab__status-badge {
@@ -85,7 +85,7 @@
 .quote-tab__empty-state {
   text-align: center;
   padding: 40px;
-  color: #9ca3af;
+  color: var(--pf-gray-400);
 }
 
 .quote-tab__quote-title {
@@ -95,13 +95,13 @@
 .quote-tab__quote-meta {
   margin-top: 4px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .quote-tab__quote-warning {
   margin-top: 6px;
   font-size: 12px;
-  color: #991b1b;
+  color: var(--pf-red-800);
 }
 
 .quote-tab__actions {

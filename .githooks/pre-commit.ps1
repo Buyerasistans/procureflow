@@ -1,4 +1,7 @@
 ﻿$ErrorActionPreference = "Stop"
+[Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
 $deleted = git diff --cached --name-status |
   Select-String -Pattern '^\s*D\s+' |

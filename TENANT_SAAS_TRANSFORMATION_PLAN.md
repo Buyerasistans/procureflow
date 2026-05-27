@@ -198,7 +198,7 @@ Bu profil tablosu esas alinarak demo kurulumunda asagidaki standart uygulanir.
 Ortak demo kurali:
 
 - Tum demo hesaplari `@buyerasistans.com.tr` uzantisini kullanir.
-- Tum demo hesaplarinin sifresi aynidir: `Aa1234!!`
+- Tum demo hesaplarinin sifresi [REDACTED] (scope_demo_bootstrap DEMO_PASSWORD)
 - Hosting tarafinda gercek posta kutusu acilmasi operasyonel is olarak ayridir.
   Uygulama ve seed tarafinda ayni adreslerle hesaplar hazir tutulur.
 - Kurulum akisi yalnizca kullanici acmaz; rol, departman, firma ve

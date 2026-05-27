@@ -25,7 +25,7 @@ from api.models.assignment import CompanyRole
 CANONICAL_ROLES = [
     {
         "name": "SUPER_ADMIN",
-        "description": "Tam yetkili sistem yoneticisi",
+        "description": "Tam yetkili sistem yöneticisi",
         "hierarchy_level": 0,
         "parent": None,
         "aliases": [
@@ -38,7 +38,7 @@ CANONICAL_ROLES = [
     },
     {
         "name": "ADMIN",
-        "description": "Sistem yoneticisi",
+        "description": "Sistem yöneticisi",
         "hierarchy_level": 1,
         "parent": "SUPER_ADMIN",
         "aliases": ["admin", "admi̇n"],
@@ -57,27 +57,27 @@ CANONICAL_ROLES = [
     },
     {
         "name": "SATIN ALAMA MUDURU",
-        "description": "Satin alma surec yonetimi",
+        "description": "Satın alma süreç yönetimi",
         "hierarchy_level": 3,
         "parent": "SATIN ALAMA DIREKTORU",
         "aliases": ["satinalma_muduru", "satın alma müdürü", "satın alma muduru"],
     },
     {
-        "name": "SATIN ALAMA YONETICISI",
-        "description": "Satin alma operasyon yonetimi",
+        "name": "SATIN ALMA YÖNETİCİSİ",
+        "description": "Satın alma operasyon yönetimi",
         "hierarchy_level": 4,
         "parent": "SATIN ALAMA MUDURU",
         "aliases": [
             "satinalma_yoneticisi",
             "satın alma yöneticisi",
-            "satın alma yoneticisi",
+            "satın alma yöneticisi",
         ],
     },
     {
         "name": "SATIN ALAMA UZMANI",
         "description": "Satin alma uzmanligi",
         "hierarchy_level": 5,
-        "parent": "SATIN ALAMA YONETICISI",
+        "parent": "SATIN ALMA YÖNETİCİSİ",
         "aliases": ["satinalma_uzmani", "satın alma uzmanı", "satın alma uzmani"],
     },
     {
@@ -92,11 +92,11 @@ CANONICAL_ROLES = [
 DEPARTMENTS = [
     (
         "GIDA SATIN ALAMA",
-        "Gida satin alma: salca alimi, bakliyat alimi, yag alimi gibi surecler",
+        "Gıda satın alma: salça alımı, bakliyat alımı, yağ alımı gibi süreçler",
     ),
     (
         "AMBALAJ SATIN ALAMA",
-        "Ambalaj satin alma: kutu, koli, etiket, shrink gibi surecler",
+        "Ambalaj satın alma: kutu, koli, etiket, shrink gibi süreçler",
     ),
     (
         "ENDIREK SATIN ALAMA",
@@ -122,10 +122,10 @@ TEST_USERS = [
         "assignment_role": "SATIN ALAMA UZMANI",
     },
     {
-        "full_name": "SATIN ALAMA YONETICISI",
+        "full_name": "SATIN ALMA YÖNETİCİSİ",
         "email": "satinalmayoneticisi@example.com",
         "user_role": "satinalma_yoneticisi",
-        "assignment_role": "SATIN ALAMA YONETICISI",
+        "assignment_role": "SATIN ALMA YÖNETİCİSİ",
     },
     {
         "full_name": "SATIN ALAMA MUDURU",

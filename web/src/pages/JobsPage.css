@@ -1,0 +1,101 @@
+.jobs-page { padding: 24px; max-width: 960px; margin: 0 auto; }
+.jobs-page__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.jobs-page__title { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0; }
+.jobs-page__btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+.jobs-page__btn--primary { background: #0f6e57; color: #fff; }
+.jobs-page__btn--primary:hover { background: #0a5441; }
+.jobs-page__btn--secondary { background: #e2e8f0; color: #1e293b; }
+.jobs-page__btn--secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.jobs-page__btn--danger { background: #dc2626; color: #fff; font-size: 13px; padding: 6px 12px; }
+.jobs-page__error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.jobs-page__error-link { color: #7f1d1d; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+.jobs-page__error-link:hover { color: #450a0a; }
+.jobs-page__error-link:focus-visible { outline: 2px solid #991b1b; outline-offset: 2px; border-radius: 2px; }
+.jobs-page__success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.jobs-page__empty { text-align: center; color: #64748b; padding: 48px 0; font-size: 15px; }
+
+/* Job card */
+.job-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 12px; }
+.job-card__title { display: block; font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; text-decoration: none; overflow-wrap: break-word; }
+.job-card__title:hover { color: #0f6e57; }
+.job-card__title:focus-visible { outline: 2px solid #0f6e57; outline-offset: 2px; border-radius: 2px; }
+.job-card__meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #475569; margin-bottom: 10px; }
+.job-card__badge { background: #f1f5f9; padding: 2px 8px; border-radius: 12px; }
+.job-card__badge--published { background: #dcfce7; color: #166534; }
+.job-card__badge--draft { background: #fef9c3; color: #854d0e; }
+.job-card__badge--closed { background: #fee2e2; color: #991b1b; }
+.job-card__desc { font-size: 14px; color: #64748b; margin: 0 0 12px 0; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.job-card__actions { display: flex; gap: 8px; align-items: center; }
+
+/* Create form */
+.jobs-form { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+.jobs-form__title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; }
+.jobs-form__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.jobs-form__field { display: flex; flex-direction: column; gap: 4px; }
+.jobs-form__field--full { grid-column: 1 / -1; }
+.jobs-form__label { font-size: 13px; font-weight: 600; color: #374151; }
+.jobs-form__input, .jobs-form__select, .jobs-form__textarea { padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #1f2937; background: #fff; width: 100%; box-sizing: border-box; }
+.jobs-form__textarea { min-height: 90px; resize: vertical; }
+.jobs-form__actions { display: flex; gap: 10px; margin-top: 16px; }
+
+/* Pagination */
+.jobs-pagination { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 20px; font-size: 14px; color: #475569; }
+
+/* Employer job status actions */
+.job-card__status-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.jobs-page__btn--status-close { background: #dc2626; color: #fff; font-size: 13px; padding: 6px 12px; }
+.jobs-page__btn--status-close:hover:not(:disabled) { background: #b91c1c; }
+.jobs-page__btn--status-fill { background: #7c3aed; color: #fff; font-size: 13px; padding: 6px 12px; }
+.jobs-page__btn--status-fill:hover:not(:disabled) { background: #6d28d9; }
+.jobs-page__btn--status-close:disabled, .jobs-page__btn--status-fill:disabled { opacity: 0.5; cursor: not-allowed; }
+.jobs-page__btn--status-close:focus-visible, .jobs-page__btn--status-fill:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* Employer application pipeline */
+.job-card__applications-toggle { margin-top: 10px; font-size: 13px; }
+.job-card__applications { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-x: hidden; }
+.job-card__applications-empty { font-size: 13px; color: #64748b; margin: 0; padding: 8px 0; }
+.application-row { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.application-row__info { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.application-row__applicant { font-size: 13px; font-weight: 600; color: #1e293b; }
+.application-row__date { font-size: 12px; color: #94a3b8; }
+.application-row__note { font-size: 12px; color: #475569; font-style: italic; }
+.application-status-badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #f1f5f9; color: #475569; }
+.application-status-badge--applied { background: #dbeafe; color: #1e40af; }
+.application-status-badge--shortlisted { background: #fef9c3; color: #854d0e; }
+.application-status-badge--interview { background: #ede9fe; color: #5b21b6; }
+.application-status-badge--offered { background: #dcfce7; color: #166534; }
+.application-status-badge--rejected { background: #fee2e2; color: #991b1b; }
+.application-status-badge--withdrawn { background: #f1f5f9; color: #64748b; }
+.application-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.application-actions__btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+.application-actions__btn--advance { background: #0f6e57; color: #fff; }
+.application-actions__btn--advance:hover:not(:disabled) { background: #0a5441; }
+.application-actions__btn--reject { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.application-actions__btn--reject:hover:not(:disabled) { background: #fecaca; }
+.application-actions__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.application-actions__btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* Candidate: My Applications section */
+.jobs-page__my-applications { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; overflow-x: hidden; }
+.jobs-page__my-applications-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; }
+.jobs-page__my-applications-empty { font-size: 13px; color: #64748b; margin: 0; padding: 4px 0; }
+.my-application-row { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #fff; margin-bottom: 8px; }
+.my-application-row:last-child { margin-bottom: 0; }
+.my-application-row__info { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.my-application-row__job { font-size: 13px; font-weight: 600; color: #1e293b; text-decoration: none; }
+.my-application-row__job:hover { color: #0f6e57; text-decoration: underline; }
+.my-application-row__job:focus-visible { outline: 2px solid #0f6e57; outline-offset: 2px; border-radius: 2px; }
+.my-application-row__date { font-size: 12px; color: #94a3b8; }
+.my-application-row__note { font-size: 12px; color: #475569; font-style: italic; margin: 6px 0 0 0; }
+
+/* Candidate withdrawal button */
+.my-application-row__actions { margin-top: 6px; }
+.my-application-row__btn--withdraw { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.my-application-row__btn--withdraw:hover:not(:disabled) { background: #fecaca; }
+.my-application-row__btn--withdraw:disabled { opacity: 0.5; cursor: not-allowed; }
+.my-application-row__btn--withdraw:focus-visible { outline: 2px solid #991b1b; outline-offset: 2px; }
+
+/* Apply drawer (inline) */
+.apply-form { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-top: 10px; }
+.apply-form__label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 4px; }
+.apply-form__textarea { width: 100%; min-height: 80px; resize: vertical; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; }

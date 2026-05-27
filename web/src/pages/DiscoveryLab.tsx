@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { Upload, MessageSquare, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
+import { Upload, MessageSquare, AlertTriangle, Info, CheckCircle2, Loader2 } from 'lucide-react';
 import { getProjects } from '../services/admin.service';
 import { getAccessToken } from '../lib/token';
 import type { Project } from '../services/admin.service';
@@ -33,6 +33,8 @@ interface BOMItem {
   quantity: number;
   unit: string;
   source_layer: string;
+  group_name?: string;
+  group_key?: string;
 }
 
 type BOMSelectionState = Record<string, boolean>;
@@ -66,6 +68,13 @@ interface DiscoveryTimelineResponse {
   timeline: DiscoveryTimelineEvent[];
 }
 
+interface ConverterHealthResponse {
+  converter_found: boolean;
+  resolver_source: string;
+  executable_name?: string | null;
+  request_id: string;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const AUTO_OPEN_QUOTE_PREFERENCE_KEY = 'pf_discovery_lab_auto_open_quote';
 
@@ -78,17 +87,33 @@ function buildAuthHeaders(contentType?: string) {
 }
 
 function getErrorMessage(detail: unknown) {
+  const fallback = 'Dosya analizi tamamlanamadı. Lütfen dosyayı kontrol edip tekrar deneyin.';
+  const technicalErrorPattern = /(_resolve_oda_executable|NameError|Traceback| is not defined|stderr=|stdout=)/i;
+
+  if (detail && typeof detail === 'object') {
+    const errorDetail = detail as { message?: unknown; request_id?: unknown };
+    if (typeof errorDetail.message === 'string' && errorDetail.message.trim()) {
+      const requestNote = typeof errorDetail.request_id === 'string' ? ` Referans: ${errorDetail.request_id}` : '';
+      return `${errorDetail.message}${requestNote}`;
+    }
+  }
+
   if (typeof detail === 'string' && detail.trim()) {
+    if (technicalErrorPattern.test(detail)) {
+      return fallback;
+    }
     return detail;
   }
 
-  return 'Dosya analizi tamamlanamadi. Lutfen dosyayi kontrol edip tekrar deneyin.';
+  return fallback;
 }
 
 const DiscoveryLab: React.FC = () => {
   const { user } = useAuth();
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<string | null>(null);
+  const [uploadElapsedSeconds, setUploadElapsedSeconds] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -104,6 +129,8 @@ const DiscoveryLab: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const [converterHealth, setConverterHealth] = useState<ConverterHealthResponse | null>(null);
+  const [converterHealthLoading, setConverterHealthLoading] = useState(true);
   const [transferQuoteId, setTransferQuoteId] = useState<number | null>(null);
   const [autoOpenQuoteAfterTransfer, setAutoOpenQuoteAfterTransfer] = useState<boolean>(() => {
     if (typeof window === 'undefined') {
@@ -114,25 +141,52 @@ const DiscoveryLab: React.FC = () => {
   const analysisLayers = analysisResult?.metadata.katmanlar ?? [];
   const bomItems = analysisResult?.bom ?? [];
   const groupedBomItems = bomItems.reduce<Record<string, BOMItem[]>>((groups, item) => {
-    const sourceLayer = item.source_layer || 'TANIMSIZ_KATMAN';
-    groups[sourceLayer] = groups[sourceLayer] ?? [];
-    groups[sourceLayer].push(item);
+    const groupName = item.group_name || item.source_layer || 'TANIMSIZ_GRUP';
+    groups[groupName] = groups[groupName] ?? [];
+    groups[groupName].push(item);
     return groups;
   }, {});
+  const projectSelectionLabel = projects.length === 0
+    ? 'Otomatik Discovery Lab projesi oluşturulacak'
+    : 'Aktarım Projesi';
+  const projectAccessHint = user?.system_role === 'super_admin'
+    ? 'Süper admin görünümünde tüm aktif projeler listelenir. Firma panellerinde yalnız kullanıcının yetkili olduğu projeler görünür.'
+    : 'Bu listede yalnız bağlı olduğunuz firma ve yetkili olduğunuz aktif projeler görünür.';
+
+  useEffect(() => {
+    if (!isUploading) {
+      setUploadElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setUploadElapsedSeconds(Math.max(1, Math.floor((Date.now() - startedAt) / 1000)));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isUploading]);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProjects() {
+    async function loadInitialData() {
       try {
         setProjectsLoading(true);
-        const nextProjects = await getProjects();
+        setConverterHealthLoading(true);
+        const [nextProjects, converterResponse] = await Promise.all([
+          getProjects(),
+          fetch(`${API_BASE_URL}/api/v1/ai-lab/health/converter`, {
+            headers: buildAuthHeaders(),
+          }),
+        ]);
         if (cancelled) {
           return;
         }
         const activeProjects = nextProjects.filter((project) => project.is_active);
         setProjects(activeProjects);
         setSelectedProjectId((current) => current ?? activeProjects[0]?.id ?? null);
+        if (converterResponse.ok) {
+          setConverterHealth((await converterResponse.json()) as ConverterHealthResponse);
+        }
       } catch (error) {
         if (!cancelled) {
           setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
@@ -140,11 +194,12 @@ const DiscoveryLab: React.FC = () => {
       } finally {
         if (!cancelled) {
           setProjectsLoading(false);
+          setConverterHealthLoading(false);
         }
       }
     }
 
-    loadProjects();
+    loadInitialData();
     return () => {
       cancelled = true;
     };
@@ -176,6 +231,7 @@ const DiscoveryLab: React.FC = () => {
     setTimeline([]);
     setTransferQuoteId(null);
     setIsUploading(true);
+    setUploadPhase('Dosya sunucuya aktarılıyor...');
 
     try {
       const formData = new FormData();
@@ -187,6 +243,7 @@ const DiscoveryLab: React.FC = () => {
         body: formData,
       });
 
+      setUploadPhase('CAD metadata çıkarılıyor ve AI denetimi hazırlanıyor...');
       const payload = (await response.json()) as AnalysisResponse | { detail?: unknown };
 
       if (!response.ok) {
@@ -212,6 +269,7 @@ const DiscoveryLab: React.FC = () => {
       }, {});
 
       setAnalysisResult(normalizedPayload);
+      setUploadPhase('Analiz tamamlandı, sonuçlar hazırlanıyor...');
       setSelectedBomItems(defaultSelectionState);
       setDecisionState(
         ((payload as AnalysisResponse).ai_report?.karar_destek_sorulari ?? []).reduce<Record<number, 'approved' | 'ignored' | null>>((map, question) => {
@@ -239,6 +297,7 @@ const DiscoveryLab: React.FC = () => {
       setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
     } finally {
       setIsUploading(false);
+      setUploadPhase(null);
       event.target.value = '';
     }
   };
@@ -280,11 +339,6 @@ const DiscoveryLab: React.FC = () => {
     if (!analysisResult?.session_id) {
       return;
     }
-    if (!selectedProjectId) {
-      setUploadError('Discovery Lab aktarimi icin once aktif bir proje secin.');
-      return;
-    }
-
     setIsConfirming(true);
     setUploadError(null);
     try {
@@ -311,7 +365,7 @@ const DiscoveryLab: React.FC = () => {
       const quoteId = (payload as { transfer?: { quote_id?: number } }).transfer?.quote_id ?? null;
       setTransferQuoteId(quoteId);
       await refreshTimeline(analysisResult.session_id);
-      setActionNotice(transferId ? `Teknik kilit atildi ve satin alma aktarimi kuyruga alindi: ${transferId}` : 'Teknik kilit atildi ve satin alma aktarimi baslatildi.');
+      setActionNotice(transferId ? `Teknik kilit atıldı ve satın alma aktarımı kuyruğa alındı: ${transferId}` : 'Teknik kilit atıldı ve satın alma aktarımı başlatıldı.');
       if (quoteId && autoOpenQuoteAfterTransfer && typeof window !== 'undefined') {
         window.location.assign(`/quotes/${quoteId}`);
       }
@@ -341,7 +395,7 @@ const DiscoveryLab: React.FC = () => {
       if (analysisResult?.session_id) {
         await refreshTimeline(analysisResult.session_id);
       }
-      setActionNotice(`BOM secimi guncellendi: ${itemKey}`);
+      setActionNotice(`BOM seçimi güncellendi: ${itemKey}`);
     } catch (error) {
       setSelectedBomItems((current) => ({
         ...current,
@@ -376,7 +430,7 @@ const DiscoveryLab: React.FC = () => {
         [questionId]: decision,
       }));
       await refreshTimeline(analysisResult.session_id);
-      setActionNotice(decision === 'approved' ? `AI karari onaylandi: Soru ${questionId}` : `AI karari yoksayildi: Soru ${questionId}`);
+      setActionNotice(decision === 'approved' ? `AI kararı onaylandı: Soru ${questionId}` : `AI kararı yoksayıldı: Soru ${questionId}`);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
     }
@@ -389,7 +443,7 @@ const DiscoveryLab: React.FC = () => {
 
     const answerText = (answerDrafts[question.id] || '').trim();
     if (!answerText) {
-      setUploadError('Kullanici yaniti bos birakilamaz.');
+      setUploadError('Kullanıcı yanıtı boş bırakılamaz.');
       return;
     }
 
@@ -415,7 +469,7 @@ const DiscoveryLab: React.FC = () => {
 
       setAnswerSavedState((current) => ({ ...current, [question.id]: true }));
       await refreshTimeline(analysisResult.session_id);
-      setActionNotice(`Kullanici yaniti kaydedildi: Soru ${question.id}`);
+      setActionNotice(`Kullanıcı yanıtı kaydedildi: Soru ${question.id}`);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : getErrorMessage(null));
     } finally {
@@ -455,21 +509,61 @@ const DiscoveryLab: React.FC = () => {
                   href={`/quotes/${transferQuoteId}`}
                   className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-700"
                 >
-                  Olusan RFQ'yu Ac
+                  Oluşan RFQ'yu Aç
                 </a>
               ) : null}
             </div>
           )}
         </div>
+        {analysisResult && uploadError && (
+          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            {uploadError}
+          </div>
+        )}
 
         {!analysisResult ? (
-          <div className="border-3 border-dashed border-gray-300 rounded-2xl h-96 flex flex-col items-center justify-center bg-white transition-all hover:border-blue-400">
-            <div className="p-6 bg-blue-50 rounded-full mb-4">
-              <Upload size={48} className={isUploading ? "animate-bounce text-blue-500" : "text-blue-400"} />
+          <div
+            className={`relative overflow-hidden border-3 border-dashed rounded-2xl h-96 flex flex-col items-center justify-center bg-white transition-all ${
+              isUploading ? 'border-blue-400 shadow-xl shadow-blue-100' : 'border-gray-300 hover:border-blue-400'
+            }`}
+            aria-busy={isUploading}
+          >
+            {isUploading && (
+              <div className="absolute inset-x-0 top-0 h-1 overflow-hidden bg-blue-100">
+                <div className="h-full w-1/3 animate-[pulse_1.2s_ease-in-out_infinite] rounded-full bg-blue-600" />
+              </div>
+            )}
+            <div className={`p-6 rounded-full mb-4 ${isUploading ? 'bg-blue-100' : 'bg-blue-50'}`}>
+              {isUploading ? (
+                <Loader2 size={48} className="animate-spin text-blue-600" aria-hidden="true" />
+              ) : (
+                <Upload size={48} className="text-blue-400" aria-hidden="true" />
+              )}
             </div>
-            <p className="text-gray-500 font-medium">
-              {isUploading ? "Analiz Ediliyor..." : "Mimari Projeyi (DWG/DXF) Yükleyin"}
+            <p className="text-gray-600 font-semibold">
+              {isUploading ? "Analiz devam ediyor..." : "Mimari Projeyi (DWG/DXF) Yükleyin"}
             </p>
+            {isUploading && (
+              <div className="mt-4 w-full max-w-md px-6 text-center" role="status" aria-live="polite">
+                <p className="text-sm font-medium text-blue-700">
+                  {uploadPhase || 'Dosya işleniyor...'}
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {['Yükleme', 'Dönüştürme', 'AI denetim'].map((step, index) => (
+                    <div key={step} className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+                      <div className={`mx-auto mb-1 h-2 w-2 rounded-full ${uploadElapsedSeconds % 3 === index ? 'bg-blue-600' : 'bg-blue-200'}`} />
+                      <div className="text-[11px] font-bold text-blue-700">{step}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-blue-100">
+                  <div className="h-full w-full origin-left animate-pulse rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600" />
+                </div>
+                <p className="mt-3 text-xs text-slate-500">
+                  İşlem süresi: {uploadElapsedSeconds}s. Büyük DWG dosyalarında dönüştürme ve metadata çıkarma birkaç dakika sürebilir.
+                </p>
+              </div>
+            )}
             {uploadError && (
               <div className="mt-4 max-w-md rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-sm text-rose-700">
                 {uploadError}
@@ -477,8 +571,9 @@ const DiscoveryLab: React.FC = () => {
             )}
             <input
               type="file"
-              aria-label="Mimari proje dosyasi yukleyin"
-              className="mt-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              aria-label="Mimari proje dosyası yükleyin"
+              disabled={isUploading}
+              className="mt-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               onChange={handleFileUpload}
               accept=".dwg,.dxf"
             />
@@ -488,20 +583,21 @@ const DiscoveryLab: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Teknik Katman Ozeti</h3>
-                  <p className="text-xs text-gray-500">CAD dosyasindan cikarilan ana metraj katmanlari</p>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Teknik Katman Özeti</h3>
+                  <p className="text-xs text-gray-500">CAD dosyasından çıkarılan ana metraj katmanları</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                    <span>Aktarim Projesi</span>
+                    <span>{projectSelectionLabel}</span>
                     <select
                       value={selectedProjectId ?? ''}
                       onChange={(event) => setSelectedProjectId(event.target.value ? Number(event.target.value) : null)}
                       disabled={projectsLoading || projects.length === 0}
                       className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
-                      aria-label="Aktarim Projesi"
+                      aria-label="Aktarım Projesi"
                     >
-                      {projects.length === 0 ? <option value="">Proje bulunamadi</option> : null}
+                      {projectsLoading ? <option value="">Projeler yükleniyor</option> : null}
+                      {!projectsLoading && projects.length === 0 ? <option value="">Otomatik proje</option> : null}
                       {projects.map((project) => (
                         <option key={project.id} value={project.id}>
                           {project.name}
@@ -513,6 +609,9 @@ const DiscoveryLab: React.FC = () => {
                     {analysisLayers.length} katman
                   </span>
                 </div>
+              </div>
+              <div className="border-b border-slate-100 bg-slate-50 px-6 py-3 text-xs font-semibold text-slate-500">
+                {projectAccessHint}
               </div>
               <table className="w-full text-left">
                 <thead className="bg-gray-50">
@@ -538,7 +637,7 @@ const DiscoveryLab: React.FC = () => {
               <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">BOM Visualizer</h3>
-                  <p className="text-xs text-gray-500">Reçete motorunun teknik katmanlardan urettigi alt malzeme listesi</p>
+                  <p className="text-xs text-gray-500">Reçete motorunun teknik katmanlardan ürettiği alt malzeme listesi</p>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   {bomItems.length} kalem
@@ -563,14 +662,15 @@ const DiscoveryLab: React.FC = () => {
                             {items.length} alt kalem
                           </span>
                           <span className="text-xs font-bold uppercase tracking-wide text-emerald-700">
-                            {collapsedBomGroups[sourceLayer] ? 'Goster' : 'Gizle'}
+                            {collapsedBomGroups[sourceLayer] ? 'Göster' : 'Gizle'}
                           </span>
                         </div>
                       </button>
                       {!collapsedBomGroups[sourceLayer] && (
                         <div className="divide-y divide-emerald-100 bg-white">
-                          {items.map((item, index) => {
-                            const itemKey = `${sourceLayer}-${item.material}-${index}`;
+                          {items.map((item) => {
+                            const globalIndex = bomItems.indexOf(item);
+                            const itemKey = `${item.source_layer}-${item.material}-${globalIndex}`;
                             const isSelected = selectedBomItems[itemKey] ?? false;
 
                             return (
@@ -596,7 +696,7 @@ const DiscoveryLab: React.FC = () => {
                                       ? 'bg-emerald-100 text-emerald-700'
                                       : 'bg-amber-100 text-amber-700'
                                   }`}>
-                                    {isSelected ? 'Secili' : 'Pasif'}
+                                    {isSelected ? 'Seçili' : 'Pasif'}
                                   </span>
                                 </div>
                               </div>
@@ -609,7 +709,7 @@ const DiscoveryLab: React.FC = () => {
                 </div>
               ) : (
                 <div className="px-6 py-8 text-sm text-gray-500">
-                  Teknik recete icin otomatik BOM kalemi olusmadi.
+                  Teknik reçete için otomatik BOM kalemi oluşmadı.
                 </div>
               )}
             </div>
@@ -619,7 +719,7 @@ const DiscoveryLab: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Audit Timeline</h3>
-                    <p className="text-xs text-gray-500">Discovery Lab aksiyonlari ve satin alma aktarim gecmisi</p>
+                    <p className="text-xs text-gray-500">Discovery Lab aksiyonları ve satın alma aktarım geçmişi</p>
                   </div>
                   <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
                     {timeline.length} olay
@@ -658,14 +758,14 @@ const DiscoveryLab: React.FC = () => {
                       )}
                       {answerText && (
                         <div className="mt-2 rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-xs text-sky-900">
-                          Yanit: {answerText}
+                          Yanıt: {answerText}
                         </div>
                       )}
                       {rationale && (
-                        <p className="mt-1 text-xs text-slate-600">Gerekce: {rationale}</p>
+                        <p className="mt-1 text-xs text-slate-600">Gerekçe: {rationale}</p>
                       )}
                       {actor && (
-                        <p className="mt-1 text-xs text-slate-600">Aktor E-postasi: {actor}</p>
+                        <p className="mt-1 text-xs text-slate-600">Aktör E-postası: {actor}</p>
                       )}
                           </>
                         );
@@ -688,8 +788,41 @@ const DiscoveryLab: React.FC = () => {
 
         {!analysisResult ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-400">
-            <Info size={40} className="mb-2 opacity-20" />
-            <p className="text-sm">Analiz raporu hazırlamak için<br/>dosya yüklemesi bekleniyor.</p>
+            {isUploading ? (
+              <div className="w-full max-w-xs rounded-2xl border border-blue-100 bg-blue-50 px-5 py-6 text-blue-800">
+                <Loader2 size={40} className="mx-auto mb-3 animate-spin text-blue-600" aria-hidden="true" />
+                <p className="text-sm font-bold">İşlem devam ediyor</p>
+                <p className="mt-2 text-xs leading-relaxed text-blue-700">
+                  {uploadPhase || 'Dosya analiz kuyruğunda işleniyor.'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <Info size={40} className="mb-2 opacity-20" />
+                <p className="text-sm">Analiz raporu hazırlamak için<br/>dosya yüklemesi bekleniyor.</p>
+              </>
+            )}
+            <div className="mt-6 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">DWG Dönüştürücü Durumu</p>
+              <div className="mt-2 flex items-center gap-2">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    converterHealthLoading
+                      ? 'bg-slate-300'
+                      : converterHealth?.converter_found
+                        ? 'bg-emerald-500'
+                        : 'bg-amber-500'
+                  }`}
+                />
+                <span className="text-xs font-semibold text-slate-700">
+                  {converterHealthLoading
+                    ? 'Kontrol ediliyor...'
+                    : converterHealth?.converter_found
+                      ? `Hazır (${converterHealth.executable_name || converterHealth.resolver_source})`
+                      : 'DWG için sunucu converter ayarı bekleniyor'}
+                </span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex-1 space-y-6">
@@ -716,7 +849,7 @@ const DiscoveryLab: React.FC = () => {
                           setAnswerDrafts((current) => ({ ...current, [q.id]: nextValue }));
                           setAnswerSavedState((current) => ({ ...current, [q.id]: false }));
                         }}
-                        placeholder="Mimar veya teknik ekip yanitini kaydet"
+                        placeholder="Mimar veya teknik ekip yanıtını kaydet"
                         aria-label={`Yanıt ${q.id}`}
                         className="mb-2 min-h-[72px] w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700"
                       />
@@ -728,14 +861,14 @@ const DiscoveryLab: React.FC = () => {
                           setAnswerSavedState((current) => ({ ...current, [q.id]: false }));
                         }}
                         placeholder="Opsiyonel gerekce"
-                        aria-label={`Gerekce ${q.id}`}
+                        aria-label={`Gerekçe ${q.id}`}
                         className="mb-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700"
                       />
                       <div className="mb-3 flex gap-2">
                         {[
-                          { key: 'needs_review', label: 'Incelemeye Al' },
-                          { key: 'approved', label: 'Yanit + Onay' },
-                          { key: 'ignored', label: 'Yanit + Pas' },
+                          { key: 'needs_review', label: 'İncelemeye Al' },
+                          { key: 'approved', label: 'Yanıt + Onay' },
+                          { key: 'ignored', label: 'Yanıt + Pas' },
                         ].map((item) => (
                           <button
                             key={item.key}
@@ -783,16 +916,16 @@ const DiscoveryLab: React.FC = () => {
                             : 'bg-sky-600 text-white hover:bg-sky-700'
                         }`}
                       >
-                        {savingAnswerQuestionId === q.id ? 'YANIT KAYDEDILIYOR...' : 'YANITI AUDIT LOGA KAYDET'}
+                        {savingAnswerQuestionId === q.id ? 'YANIT KAYDEDİLİYOR...' : 'YANITI AUDIT LOGA KAYDET'}
                       </button>
                       {decisionState[q.id] && (
                         <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                          {decisionState[q.id] === 'approved' ? 'Karar kaydedildi: Onaylandi' : 'Karar kaydedildi: Yoksayildi'}
+                          {decisionState[q.id] === 'approved' ? 'Karar kaydedildi: Onaylandı' : 'Karar kaydedildi: Yoksayıldı'}
                         </p>
                       )}
                       {answerSavedState[q.id] && (
                         <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-                          Kullanici yaniti audit loga kaydedildi
+                          Kullanıcı yanıtı audit loga kaydedildi
                         </p>
                       )}
                     </div>
@@ -801,7 +934,7 @@ const DiscoveryLab: React.FC = () => {
               ))}
               {analysisResult.ai_report.karar_destek_sorulari.length === 0 && (
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
-                  AI teknik denetimde ek karar sorusu olusmadi.
+                  AI teknik denetimde ek karar sorusu oluşmadı.
                 </div>
               )}
             </div>
@@ -811,7 +944,7 @@ const DiscoveryLab: React.FC = () => {
                  <h4 className="text-gray-400 text-xs font-bold uppercase">AI Reçete İlavesi</h4>
                  {analysisResult.ai_report.recete_onerileri.map((item, idx) => (
                    <div key={idx} className="flex justify-between items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                     <span className="text-emerald-800 text-xs font-medium">+{item.kalem}</span>
+                     <span className="text-emerald-800 text-xs font-medium">+ {item.kalem}</span>
                      <span className="text-emerald-600 text-[10px] font-bold uppercase">Ekleniyor</span>
                    </div>
                  ))}
@@ -831,6 +964,11 @@ const DiscoveryLab: React.FC = () => {
         >
           {isConfirming ? 'AKTARILIYOR...' : 'KEŞFİ ONAYLA VE AKTAR'}
         </button>
+        {analysisResult && projects.length === 0 && (
+          <p className="mt-2 text-xs text-slate-500">
+            Aktif proje bulunamadığı için aktarım sırasında varsayılan Discovery Lab projesi otomatik oluşturulacak.
+          </p>
+        )}
         <label className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-600">
           <input
             type="checkbox"
@@ -838,7 +976,7 @@ const DiscoveryLab: React.FC = () => {
             onChange={(event) => setAutoOpenQuoteAfterTransfer(event.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
           />
-          Aktarim tamamlaninca olusan RFQ ekranini otomatik ac
+          Aktarım tamamlanınca oluşan RFQ ekranını otomatik aç
         </label>
       </div>
       </div>

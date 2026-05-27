@@ -38,37 +38,67 @@ Frontend build başarılı olsa da lint sorunları mevcut:
   - `react-refresh/only-export-components`
   - `react-hooks/preserve-manual-memoization`
 
-## 5) Hedef Rol Katalogu
+## 5) Kesinleşen Rol Katalogu (v2 — 2026-05-25)
 
-### Platform Rolleri
-- Super Admin
-- Platform Operasyon Admin / Yöneticisi / Uzmanı
-- Platform Destek Admin / Yöneticisi / Uzmanı
-- Platform Finans Admin / Yöneticisi / Uzmanı
-- Platform Denetçi / Finans İzleyici
-- Platform Güvenlik Uzmanı
-- Platform Raporlama Analisti
+### Platform Rolleri (merkezi, tenant bağımsız)
 
-### Stratejik Partner Rolleri
-- Partner Ana Yönetici / Partner Yöneticisi
-- Satın Alma Direktörü / Müdürü / Müdür Yardımcısı / Yöneticisi
-- Satın Alma Kıdemli Uzmanı / Uzmanı
-- Teknik Uzman ve Mimar
-- Özel Stratejik Partner Rolü
-- Partner Denetçi / Finans İzleyici
+- Super Admin `superadmin@buyerasistans.com.tr` — DOKUNMA
+- Platform Operasyon Admin `operasyon_admin@`
+- Platform Operasyon Yöneticisi `operasyon_yoneticisi@`
+- Platform Operasyon Uzmanı `operasyon_uzmani@`
+- Platform Destek Admin `destek_admin@`
+- Platform Destek Yöneticisi `destek_yoneticisi@`
+- Platform Destek Uzmanı `destek_uzmani@`
+- Platform Finans Admin `finans_admin@`
+- Platform Finans Yöneticisi `finans_yoneticisi@`
+- Platform Finans Uzmanı `finans_uzmani@`
+- Platform Denetçi / Finans İzleyici `finans_izleyici@`
+- Platform Güvenlik Uzmanı `guvenlik_uzmani@`
+- Platform Raporlama Analisti `raporlama_analisti@`
 
-### Tedarikçi Rolleri
-- Tedarikçi Ana Yönetici / Tedarikçi Yöneticisi
-- Pazarlama Müdürü / Müdür Yardımcısı / Yöneticisi
-- Kıdemli Pazarlama Uzmanı / Pazarlama Uzmanı
-- Teknik Uzman ve Mimar
-- Teklif Uzmanı
-- Özel Tedarikçi Rolü
-- Tedarikçi Denetçi / Finans İzleyici
+### Stratejik Partner Rolleri (Lvl 0→9 + özel)
 
-### İş Ortağı (Kanal) Rolleri
-- Kanal Hesap Sahibi
-- Kanal Ekip Lideri
-- Kanal Temsilcisi
-- Kanal Finans Görüntüleyici
-- Kanal Denetçisi
+- Lvl 0: Partner Admin `firma_admin@` / `[firma]_admin@`
+- Lvl 1: Satın Alma Direktörü `firma_direktor@`
+- Lvl 2: Satın Alma Müdürü `firma_mudur@`
+- Lvl 3: Satın Alma Müdür Yardımcısı `firma_mudur_yrd@`
+- Lvl 4: Satın Alma Yöneticisi `firma_yonetici@`
+- Lvl 5: Satın Alma Kıdemli Uzmanı `firma_kidemli_uzm@`
+- Lvl 6: Satın Alma Uzman Yardımcısı `firma_uzman_yrd@`
+- Lvl 7: Satın Alma Uzmanı `firma_uzman@`
+- Lvl 8: Proje Mimarı `firma_mimar@`
+- Lvl 9: Teknik Uzman `firma_teknik@`
+- Lvl ★: Özel Stratejik Partner Rolü `firma_ozel@`
+- Lvl ★: Finans İzleyici `firma_finans@`
+
+### Tedarikçi Rolleri (Lvl 0→7 + özel)
+
+- Lvl 0: Tedarikçi Admin `firma_admin@`
+- Lvl 1: Pazarlama Müdürü `firma_mudur@`
+- Lvl 2: Pazarlama Müdür Yardımcısı `firma_mudur_yrd@`
+- Lvl 3: Pazarlama Yöneticisi `firma_yonetici@`
+- Lvl 4: Kıdemli Pazarlama Uzmanı `firma_kidemli_uzm@`
+- Lvl 5: Pazarlama Uzmanı `firma_uzman@`
+- Lvl 6: Teknik Uzman ve Mimar `firma_teknik@`
+- Lvl 7: Teklif Uzmanı `firma_teklif@` ⚠️ teklif akışı kritik — dokunma
+- Lvl ★: Özel Tedarikçi Rolü `firma_ozel@`
+- Lvl ★: Finans İzleyici `firma_finans@`
+
+### İş Ortağı (Kanal) Rolleri (Lvl 0→4)
+
+- Lvl 0: Kanal Hesap Sahibi `firma_kanal_sahibi@`
+- Lvl 1: Kanal Ekip Lideri `firma_ekip_lideri@`
+- Lvl 2: Kanal Temsilcisi `firma_temsilci@`
+- Lvl 3: Kanal Finans `firma_kanal_finans@`
+- Lvl ★: Özel Kanal Rolü `firma_ozel_kanal@`
+
+### Demo tenant email prefix tablosu
+
+| Tenant | Prefix |
+|--------|--------|
+| BA Demo Stratejik Ortak | `firma_` |
+| BA Demo İş Ortağı | `firma_` |
+| Kanal Ana Yönetici Demo | `kanal_` |
+| OLİMPOS TEKNOLOJİ | `olimpos_` |
+| Poseydon | `poseydon_` |
+| PİZZA MAX | `pizzamax_` |

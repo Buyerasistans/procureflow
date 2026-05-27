@@ -145,17 +145,17 @@ export function PlatformAnalyticsTab() {
   const metricCards: MetricCard[] = [
     { label: "Toplam Tenant", value: summary.total_tenants ?? 0, variant: "indigo" },
     { label: "Aktif Tenant", value: summary.active_tenants ?? 0, variant: "green" },
-    { label: "Aktif Kullanici", value: summary.total_internal_users ?? 0, variant: "sky" },
-    { label: "Toplam Tedarikci", value: summary.total_suppliers ?? 0, variant: "violet" },
-    { label: "Platform Tedarikci", value: summary.platform_suppliers ?? 0, variant: "amber" },
-    { label: "Ozel Tedarikci", value: summary.private_suppliers ?? 0, variant: "teal" },
+    { label: "Aktif Kullanıcı", value: summary.total_internal_users ?? 0, variant: "sky" },
+    { label: "Toplam Tedarikçi", value: summary.total_suppliers ?? 0, variant: "violet" },
+    { label: "Platform Tedarikçi", value: summary.platform_suppliers ?? 0, variant: "amber" },
+    { label: "Özel Tedarikçi", value: summary.private_suppliers ?? 0, variant: "teal" },
     { label: "Toplam Proje", value: summary.total_projects ?? 0, variant: "pink" },
     { label: "Toplam Teklif", value: summary.total_quotes ?? 0, variant: "cyan" },
   ];
 
   const publicMetricCards: PublicMetricCard[] = [
     { label: "Partner Plan", value: publicSummary.strategic_partner_plan_count ?? 0, variant: "teal" },
-    { label: "Tedarikci Plan", value: publicSummary.supplier_plan_count ?? 0, variant: "cyan" },
+    { label: "Tedarikçi Plan", value: publicSummary.supplier_plan_count ?? 0, variant: "cyan" },
     { label: "Public Kampanya", value: publicSummary.public_campaign_count ?? 0, variant: "violet" },
     { label: "Aktif Kampanya", value: publicSummary.active_public_campaign_count ?? 0, variant: "amber" },
     { label: "Campaign Event", value: publicSummary.campaign_event_count ?? 0, variant: "pink" },
@@ -214,14 +214,14 @@ export function PlatformAnalyticsTab() {
       </div>
 
       <div className="platform-analytics-tab__section">
-        <h3 className="platform-analytics-tab__panel-title platform-analytics-tab__panel-title--small">Public Web KPI Ozeti</h3>
+        <h3 className="platform-analytics-tab__panel-title platform-analytics-tab__panel-title--small">Public Web KPI Özeti</h3>
         <div className="platform-analytics-tab__metric-grid">
           {renderMetricCards(publicMetricCards)}
         </div>
       </div>
 
       <div className="platform-analytics-tab__detail-panel">
-        <div className="platform-analytics-tab__panel-title">Domain Intent Ozeti</div>
+        <div className="platform-analytics-tab__panel-title">Domain Intent Özeti</div>
         {domainIntentSummary.length === 0 ? (
           <div className="platform-analytics-tab__empty-state">Domain intent verisi bulunmuyor.</div>
         ) : (
@@ -275,7 +275,7 @@ export function PlatformAnalyticsTab() {
           </label>
 
           <label className="platform-analytics-tab__field">
-            Baslangic tarihi
+            Başlangıç tarihi
             <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="platform-analytics-tab__input" />
           </label>
 

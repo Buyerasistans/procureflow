@@ -622,7 +622,7 @@ def create_quote(
         if effective_department_id is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail="Kullaniciya departman atanmamis. Lutfen yoneticiye basvurun.",
+                detail="Kullanıcıya departman atanmamış. Lütfen yöneticiye başvurun.",
             )
         effective_assigned_to_id = current_user.id
 
@@ -681,7 +681,7 @@ def import_quote_from_excel(
         effective_department_id = resolve_effective_department_id(db, current_user)
 
     if not is_admin_like(current_user) and effective_department_id is None:
-        raise HTTPException(status_code=422, detail="Kullaniciya departman atanmamis")
+        raise HTTPException(status_code=422, detail="Kullanıcıya departman atanmamış")
 
     try:
         workbook = openpyxl.load_workbook(BytesIO(file.file.read()))
@@ -1437,7 +1437,7 @@ def send_quote_to_supplier(
             raise HTTPException(
                 status_code=403,
                 detail=(
-                    "Tenant scope disi private tedarikci secimi yapilamaz. "
+                    "Tenant scope dışı private tedarikçi seçimi yapılamaz. "
                     f"Yalnizca quote tenant'ina ait veya platform havuzu tedarikcileri secilebilir. Secimler: {supplier_names}"
                 ),
             )
@@ -1457,7 +1457,7 @@ def send_quote_to_supplier(
             raise HTTPException(
                 status_code=409,
                 detail=(
-                    f"Mevcut tenant paketi platform agi tedarikcilerine gonderim icin uygun degil. "
+                    f"Mevcut tenant paketi platform ağı tedarikçilerine gönderim için uygun değil. "
                     f"Plan: {normalized_plan_code}. {entitlement_summary}"
                 ),
             )
@@ -1472,7 +1472,7 @@ def send_quote_to_supplier(
                 db,
                 supplier_id,
                 current_user,
-                detail="Bu tedarikciye gonderim yetkiniz yok",
+                detail="Bu tedarikçiye gönderim yetkiniz yok",
                 allow_platform_network_for_tenant=True,
             )
 
@@ -1525,7 +1525,7 @@ def send_quote_to_supplier(
                 db,
                 supplier_id,
                 current_user,
-                detail="Bu tedarikciye gonderim yetkiniz yok",
+                detail="Bu tedarikçiye gönderim yetkiniz yok",
                 allow_platform_network_for_tenant=True,
             )
             supplier_users = (

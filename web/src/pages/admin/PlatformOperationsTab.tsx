@@ -204,14 +204,14 @@ export function PlatformOperationsTab({
     <section className="platform-operations-tab">
       {activePlatformOpsFocusSummary.length > 0
         ? renderAdminFocusBanner({
-            eyebrow: "Filtre Ozeti",
+            eyebrow: "Filtre Özeti",
             title: `Platform operasyon odagi: ${activePlatformOpsFocusSummary.join(" | ")}`,
             detail: "Operasyon kuyruklari secili filtrelere gore daraltildi.",
             tone: "amber",
             sourceLabel: "Platform operasyonlari filtresi",
             timestamp: nowMs,
             actions: [
-              { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
+              { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
               { label: "Kuyruga Git", onClick: jumpToPlatformOpsFocusTarget },
               {
                 label: "Filtreyi Temizle",
@@ -232,7 +232,7 @@ export function PlatformOperationsTab({
           Bu alan, onboarding takibi ve owner atama kuyrugu dahil olmak uzere platform ekibinin Stratejik Partner kayitlarini takip
           etmesi, onceliklendirmesi ve dogru aksiyona yonlenmesi icin hazirlandi.
         </div>
-        <div className="platform-operations-tab__link-note">Stratejik Partner Yonetimine Git</div>
+        <div className="platform-operations-tab__link-note">Stratejik Partner Yönetimine Git</div>
         <div className="platform-operations-tab__meta">Operasyon Sahibi • Destek Durumu • Son Temas • Destek Notu</div>
 
         {!hasAnyVisiblePartner ? (
@@ -343,7 +343,7 @@ export function PlatformOperationsTab({
               }}
               className="platform-operations-tab__button"
             >
-              Odak Modu: {focusModeEnabled ? "Acik" : "Kapali"}
+              Odak Modu: {focusModeEnabled ? "Açık" : "Kapalı"}
             </button>
 
             {focusModeEnabled ? (
@@ -352,7 +352,7 @@ export function PlatformOperationsTab({
                 onClick={() => setOnlyCriticalVisible((current) => !current)}
                 className="platform-operations-tab__button"
               >
-                Sadece Kritikleri Goster: {onlyCriticalVisible ? "Acik" : "Kapali"}
+                Sadece Kritikleri Göster: {onlyCriticalVisible ? "Açık" : "Kapalı"}
               </button>
             ) : null}
           </div>
@@ -704,10 +704,10 @@ function buildPlatformPriorityInfo(options: {
       : status === "waiting_owner"
         ? "Owner ile teyit al ve kaydi in_progress durumuna cek."
         : status === "new"
-          ? "Ilk aksiyon notunu gir ve sureci baslat."
+          ? "İlk aksiyon notunu gir ve süreci başlat."
           : status === "resolved"
             ? "Kapanis nedenini kontrol et, eksikse tamamla."
-            : "Mevcut adimi notlayarak sureci tamamla.";
+            : "Mevcut adımı notlayarak süreci tamamla.";
 
   return {
     score: clampedScore,
@@ -742,6 +742,6 @@ function localizeQueueTitle(title: string, key: string): string {
   if (key.includes("owner")) return "Sorumlu Atama Listesi";
   if (key.includes("brand")) return "Marka ve Gorunurluk Listesi";
   if (key.includes("onboard")) return "Kurulum Takip Listesi";
-  if (key.includes("triage")) return "Oncelikli Is Listesi";
+  if (key.includes("triage")) return "Öncelikli İş Listesi";
   return title.replace(/owner/gi, "sorumlu").replace(/triage/gi, "oncelik");
 }

@@ -302,26 +302,26 @@ class DemoWorkspaceOut(BaseModel):
 DEFAULT_TENANT_DEPARTMENT_SEED = [
     (
         "Hammadde Satın Alma",
-        "Uretim, stok ve operasyon icin kritik hammadde alimlarini yonetir.",
+        "Üretim, stok ve operasyon için kritik hammadde alımlarını yönetir.",
     ),
     (
         "Endirek Satın Alma",
-        "Ofis, hizmet, genel gider ve destek kalemleri alimlarini yonetir.",
+        "Ofis, hizmet, genel gider ve destek kalemleri alımlarını yönetir.",
     ),
     (
         "Ticari Satın Alma",
-        "Ticari urun, kategori ve satis odakli alim planlarini yonetir.",
+        "Ticari ürün, kategori ve satış odaklı alım planlarını yönetir.",
     ),
     (
         "Teknik Satın Alma",
-        "Makine, ekipman, teknik sartname ve proje bagli alimlari yonetir.",
+        "Makine, ekipman, teknik şartname ve proje bağlı alımları yönetir.",
     ),
 ]
 
 DEFAULT_TENANT_ROLE_SEED = [
     {
         "name": "Satın Alma Admin",
-        "description": "Tenant icindeki rol, departman, personel ve satin alma operasyon kataloglarini yonetir.",
+        "description": "Tenant içindeki rol, departman, personel ve satın alma operasyon kataloglarını yönetir.",
         "hierarchy_level": 0,
         "permissions": [
             "create:personnel",
@@ -371,7 +371,7 @@ DEFAULT_TENANT_ROLE_SEED = [
     },
     {
         "name": "Satın Alma Müdürü",
-        "description": "Kategori ekiplerini yonetir, proje ve teklif akislarini takip eder.",
+        "description": "Kategori ekiplerini yönetir, proje ve teklif akışlarını takip eder.",
         "hierarchy_level": 2,
         "permissions": [
             "read:personnel",
@@ -403,7 +403,7 @@ DEFAULT_TENANT_ROLE_SEED = [
     },
     {
         "name": "Satın Alma Yöneticisi",
-        "description": "Gunluk satin alma taleplerini, teklif toplama ve degerlendirme surecini yonetir.",
+        "description": "Günlük satın alma taleplerini, teklif toplama ve değerlendirme sürecini yönetir.",
         "hierarchy_level": 4,
         "permissions": [
             "read:department",
@@ -417,7 +417,7 @@ DEFAULT_TENANT_ROLE_SEED = [
     },
     {
         "name": "Satın Alma Kıdemli Uzmanı",
-        "description": "Kritik teklif ve tedarikci degerlendirme sureclerinde uzman rol ustlenir.",
+        "description": "Kritik teklif ve tedarikçi değerlendirme süreçlerinde uzman rol üstlenir.",
         "hierarchy_level": 5,
         "permissions": [
             "read:department",
@@ -430,7 +430,7 @@ DEFAULT_TENANT_ROLE_SEED = [
     },
     {
         "name": "Satın Alma Uzmanı",
-        "description": "Teklif toplama, fiyat karsilastirma ve tedarikci iletisimi operasyonunu yurutur.",
+        "description": "Teklif toplama, fiyat karşılaştırma ve tedarikçi iletişimi operasyonunu yürütür.",
         "hierarchy_level": 6,
         "permissions": [
             "read:department",
@@ -572,7 +572,8 @@ def _append_tenant_category(
 def _can_activate_onboarding_tenant(tenant: Tenant) -> bool:
     payment_status = str(tenant.onboarding_payment_status or "not_required").lower()
     approval_status = str(tenant.onboarding_approval_status or "not_required").lower()
-    return approval_status == "approved" and payment_status in {
+    # "not_required" means admin-created tenant (bypasses onboarding queue)
+    return approval_status in {"approved", "not_required"} and payment_status in {
         "verified",
         "succeeded",
         "not_required",
@@ -831,16 +832,16 @@ def _ensure_channel_workspace_tenant(db: Session, current_user: User) -> Tenant:
         return owned_tenant
 
     base_name = (
-        current_user.full_name or current_user.email or "Kanal Kullanici"
+        current_user.full_name or current_user.email or "Kanal Kullanıcı"
     ).strip()
-    legal_name = f"{base_name} Kisisel Is Ortagi Workspace"
+    legal_name = f"{base_name} Kişisel İş Ortağı Workspace"
     slug = _ensure_unique_tenant_slug(db, _slugify_tenant(legal_name))
 
     tenant = Tenant(
         slug=slug,
         legal_name=legal_name,
-        brand_name=(current_user.full_name or "Kisisel Is Ortagi").strip(),
-        category="Bireysel Is Ortagi",
+        brand_name=(current_user.full_name or "Kişisel İş Ortağı").strip(),
+        category="Bireysel İş Ortağı",
         subscription_plan_code="starter",
         owner_user_id=current_user.id,
         status="active",
@@ -1046,7 +1047,7 @@ def _seed_default_channel_personnel_for_tenant(
             "local": f"channel.{tenant.slug}.finance",
             "role": "channel_agent",
             "role_profile_code": "channel.finance_viewer",
-            "catalog_role": "Kanal Finans Goruntuleyici",
+            "catalog_role": "Kanal Finans Görüntüleyici",
             "department": "Finans ve Raporlama",
         },
         {
@@ -1055,7 +1056,7 @@ def _seed_default_channel_personnel_for_tenant(
             "role": "channel_agent",
             "role_profile_code": "channel.auditor",
             "catalog_role": "Kanal Denetcisi",
-            "department": "Musteri Gelistirme",
+            "department": "Müşteri Geliştirme",
         },
     ]
 
@@ -1481,14 +1482,14 @@ def _default_workspace_panel_quick_links(
     if normalized in {"supplier_admin", "supplier_user"}:
         return [
             WorkspacePanelQuickLink(
-                label="Tedarikci Workspace",
+                label="Tedarikçi Workspace",
                 href="/supplier/workspace?tab=offers",
-                description="Teklif, belge ve operasyon islerinizi supplier workspace uzerinden yonetin.",
+                description="Teklif, belge ve operasyon işlerinizi supplier workspace üzerinden yönetin.",
             ),
             WorkspacePanelQuickLink(
-                label="Tedarikci Dashboard",
+                label="Tedarikçi Dashboard",
                 href="/supplier/dashboard",
-                description="Tedarikci ozet ekranina gidin.",
+                description="Tedarikçi özet ekranına gidin.",
             ),
             WorkspacePanelQuickLink(
                 label="Finans Modulu",
@@ -1500,14 +1501,14 @@ def _default_workspace_panel_quick_links(
     if normalized in {"channel_owner", "channel_agent"}:
         return [
             WorkspacePanelQuickLink(
-                label="Is Ortagi Programi",
+                label="İş Ortağı Programı",
                 href="/is-ortagi-programi",
-                description="Kanal programi kapsamindaki akislari inceleyin.",
+                description="Kanal programı kapsamındaki akışları inceleyin.",
             ),
             WorkspacePanelQuickLink(
-                label="Programa Basvuru",
+                label="Programa Başvuru",
                 href="/is-ortagi-basvuru",
-                description="Kanal / komisyon programi basvuru akisini acin.",
+                description="Kanal / komisyon programı başvuru akışını açın.",
             ),
             WorkspacePanelQuickLink(
                 label="Public Fiyatlandirma",
@@ -1544,7 +1545,7 @@ def _default_workspace_panel_quick_links(
         WorkspacePanelQuickLink(
             label="Teklifler",
             href="/quotes",
-            description="Teklif sureclerini acin.",
+            description="Teklif süreçlerini açın.",
         ),
         WorkspacePanelQuickLink(
             label="Raporlar",
@@ -1570,7 +1571,7 @@ def _build_default_workspace_panel_profile(
         workspace_label=f"{label} Calisma Alani",
         description=f"{label} rolune ait ayri panel; varsayilan olarak ozet ve yonlendirme deneyimi sunar.",
         hero_title=f"{label} Paneli",
-        hero_description=f"{label} rolunun panel akislarini bu calisma alanindan yonetin.",
+        hero_description=f"{label} rolünün panel akışlarını bu çalışma alanından yönetin.",
         allowed_tabs=["panel_home"],
         quick_links=_default_workspace_panel_quick_links(normalized_role),
     )
@@ -1621,7 +1622,7 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 title="Super Admin Paneli",
                 nav_label="Super Admin",
                 workspace_label="Platform Kontrol Merkezi",
-                description="Platform genelindeki tum yonetim alanlari, tenant governance ve panel tasarimi bu panelden yonetilir.",
+                description="Platform genelindeki tüm yönetim alanları, tenant governance ve panel tasarımı bu panelden yönetilir.",
                 hero_title="Super Admin Paneli • Platform Kontrol Merkezi",
                 hero_description="Platform operasyonlari, stratejik partner gecisi, rol panelleri ve global ayarlar bu panel altinda birlestirilir.",
                 allowed_tabs=[
@@ -1655,9 +1656,9 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 title="Stratejik Ortak Admin Paneli",
                 nav_label="Ortak Admin",
                 workspace_label="Stratejik Ortak Sahiplik Alani",
-                description="Tenant sahipligi, organizasyon omurgasi ve yonetsel operasyonlar icin ayri panel profili.",
+                description="Tenant sahipliği, organizasyon omurgası ve yönetsel operasyonlar için ayrı panel profili.",
                 hero_title="Stratejik Ortak Admin Paneli",
-                hero_description="Firma, personel, rol, proje ve tedarikci operasyonlarini tenant odakli olarak yonetin.",
+                hero_description="Firma, personel, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
                 allowed_tabs=[
                     "panel_home",
                     "companies",
@@ -1677,10 +1678,10 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 system_role="tenant_admin",
                 title="Admin Paneli",
                 nav_label="Admin",
-                workspace_label="Tenant Yonetim Alani",
+                workspace_label="Tenant Yönetim Alanı",
                 description="Geleneksel tenant admin calisma alani; personel, rol ve operasyon sekmeleri bu profilde toplaniyor.",
-                hero_title="Admin Paneli • Tenant Yonetim Alani",
-                hero_description="Kendi tenant yapinizin personel, rol, departman ve operasyon alanlarini yonetin.",
+                hero_title="Admin Paneli • Tenant Yönetim Alanı",
+                hero_description="Kendi tenant yapınızın personel, rol, departman ve operasyon alanlarını yönetin.",
                 allowed_tabs=[
                     "panel_home",
                     "companies",
@@ -1703,7 +1704,7 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 workspace_label="Platform Destek Alani",
                 description="Platform destek ekipleri icin ayrilmis operasyon ve governance paneli.",
                 hero_title="Platform Destek Paneli",
-                hero_description="Destek kuyruklari, tenant governance ve discovery odaklarini destek perspektifinden yonetin.",
+                hero_description="Destek kuyrukları, tenant governance ve discovery odaklarını destek perspektifinden yönetin.",
                 allowed_tabs=[
                     "panel_home",
                     "platform_overview",
@@ -1729,7 +1730,7 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 workspace_label="Platform Operasyon Alani",
                 description="Platform operasyon ekipleri icin ayrilmis tenant ve destek koordinasyon paneli.",
                 hero_title="Platform Operasyon Paneli",
-                hero_description="Operasyon kuyruklarini, tenant akislarini ve sorun yonetimini platform operasyon perspektifinden yonetin.",
+                hero_description="Operasyon kuyruklarını, tenant akışlarını ve sorun yönetimini platform operasyon perspektifinden yönetin.",
                 allowed_tabs=[
                     "panel_home",
                     "platform_overview",
@@ -1750,11 +1751,11 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
             WorkspacePanelProfile(
                 business_role="manager",
                 system_role="tenant_member",
-                title="Yonetici Paneli",
-                nav_label="Yonetici",
-                workspace_label="Yonetici Calisma Alani",
-                description="Yonetici rolune ait ayri panel; varsayilan olarak ozet ve yonlendirme ekranlarini icerir.",
-                hero_title="Yonetici Paneli",
+                title="Yönetici Paneli",
+                nav_label="Yönetici",
+                workspace_label="Yönetici Calisma Alani",
+                description="Yönetici rolune ait ayri panel; varsayilan olarak ozet ve yonlendirme ekranlarini icerir.",
+                hero_title="Yönetici Paneli",
                 hero_description="Ekibinizin onay, teklif ve operasyon akislarina bu panelden yonlenin.",
                 allowed_tabs=["panel_home"],
                 quick_links=_default_workspace_panel_quick_links("manager"),
@@ -1767,7 +1768,7 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 workspace_label="Satin Alma Liderlik Alani",
                 description="Satin alma direktorlugu icin ayri panel; varsayilan olarak ozet ve yonlendirme deneyimi sunar.",
                 hero_title="Satin Alma Direktoru Paneli",
-                hero_description="Onay, karsilastirma ve teklif akislarina yonelik liderlik bakisini bu panelden yonetin.",
+                hero_description="Onay, karşılaştırma ve teklif akışlarına yönelik liderlik bakışını bu panelden yönetin.",
                 allowed_tabs=["panel_home"],
                 quick_links=_default_workspace_panel_quick_links("satinalma_direktoru"),
             ),
@@ -1779,7 +1780,7 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
                 workspace_label="Kanal Partner Alani",
                 description="Kanal hesap sahibine ozel panel; yonlendirme ve rol bazli gelecekteki sekme aktivasyonlari icin hazir.",
                 hero_title="Kanal Sahibi Paneli",
-                hero_description="Kanal programi, partner yonlendirmeleri ve panel erisimleri bu profilden yonetilir.",
+                hero_description="Kanal programı, partner yönlendirmeleri ve panel erişimleri bu profilden yönetilir.",
                 allowed_tabs=["panel_home"],
                 quick_links=_default_workspace_panel_quick_links("channel_owner"),
             ),
@@ -1798,24 +1799,24 @@ def _default_workspace_panel_config() -> WorkspacePanelConfig:
             WorkspacePanelProfile(
                 business_role="supplier_admin",
                 system_role="supplier_user",
-                title="Tedarikci Yonetici Paneli",
-                nav_label="Tedarikci Yoneticisi",
-                workspace_label="Tedarikci Yonetim Alani",
-                description="Tedarikci yoneticileri icin ayri panel; tedarikci workspace ve finans modullerine yonlendirme sunar.",
-                hero_title="Tedarikci Yonetici Paneli",
-                hero_description="Tedarikci ekibinizin teklif, belge ve finans akislarini bu panelden yonetin.",
+                title="Tedarikçi Yönetici Paneli",
+                nav_label="Tedarikçi Yöneticisi",
+                workspace_label="Tedarikçi Yönetim Alanı",
+                description="Tedarikçi yöneticileri için ayrı panel; tedarikçi workspace ve finans modüllerine yönlendirme sunar.",
+                hero_title="Tedarikçi Yönetici Paneli",
+                hero_description="Tedarikçi ekibinizin teklif, belge ve finans akışlarını bu panelden yönetin.",
                 allowed_tabs=["panel_home"],
                 quick_links=_default_workspace_panel_quick_links("supplier_admin"),
             ),
             WorkspacePanelProfile(
                 business_role="supplier_user",
                 system_role="supplier_user",
-                title="Tedarikci Kullanici Paneli",
-                nav_label="Tedarikci",
-                workspace_label="Tedarikci Calisma Alani",
-                description="Tedarikci kullanicilarina ozel panel; rol odakli yonlendirme ve kisitli panel kapsami sunar.",
-                hero_title="Tedarikci Kullanici Paneli",
-                hero_description="Kendi teklif, belge ve is akisinizi tedarikci panelinden takip edin.",
+                title="Tedarikçi Kullanıcı Paneli",
+                nav_label="Tedarikçi",
+                workspace_label="Tedarikçi Çalışma Alanı",
+                description="Tedarikçi kullanıcılarına özel panel; rol odaklı yönlendirme ve kısıtlı panel kapsamı sunar.",
+                hero_title="Tedarikçi Kullanıcı Paneli",
+                hero_description="Kendi teklif, belge ve iş akışınızı tedarikçi panelinden takip edin.",
                 allowed_tabs=["panel_home"],
                 quick_links=_default_workspace_panel_quick_links("supplier_user"),
             ),
@@ -1923,8 +1924,8 @@ def _validate_workspace_panel_config(config: WorkspacePanelConfig) -> None:
 PERMISSION_CATALOG_TREE = [
     {
         "key": "workspace_home",
-        "label": "Yonetim Ana Sayfasi",
-        "description": "Yonetim ozet kartlari ve genel operasyon panelleri.",
+        "label": "Yönetim Ana Sayfası",
+        "description": "Yönetim özet kartları ve genel operasyon panelleri.",
         "children": [
             {
                 "key": "workspace_home.kpi_cards",
@@ -1940,8 +1941,8 @@ PERMISSION_CATALOG_TREE = [
     },
     {
         "key": "admin_surface",
-        "label": "Yonetim Alani",
-        "description": "Kullanici, departman ve yonetim ekranlarina erisim.",
+        "label": "Yönetim Alanı",
+        "description": "Kullanıcı, departman ve yönetim ekranlarına erişim.",
         "children": [
             {
                 "key": "admin_surface.user_view",
@@ -1972,23 +1973,23 @@ PERMISSION_CATALOG_TREE = [
     },
     {
         "key": "manage_users",
-        "label": "Kullanici Yonetimi",
-        "description": "Rol atama ve kullanici yonetim aksiyonlari.",
+        "label": "Kullanıcı Yönetimi",
+        "description": "Rol atama ve kullanıcı yönetim aksiyonları.",
         "children": [],
     },
     {
         "key": "org_catalog",
-        "label": "Ortak Katalog Yonetimi",
-        "description": "Ortak rol ve departman katalogu yonetimi.",
+        "label": "Ortak Katalog Yönetimi",
+        "description": "Ortak rol ve departman kataloğu yönetimi.",
         "children": [
             {
                 "key": "org_catalog.roles.manage",
-                "label": "Ortak Rol Yonetimi",
+                "label": "Ortak Rol Yönetimi",
                 "description": "Ortak rol kataloguna ekleme, guncelleme ve silme.",
             },
             {
                 "key": "org_catalog.departments.manage",
-                "label": "Ortak Departman Yonetimi",
+                "label": "Ortak Departman Yönetimi",
                 "description": "Ortak departman kataloguna ekleme, guncelleme ve silme.",
             },
         ],
@@ -1996,7 +1997,7 @@ PERMISSION_CATALOG_TREE = [
     {
         "key": "quote_workspace",
         "label": "Teklif Calisma Alani",
-        "description": "Teklif surecleri ve satin alma operasyonlari.",
+        "description": "Teklif süreçleri ve satın alma operasyonları.",
         "children": [
             {
                 "key": "quote_workspace.list",
@@ -2015,8 +2016,8 @@ PERMISSION_CATALOG_TREE = [
             },
             {
                 "key": "quote_workspace.submit_approval",
-                "label": "Onaya Gonderme",
-                "description": "Teklifi onay surecine gonderme.",
+                "label": "Onaya Gönderme",
+                "description": "Teklifi onay sürecine gönderme.",
             },
             {
                 "key": "quote_workspace.comparison",
@@ -2033,8 +2034,8 @@ PERMISSION_CATALOG_TREE = [
     },
     {
         "key": "tenant_governance_read",
-        "label": "Stratejik Partner Yonetimi (Okuma)",
-        "description": "Stratejik partner yonetim kayitlarini goruntuleme.",
+        "label": "Stratejik Partner Yönetimi (Okuma)",
+        "description": "Stratejik partner yönetim kayıtlarını görüntüleme.",
         "children": [
             {
                 "key": "tenant_governance_read.list",
@@ -2050,8 +2051,8 @@ PERMISSION_CATALOG_TREE = [
     },
     {
         "key": "tenant_governance_write",
-        "label": "Stratejik Partner Yonetimi (Yazma)",
-        "description": "Stratejik partner yonetim kayitlarini guncelleme.",
+        "label": "Stratejik Partner Yönetimi (Yazma)",
+        "description": "Stratejik partner yönetim kayıtlarını güncelleme.",
         "children": [
             {
                 "key": "tenant_governance_write.detail_edit",
@@ -2075,7 +2076,7 @@ PERMISSION_CATALOG_TREE = [
     {
         "key": "shared_email",
         "label": "Ortak E-Posta Profilleri",
-        "description": "Platform SMTP/profil yonetimi.",
+        "description": "Platform SMTP/profil yönetimi.",
         "children": [],
     },
 ]
@@ -2138,7 +2139,7 @@ def _validate_permission_override_scope(
     if is_admin_managed_account(target_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Yonetici kullanicilarin kisiye ozel izinleri yalnizca super admin tarafindan duzenlenebilir",
+            detail="Yönetici kullanicilarin kisiye ozel izinleri yalnizca super admin tarafindan duzenlenebilir",
         )
 
     for item in items:
@@ -2374,7 +2375,7 @@ def require_role_management_user(current_user: User = Depends(get_current_user))
     if not can_manage_role_catalog(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Rol yonetimi icin yonetici yetkisi gerekir",
+            detail="Rol yönetimi için yönetici yetkisi gerekir",
         )
     return current_user
 
@@ -3546,7 +3547,7 @@ def _ensure_manageable_target_user(current_user: User, target_user: User):
     actor_priority = get_business_role_priority(current_user)
     target_priority = get_business_role_priority(target_user)
 
-    # Super admin, kendi kaydi disinda tum kullanicilari yonetebilir.
+    # Super admin, kendi kaydı dışında tüm kullanıcıları yönetebilir.
     # Self-delete korumasi ve son super admin guvencesi delete endpointinde ayrica uygulanir.
     if is_super_admin(current_user):
         return
@@ -3554,7 +3555,7 @@ def _ensure_manageable_target_user(current_user: User, target_user: User):
     if target_priority <= actor_priority:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Yalnizca kendi alt rolunuzdeki kullanicilari yonetebilirsiniz",
+            detail="Yalnızca kendi alt rolünüzdeki kullanıcıları yönetebilirsiniz",
         )
 
 
@@ -3612,7 +3613,7 @@ def _ensure_user_scope(user: User, current_user: User):
     ):
         raise HTTPException(
             status_code=403,
-            detail="Tenant admin bu hesabi personel akisindan yonetemez",
+            detail="Tenant admin bu hesabı personel akışından yönetemez",
         )
     if can_access_admin_surface(current_user):
         _ensure_manageable_target_user(current_user, user)
@@ -3873,9 +3874,11 @@ async def verify_onboarding_payment(
         raise HTTPException(status_code=404, detail="Tenant bulunamadi")
 
     payment_status = str(tenant.onboarding_payment_status or "not_required").lower()
-    if payment_status == "not_required":
+    # Only block if payment was already confirmed — "not_required" is allowed
+    # because EFT/Havale payments need manual super admin verification regardless
+    if payment_status in {"verified", "succeeded"}:
         raise HTTPException(
-            status_code=400, detail="Bu uyelik icin odeme dogrulamasi gerekmiyor"
+            status_code=400, detail="Ödeme zaten doğrulanmış durumda"
         )
 
     tenant.onboarding_payment_status = "verified"
@@ -3887,7 +3890,8 @@ async def verify_onboarding_payment(
             payment_txn.completed_at = utcnow()
             db.add(payment_txn)
             activate_premium_features_for_payment(db, payment_txn, tenant_id=tenant.id)
-    if str(tenant.onboarding_approval_status or "").lower() in {
+    # If approval was "not_required" or "needs_info", move it to pending after payment verify
+    if str(tenant.onboarding_approval_status or "not_required").lower() in {
         "not_required",
         "needs_info",
     }:
@@ -4515,7 +4519,7 @@ async def create_tenant(
         )
         if existing_user and not existing_user.hidden_from_admin:
             raise HTTPException(
-                status_code=400, detail="Ilk tenant admin e-postasi zaten kayitli"
+                status_code=400, detail="İlk tenant admin e-postası zaten kayıtlı"
             )
 
     slug = _ensure_unique_tenant_slug(
@@ -4542,6 +4546,9 @@ async def create_tenant(
         status=payload.status,
         onboarding_status=payload.onboarding_status,
         is_active=payload.is_active,
+        # Admin-created tenants are pre-approved; no onboarding queue or payment gate
+        onboarding_approval_status="approved",
+        onboarding_payment_status="not_required",
     )
     db.add(tenant)
     db.flush()
@@ -5330,7 +5337,7 @@ async def delete_department(
         except Exception as e:
             db.rollback()
             raise HTTPException(
-                status_code=500, detail=f"Departman silinirken hata oluÅŸtu: {str(e)}"
+                status_code=500, detail=f"Departman silinirken hata oluştu: {str(e)}"
             )
         return {"message": "Departman silindi"}
 
@@ -5495,7 +5502,7 @@ async def update_role(
     _ensure_role_scope(db, current_user, role_id)
     if not is_super_admin(current_user) and is_reserved_workspace_role(role.name):
         raise HTTPException(
-            status_code=400, detail="Admin kendi yonetici rolunu duzenleyemez"
+            status_code=400, detail="Admin kendi yönetici rolünü düzenleyemez"
         )
     _ensure_manageable_role_level(current_user, role)
 
@@ -5582,7 +5589,7 @@ async def delete_role(
     _ensure_role_scope(db, current_user, role_id)
     if not is_super_admin(current_user) and is_reserved_workspace_role(role.name):
         raise HTTPException(
-            status_code=400, detail="Admin kendi yonetici rolunu silemez"
+            status_code=400, detail="Admin kendi yönetici rolünü silemez"
         )
     _ensure_manageable_role_level(current_user, role)
 
@@ -6649,7 +6656,7 @@ async def update_user(
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Tenant admin personel akisinda yonetici sistem rolune gecis yapamaz",
+                detail="Tenant admin personel akışında yönetici sistem rolüne geçiş yapamaz",
             )
         update_data["system_role"] = resolve_requested_user_system_role(
             current_user,
@@ -6908,10 +6915,10 @@ async def upload_project_file(
 async def list_project_files(
     proj_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)
 ):
-    """Proje dosyalar�n� listele"""
+    """Proje dosyalarını listele"""
     project = db.query(Project).filter(Project.id == proj_id).first()
     if not project:
-        raise HTTPException(status_code=404, detail="Proje bulunamad�")
+        raise HTTPException(status_code=404, detail="Proje bulunamadı")
 
     current_user = _
     _ensure_project_scope(project, current_user)
@@ -6927,10 +6934,10 @@ async def delete_project_file(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin_user),
 ):
-    """Proje dosyas�n� sil (Sadece Super Admin)"""
+    """Proje dosyasını sil (Sadece Super Admin)"""
     project_file = db.query(ProjectFile).filter(ProjectFile.id == file_id).first()
     if not project_file:
-        raise HTTPException(status_code=404, detail="Dosya bulunamad�")
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
     project = db.query(Project).filter(Project.id == project_file.project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
@@ -6942,10 +6949,10 @@ async def delete_project_file(
             detail="Proje dosyasi silme yetkiniz yok",
         )
 
-    # Fiziksel dosyay� sil
+    # Fiziksel dosyayı sil
     FileUploadService.delete_file(project_file.file_path)
 
-    # Veritaban�ndan sil
+    # Veritabanından sil
     db.delete(project_file)
     db.commit()
 
@@ -7314,7 +7321,7 @@ async def list_platform_suppliers(
     _: User = Depends(require_tenant_governance_reader),
 ):
     """
-    Platform genelinde tenant'a bagli olmayan (kaynak: platform_network) tedarikci havuzu.
+    Platform genelinde tenant'a bağlı olmayan (kaynak: platform_network) tedarikçi havuzu.
     """
     suppliers = (
         db.query(Supplier)
@@ -7345,7 +7352,7 @@ async def create_platform_supplier(
     current_user: User = Depends(require_tenant_governance_manager),
 ):
     """
-    Platform genelinde kullanilabilecek (tenant'a bagli olmayan) tedarikci olustur.
+    Platform genelinde kullanılabilecek (tenant'a bağlı olmayan) tedarikçi oluştur.
     """
     name: str = (payload.get("name") or "").strip()
     email: str = (payload.get("email") or "").strip()
@@ -7360,7 +7367,7 @@ async def create_platform_supplier(
     existing = db.query(Supplier).filter(Supplier.email == email).first()
     if existing:
         raise HTTPException(
-            status_code=409, detail="Bu e-posta ile bir tedarikci zaten kayitli"
+            status_code=409, detail="Bu e-posta ile bir tedarikçi zaten kayıtlı"
         )
 
     supplier = Supplier(
@@ -7482,7 +7489,7 @@ async def list_demo_workspaces(
         DemoWorkspaceOut(
             key="demo-supplier-onboarding",
             workspace_type="supplier_demo",
-            title="Demo Tedarikci Aktivasyonu",
+            title="Demo Tedarikçi Aktivasyonu",
             scenario="Platform havuzundan secilen tedarikcilerin paket kontrolu ve ilk teklif donus hizini olcmek icin canli demo alani.",
             starts_at=now - timedelta(days=2),
             ends_at=now + timedelta(days=28),
@@ -7498,7 +7505,7 @@ async def list_demo_workspaces(
             scenario="Ana/alt firma hiyerarsisi ile proje dagitimi ve kanal davet akisini ceyrek donemlik planla dogrulama.",
             starts_at=now - timedelta(days=7),
             ends_at=now + timedelta(days=45),
-            commission_preview="Stratejik is ortagi gelir paylasimi: %5 islem bazli",
+            commission_preview="Stratejik iş ortağı gelir paylaşımı: %5 işlem bazlı",
             related_company_count=int(strategic_company_count),
             related_supplier_count=int(private_supplier_count),
             is_active=True,
@@ -7506,11 +7513,11 @@ async def list_demo_workspaces(
         DemoWorkspaceOut(
             key="demo-partner-governance",
             workspace_type="partner_demo",
-            title="Demo Is Ortagi Yonetisim",
+            title="Demo İş Ortağı Yönetişim",
             scenario="Kanal ekipleri icin davet, proje acilis ve onboarding gecis adimlarini governance raporlariyla izleme.",
             starts_at=now,
             ends_at=now + timedelta(days=60),
-            commission_preview="Kanal is ortagi yonlendirme komisyonu: kademeli 3-7%",
+            commission_preview="Kanal iş ortağı yönlendirme komisyonu: kademeli 3-7%",
             related_company_count=int(partner_count),
             related_supplier_count=int(
                 private_supplier_count + platform_supplier_count

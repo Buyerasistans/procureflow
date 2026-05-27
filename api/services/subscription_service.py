@@ -78,7 +78,7 @@ def _append_policy_flag_modules(catalog: SubscriptionCatalogOut) -> None:
             {
                 "code": "channel_commission_policy",
                 "name": "Kanal Komisyon Kurali",
-                "description": "Channel/hak edis komisyon kurallarinin plan seviyesinde tanimli olup olmadigini belirtir.",
+                "description": "Channel/hak ediş komisyon kurallarının plan seviyesinde tanımlı olup olmadığını belirtir.",
                 "enabled": True,
                 "limit_key": "allow_channel_commission_rules",
                 "limit_value": 1,
@@ -89,7 +89,7 @@ def _append_policy_flag_modules(catalog: SubscriptionCatalogOut) -> None:
             {
                 "code": "campaign_listing_policy",
                 "name": "Kampanya Vitrin Yetkisi",
-                "description": "Tedarikci paketi icin kampanya vitrini/one cikarma policy'sinin acikligini belirtir.",
+                "description": "Tedarikçi paketi için kampanya vitrini/öne çıkarma policy'sinin açıklığını belirtir.",
                 "enabled": True,
                 "limit_key": "allow_campaign_listing",
                 "limit_value": 1,
@@ -98,7 +98,7 @@ def _append_policy_flag_modules(catalog: SubscriptionCatalogOut) -> None:
             {
                 "code": "channel_commission_policy",
                 "name": "Kanal Komisyon Kurali",
-                "description": "Tedarikci paketi icin channel komisyon/odeme policy'sinin aktifligini belirtir.",
+                "description": "Tedarikçi paketi için channel komisyon/ödeme policy'sinin aktifliğini belirtir.",
                 "enabled": True,
                 "limit_key": "allow_channel_commission_rules",
                 "limit_value": 0,
@@ -109,7 +109,7 @@ def _append_policy_flag_modules(catalog: SubscriptionCatalogOut) -> None:
             {
                 "code": "campaign_listing_policy",
                 "name": "Kampanya Vitrin Yetkisi",
-                "description": "Is ortagi paketi icin kampanya vitrini policy'sinin acikligini belirtir.",
+                "description": "İş ortağı paketi için kampanya vitrini policy'sinin açıklığını belirtir.",
                 "enabled": True,
                 "limit_key": "allow_campaign_listing",
                 "limit_value": 0,
@@ -118,7 +118,7 @@ def _append_policy_flag_modules(catalog: SubscriptionCatalogOut) -> None:
             {
                 "code": "channel_commission_policy",
                 "name": "Kanal Komisyon Kurali",
-                "description": "Is ortagi paketi icin kanal komisyon policy'sinin acikligini belirtir.",
+                "description": "İş ortağı paketi için kanal komisyon policy'sinin açıklığını belirtir.",
                 "enabled": True,
                 "limit_key": "allow_channel_commission_rules",
                 "limit_value": 1,
@@ -152,13 +152,13 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
             {
                 "code": "starter",
                 "name": "Başlangıç",
-                "description": "Kucuk ekipler icin temel teklif isteme, tedarikci, proje, kullanici ve dosya yonetimi paketi.",
+                "description": "Küçük ekipler için temel teklif isteme, tedarikçi, proje, kullanıcı ve dosya yönetimi paketi.",
                 "audience": "strategic_partner",
                 "is_default": True,
                 "modules": [
                     {
                         "code": "rfq_core",
-                        "name": "RFQ (Teklif Isteme Formu) Yonetimi",
+                        "name": "RFQ (Teklif İsteme Formu) Yönetimi",
                         "description": "Teklif isteme, teklif toplama ve onay akislarini standart hacimde acik tutar.",
                         "enabled": True,
                         "limit_key": "active_quotes",
@@ -167,16 +167,16 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "supplier_portal",
-                        "name": "Tedarikci Portali",
-                        "description": "Tedarikci daveti ve cevap toplama akislarini baslangic hacminde acik tutar.",
+                        "name": "Tedarikçi Portalı",
+                        "description": "Tedarikçi daveti ve cevap toplama akışlarını başlangıç hacminde açık tutar.",
                         "enabled": True,
                         "limit_key": "active_private_suppliers",
                         "limit_value": 50,
-                        "unit": "tedarikci",
+                        "unit": "tedarikçi",
                     },
                     {
                         "code": "company_limit",
-                        "name": "Firma Yonetimi",
+                        "name": "Firma Yönetimi",
                         "description": "Paket dahilinde aktif tutulabilecek firma sayisini belirler.",
                         "enabled": True,
                         "limit_key": "active_companies",
@@ -185,8 +185,8 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "project_limit",
-                        "name": "Proje Yonetimi",
-                        "description": "Ayni anda yonetilebilecek aktif proje adedini sinirlar.",
+                        "name": "Proje Yönetimi",
+                        "description": "Aynı anda yönetilebilecek aktif proje adedini sınırlar.",
                         "enabled": True,
                         "limit_key": "active_projects",
                         "limit_value": 5,
@@ -194,17 +194,17 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "user_limit",
-                        "name": "Kullanici Yonetimi",
-                        "description": "Aktif ic kullanici sayisini kontrollu baslangic hacminde tutar.",
+                        "name": "Kullanıcı Yönetimi",
+                        "description": "Aktif iç kullanıcı sayısını kontrollü başlangıç hacminde tutar.",
                         "enabled": True,
                         "limit_key": "active_internal_users",
                         "limit_value": 10,
-                        "unit": "kullanici",
+                        "unit": "kullanıcı",
                     },
                     {
                         "code": "project_file_limit",
-                        "name": "Proje Dosya Yukleme",
-                        "description": "Proje basina yuklenebilecek toplam dosya adedini belirler.",
+                        "name": "Proje Dosya Yükleme",
+                        "description": "Proje başına yüklenebilecek toplam dosya adedini belirler.",
                         "enabled": True,
                         "limit_key": "project_files_total",
                         "limit_value": 100,
@@ -229,7 +229,7 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                 "modules": [
                     {
                         "code": "rfq_core",
-                        "name": "RFQ (Teklif Isteme Formu) Yonetimi",
+                        "name": "RFQ (Teklif İsteme Formu) Yönetimi",
                         "description": "Teklif isteme, teklif toplama ve onay akislarini buyuyen ekip hacminde acik tutar.",
                         "enabled": True,
                         "limit_key": "active_quotes",
@@ -238,17 +238,17 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "supplier_portal",
-                        "name": "Tedarikci Portali",
-                        "description": "Tedarikci daveti ve cevap toplama akislarini genisletilmis portfoy hacminde tutar.",
+                        "name": "Tedarikçi Portalı",
+                        "description": "Tedarikçi daveti ve cevap toplama akışlarını genişletilmiş portföy hacminde tutar.",
                         "enabled": True,
                         "limit_key": "active_private_suppliers",
                         "limit_value": 250,
-                        "unit": "tedarikci",
+                        "unit": "tedarikçi",
                     },
                     {
                         "code": "company_limit",
-                        "name": "Firma Yonetimi",
-                        "description": "Buyuyen organizasyonlarda yonetilebilecek aktif firma kapasitesini genisletir.",
+                        "name": "Firma Yönetimi",
+                        "description": "Büyüyen organizasyonlarda yönetilebilecek aktif firma kapasitesini genişletir.",
                         "enabled": True,
                         "limit_key": "active_companies",
                         "limit_value": 10,
@@ -256,8 +256,8 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "project_limit",
-                        "name": "Proje Yonetimi",
-                        "description": "Ayni anda yonetilebilecek aktif proje adedini buyume seviyesine tasir.",
+                        "name": "Proje Yönetimi",
+                        "description": "Aynı anda yönetilebilecek aktif proje adedini büyüme seviyesine taşır.",
                         "enabled": True,
                         "limit_key": "active_projects",
                         "limit_value": 20,
@@ -265,17 +265,17 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "user_limit",
-                        "name": "Kullanici Yonetimi",
-                        "description": "Aktif ic kullanici kapasitesini buyuyen ekipler icin genisletir.",
+                        "name": "Kullanıcı Yönetimi",
+                        "description": "Aktif iç kullanıcı kapasitesini büyüyen ekipler için genişletir.",
                         "enabled": True,
                         "limit_key": "active_internal_users",
                         "limit_value": 50,
-                        "unit": "kullanici",
+                        "unit": "kullanıcı",
                     },
                     {
                         "code": "project_file_limit",
-                        "name": "Proje Dosya Yukleme",
-                        "description": "Proje basina dosya yukleme adedini daha yuksek hacme tasir.",
+                        "name": "Proje Dosya Yükleme",
+                        "description": "Proje başına dosya yükleme adedini daha yüksek hacme taşır.",
                         "enabled": True,
                         "limit_key": "project_files_total",
                         "limit_value": 500,
@@ -284,7 +284,7 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     {
                         "code": "project_file_size_limit",
                         "name": "Proje Dosya Boyutu",
-                        "description": "Tek dosya boyutu icin daha yuksek yukleme siniri saglar.",
+                        "description": "Tek dosya boyutu için daha yüksek yükleme sınırı sağlar.",
                         "enabled": True,
                         "limit_key": "project_file_size_mb",
                         "limit_value": 50,
@@ -300,7 +300,7 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                 "modules": [
                     {
                         "code": "rfq_core",
-                        "name": "RFQ (Teklif Isteme Formu) Yonetimi",
+                        "name": "RFQ (Teklif İsteme Formu) Yönetimi",
                         "description": "Teklif isteme, teklif toplama ve onay akislarini kurumsal hacimde acik tutar.",
                         "enabled": True,
                         "limit_key": "active_quotes",
@@ -309,16 +309,16 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "supplier_portal",
-                        "name": "Tedarikci Portali",
-                        "description": "Tedarikci agini kurumsal olcekte yonetmek icin daha yuksek ust limit saglar.",
+                        "name": "Tedarikçi Portalı",
+                        "description": "Tedarikçi ağını kurumsal ölçekte yönetmek için daha yüksek üst limit sağlar.",
                         "enabled": True,
                         "limit_key": "active_private_suppliers",
                         "limit_value": 1000,
-                        "unit": "tedarikci",
+                        "unit": "tedarikçi",
                     },
                     {
                         "code": "company_limit",
-                        "name": "Firma Yonetimi",
+                        "name": "Firma Yönetimi",
                         "description": "Kurumsal olcekte aktif firma kapasitesini genisletir.",
                         "enabled": True,
                         "limit_key": "active_companies",
@@ -327,7 +327,7 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "project_limit",
-                        "name": "Proje Yonetimi",
+                        "name": "Proje Yönetimi",
                         "description": "Aktif proje kapasitesini kurumsal olcekte genisletir.",
                         "enabled": True,
                         "limit_key": "active_projects",
@@ -336,17 +336,17 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
                     },
                     {
                         "code": "user_limit",
-                        "name": "Kullanici Yonetimi",
-                        "description": "Aktif kullanici kapasitesini kurumsal organizasyonlar icin genisletir.",
+                        "name": "Kullanıcı Yönetimi",
+                        "description": "Aktif kullanıcı kapasitesini kurumsal organizasyonlar için genişletir.",
                         "enabled": True,
                         "limit_key": "active_internal_users",
                         "limit_value": 250,
-                        "unit": "kullanici",
+                        "unit": "kullanıcı",
                     },
                     {
                         "code": "project_file_limit",
-                        "name": "Proje Dosya Yukleme",
-                        "description": "Proje basina yuklenebilecek dosya adedini kurumsal hacme tasir.",
+                        "name": "Proje Dosya Yükleme",
+                        "description": "Proje başına yüklenebilecek dosya adedini kurumsal hacme taşır.",
                         "enabled": True,
                         "limit_key": "project_files_total",
                         "limit_value": 2000,
@@ -424,21 +424,21 @@ def build_subscription_catalog() -> SubscriptionCatalogOut:
             },
             {
                 "code": "business_partner_free",
-                "name": "Is Ortagi Programi",
-                "description": "Referans bazli komisyon modeli ile ucretsiz is ortagi kaydi.",
+                "name": "İş Ortağı Programı",
+                "description": "Referans bazlı komisyon modeli ile ücretsiz iş ortağı kaydı.",
                 "audience": "business_partner",
                 "is_default": True,
                 "modules": [
                     {
                         "code": "referral_tracking",
                         "name": "Referans Takibi",
-                        "description": "Getirilen musteri ve islem akisini panelden takip edin.",
+                        "description": "Getirilen müşteri ve işlem akışını panelden takip edin.",
                         "enabled": True,
                     },
                     {
                         "code": "commission_ledger",
                         "name": "Komisyon Defteri",
-                        "description": "Komisyon hareketleri, hak edis ve odeme kayitlarini izleyin.",
+                        "description": "Komisyon hareketleri, hak ediş ve ödeme kayıtlarını izleyin.",
                         "enabled": True,
                     },
                 ],
@@ -682,21 +682,21 @@ def build_subscription_catalog_snapshot(db: Session) -> SubscriptionCatalogSnaps
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_active_internal_users",
-                        label="Aktif Kullanici",
+                        label="Aktif Kullanıcı",
                         used=active_user_count,
                         limit=get_effective_plan_limit(
                             db, tenant, "max_active_internal_users"
                         ),
-                        unit="kullanici",
+                        unit="kullanıcı",
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_active_private_suppliers",
-                        label="Aktif Ozel Tedarikci",
+                        label="Aktif Özel Tedarikçi",
                         used=supplier_count,
                         limit=get_effective_plan_limit(
                             db, tenant, "max_active_private_suppliers"
                         ),
-                        unit="tedarikci",
+                        unit="tedarikçi",
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_active_rfqs",
@@ -707,7 +707,7 @@ def build_subscription_catalog_snapshot(db: Session) -> SubscriptionCatalogSnaps
                     ),
                     SubscriptionTenantUsageMetricOut(
                         key="max_project_files_total",
-                        label="Proje Dosya Yukleme",
+                        label="Proje Dosya Yükleme",
                         used=project_file_count,
                         limit=get_effective_plan_limit(
                             db, tenant, "max_project_files_total"
@@ -776,9 +776,9 @@ def enforce_active_internal_user_limit(db: Session, tenant: Tenant | None) -> No
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=(
-                "Aktif kullanici limiti asildi. "
+                "Aktif kullanıcı limiti aşıldı. "
                 f"Mevcut plan: {normalize_subscription_plan_code(tenant.subscription_plan_code)}. "
-                f"Limit: {limit_value} aktif kullanici."
+                f"Limit: {limit_value} aktif kullanıcı."
             ),
         )
 
@@ -803,9 +803,9 @@ def enforce_active_private_supplier_limit(db: Session, tenant: Tenant | None) ->
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=(
-                "Aktif tedarikci limiti asildi. "
+                "Aktif tedarikçi limiti aşıldı. "
                 f"Mevcut plan: {normalize_subscription_plan_code(tenant.subscription_plan_code)}. "
-                f"Limit: {limit_value} aktif tedarikci."
+                f"Limit: {limit_value} aktif tedarikçi."
             ),
         )
 

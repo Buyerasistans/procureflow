@@ -1,4 +1,4 @@
-.category-selection-modal__backdrop {
+﻿.category-selection-modal__backdrop {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
@@ -11,9 +11,9 @@
 
 .category-selection-modal__panel {
   width: min(760px, 100%);
-  background: #fff;
+  background: var(--pf-surface);
   border-radius: 20px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--pf-border-color-alt);
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
   padding: 20px;
   display: grid;
@@ -32,18 +32,18 @@
 .category-selection-modal__title {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pf-slate-900);
 }
 
 .category-selection-modal__subtitle {
   margin-top: 6px;
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 13px;
 }
 
 .category-selection-modal__close-button {
   border: none;
-  background: #f8fafc;
+  background: var(--pf-slate-50);
   border-radius: 999px;
   width: 36px;
   height: 36px;
@@ -58,9 +58,9 @@
 }
 
 .category-selection-modal__option {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #334155;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
+  color: var(--pf-slate-700);
   border-radius: 999px;
   padding: 8px 12px;
   font-weight: 700;
@@ -69,9 +69,9 @@
 }
 
 .category-selection-modal__option--active {
-  border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: var(--pf-color-primary);
+  background: var(--pf-color-primary-light);
+  color: var(--pf-color-primary-dark);
 }
 
 .category-selection-modal__custom-section {
@@ -84,11 +84,11 @@
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .category-selection-modal__custom-input {
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pf-slate-300);
   border-radius: 14px;
   padding: 12px;
   font-size: 14px;
@@ -97,12 +97,12 @@
 }
 
 .category-selection-modal__summary {
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 12px;
 }
 
 .category-selection-modal__warning {
-  color: #b45309;
+  color: var(--pf-color-warning);
   font-size: 12px;
   font-weight: 700;
 }
@@ -118,13 +118,13 @@
   padding: 6px 10px;
   border-radius: 999px;
   background: #ecfeff;
-  color: #0f766e;
+  color: var(--pf-teal-700);
   font-weight: 700;
   font-size: 12px;
 }
 
 .category-selection-modal__empty-chip {
-  color: #94a3b8;
+  color: var(--pf-slate-400);
   font-size: 12px;
 }
 
@@ -142,14 +142,14 @@
 }
 
 .category-selection-modal__button--cancel {
-  border: 1px solid #cbd5e1;
-  background: #fff;
+  border: 1px solid var(--pf-slate-300);
+  background: var(--pf-surface);
 }
 
 .category-selection-modal__button--save {
   border: none;
-  background: #2563eb;
-  color: #fff;
+  background: var(--pf-color-primary);
+  color: var(--pf-surface);
   padding: 10px 16px;
   font-weight: 800;
 }

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 from io import BytesIO
+from pathlib import Path
+
+import pytest
 
 from api.database import SessionLocal
 from api.models import (
@@ -12,7 +15,11 @@ from api.models import (
     Quote,
     QuoteItem,
 )
+from api.services.cad_convert import can_convert_dwg
+from api.services.cad_convert import convert_dwg_to_dxf
 from api.services import extractor as extractor_module
+
+pytestmark = pytest.mark.nodrop
 
 
 def test_ai_lab_rejects_invalid_extension(client, admin_auth_headers):
@@ -23,7 +30,152 @@ def test_ai_lab_rejects_invalid_extension(client, admin_auth_headers):
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Yalnizca .dwg veya .dxf dosyalari desteklenir"
+    detail = response.json()["detail"]
+    assert detail["code"] == "UNSUPPORTED_CAD_EXTENSION"
+    assert detail["message"] == "Yalnızca .dwg veya .dxf dosyaları desteklenir."
+    assert detail["request_id"]
+
+
+def test_can_convert_dwg_reports_missing_converter_without_name_error(monkeypatch):
+    monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
+    monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
+    monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "api.services.cad_convert._iter_default_converter_candidates", lambda: []
+    )
+
+    ok, reason = can_convert_dwg()
+
+    assert ok is False
+    assert "_resolve_oda_executable" not in reason
+    assert "DWG dönüştürme aracı bulunamadı" in reason
+
+
+def test_ai_lab_dwg_converter_missing_returns_sanitized_error(
+    client, monkeypatch, admin_auth_headers
+):
+    monkeypatch.setattr(
+        "api.routers.ai_lab.can_convert_dwg",
+        lambda: (False, "name '_resolve_oda_executable' is not defined"),
+    )
+
+    response = client.post(
+        "/api/v1/ai-lab/analyze",
+        files={
+            "file": (
+                "test-plan.dwg",
+                BytesIO(b"DWG"),
+                "application/acad",
+            )
+        },
+        headers=admin_auth_headers,
+    )
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail["code"] == "DWG_CONVERTER_UNAVAILABLE"
+    assert "_resolve_oda_executable" not in detail["message"]
+    assert "Lütfen dosyayı DXF olarak yükleyin" in detail["message"]
+    assert detail["request_id"]
+
+
+def test_ai_lab_converter_health_returns_safe_diagnostics(
+    client, monkeypatch, admin_auth_headers
+):
+    monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
+    monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
+    monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "api.services.cad_convert._iter_default_converter_candidates", lambda: []
+    )
+
+    response = client.get(
+        "/api/v1/ai-lab/health/converter", headers=admin_auth_headers
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload == {
+        "converter_found": False,
+        "resolver_source": "unavailable",
+        "executable_name": None,
+        "request_id": payload["request_id"],
+    }
+    assert payload["request_id"]
+
+
+def test_ai_lab_converter_health_detects_default_install_candidate(
+    client, monkeypatch, admin_auth_headers
+):
+    candidate = Path(__file__).resolve()
+    monkeypatch.delenv("DWG_TO_DXF_CONVERTER_PATH", raising=False)
+    monkeypatch.delenv("ODA_CONVERTER_PATH", raising=False)
+    monkeypatch.setattr("api.services.cad_convert.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "api.services.cad_convert._iter_default_converter_candidates",
+        lambda: [candidate],
+    )
+
+    response = client.get(
+        "/api/v1/ai-lab/health/converter", headers=admin_auth_headers
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload == {
+        "converter_found": True,
+        "resolver_source": "default_install:ODA",
+        "executable_name": candidate.name,
+        "request_id": payload["request_id"],
+    }
+    assert payload["request_id"]
+
+
+def test_convert_dwg_to_dxf_uses_oda_cli_argument_order(monkeypatch, tmp_path):
+    converter = tmp_path / "ODAFileConverter.exe"
+    converter.write_text("stub", encoding="utf-8")
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    dwg_path = input_dir / "sample.dwg"
+    dwg_path.write_bytes(b"DWG")
+    captured: dict[str, list[str]] = {}
+
+    def fake_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        captured["kwargs"] = kwargs
+        (output_dir / "sample.dxf").write_text("0\nEOF\n", encoding="utf-8")
+
+        class Result:
+            returncode = 0
+            stdout = ""
+            stderr = ""
+
+        return Result()
+
+    monkeypatch.setattr(
+        "api.services.cad_convert._resolve_dwg_converter_executable",
+        lambda: converter,
+    )
+    monkeypatch.setattr("api.services.cad_convert.subprocess.run", fake_run)
+
+    result_path = convert_dwg_to_dxf(dwg_path, output_dir, output_version="ACAD2013")
+
+    assert result_path == output_dir.resolve() / "sample.dxf"
+    assert captured["cmd"] == [
+        str(converter),
+        str(input_dir.resolve()),
+        str(output_dir.resolve()),
+        "ACAD2013",
+        "DXF",
+        "0",
+        "1",
+    ]
+    assert captured["kwargs"] == {
+        "capture_output": True,
+        "text": True,
+        "timeout": 180,
+    }
 
 
 def test_ai_lab_returns_analysis_payload_with_fallback_ai_report(
@@ -208,7 +360,11 @@ def test_ai_lab_logs_bom_selection_decision_and_confirm_transfer(
         quote_items = (
             db.query(QuoteItem).filter(QuoteItem.quote_id == quote_row.id).all()
         )
-        assert quote_items == []
+        group_headers = [item for item in quote_items if item.is_group_header]
+        child_items = [item for item in quote_items if not item.is_group_header]
+        assert group_headers
+        assert child_items
+        assert all(item.group_key for item in quote_items)
 
         event_rows = (
             db.query(DiscoveryLabEvent)
@@ -224,6 +380,167 @@ def test_ai_lab_logs_bom_selection_decision_and_confirm_transfer(
         ]
     finally:
         db.close()
+
+
+def test_ai_lab_confirm_without_project_creates_default_transfer_project(
+    client, monkeypatch, admin_auth_headers
+):
+    metadata = {
+        "proje_ozet": {
+            "kaynak_dosya": "auto-project.dxf",
+            "pf_katman_sayisi": 1,
+            "pf_blok_sayisi": 0,
+            "minha_adedi": 0,
+        },
+        "katmanlar": [
+            {
+                "layer_name": "ALD_Duvar",
+                "total_length": 18.0,
+                "unit": "mt",
+                "entity_count": 1,
+            }
+        ],
+        "bloklar": [],
+        "minha_elemanlari": [],
+    }
+
+    monkeypatch.setattr(
+        extractor_module.DWGExtractor, "extract_metadata", lambda self: metadata
+    )
+
+    analyze_response = client.post(
+        "/api/v1/ai-lab/analyze",
+        files={
+            "file": (
+                "auto-project.dxf",
+                BytesIO(b"0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF\n"),
+                "application/dxf",
+            )
+        },
+        headers=admin_auth_headers,
+    )
+    assert analyze_response.status_code == 200, analyze_response.text
+    analyze_payload = analyze_response.json()
+    session_id = analyze_payload["session_id"]
+    selected_keys = [
+        f"{item.get('source_layer')}-{item.get('material')}-{index}"
+        for index, item in enumerate(analyze_payload["bom"])
+    ]
+    assert selected_keys
+
+    confirm_response = client.post(
+        "/api/v1/ai-lab/confirm",
+        json={
+            "session_id": session_id,
+            "project_id": None,
+            "selected_bom_item_keys": selected_keys,
+        },
+        headers=admin_auth_headers,
+    )
+
+    assert confirm_response.status_code == 200, confirm_response.text
+    confirm_payload = confirm_response.json()
+    assert confirm_payload["transfer"]["status"] == "queued_for_procurement"
+    assert confirm_payload["transfer"]["project_name"] == "Discovery Lab Aktarım Projesi"
+
+    db = SessionLocal()
+    try:
+        project_row = (
+            db.query(Project)
+            .filter(Project.name == "Discovery Lab Aktarım Projesi")
+            .order_by(Project.id.desc())
+            .first()
+        )
+        assert project_row is not None
+        session_row = (
+            db.query(DiscoveryLabSession)
+            .filter(DiscoveryLabSession.session_id == session_id)
+            .first()
+        )
+        assert session_row is not None
+        assert session_row.selected_project_id == project_row.id
+        quote_items = (
+            db.query(QuoteItem)
+            .filter(QuoteItem.quote_id == session_row.procurement_quote_id)
+            .all()
+        )
+        group_headers = [item for item in quote_items if item.is_group_header]
+        child_items = [item for item in quote_items if not item.is_group_header]
+        assert len(child_items) == len(selected_keys)
+        assert any(item.description == "Alçıpan İşleri" for item in group_headers)
+        assert any(item.description == "Astar" for item in child_items)
+        assert all(item.group_key == "alcipan-isleri" for item in child_items)
+    finally:
+        db.close()
+
+
+def test_ai_lab_session_mutations_and_timeline_reject_unrelated_user(
+    client, monkeypatch, admin_auth_headers, other_user_auth_headers
+):
+    metadata = {
+        "proje_ozet": {
+            "kaynak_dosya": "guard-test.dxf",
+            "pf_katman_sayisi": 1,
+            "pf_blok_sayisi": 0,
+            "minha_adedi": 0,
+        },
+        "katmanlar": [
+            {
+                "layer_name": "PF_DUVAR",
+                "total_length": 12.0,
+                "unit": "mt",
+                "entity_count": 1,
+            }
+        ],
+        "bloklar": [],
+        "minha_elemanlari": [],
+    }
+
+    monkeypatch.setattr(
+        extractor_module.DWGExtractor, "extract_metadata", lambda self: metadata
+    )
+
+    analyze_response = client.post(
+        "/api/v1/ai-lab/analyze",
+        files={
+            "file": (
+                "guard-test.dxf",
+                BytesIO(b"0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF\n"),
+                "application/dxf",
+            )
+        },
+        headers=admin_auth_headers,
+    )
+    assert analyze_response.status_code == 200, analyze_response.text
+    session_id = analyze_response.json()["session_id"]
+
+    mutation_attempts = [
+        (
+            "/api/v1/ai-lab/bom-selection",
+            {"session_id": session_id, "item_key": "PF_DUVAR-Duvar-0", "selected": False},
+        ),
+        (
+            "/api/v1/ai-lab/decision",
+            {"session_id": session_id, "question_id": 1, "decision": "approved"},
+        ),
+        (
+            "/api/v1/ai-lab/answer",
+            {
+                "session_id": session_id,
+                "question_id": 1,
+                "answer_text": "Kontrol edilecek.",
+            },
+        ),
+    ]
+
+    for url, payload in mutation_attempts:
+        response = client.post(url, json=payload, headers=other_user_auth_headers)
+        assert response.status_code == 403, response.text
+
+    timeline_response = client.get(
+        f"/api/v1/ai-lab/{session_id}/timeline", headers=other_user_auth_headers
+    )
+    assert timeline_response.status_code == 403, timeline_response.text
 
 
 def test_ai_lab_persists_user_answer_audit_and_timeline(

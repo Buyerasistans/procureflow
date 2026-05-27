@@ -1,4 +1,4 @@
-.referral-link-center__toolbar {
+﻿.referral-link-center__toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -8,16 +8,16 @@
 
 .referral-link-center__toolbar-stats {
   font-size: 12px;
-  color: #475569;
+  color: var(--pf-slate-600);
 }
 
 .referral-link-center__select {
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pf-slate-300);
   border-radius: 8px;
   padding: 4px 8px;
   font-size: 12px;
-  color: #334155;
-  background-color: #fff;
+  color: var(--pf-slate-700);
+  background-color: var(--pf-surface);
 }
 
 .referral-link-center__select--campaign {
@@ -38,20 +38,20 @@
 
 .referral-link-center__button--general {
   border: 1px solid #93c5fd;
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  background-color: var(--pf-color-primary-light);
+  color: var(--pf-color-primary-dark);
 }
 
 .referral-link-center__button--campaign {
-  border: 1px solid #86efac;
-  background-color: #f0fdf4;
-  color: #166534;
+  border: 1px solid var(--pf-color-success-border);
+  background-color: var(--pf-color-success-light);
+  color: var(--pf-green-800);
 }
 
 .referral-link-center__button--copy {
-  border: 1px solid #bfdbfe;
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  border: 1px solid var(--pf-blue-200);
+  background-color: var(--pf-color-primary-light);
+  color: var(--pf-color-primary-dark);
   font-size: 11px;
   font-weight: 600;
   padding: 3px 7px;
@@ -65,7 +65,7 @@
 
 .referral-link-center__empty {
   margin: 0;
-  color: #64748b;
+  color: var(--pf-slate-500);
   font-size: 14px;
 }
 
@@ -75,10 +75,10 @@
 }
 
 .referral-link-center__item {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pf-slate-200);
   border-radius: 10px;
   padding: 10px;
-  background-color: #f8fafc;
+  background-color: var(--pf-slate-50);
 }
 
 .referral-link-center__item-header {
@@ -110,8 +110,8 @@
 }
 
 .referral-link-center__badge--target {
-  color: #1d4ed8;
-  background: #dbeafe;
+  color: var(--pf-color-primary-dark);
+  background: var(--pf-blue-100);
 }
 
 .referral-link-center__badge--campaign {
@@ -131,7 +131,7 @@
 }
 
 .referral-link-center__status--active {
-  color: #166534;
+  color: var(--pf-green-800);
 }
 
 .referral-link-center__status--inactive {
@@ -140,7 +140,7 @@
 
 .referral-link-center__tracking {
   font-size: 12px;
-  color: #334155;
+  color: var(--pf-slate-700);
   margin-top: 6px;
   word-break: break-word;
 }

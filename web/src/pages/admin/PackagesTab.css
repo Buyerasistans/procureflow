@@ -1,4 +1,4 @@
-.packages-tab {
+﻿.packages-tab {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -16,12 +16,12 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary, var(--pf-gray-900));
 }
 
 .packages-tab__description {
   margin: 0.5rem 0 0;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary, var(--pf-gray-500));
   max-width: 60ch;
 }
 
@@ -39,20 +39,20 @@
   padding: 0.35rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  background: var(--surface-muted, #e5e7eb);
-  color: var(--text-primary, #111827);
+  background: var(--surface-muted, var(--pf-border-color));
+  color: var(--text-primary, var(--pf-gray-900));
 }
 
 .packages-tab__badge--muted {
-  background: var(--surface-subtle, #f3f4f6);
+  background: var(--surface-subtle, var(--pf-gray-100));
   color: var(--text-secondary, #4b5563);
 }
 
 .packages-tab__toolbar,
 .packages-tab__panel {
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-color, var(--pf-border-color));
   border-radius: 0.75rem;
-  background: var(--surface, #ffffff);
+  background: var(--surface, var(--pf-surface));
   padding: 1rem;
   box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
 }
@@ -62,7 +62,7 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary, var(--pf-gray-900));
 }
 
 .packages-tab__filters {
@@ -87,15 +87,15 @@
 .packages-tab__select {
   min-height: 2.5rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-color, #d1d5db);
-  background: var(--surface, #ffffff);
-  color: var(--text-primary, #111827);
+  border: 1px solid var(--border-color, var(--pf-gray-300));
+  background: var(--surface, var(--pf-surface));
+  color: var(--text-primary, var(--pf-gray-900));
   padding: 0.5rem 0.75rem;
   font: inherit;
 }
 
 .packages-tab__select:focus {
-  outline: 2px solid var(--focus-ring, #2563eb);
+  outline: 2px solid var(--focus-ring, var(--pf-color-primary));
   outline-offset: 2px;
 }
 
@@ -117,15 +117,15 @@
 
 .packages-tab__panel-copy {
   margin: 0;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary, var(--pf-gray-500));
 }
 
 .packages-tab__empty-state {
-  border: 1px dashed var(--border-color, #d1d5db);
+  border: 1px dashed var(--border-color, var(--pf-gray-300));
   border-radius: 0.5rem;
   padding: 1rem;
-  color: var(--text-secondary, #6b7280);
-  background: var(--surface-subtle, #f9fafb);
+  color: var(--text-secondary, var(--pf-gray-500));
+  background: var(--surface-subtle, var(--pf-gray-50));
 }
 
 @media (max-width: 48rem) {

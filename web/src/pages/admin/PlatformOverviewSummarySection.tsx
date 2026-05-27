@@ -86,7 +86,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
   return (
     <section className="platform-overview-summary-section">
       {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
-        eyebrow: "Yonetici Odagi",
+        eyebrow: "Yönetici Odağı",
         title: searchParams.get("tenantFocusName")
           ? `Platform genel bakis odagi: ${searchParams.get("tenantFocusName")}`
           : searchParams.get("projectFocusName")
@@ -101,7 +101,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
         sourceLabel: "Platform genel bakis baglantisi",
         timestamp: PLATFORM_OVERVIEW_BANNER_TIMESTAMP,
         actions: [
-          searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
+          searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
           searchParams.get("projectFocusName") ? { label: "Discovery Lab'a Git", onClick: () => navigateAdminTab("discovery_lab_operations", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
           searchParams.get("projectFocusName") ? { label: "Projects'e Git", onClick: () => navigateAdminTab("projects", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
           searchParams.get("onboardingPlanFocus") ? { label: "Onboarding'e Git", onClick: () => navigateAdminTab("onboarding_studio", { onboardingPlanFocus: searchParams.get("onboardingPlanFocus") || "" }) } : undefined,
@@ -113,7 +113,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
       <div className="platform-overview-summary-section__grid">
         {renderSummaryCards([
           { label: "Aktif Stratejik Partner / Firma", value: tenants.filter((item) => item.is_active).length || totalActiveCompanies, note: `${tenants.filter((item) => !item.is_active).length || totalPassiveCompanies} pasif kayit`, color: "#2563eb", large: true },
-          { label: "Aktif Kullanici", value: totalActivePersonnel, note: `${totalPassivePersonnel} pasif kayit`, color: "#059669" },
+          { label: "Aktif Kullanıcı", value: totalActivePersonnel, note: `${totalPassivePersonnel} pasif kayıt`, color: "#059669" },
           { label: "Aktif Departman", value: totalActiveDepartments, note: `${departments.length} toplam departman`, color: "#b45309" },
           { label: "Aktif Rol", value: totalActiveRoles, note: `${roles.length} toplam rol`, color: "#7c3aed" },
         ])}
@@ -130,7 +130,7 @@ export function PlatformOverviewSummarySection(props: PlatformOverviewSummarySec
 
       <div className="platform-overview-summary-section__grid">
         {renderSummaryCards([
-          { label: "Acik Destek Kaydi", value: platformOpsOverviewSummary.activeWork, note: "Yeni, islemde veya owner bekleyen support kayitlari", color: "#1d4ed8" },
+          { label: "Açık Destek Kaydı", value: platformOpsOverviewSummary.activeWork, note: "Yeni, işlemde veya owner bekleyen support kayıtları", color: "#1d4ed8" },
           { label: "Owner Bekleyen Destek", value: platformOpsOverviewSummary.ownerWaiting, note: "Platform ekibinin owner geri donusu bekledigi kayitlar", color: "#7c3aed" },
           { label: "Kapanisi Tamamlanan", value: platformOpsOverviewSummary.resolvedWithReason, note: "Cozuldu durumuna alinip kapanis nedeni girilen kayitlar", color: "#15803d" },
           { label: "Temasi Geciken Kayit", value: platformOpsOverviewSummary.staleContact, note: "Uc gun ve uzeri temas edilmeyen aktif destek kayitlari", color: "#b45309" },

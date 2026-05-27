@@ -38,7 +38,7 @@ export function ReferralLinkCenter({
   function getTargetLabel(value: string) {
     const key = String(value || "mixed").toLowerCase();
     if (key === "partner") return "Stratejik Partner";
-    if (key === "supplier") return "Tedarikci";
+    if (key === "supplier") return "Tedarikçi";
     return "Karma";
   }
 
@@ -71,7 +71,7 @@ export function ReferralLinkCenter({
                 >
                   <option value="mixed">Karma</option>
                   <option value="partner">Stratejik Partner</option>
-                  <option value="supplier">Tedarikci</option>
+                  <option value="supplier">Tedarikçi</option>
                 </select>
 
                 <button

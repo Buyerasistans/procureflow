@@ -22,8 +22,8 @@ const fallbackConfig: PricingConfig = {
     plans: [
       {
         code: "starter",
-        name: "Baslangic",
-        description: "Temel RFQ ve tedarikci operasyonlari",
+        name: "Başlangıç",
+        description: "Temel RFQ ve tedarikçi operasyonları",
         features: ["RFQ + teklif toplama", "Temel rapor ekranlari", "Standart destek"],
       },
       {
@@ -44,13 +44,13 @@ const fallbackConfig: PricingConfig = {
     plans: [
       {
         code: "supplier_free",
-        name: "Tedarikci Ucretsiz",
-        description: "Temel tedarikci gorunurluk paketi",
+        name: "Tedarikçi Ücretsiz",
+        description: "Temel tedarikçi görünürlük paketi",
         features: ["Profil olusturma", "Teklif yanitlama", "Aylik performans ozeti"],
       },
       {
         code: "supplier_prime",
-        name: "Tedarikci Prime",
+        name: "Tedarikçi Prime",
         description: "Gelismis gorunurluk ve analiz",
         features: ["One cikarma", "Kategori bazli rapor", "Oncelikli destek"],
       },
@@ -79,7 +79,7 @@ export default function PricingPlansPage() {
       <section style={{ maxWidth: 1080, margin: "0 auto" }}>
         <h1 style={{ fontSize: 38, color: "#0f172a", marginBottom: 8 }}>Fiyatlandırma</h1>
         <p style={{ color: "#475569", marginBottom: 24, lineHeight: 1.7 }}>
-          Fiyatlandirma icerigi artik Teklifler ve Tedarikciler sayfalarina dagitildi. Bu sayfa geriye donuk yonlendirme merkezi olarak tutulur.
+          Fiyatlandırma içeriği artık Teklifler ve Tedarikçiler sayfalarına dağıtıldı. Bu sayfa geriye dönük yönlendirme merkezi olarak tutulur.
         </p>
 
         <section id="stratejik" style={{ marginBottom: 24 }}>
@@ -105,12 +105,12 @@ export default function PricingPlansPage() {
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
             <a href="/teklifler#planlar" style={primaryBtn}>Teklifler Planlarini Ac</a>
-            <a href="/stratejik-ortaklik" style={outlineBtn}>Stratejik Partner Programi</a>
+            <a href="/stratejik-ortaklik" style={outlineBtn}>Stratejik Partner Programı</a>
           </div>
         </section>
 
         <section id="tedarikci" style={{ marginBottom: 24 }}>
-          <h2 style={sectionTitle}>Tedarikci Planlari</h2>
+          <h2 style={sectionTitle}>Tedarikçi Planları</h2>
           <div style={gridStyle}>
             {config.supplier.plans.map((p, i) => (
               <article key={p.code} style={{ ...cardStyle, border: i === 1 ? "2px solid #0284c7" : "1px solid #e2e8f0" }}>
@@ -131,9 +131,9 @@ export default function PricingPlansPage() {
             ))}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-            <a href="/tedarikciler#planlar" style={supplierBtn}>Tedarikci Planlarini Ac</a>
-            <a href="/tedarikci-ol" style={outlineBtn}>Tedarikci Programi</a>
-            <a href="/supplier/login" style={outlineBtn}>Tedarikci Girisi</a>
+            <a href="/tedarikciler#planlar" style={supplierBtn}>Tedarikçi Planlarıni Ac</a>
+            <a href="/tedarikci-ol" style={outlineBtn}>Tedarikçi Programı</a>
+            <a href="/supplier/login" style={outlineBtn}>Tedarikçi Girişi</a>
           </div>
         </section>
 
@@ -204,4 +204,3 @@ const outlineBtn = {
   fontWeight: 700,
   padding: "10px 14px",
 };
-

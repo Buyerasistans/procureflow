@@ -1,4 +1,4 @@
-.company-create-modal__backdrop {
+﻿.company-create-modal__backdrop {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -14,7 +14,7 @@
   max-width: 600px;
   max-height: 90vh;
   overflow: auto;
-  background: #fff;
+  background: var(--pf-surface);
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
@@ -90,8 +90,8 @@
   border-radius: 4px;
   font-family: inherit;
   font-size: 14px;
-  background: #fff;
-  color: #111827;
+  background: var(--pf-surface);
+  color: var(--pf-gray-900);
 }
 
 .company-create-modal__textarea {
@@ -111,7 +111,7 @@
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid #ccc;
-  background: #fff;
+  background: var(--pf-surface);
   padding: 0;
 }
 
@@ -158,12 +158,12 @@
 
 .company-create-modal__primary-button {
   background: #2196f3;
-  color: #fff;
+  color: var(--pf-surface);
 }
 
 .company-create-modal__primary-button--disabled {
   background: #ccc;
-  color: #fff;
+  color: var(--pf-surface);
   cursor: not-allowed;
 }
 

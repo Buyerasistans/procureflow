@@ -56,8 +56,8 @@ export function ConversionOverviewPanel({
           <StatCard label="Kayit" value={(conversionMetrics?.signups ?? 0).toLocaleString("tr-TR")} />
           <StatCard label="Aktivasyon" value={(conversionMetrics?.activations ?? 0).toLocaleString("tr-TR")} />
           <StatCard label="Partnere Donusen" value={(conversionMetrics?.converted_partner_count ?? 0).toLocaleString("tr-TR")} />
-          <StatCard label="Tedarikciye Donusen" value={(conversionMetrics?.converted_supplier_count ?? 0).toLocaleString("tr-TR")} />
-          <StatCard label="Tedarikciden Partnere" value={(conversionMetrics?.supplier_to_partner_count ?? 0).toLocaleString("tr-TR")} />
+          <StatCard label="Tedarikçiye Dönüşen" value={(conversionMetrics?.converted_supplier_count ?? 0).toLocaleString("tr-TR")} />
+          <StatCard label="Tedarikçiden Partnere" value={(conversionMetrics?.supplier_to_partner_count ?? 0).toLocaleString("tr-TR")} />
         </div>
 
         <ConversionFunnelPanel data={conversionMetrics} />

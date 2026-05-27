@@ -72,7 +72,7 @@ def _append_onboarding_timeline_for_payment(
     items.append(
         {
             "action": action,
-            "actor_name": "Basvuru Sahibi",
+            "actor_name": "Başvuru Sahibi",
             "actor_type": "applicant",
             "note": note,
             "at": utcnow().isoformat(),

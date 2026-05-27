@@ -26,21 +26,21 @@ interface HelpArticle {
 }
 
 const ARTICLES: HelpArticle[] = [
-  // Baslangic
-  { id: "a1", title: "Aktivasyon nasil yapilir?", summary: "Aktivasyon mailinden hesabinizi nasil aktive edersiniz.", slug: "aktivasyon", category: "Baslangic" },
-  { id: "a2", title: "Ilk giristen sonra ne yapmaliyim?", summary: "Aktivasyon sonrasi tamamlamaniz gereken adimlar.", slug: "aktivasyon/baslangic", category: "Baslangic" },
-  { id: "a3", title: "Sifremi nasil degistiririm?", summary: "Profil sayfasindan sifre guncelleme adimlari.", slug: "hesap/sifre", category: "Hesap" },
+  // Başlangıç
+  { id: "a1", title: "Aktivasyon nasıl yapılır?", summary: "Aktivasyon mailinden hesabınızı nasıl aktive edersiniz.", slug: "aktivasyon", category: "Başlangıç" },
+  { id: "a2", title: "İlk girişten sonra ne yapmalıyım?", summary: "Aktivasyon sonrası tamamlamanız gereken adımlar.", slug: "aktivasyon/baslangic", category: "Başlangıç" },
+  { id: "a3", title: "Şifremi nasıl değiştiririm?", summary: "Profil sayfasından şifre güncelleme adımları.", slug: "hesap/sifre", category: "Hesap" },
 
   // Stratejik Partner
-  { id: "b1", title: "Sirket bilgilerimi nasil guncellerim?", summary: "Vergi no, adres ve telefon bilgisi guncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
-  { id: "b2", title: "Kullanici nasil davet ederim?", summary: "Ekibinizi platforma ekleme adimlari.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
-  { id: "b3", title: "Tedarikci nasil eklenir?", summary: "Tedarikci kaydi olusturma ve yonetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
-  { id: "b4", title: "Teklif talebi (RFQ) nasil olusturulur?", summary: "Satin alma talebi olusturma ve tedarikcilere gonderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
+  { id: "b1", title: "Şirket bilgilerimi nasıl güncellerim?", summary: "Vergi no, adres ve telefon bilgisi güncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
+  { id: "b2", title: "Kullanıcı nasıl davet ederim?", summary: "Ekibinizi platforma ekleme adımları.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
+  { id: "b3", title: "Tedarikçi nasıl eklenir?", summary: "Tedarikçi kaydı oluşturma ve yönetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
+  { id: "b4", title: "Teklif talebi (RFQ) nasıl oluşturulur?", summary: "Satın alma talebi oluşturma ve tedarikçilere gönderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
 
-  // Tedarikci
-  { id: "c1", title: "Tedarikci profili nasil tamamlanir?", summary: "Iletisim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikci" },
-  { id: "c2", title: "Teklif nasil verilir?", summary: "Acik teklif taleplerine yanit verme.", slug: "tedarikci/teklif-verme", category: "Tedarikci" },
-  { id: "c3", title: "Belge yukleme nasil yapilir?", summary: "Zorunlu evraklari sisteme ekleme.", slug: "tedarikci/belgeler", category: "Tedarikci" },
+  // Tedarikçi
+  { id: "c1", title: "Tedarikçi profili nasıl tamamlanır?", summary: "İletişim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikçi" },
+  { id: "c2", title: "Teklif nasıl verilir?", summary: "Açık teklif taleplerine yanıt verme.", slug: "tedarikci/teklif-verme", category: "Tedarikçi" },
+  { id: "c3", title: "Belge yükleme nasıl yapılır?", summary: "Zorunlu evrakları sisteme ekleme.", slug: "tedarikci/belgeler", category: "Tedarikçi" },
 
   // Fatura & Odeme
   { id: "d1", title: "Fatura nereden goruntulenir?", summary: "Abonelik faturalari ve odeme gecmisi.", slug: "fatura/goruntuleme", category: "Fatura & Odeme" },
@@ -48,10 +48,10 @@ const ARTICLES: HelpArticle[] = [
 
   // Destek
   { id: "e1", title: "Destek talebi nasil acilir?", summary: "Platform personeline talep iletme adimlari.", slug: "destek/talep-acma", category: "Destek" },
-  { id: "e2", title: "SLA sureleri nedir?", summary: "Oncelik gore yanit ve cozum sureleri.", slug: "destek/sla", category: "Destek" },
+  { id: "e2", title: "SLA süreleri nedir?", summary: "Önceliğe göre yanıt ve çözüm süreleri.", slug: "destek/sla", category: "Destek" },
 
-  // Is Ortagi
-  { id: "f1", title: "Is Ortagi programina nasil katilirim?", summary: "Program kosullari ve kayit adimlari.", slug: "is-ortagi/program-kosullari", category: "Is Ortagi" },
+  // İş Ortağı
+  { id: "f1", title: "İş Ortağı programına nasıl katılırım?", summary: "Program koşulları ve kayıt adımları.", slug: "is-ortagi/program-kosullari", category: "İş Ortağı" },
 ];
 
 const CATEGORIES = [...new Set(ARTICLES.map((a) => a.category))];
@@ -66,15 +66,15 @@ export default function HelpCenter() {
   const { locale } = useLocale();
   const t = usePublicTranslations("help_center", locale, {
     title: "Yardim Merkezi",
-    subtitle: "Nasil yardimci olabiliriz?",
+    subtitle: "Nasıl yardımcı olabiliriz?",
     articles_tab: "Makaleler",
     ticket_tab: "Destek Talebi",
-    search_placeholder: "Kilavuzlarda ara...",
-    all_categories: "Tumu",
+    search_placeholder: "Kılavuzlarda ara...",
+    all_categories: "Tümü",
     not_found: "Aranan kilavuz bulunamadi.",
     missing_prompt: "Aradiginizi bulamadin mi?",
     create_ticket: "Destek Talebi Olustur",
-    view_all_docs: "Tum Kilavuzlari Goruntule (buyerasistans.info/docs)",
+    view_all_docs: "Tüm Kılavuzları Görüntüle (buyerasistans.info/docs)",
   });
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>("search");

@@ -163,3 +163,14 @@ local_backups/
 # agent runtime files
 tools/agent/SESSION_CONTEXT.md
 
+# --- Agent runtime policy ---
+# Default: ignore all agent runtime
+tools/agent/**
+# Keep required persistent agent files tracked
+!tools/agent/AI_BRIEFING.md
+!tools/agent/SESSION_CONTEXT.md
+!tools/agent/STATE.md
+!tools/agent/build_briefing.ps1
+!tools/agent/orchestrator.ps1
+!tools/agent/prompts/
+!tools/agent/prompts/**

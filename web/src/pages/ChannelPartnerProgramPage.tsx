@@ -5,20 +5,20 @@ const c = BRAND_COLORS.channel;
 
 const benefits = [
   {
-    title: "Referans Bazli Gelir",
-    desc: "Getirdiginiz stratejik partner ve tedarikci kayitlari icin komisyon ve hedef bazli prim modeli.",
+    title: "Referans Bazlı Gelir",
+    desc: "Getirdiğiniz stratejik partner ve tedarikçi kayıtları için komisyon ve hedef bazlı prim modeli.",
   },
   {
-    title: "Seffaf Hak Edis Takibi",
-    desc: "Attribution kilidi ve ledger kayitlari ile hangi kayittan ne kazandiginizi net gorun.",
+    title: "Şeffaf Hakediş Takibi",
+    desc: "Attribution kilidi ve ledger kayıtları ile hangi kayıttan ne kazandığınızı net görün.",
   },
   {
-    title: "Hazir Satis Kitleri",
-    desc: "Demo deck, referans senaryolari ve onboarding scriptleri ile daha hizli donusum.",
+    title: "Hazır Satış Kitleri",
+    desc: "Demo deck, referans senaryoları ve onboarding scriptleri ile daha hızlı dönüşüm.",
   },
   {
     title: "Panel ve Raporlama",
-    desc: "Ekibinizin performansini, donusum oranini ve odeme bekleyen kalemleri tek panelde izleyin.",
+    desc: "Ekibinizin performansını, dönüşüm oranını ve ödeme bekleyen kalemleri tek panelde izleyin.",
   },
 ];
 
@@ -53,21 +53,21 @@ export default function ChannelPartnerProgramPage() {
               marginBottom: 20,
             }}
           >
-            Is Ortagi / Komisyon Programi
+            İş Ortağı / Komisyon Programı
           </div>
           <h1 style={{ margin: "0 0 14px", fontSize: "clamp(28px, 5vw, 46px)", fontWeight: 900, color: "#fff" }}>
-            Networkunuzu Gelire Donusturun
+            Networkunuzu Gelire Dönüştürün
           </h1>
           <p style={{ margin: "0 auto 28px", maxWidth: 720, color: "rgba(255,247,237,0.86)", lineHeight: 1.7, fontSize: 16 }}>
-            Is ortagi programi; getirdiginiz partner ve tedarikci kayitlarini kalici attribution ile takip eder,
-            hak edisleri seffaf sekilde hesaplar ve odeme akisini olceklendirir.
+            İş ortağı programı; getirdiğiniz partner ve tedarikçi kayıtlarını kalıcı attribution ile takip eder,
+            hakedişleri şeffaf şekilde hesaplar ve ödeme akışını ölçeklendirir.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <a href="/demo?audience=strategic" style={primaryBtn}>
               Program Demosu Talep Et
             </a>
             <a href="/is-ortagi-basvuru" style={ghostBtn}>
-              Basvuru Surecini Baslat
+              Başvuru Sürecini Başlat
             </a>
           </div>
         </div>

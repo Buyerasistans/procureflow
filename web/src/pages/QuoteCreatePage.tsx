@@ -117,13 +117,13 @@ type ListingScopePreference = "private_suppliers_only" | "platform_network_only"
 const LISTING_SCOPE_OPTIONS: Array<{ value: ListingScopePreference; label: string; hint: string }> = [
   {
     value: "private_suppliers_only",
-    label: "Sadece kendi tedarikcileri",
+    label: "Sadece kendi tedarikçileri",
     hint: "RFQ sadece private supplier havuzundan gorunur.",
   },
   {
     value: "platform_network_only",
     label: "Platform agina acik",
-    hint: "Platform network tedarikcileri hedeflenir (paket/premium kurallari gecerlidir).",
+    hint: "Platform network tedarikçileri hedeflenir (paket/premium kuralları geçerlidir).",
   },
   {
     value: "private_and_platform_network",
@@ -132,8 +132,8 @@ const LISTING_SCOPE_OPTIONS: Array<{ value: ListingScopePreference; label: strin
   },
   {
     value: "premium_featured_listing",
-    label: "Premium / ozel listeleme",
-    hint: "Premium entitlement aktifse RFQ ozel vitrin sinyalini tasir.",
+    label: "Premium / özel listeleme",
+    hint: "Premium entitlement aktifse RFQ özel vitrin sinyalini taşır.",
   },
 ];
 
@@ -469,7 +469,7 @@ export default function QuoteCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canManageQuotes) {
-      setError("Bu hesap teklif olusturma yetkisine sahip degil");
+      setError("Bu hesap teklif oluşturma yetkisine sahip değil");
       return;
     }
     if (!projectId) { setError("Lütfen proje seçiniz"); return; }
@@ -563,7 +563,7 @@ export default function QuoteCreatePage() {
           <h2 style={{ margin: 0, fontSize: "20px" }}>Yeni RFQ / Teklif Talebi</h2>
         </div>
         <div style={{ ...S.card, background: "#eff6ff", borderColor: "#bfdbfe", color: "#1e3a8a" }}>
-          Platform personeli teklif alaninda salt okunur erisime sahiptir. Yeni teklif olusturma akisi bu hesaplar icin kapatildi.
+          Platform personeli teklif alanında salt okunur erişime sahiptir. Yeni teklif oluşturma akışı bu hesaplar için kapatıldı.
         </div>
       </div>
     );
@@ -672,12 +672,12 @@ export default function QuoteCreatePage() {
             </select>
             {projectPersonnelAssignmentsLoading && selectedProject?.personnel?.length ? (
               <div style={{ marginTop: 6, fontSize: 12, color: "#475569" }}>
-                Proje personel atamalari yukleniyor...
+                Proje personel atamaları yükleniyor...
               </div>
             ) : null}
             {!projectPersonnelAssignmentsLoading && !visiblePersonnel.length && effectiveDepartmentId ? (
               <div style={{ marginTop: 6, fontSize: 12, color: "#92400e" }}>
-                Secili proje ve departman icin uygun sorumlu bulunamadi.
+                Seçili proje ve departman için uygun sorumlu bulunamadı.
               </div>
             ) : null}
           </div>

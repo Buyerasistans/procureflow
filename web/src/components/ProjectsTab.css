@@ -1,4 +1,4 @@
-.projects-tab {
+﻿.projects-tab {
   display: grid;
   gap: 20px;
 }
@@ -7,9 +7,9 @@
   margin-bottom: 16px;
   padding: 12px;
   border-radius: 12px;
-  background: #fff7ed;
-  color: #9a3412;
-  border: 1px solid #fed7aa;
+  background: var(--pf-color-warning-light);
+  color: var(--pf-orange-800);
+  border: 1px solid var(--pf-orange-200);
 }
 
 .projects-tab__filters {
@@ -28,10 +28,10 @@
 .projects-tab__select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pf-gray-300);
   border-radius: 6px;
   font-size: 14px;
-  background-color: #fff;
+  background-color: var(--pf-surface);
   cursor: pointer;
 }
 
@@ -41,7 +41,7 @@
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #374151;
+  color: var(--pf-gray-700);
   white-space: nowrap;
 }
 
@@ -62,15 +62,15 @@
 .projects-tab__search {
   flex: 1;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pf-gray-300);
   border-radius: 6px;
   font-size: 14px;
 }
 
 .projects-tab__create-button {
   padding: 10px 16px;
-  background-color: #3b82f6;
-  color: #fff;
+  background-color: var(--pf-blue-500);
+  color: var(--pf-surface);
   border: none;
   border-radius: 6px;
   font-weight: 700;
@@ -98,7 +98,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  color: #fff;
+  color: var(--pf-surface);
   font-weight: 600;
   font-size: 14px;
   cursor: default;
@@ -112,10 +112,10 @@
 .projects-tab__empty {
   text-align: center;
   padding: 32px;
-  color: #6b7280;
-  background-color: #f3f4f6;
+  color: var(--pf-gray-500);
+  background-color: var(--pf-gray-100);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pf-border-color);
 }
 
 .projects-tab__loading {
@@ -129,18 +129,18 @@
   gap: 16px;
   padding: 16px;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #fff;
+  border-bottom: 1px solid var(--pf-border-color);
+  background-color: var(--pf-surface);
   transition: background-color 0.2s;
 }
 
 .projects-tab__row:hover {
-  background-color: #f9fafb;
+  background-color: var(--pf-gray-50);
 }
 
 .projects-tab__company-badge {
   display: inline-block;
-  color: #fff;
+  color: var(--pf-surface);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
@@ -150,12 +150,12 @@
 
 .projects-tab__company-badge--blue,
 .projects-tab__group-header--blue {
-  background-color: #3b82f6;
+  background-color: var(--pf-blue-500);
 }
 
 .projects-tab__company-badge--emerald,
 .projects-tab__group-header--emerald {
-  background-color: #10b981;
+  background-color: var(--pf-green-500);
 }
 
 .projects-tab__company-badge--violet,
@@ -165,7 +165,7 @@
 
 .projects-tab__company-badge--amber,
 .projects-tab__group-header--amber {
-  background-color: #f59e0b;
+  background-color: var(--pf-amber-400);
 }
 
 .projects-tab__company-badge--rose,
@@ -180,14 +180,14 @@
 
 .projects-tab__company-badge--slate,
 .projects-tab__group-header--slate {
-  background-color: #64748b;
+  background-color: var(--pf-slate-500);
 }
 
 .projects-tab__project-name {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--pf-gray-800);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -196,7 +196,7 @@
 .projects-tab__project-code {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pf-gray-500);
 }
 
 .projects-tab__project-type {
@@ -213,8 +213,8 @@
 }
 
 .projects-tab__project-type--center {
-  background-color: #dcfce7;
-  color: #16a34a;
+  background-color: var(--pf-green-100);
+  color: var(--pf-color-success);
 }
 
 .projects-tab__manager {
@@ -226,7 +226,7 @@
 
 .projects-tab__manager-name {
   font-size: 13px;
-  color: #374151;
+  color: var(--pf-gray-700);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -236,7 +236,7 @@
 .projects-tab__manager-phone {
   padding: 4px 8px;
   background-color: #22c55e;
-  color: #fff;
+  color: var(--pf-surface);
   border-radius: 4px;
   text-decoration: none;
   font-size: 12px;
@@ -248,7 +248,7 @@
 }
 
 .projects-tab__manager-phone:hover {
-  background-color: #16a34a;
+  background-color: var(--pf-color-success);
 }
 
 .projects-tab__actions {
@@ -259,7 +259,7 @@
 
 .projects-tab__action {
   padding: 6px 12px;
-  color: #fff;
+  color: var(--pf-surface);
   text-decoration: none;
   border-radius: 4px;
   font-size: 12px;
@@ -270,19 +270,19 @@
 }
 
 .projects-tab__action--details {
-  background-color: #3b82f6;
+  background-color: var(--pf-blue-500);
 }
 
 .projects-tab__action--details:hover {
-  background-color: #2563eb;
+  background-color: var(--pf-color-primary);
 }
 
 .projects-tab__action--delete {
-  background-color: #ef4444;
+  background-color: var(--pf-red-500);
 }
 
 .projects-tab__action--delete:hover {
-  background-color: #dc2626;
+  background-color: var(--pf-red-600);
 }
 
 .projects-tab__action--delete:disabled {

@@ -74,7 +74,7 @@ export function UpgradeExtrasWorkspace({
             <div className="upgrade-extras-workspace__eyebrow">Ayrik Calisma Ekrani</div>
             <div className="upgrade-extras-workspace__title">Yukseltme / Ekstra Ozellikler</div>
             <div className="upgrade-extras-workspace__description">
-              Paket gecisi, mevcut hizmet limitleri ve tekil ek ozellik alimlarini bu ekrandan yonetin.
+              Paket geçişi, mevcut hizmet limitleri ve tekil ek özellik alımlarını bu ekrandan yönetin.
             </div>
           </div>
           <Link to="/admin?tab=panel_home" className="upgrade-extras-workspace__back-link">
@@ -94,7 +94,7 @@ export function UpgradeExtrasWorkspace({
           <div className="upgrade-extras-workspace__service-list">
             {(purchasedServiceCards.length > 0
               ? purchasedServiceCards
-              : [{ key: "default-rights", title: "Standart yonetim haklari" }]).map((card) => (
+              : [{ key: "default-rights", title: "Standart yönetim hakları" }]).map((card) => (
                 <div key={card.key} className="upgrade-extras-workspace__service-card">
                   <div className="upgrade-extras-workspace__service-title">{card.title}</div>
                   {card.note ? <div className="upgrade-extras-workspace__service-note">{card.note}</div> : null}
@@ -122,11 +122,11 @@ export function UpgradeExtrasWorkspace({
                     {
                       key: "extra-special-listing",
                       name: "Ozel Listeleme",
-                      description: "Teklifleriniz daha genis tedarikci agina acilir.",
+                      description: "Teklifleriniz daha geniş tedarikçi ağına açılır.",
                       priceLabel: "Fiyatlandirma super admin tarafinda tanimlanir",
                       incrementLabel: "Ozellik bazli aktivasyon",
                       detailLines: [
-                        "Ozel listeleme aktif oldugunda tekliflerinizi daha fazla tedarikci gorebilir ve ek teklif alabilirsiniz.",
+                        "Özel listeleme aktif olduğunda tekliflerinizi daha fazla tedarikçi görebilir ve ek teklif alabilirsiniz.",
                         "Firma vitrinde ozel listeleme alaninda gozukebilir.",
                       ],
                     },
