@@ -112,20 +112,19 @@ iş ilanı yüzeyini tamamlar: job detail page + list entry points.
 
 ---
 
-### Atomik-3: Candidate apply CTA on detail page
+### Atomik-3: Candidate apply CTA on detail page — COMPLETE
 
 **Amaç:** Candidate `/jobs/:id`'de de başvurabilsin.
 
-**Değişiklikler:**
-- `JobDetailPage.tsx` — `canTalent && !canEmployer && job.status === "published"` koşulunda
-  `<ApplyForm>` veya inline "Başvur" butonu
-- `ApplyForm` component'i `JobDetailPage.tsx`'e de import edilebilir hale getirilecek
-  (ortak bileşen olarak extract veya JobsPage.tsx'ten re-export)
+**Tamamlanan değişiklikler:**
+- `web/src/pages/JobDetailPage.tsx` — `isEmployerAdmin` + `isTalentMember` role helpers eklendi; `useAuth` import; `canTalent && !canEmployer && job.status === "published"` guard; inline apply form (cover letter textarea, submit button, error/success states); DUPLICATE_APPLICATION / TALENT_PROFILE_REQUIRED / JOB_NOT_PUBLISHED error code handling; `/talent/profile` Link.
+- `web/src/pages/JobDetailPage.css` — `.job-detail__apply*` selector seti: apply container, label, textarea (focus-visible outline), actions row, primary button (hover/disabled/focus-visible), error box, error-link, success box; `@media (max-width: 600px)` mobil uyum.
 
-**Not:** `ApplyForm` şu an `JobsPage.tsx` içinde `function` olarak tanımlı.
-Seçenek A: `web/src/components/jobs/ApplyForm.tsx` olarak extract.
-Seçenek B: Kopyasını `JobDetailPage.tsx` içinde tanımla (basit, DRY ihlali minimal).
-Atomik-3'te Seçenek B tercih edilecek — erken optimizasyon yok.
+**Kalite gateleri:**
+- `npm run type-check` → 0 error
+- `npm run build` → ✓
+
+**Commit:** `feat(jobs): add candidate apply cta on job detail page`
 
 ---
 

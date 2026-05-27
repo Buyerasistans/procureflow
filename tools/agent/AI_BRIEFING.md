@@ -7,14 +7,51 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 5 — CLOSED (Atomik-8 COMPLETE)
+PHASE 6 — IN PROGRESS (Atomik-3 COMPLETE)
 
 ## Executive Summary
 
-**PHASE 5 CLOSED.** Atomik-8 tamamlandı: Full PHASE 5 E2E gate (16/16 PASS).
-G1–G5 tümü doğrulandı tek gate ile; üretim koduna dokunulmadı.
-G6 (job detail page /jobs/:id) sonraki faza (PHASE 6) ertelendi.
-Sonraki adım: PHASE 6 / Atomik-1 (surface inventory + backlog definition).
+**PHASE 6 Atomik-3 COMPLETE.** Candidate apply CTA JobDetailPage'e eklendi.
+`canTalent && !canEmployer && job.status === "published"` guard; inline apply form;
+DUPLICATE_APPLICATION / TALENT_PROFILE_REQUIRED / JOB_NOT_PUBLISHED error codes;
+`/talent/profile` link. CSS: `.job-detail__apply*` selector seti + mobil @media. type-check 0 error, build ✓.
+Sonraki adım: PHASE 6 / Atomik-4 — employer close/fill actions on JobDetailPage.
+
+## PHASE 6 / Atomik-3 — Candidate apply CTA on detail page — COMPLETE
+
+### Dosyalar
+
+**`web/src/pages/JobDetailPage.tsx`** (güncellendi)
+- `isEmployerAdmin` + `isTalentMember` role helpers eklendi (JobsPage parity)
+- `useAuth` import; `canEmployer` / `canTalent` hesaplandı
+- Apply state: `coverLetter`, `applying`, `applyError`, `profileLinkRequired`, `applySuccess`
+- `handleApply(e)`: `if (!job) return` guard; `applyToJob(job.id, { cover_letter })` call
+  - DUPLICATE_APPLICATION → "Bu iş ilanına zaten başvurdunuz."
+  - TALENT_PROFILE_REQUIRED → `profileLinkRequired = true` + link to `/talent/profile`
+  - JOB_NOT_PUBLISHED → "Bu ilan artık başvuruya kapalı."
+  - fallback → `extractJobsError(err)`
+- `{canTalent && !canEmployer && job.status === "published" && <div className="job-detail__apply">}`
+  - success state → `.job-detail__apply-success` "Başvurunuz iletildi!"
+  - form: error banner (+ `<Link className="job-detail__apply-error-link" to="/talent/profile">`)
+  - cover letter `<textarea className="job-detail__apply-textarea">`
+  - `<button className="job-detail__apply-btn job-detail__apply-btn--primary" disabled={applying}>`
+
+**`web/src/pages/JobDetailPage.css`** (güncellendi)
+- `.job-detail__apply` — section container (border, background, padding, border-radius)
+- `.job-detail__apply-label` — font-weight: 600
+- `.job-detail__apply-textarea` — width 100%, min-height 110px, focus-visible outline (#0f6e57)
+- `.job-detail__apply-actions` — flex row, flex-wrap
+- `.job-detail__apply-btn--primary` — #0f6e57 green, hover #0a5442, disabled opacity, focus-visible outline
+- `.job-detail__apply-error` — kırmızı hata kutusu
+- `.job-detail__apply-error-link` — #7f1d1d, font-weight 700, underline, focus-visible
+- `.job-detail__apply-success` — yeşil başarı kutusu (#f0fdf4, #bbf7d0)
+- `@media (max-width: 600px)` — padding azaltma, butonlar column layout
+
+### Kalite Gateleri
+- type-check: PASS — 0 errors
+- build: PASS ✓
+
+**Commit:** `feat(jobs): add candidate apply cta on job detail page`
 
 ## PHASE 6 / Atomik-2 — JobDetailPage shell + /jobs/:id route
 
