@@ -221,18 +221,42 @@ Backend `GET /jobs/{job_id}/applications` ve `PATCH /applications/{id}/status` m
 
 ---
 
-### Atomik-4: Employer — Başvuru pipeline görüntüleyici
+### Atomik-4: Employer — Başvuru pipeline görüntüleyici — COMPLETE
 
 **Amaç:** G3'ü kapat. Employer, bir ilanın başvurularını görebilsin ve durum geçişi yapabilsin.
 
-**Dosyalar:**
-- `web/src/services/jobs.service.ts` — `listApplications()`, `updateApplicationStatus()` ekle
-- `web/src/pages/JobsPage.tsx` — `JobCard`'a toggle veya yeni `ApplicationsPipeline` component
-- `web/src/pages/JobsPage.css` — pipeline tablo/kart stilleri
+**Dosyalar (tamamlandı):**
+- `web/src/services/jobs.service.ts` — `listApplications(jobId)` + `updateApplicationStatus(applicationId, payload)` + `ApplicationStatusUpdatePayload` interface eklendi; `JobApplicationOut` tüm alanlarla güncellendi
+- `web/src/pages/JobsPage.tsx` — `STATUS_TRANSITIONS` + `TRANSITION_LABELS` sabitleri eklendi; `JobCard`'a `openApplicationsJobId`, `applicationsMap`, `loadingApplicationsJobId`, `updatingApplicationId`, `onToggleApplications`, `onUpdateApplicationStatus` prop'ları eklendi; pipeline toggle + satır render + geçiş butonları eklendi; `JobsPage`'e state ve handler'lar eklendi
+- `web/src/pages/JobsPage.css` — `.job-card__applications-toggle`, `.job-card__applications`, `.application-row`, `.application-row__info`, `.application-status-badge` (ve varyantları), `.application-actions`, `.application-actions__btn--advance`, `.application-actions__btn--reject` stilleri eklendi
 
-**Gate:** Responsive (360/768/1280) — employer session mock, başvuru listesi görünür, durum geçiş butonu çalışır
-**Bağımlılık:** Atomik-3 (updateJob bağımsız ama aynı dosyada çalışılacak).
-**Risk:** Yüksek. Yeni bileşen; state machine transition UI.
+**Durum geçiş state machine (employer-side):**
+```
+applied     → [Listele (shortlisted), Reddet (rejected)]
+shortlisted → [Mülakata Al (interview), Reddet (rejected)]
+interview   → [Teklif Ver (offered), Reddet (rejected)]
+offered     → [Reddet (rejected)]
+rejected    → terminal (aksiyon yok)
+withdrawn   → terminal (aksiyon yok)
+```
+
+**Selectors:**
+- `.job-card__applications-toggle` — aç/kapat butonu
+- `.job-card__applications` — pipeline container
+- `.application-row` — her başvuru satırı
+- `.application-status-badge` + `--applied/shortlisted/interview/offered/rejected/withdrawn`
+- `.application-actions__btn--advance` — ilerleme butonu
+- `.application-actions__btn--reject` — reddet butonu
+
+**Gate:** 15/15 PASS — `tools/atomik4_employer_pipeline_gate.mjs`
+- Scenario A (3): toggle görünür — 360/768/1280
+- Scenario B (4): toggle aç → 2 satır + badge'ler + aday bilgisi
+- Scenario C (3): geçiş butonları state machine'e uygun
+- Scenario D (1): Listele click → PATCH mock → badge shortlisted güncellendi
+- Scenario E (1): candidate_user — toggle yok (regression)
+- Scenario F (3): container overflow yok — 360/768/1280
+
+**G3 durumu:** DONE
 
 ---
 

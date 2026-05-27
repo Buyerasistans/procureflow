@@ -6,7 +6,10 @@ import {
   createJob,
   extractJobsError,
   fetchJobs,
+  listApplications,
+  updateApplicationStatus,
   updateJob,
+  type JobApplicationOut,
   type JobCreatePayload,
   type ProcurementJob,
 } from "../services/jobs.service";
@@ -25,6 +28,22 @@ function isTalentMember(systemRole: string | null | undefined): boolean {
   const sr = (systemRole || "").toLowerCase();
   return sr === "talent_member" || sr === "candidate_user" || sr === "referral_partner" || sr === "super_admin";
 }
+
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  applied:     ["shortlisted", "rejected"],
+  shortlisted: ["interview",   "rejected"],
+  interview:   ["offered",     "rejected"],
+  offered:     ["rejected"],
+  rejected:    [],
+  withdrawn:   [],
+};
+
+const TRANSITION_LABELS: Record<string, string> = {
+  shortlisted: "Listele",
+  interview:   "Mülakata Al",
+  offered:     "Teklif Ver",
+  rejected:    "Reddet",
+};
 
 // ---------------------------------------------------------------------------
 // Create Job Form (employer)
@@ -237,13 +256,19 @@ interface JobCardProps {
   canTalent: boolean;
   applyingJobId: number | null;
   updatingJobId: number | null;
+  openApplicationsJobId: number | null;
+  applicationsMap: Partial<Record<number, JobApplicationOut[]>>;
+  loadingApplicationsJobId: number | null;
+  updatingApplicationId: number | null;
   onApplyClick: (job: ProcurementJob) => void;
   onApplySuccess: () => void;
   onApplyCancel: () => void;
   onStatusUpdate: (jobId: number, status: string) => void;
+  onToggleApplications: (jobId: number) => void;
+  onUpdateApplicationStatus: (appId: number, newStatus: string, jobId: number) => void;
 }
 
-function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, onApplyClick, onApplySuccess, onApplyCancel, onStatusUpdate }: JobCardProps) {
+function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, openApplicationsJobId, applicationsMap, loadingApplicationsJobId, updatingApplicationId, onApplyClick, onApplySuccess, onApplyCancel, onStatusUpdate, onToggleApplications, onUpdateApplicationStatus }: JobCardProps) {
   const statusBadgeClass =
     job.status === "published" ? "job-card__badge--published"
     : job.status === "draft" ? "job-card__badge--draft"
@@ -306,6 +331,62 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, on
           </button>
         </div>
       )}
+      {canEmployer && !canTalent && (
+        <>
+          <button
+            type="button"
+            className="jobs-page__btn jobs-page__btn--secondary job-card__applications-toggle"
+            onClick={() => onToggleApplications(job.id)}
+          >
+            {openApplicationsJobId === job.id ? "Başvuruları Gizle" : `Başvurular (${job.application_count})`}
+          </button>
+          {openApplicationsJobId === job.id && (
+            <div className="job-card__applications">
+              {loadingApplicationsJobId === job.id ? (
+                <p className="job-card__applications-empty">Yükleniyor...</p>
+              ) : (applicationsMap[job.id] ?? []).length === 0 ? (
+                <p className="job-card__applications-empty">Henüz başvuru yok.</p>
+              ) : (
+                (applicationsMap[job.id] ?? []).map((app) => {
+                  const transitions = STATUS_TRANSITIONS[app.status] ?? [];
+                  const isUpdatingApp = updatingApplicationId === app.id;
+                  return (
+                    <div key={app.id} className="application-row">
+                      <div className="application-row__info">
+                        <span className="application-row__applicant">Aday #{app.applicant_user_id}</span>
+                        <span className={`application-status-badge application-status-badge--${app.status}`}>
+                          {app.status}
+                        </span>
+                        <span className="application-row__date">
+                          {new Date(app.applied_at).toLocaleDateString("tr-TR")}
+                        </span>
+                        {app.employer_note && (
+                          <span className="application-row__note">{app.employer_note}</span>
+                        )}
+                      </div>
+                      {transitions.length > 0 && (
+                        <div className="application-actions">
+                          {transitions.map((target) => (
+                            <button
+                              key={target}
+                              type="button"
+                              className={`jobs-page__btn application-actions__btn application-actions__btn--${target === "rejected" ? "reject" : "advance"}`}
+                              disabled={isUpdatingApp}
+                              onClick={() => onUpdateApplicationStatus(app.id, target, job.id)}
+                            >
+                              {isUpdatingApp ? "..." : TRANSITION_LABELS[target]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </>
+      )}
       {isApplying && (
         <ApplyForm job={job} onSuccess={onApplySuccess} onCancel={onApplyCancel} />
       )}
@@ -332,6 +413,10 @@ export default function JobsPage() {
   const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
   const [updatingJobId, setUpdatingJobId] = useState<number | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [openApplicationsJobId, setOpenApplicationsJobId] = useState<number | null>(null);
+  const [applicationsMap, setApplicationsMap] = useState<Partial<Record<number, JobApplicationOut[]>>>({});
+  const [loadingApplicationsJobId, setLoadingApplicationsJobId] = useState<number | null>(null);
+  const [updatingApplicationId, setUpdatingApplicationId] = useState<number | null>(null);
 
   const PAGE_SIZE = 20;
 
@@ -382,6 +467,40 @@ export default function JobsPage() {
     }
   }
 
+  async function handleToggleApplications(jobId: number) {
+    if (openApplicationsJobId === jobId) {
+      setOpenApplicationsJobId(null);
+      return;
+    }
+    setOpenApplicationsJobId(jobId);
+    if (applicationsMap[jobId] !== undefined) return;
+    setLoadingApplicationsJobId(jobId);
+    try {
+      const apps = await listApplications(jobId);
+      setApplicationsMap((prev) => ({ ...prev, [jobId]: apps }));
+    } catch (err) {
+      setError(extractJobsError(err));
+      setOpenApplicationsJobId(null);
+    } finally {
+      setLoadingApplicationsJobId(null);
+    }
+  }
+
+  async function handleUpdateApplicationStatus(applicationId: number, newStatus: string, jobId: number) {
+    setUpdatingApplicationId(applicationId);
+    try {
+      const updated = await updateApplicationStatus(applicationId, { status: newStatus });
+      setApplicationsMap((prev) => ({
+        ...prev,
+        [jobId]: (prev[jobId] ?? []).map((a) => (a.id === updated.id ? updated : a)),
+      }));
+    } catch (err) {
+      setError(extractJobsError(err));
+    } finally {
+      setUpdatingApplicationId(null);
+    }
+  }
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -425,10 +544,16 @@ export default function JobsPage() {
             canTalent={canTalent}
             applyingJobId={applyingJobId}
             updatingJobId={updatingJobId}
+            openApplicationsJobId={openApplicationsJobId}
+            applicationsMap={applicationsMap}
+            loadingApplicationsJobId={loadingApplicationsJobId}
+            updatingApplicationId={updatingApplicationId}
             onApplyClick={(j) => setApplyingJobId(j.id)}
             onApplySuccess={handleApplySuccess}
             onApplyCancel={() => setApplyingJobId(null)}
             onStatusUpdate={handleStatusUpdate}
+            onToggleApplications={handleToggleApplications}
+            onUpdateApplicationStatus={handleUpdateApplicationStatus}
           />
         ))
       )}

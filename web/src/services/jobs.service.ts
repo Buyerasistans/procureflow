@@ -66,7 +66,12 @@ export interface JobApplicationOut {
   talent_profile_id: number;
   cover_letter: string | null;
   status: string;
+  ai_match_score: number | null;
+  employer_note: string | null;
+  reviewed_by_user_id: number | null;
+  reviewed_at: string | null;
   applied_at: string;
+  updated_at: string;
 }
 
 export interface JobUpdatePayload {
@@ -78,6 +83,11 @@ export interface JobUpdatePayload {
   city?: string;
   country?: string;
   status?: string;
+}
+
+export interface ApplicationStatusUpdatePayload {
+  status: string;
+  employer_note?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,5 +140,18 @@ export async function applyToJob(
 
 export async function updateJob(jobId: number, payload: JobUpdatePayload): Promise<ProcurementJob> {
   const res = await http.patch<ProcurementJob>(`/jobs/${jobId}`, payload);
+  return res.data;
+}
+
+export async function listApplications(jobId: number): Promise<JobApplicationOut[]> {
+  const res = await http.get<JobApplicationOut[]>(`/jobs/${jobId}/applications`);
+  return res.data;
+}
+
+export async function updateApplicationStatus(
+  applicationId: number,
+  payload: ApplicationStatusUpdatePayload,
+): Promise<JobApplicationOut> {
+  const res = await http.patch<JobApplicationOut>(`/applications/${applicationId}/status`, payload);
   return res.data;
 }
