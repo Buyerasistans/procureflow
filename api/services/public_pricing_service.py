@@ -33,6 +33,9 @@ STRATEGIC_ADDON_LIMIT_KEY_BY_CODE = {
     "supplier_slot": "max_active_private_suppliers",
     "quote_slot": "max_active_rfqs",
     "file_slot": "max_project_files_total",
+    # Dual-Role ve Kariyer modülü — feature flag tabanlı (limit_key yok)
+    "dual_role": None,
+    "kariyer_modul": None,
 }
 
 
@@ -201,6 +204,36 @@ def default_public_pricing_config() -> dict:
                     "visibility_notes": [
                         "Her ek alım 50 dosyalık kapasite artışı sağlar.",
                         "Tek dosya boyutu limiti paket seviyesinden ayrı yönetilir.",
+                    ],
+                },
+                {
+                    "code": "dual_role",
+                    "name": "Dual-Role: Tedarikçi + Stratejik Partner",
+                    "description": "Firmanızı hem Stratejik Partner hem Tedarikçi olarak platformda konumlandırın. RFQ davetlerine yanıt verebilir, teklif sunabilirsiniz.",
+                    "price_monthly": 9900,
+                    "currency": "TRY",
+                    "increment": None,
+                    "unit": "özellik",
+                    "feature_flag": "dual_role",
+                    "visibility_notes": [
+                        "Tek seferlik aktivasyon — aylık ücretlendirilir.",
+                        "Platform ekibinin onayı gerektirir (ortalama 1-2 iş günü).",
+                        "Aktifleştirildiğinde Tedarikçi Portalı ayrı erişim noktasından çalışır.",
+                    ],
+                },
+                {
+                    "code": "kariyer_modul",
+                    "name": "Kariyer Modülü: İş İlanı Yayımlama",
+                    "description": "Satın alma ve tedarik zinciri profesyonellerine yönelik iş ilanı yayımlayın. İK rolü kullanıcılarınız ilan oluşturabilir.",
+                    "price_monthly": 4900,
+                    "currency": "TRY",
+                    "increment": None,
+                    "unit": "özellik",
+                    "feature_flag": "kariyer_modul",
+                    "visibility_notes": [
+                        "Aylık aktif ilan limiti paket seviyesine göre belirlenir.",
+                        "İK yöneticisi ve uzman rollerine ilan oluşturma yetkisi verir.",
+                        "İlanlar 'Satın Alma Kariyerim' platformunda yayımlanır.",
                     ],
                 },
             ],

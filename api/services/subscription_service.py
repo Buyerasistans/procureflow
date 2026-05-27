@@ -898,3 +898,42 @@ def enforce_project_file_limits(
                     f"Limit: {size_limit_mb} MB."
                 ),
             )
+
+
+# ---------------------------------------------------------------------------
+# Feature Flag Add-On Yardımcıları
+# ---------------------------------------------------------------------------
+
+
+def tenant_has_feature_addon(db: Session, tenant_id: int, addon_code: str) -> bool:
+    """
+    Tenant'ın belirli bir feature addon'ına aktif erişimi var mı kontrol eder.
+    Kullanım: can_use_dual_role, can_use_kariyer_modul vb.
+    """
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    row = (
+        db.query(TenantSubscriptionAddon)
+        .filter(
+            TenantSubscriptionAddon.tenant_id == tenant_id,
+            TenantSubscriptionAddon.addon_code == addon_code,
+            TenantSubscriptionAddon.status == "active",
+        )
+        .first()
+    )
+    if row is None:
+        return False
+    if row.expires_at is not None and row.expires_at < now:
+        return False
+    return True
+
+
+def tenant_has_dual_role(db: Session, tenant_id: int) -> bool:
+    """Tenant'ın aktif dual_role addon'ı var mı."""
+    return tenant_has_feature_addon(db, tenant_id, "dual_role")
+
+
+def tenant_has_kariyer_modul(db: Session, tenant_id: int) -> bool:
+    """Tenant'ın aktif kariyer_modul addon'ı var mı."""
+    return tenant_has_feature_addon(db, tenant_id, "kariyer_modul")
