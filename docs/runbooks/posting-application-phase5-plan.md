@@ -260,17 +260,31 @@ withdrawn   → terminal (aksiyon yok)
 
 ---
 
-### Atomik-5: Backend — Candidate başvuru geçmişi endpoint'i
+### Atomik-5: Backend — Candidate başvuru geçmişi endpoint'i — COMPLETE
 
 **Amaç:** G4 (backend kısmı). `GET /api/v1/my/applications` — candidate'ın kendi başvurularını dönsün.
 
-**Dosyalar:**
-- `api/routers/job_applications.py` — yeni endpoint ekle
-- `api/tests/test_job_applications.py` — birim test
+**Dosyalar (tamamlandı):**
+- `api/routers/job_applications.py` — `GET /my/applications` endpoint eklendi; `is_talent_member` guard; `applicant_user_id == current_user.id` filter; `applied_at DESC` sıralama; `list[JobApplicationOut]` response
+- `api/tests/test_job_applications.py` — 11 birim testi oluşturuldu (yeni dosya)
 
-**Gate:** Backend birim test (kandidat token ile GET → kendi başvurularını görür; başkasının görmez)
-**Bağımlılık:** Yok.
-**Risk:** Düşük. Tek endpoint, yalnızca `applicant_user_id == current_user.id` filter.
+**Endpoint contract:**
+- Path: `GET /api/v1/my/applications`
+- Auth: `is_talent_member` zorunlu (candidate_user, talent_member); employer → 403 MY_APPLICATIONS_FORBIDDEN
+- Filter: `JobApplication.applicant_user_id == current_user.id`
+- Order: `applied_at DESC`
+- Response: `list[JobApplicationOut]` (boşsa `[]`, 404 değil)
+
+**Test sonuçları:**
+- Senaryo A (4 test): candidate/talent_member başvurularını alır, alanlar doğru, çoklu sonuç
+- Senaryo B (2 test): DB filter çağrısı yapılıyor, yanlış user_id → boş liste
+- Senaryo C (3 test): employer 403 + hata kodu "MY_APPLICATIONS_FORBIDDEN"
+- Senaryo D (2 test): başvuru yok → 200 + []
+
+**Test:** 11/11 PASS — `api/tests/test_job_applications.py`
+(1 pre-existing unrelated failure: `test_deployment_guard::test_unset_raises_403` — bu adımdan önce de başarısız)
+
+**G4 durumu:** Backend DONE / Frontend pending (Atomik-6)
 
 ---
 

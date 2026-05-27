@@ -175,6 +175,38 @@ def list_job_applications(
 
 
 # ---------------------------------------------------------------------------
+# GET /my/applications
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/my/applications",
+    response_model=list[JobApplicationOut],
+)
+def get_my_applications(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[JobApplicationOut]:
+    """Candidate kendi başvurularını listeler. is_talent_member zorunlu."""
+    if not is_talent_member(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=_err(
+                "MY_APPLICATIONS_FORBIDDEN",
+                "Bu endpoint yalnizca talent/candidate kullanicilar icin gecerlidir",
+            ),
+        )
+
+    rows = (
+        db.query(JobApplication)
+        .filter(JobApplication.applicant_user_id == current_user.id)
+        .order_by(JobApplication.applied_at.desc())
+        .all()
+    )
+    return [JobApplicationOut.model_validate(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
 # PATCH /applications/{application_id}/status
 # ---------------------------------------------------------------------------
 

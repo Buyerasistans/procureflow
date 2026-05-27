@@ -7,16 +7,44 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 5 / Atomik-4 - COMPLETE
+PHASE 5 / Atomik-5 - COMPLETE
 
 ## Executive Summary
 
-PHASE 5 / Atomik-4 tamamlandı: `employer_company_admin` kullanıcıları `/jobs` üzerinde
-her ilanın başvurularını "Başvurular (N)" toggle ile açıp durum geçişleri yapabiliyor.
-State machine: applied → shortlisted/rejected → interview/rejected → offered/rejected.
-Gate: 15/15 PASS — 360/768/1280 responsive, PATCH mock, candidate regression.
+PHASE 5 / Atomik-5 tamamlandı: `GET /api/v1/my/applications` backend endpoint eklendi.
+Candidate/talent_member kendi başvurularını `applicant_user_id == current_user.id`
+filtresiyle alabilir; employer 403 alır. Test: 11/11 PASS.
 
-G3 (P1) gap kapatıldı.
+G4 backend yarısı kapatıldı. Frontend (Atomik-6) pending.
+
+## Atomik-5 Değişiklikleri
+
+### `api/routers/job_applications.py`
+- `GET /my/applications` endpoint eklendi (yeni)
+- Guard: `is_talent_member(current_user)` — False → 403 MY_APPLICATIONS_FORBIDDEN
+- Filter: `JobApplication.applicant_user_id == current_user.id`
+- Order: `JobApplication.applied_at.desc()`
+- Response: `list[JobApplicationOut]` (boşsa `[]`, 404 değil)
+
+### `api/tests/test_job_applications.py`
+- Yeni dosya — 11 test, 4 senaryo
+- Senaryo A (4): candidate_user ve talent_member başvurularını alır; alanlar doğru; çoklu
+- Senaryo B (2): DB filter çağrısı doğrulanıyor; yanlış user_id → boş liste
+- Senaryo C (3): employer_company_admin ve employer_recruiter 403; hata kodu MY_APPLICATIONS_FORBIDDEN
+- Senaryo D (2): başvuru yok → 200 + [] (not None, not 404)
+- Test pattern: MagicMock DB + `_FakeApplication` attribute bag (from_attributes=True uyumlu)
+
+### Endpoint Contract
+
+| Alan | Değer |
+|---|---|
+| Path | `GET /api/v1/my/applications` |
+| Auth guard | `is_talent_member` (candidate_user, talent_member) |
+| Forbidden | employer_company_admin, employer_recruiter → 403 MY_APPLICATIONS_FORBIDDEN |
+| Filter | `JobApplication.applicant_user_id == current_user.id` |
+| Order | `applied_at DESC` |
+| Response | `list[JobApplicationOut]` |
+| Empty | 200 + `[]` |
 
 ## Atomik-4 Değişiklikleri
 
@@ -100,6 +128,7 @@ G3 (P1) gap kapatıldı.
 | PHASE 5 Atomik-2 | 19/19 PASS |
 | PHASE 5 Atomik-3 | 17/17 PASS |
 | PHASE 5 Atomik-4 | 15/15 PASS |
+| PHASE 5 Atomik-5 | 11/11 PASS (backend unit tests) |
 
 ### Atomik-3 Assertion Dağılımı
 
@@ -165,7 +194,7 @@ Total: 6 × 3 + 1 = 19
 | G1 | candidate_user TALENT_PROFILE_REQUIRED hatası linksize | P0 | **DONE** |
 | G2 | Employer ilan kapatma/dolu işaretleme UI yok | P1 | **DONE** |
 | G3 | Employer başvuru pipeline viewer yok | P1 | **DONE** |
-| G4 | Candidate kendi başvurularını göremez (backend + frontend) | P1 | Açık |
+| G4 | Candidate kendi başvurularını göremez (backend + frontend) | P1 | Açık (backend DONE, frontend pending) |
 | G5 | Candidate başvuru geri çekme yok (backend + frontend) | P2 | Açık |
 | G6 | Job detail page yok (/jobs/:id route) | P2 | Açık |
 
@@ -177,29 +206,30 @@ Total: 6 × 3 + 1 = 19
 | A2 | G1: candidate UX — TALENT_PROFILE_REQUIRED link | **COMPLETE** |
 | A3 | G2: employer ilan durum aksiyonları (kapat/dolu) | **COMPLETE** |
 | A4 | G3: employer başvuru pipeline viewer | **COMPLETE** |
-| A5 | G4 backend: GET /my/applications endpoint | Açık |
+| A5 | G4 backend: GET /my/applications endpoint | **COMPLETE** |
 | A6 | G4 frontend: candidate başvuru geçmişi UI | Açık |
 | A7 | G5: candidate withdrawal (backend + frontend) | Açık |
 | A8 | Full PHASE 5 E2E gate + closure | Açık |
 
 ## Next Atomic Step
 
-**PHASE 5 / Atomik-5:** Backend — Candidate başvuru geçmişi endpoint'i (G4 backend)
+**PHASE 5 / Atomik-6:** Frontend — Candidate başvuru geçmişi UI (G4 frontend)
 
 Kapsam:
-- `api/routers/job_applications.py` — `GET /api/v1/my/applications` endpoint; `applicant_user_id == current_user.id` filter; `is_talent_member` guard
-- `api/tests/test_job_applications.py` — birim test: candidate token → kendi başvuruları; başka candidate'ın başvurusu görünmez
+- `web/src/services/jobs.service.ts` — `getMyApplications(): Promise<JobApplicationOut[]>` — `GET /my/applications`
+- `web/src/pages/JobsPage.tsx` veya yeni sayfa — `MyApplicationsSection`: candidate rolü için başvuru listesi; durum badge'leri; boşsa "Henüz başvurunuz yok." mesajı
+- Responsive: 360 / 768 / 1280 viewport
 
-Gate: Backend birim test PASS
-Commit: `feat(jobs): add GET /my/applications endpoint for candidates`
+Gate: E2E Playwright gate — candidate başvuru listesi görünür; employer göremez
+Commit: `feat(jobs): add candidate application history UI`
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 5 / Atomik-4: COMPLETE — employer application pipeline viewer, gate 15/15 PASS
-Next: PHASE 5 / Atomik-5 — GET /my/applications backend endpoint (G4 backend).
+PHASE 5 / Atomik-5: COMPLETE — GET /my/applications backend endpoint, gate 11/11 PASS
+Next: PHASE 5 / Atomik-6 — candidate application history UI (G4 frontend).
 Runbook: docs/runbooks/posting-application-phase5-plan.md
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
