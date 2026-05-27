@@ -186,7 +186,7 @@ function ProfCard({ pro }: { pro: Professional }) {
       <div className="kl-card__salary">🥇 {pro.salaryExpectation}</div>
       <div className="kl-card__actions">
         <a href="/login" className="kl-btn kl-btn--primary">İletişime Geç</a>
-        <a href="/login" className="kl-btn kl-btn--secondary">Profil Gör</a>
+        <a href={`/talent/${pro.id}`} className="kl-btn kl-btn--secondary">Profil Gör</a>
       </div>
     </div>
   );
@@ -206,7 +206,7 @@ function ProfListRow({ pro }: { pro: Professional }) {
         <span className="kl-card__days">{daysAgoText(pro.daysAgo)}</span>
         <div className="kl-row__actions">
           <a href="/login" className="kl-btn kl-btn--primary kl-btn--sm">İletişim</a>
-          <a href="/login" className="kl-btn kl-btn--secondary kl-btn--sm">Profil</a>
+          <a href={`/talent/${pro.id}`} className="kl-btn kl-btn--secondary kl-btn--sm">Profil</a>
         </div>
       </div>
     </div>

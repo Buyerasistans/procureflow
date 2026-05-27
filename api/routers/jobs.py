@@ -13,10 +13,13 @@ from api.core.authz import (
     can_post_procurement_job,
     is_super_admin,
     is_platform_staff,
+    is_hr_member,
+    is_tenant_admin,
+    is_employer_admin,
 )
 from api.core.deps import get_current_user, get_db
 from api.models import User
-from api.models.talent import ProcurementJob
+from api.models.talent import ProcurementJob, TalentProfile
 from api.schemas.jobs import (
     PaginatedJobsOut,
     ProcurementJobCreate,
@@ -32,12 +35,26 @@ def _err(code: str, message: str) -> dict:
     return {"code": code, "message": message, "request_id": str(uuid.uuid4())}
 
 
-def _require_write_access(user: User) -> None:
+def _require_write_access(user: User, db: Session | None = None) -> None:
     if not can_post_procurement_job(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=_err("JOBS_WRITE_FORBIDDEN", "İş ilanı oluşturma/düzenleme yetkiniz yok"),
         )
+    # İK rolleri için kariyer_modul paket kontrolü
+    if is_hr_member(user) and not is_tenant_admin(user) and not is_employer_admin(user):
+        tenant_id = getattr(user, "tenant_id", None)
+        if tenant_id and db is not None:
+            from api.services.subscription_service import tenant_has_kariyer_modul
+            if not tenant_has_kariyer_modul(db, tenant_id):
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail=_err(
+                        "KARIYER_MODUL_REQUIRED",
+                        "İş ilanı yayımlamak için 'Kariyer Modülü' eklentisi gereklidir. "
+                        "Paket yönetiminizden aktifleştirin veya platform ekibiyle iletişime geçin.",
+                    ),
+                )
 
 
 def _is_broad_admin(user: User) -> bool:
@@ -79,7 +96,7 @@ def create_job(
     db: Session = Depends(get_db),
 ) -> ProcurementJobOut:
     """Yeni iş ilanı oluşturur. `is_procurement_only` backend tarafında zorunlu `True`."""
-    _require_write_access(current_user)
+    _require_write_access(current_user, db)
 
     job = ProcurementJob(
         tenant_id=getattr(current_user, "tenant_id", None),
@@ -203,7 +220,7 @@ def update_job(
     db: Session = Depends(get_db),
 ) -> ProcurementJobOut:
     """İş ilanını kısmen günceller. Poster veya geniş admin gereklidir."""
-    _require_write_access(current_user)
+    _require_write_access(current_user, db)
 
     job = db.query(ProcurementJob).filter(ProcurementJob.id == job_id).first()
     if not job:

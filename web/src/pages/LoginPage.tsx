@@ -59,7 +59,7 @@ export default function LoginPage() {
           <div className="login-page__kariyer-grid">
             <button
               type="button"
-              onClick={() => navigate("/strategic-partner-login")}
+              onClick={() => navigate("/isveren-giris")}
               className="login-page__entry-button login-page__entry-button--employer"
             >
               🏢 İşveren Girişi

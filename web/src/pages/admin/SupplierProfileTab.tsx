@@ -102,10 +102,23 @@ export function SupplierProfileTab({
       )}
 
       {dualRoleStatus === "active" && (
-        <div className="spt__info-box spt__info-box--active">
-          <strong>Dual-role aktif!</strong> Firmanız hem Stratejik Partner hem Tedarikçi olarak
-          platformda yer almaktadır. RFQ davetlerine yanıt verebilir, teklif sunabilirsiniz.
-        </div>
+        <>
+          <div className="spt__info-box spt__info-box--active">
+            <strong>Dual-role aktif!</strong> Firmanız hem Stratejik Partner hem Tedarikçi olarak
+            platformda yer almaktadır. RFQ davetlerine yanıt verebilir, teklif sunabilirsiniz.
+          </div>
+          <div className="spt__ik-banner">
+            <h3 className="spt__ik-banner-title">İK Rolü ile İş İlanı Yayımlama</h3>
+            <p className="spt__ik-banner-desc">
+              Dual-role aktif olduğunda İK yöneticisi rolündeki kullanıcılarınız bu Stratejik Partner
+              hesabı üzerinden satın alma pozisyonları yayımlayabilir. Tedarikçi portalından değil,
+              platform hesabına giriş yaparak iş ilanı oluşturun.
+            </p>
+            <a href="/jobs/new" className="spt__btn spt__btn--primary">
+              İş İlanı Oluştur
+            </a>
+          </div>
+        </>
       )}
 
       {dualRoleStatus === "rejected" && (

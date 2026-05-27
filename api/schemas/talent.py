@@ -80,6 +80,42 @@ class TalentKycStatusUpdate(BaseModel):
     kyc_notes: str | None = None
 
 
+class TalentPublicProfileOut(BaseModel):
+    """Herkese açık talent profili — hassas bilgiler gizli."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    availability: str
+    experience_years: int | None
+    bio: str | None
+    skills: list[str] = Field(default_factory=list)
+    category_expertise: list[str] = Field(default_factory=list)
+    reputation_score: int
+    is_active: bool
+    created_at: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def _parse_json_fields(cls, data: object) -> object:
+        if hasattr(data, "__dict__"):
+            skills_raw = getattr(data, "skills_json", None)
+            cat_raw = getattr(data, "category_expertise_json", None)
+            d = {
+                **{k: v for k, v in data.__dict__.items() if not k.startswith("_")},
+                "skills": _safe_parse_list(skills_raw),
+                "category_expertise": _safe_parse_list(cat_raw),
+            }
+            return d
+        if isinstance(data, dict):
+            data = dict(data)
+            data.setdefault("skills", _safe_parse_list(data.pop("skills_json", None)))
+            data.setdefault(
+                "category_expertise",
+                _safe_parse_list(data.pop("category_expertise_json", None)),
+            )
+        return data
+
+
 class PaginatedTalentProfilesOut(BaseModel):
     total: int
     page: int
