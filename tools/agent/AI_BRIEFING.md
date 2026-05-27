@@ -96,11 +96,12 @@ Fix: Tek handler içinde `route.request().method() === "POST"` kontrolü.
 - `navigation-policy.ts`: Jobs nav linki `allowed_tenant_roles` += ik_yoneticisi/ik_uzmani/hr_manager/hr_specialist
 - `workspace-panels.ts`: İK rolleri için 4 yeni workspace panel profili (ik_yoneticisi, ik_uzmani, hr_manager, hr_specialist) + İK hızlı linkler (İş İlanları, Yeni İlan Oluştur, Kariyer Platformu)
 
-### Kalan Özellikler (bakiye)
-- **Kariyer Modülü Paket Entegrasyonu:** Tenant tablosuna `can_post_jobs` feature flag + authz'de `tenant_has_kariyer_modul()` kontrolü → şu an herkes iş ilanı açabilir, paket kısıtı yok
-- **Dual-Role Supplier Portal İK desteği:** Supplier portal'ında İK rolü authz desteği (ayrı Supplier authz)
-- **"Profil Gör" tam implementasyon:** /login'e gidiyor, gerçek profil sayfası henüz yok
-- **İşveren Girişi dedicated sayfa:** her iki button şu an /strategic-partner-login'e gidiyor
+### Kalan Özellikler — TAMAMLANDI (commit a20a55e)
+
+- ✅ **Kariyer Modülü Paket Entegrasyonu:** `api/routers/jobs.py` → `_require_write_access()` İK rolü için `tenant_has_kariyer_modul()` check; addon yoksa HTTP 402 KARIYER_MODUL_REQUIRED
+- ✅ **Dual-Role Supplier Portal İK desteği:** `SupplierProfileTab.tsx` → `dualRoleStatus === "active"` iken İK banner göster; "İş İlanı Oluştur" → `/jobs/new` (Supplier portal'ı ayrı auth sisteminde olduğu için bilgi banner yaklaşımı)
+- ✅ **"Profil Gör" tam implementasyon:** `TalentPublicProfilePage.tsx` + `TalentPublicProfilePage.css` → `/talent/:id` route; backend `GET /api/v1/talent/public/{id}` (is_public + kyc_status=approved + is_active gate); `KariyerListingsLayout.tsx` Profil Gör → `/talent/${id}` (önceki: /login)
+- ✅ **İşveren Girişi dedicated sayfa:** `IsverenGirisPage.tsx` → `/isveren-giris`; emerald green tema; `LoginPage.tsx` İşveren Girişi butonu → `/isveren-giris` (önceki: /strategic-partner-login); `auth-types.ts` → `AuthUser.tenant_id` eklendi (TS fix)
 
 ---
 
