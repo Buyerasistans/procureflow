@@ -1,0 +1,24 @@
+{
+  "gate": "atomik6-phase6-full",
+  "timestamp": "2026-05-27T10:35:17.693Z",
+  "viewports": [
+    "360",
+    "768",
+    "1280"
+  ],
+  "scenarios": {
+    "A": "/jobs/42 shell renders (title + desc + badge) — candidate",
+    "B": "candidate apply CTA visible on detail page",
+    "C": "candidate TALENT_PROFILE_REQUIRED + /talent/profile link on detail page",
+    "D": "employer Kapat/Dolu Isaretle visible on detail page",
+    "E": "employer Kapat click -> badge closed on detail page",
+    "F": "job card title link -> /jobs/42 navigation",
+    "G": "candidate history Ilan#id link -> /jobs/42 navigation",
+    "H": "regression: role isolation on detail page",
+    "I": "responsive: .job-detail fits 360/768/1280"
+  },
+  "passed": 19,
+  "failed": 0,
+  "total": 19,
+  "result": "PASS"
+}

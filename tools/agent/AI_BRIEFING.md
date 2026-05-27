@@ -7,14 +7,42 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 6 — IN PROGRESS (Atomik-5 COMPLETE)
+PHASE 6 — CLOSED (Atomik-6 COMPLETE — 19/19 PASS)
 
 ## Executive Summary
 
-**PHASE 6 Atomik-5 COMPLETE.** JobsPage'de iki entry point link eklendi.
-Job card başlığı `<p>` → `<Link to="/jobs/:id">` (display:block koruması); candidate history `İlan #id` `<span>` → `<Link to="/jobs/:id">`.
-CSS: her ikisi için `text-decoration: none`, hover `#0f6e57`, focus-visible outline.
-type-check 0 error, build ✓. Sonraki adım: PHASE 6 / Atomik-6 — full E2E gate + closure.
+**PHASE 6 CLOSED.** Atomik-6 tamamlandı: Full PHASE 6 E2E gate 19/19 PASS.
+G6 (job detail page /jobs/:id) tamamen doğrulandı: shell render, candidate apply CTA,
+TALENT_PROFILE_REQUIRED flow, employer close/fill, entry links (card+history), role isolation regression, responsive 360/768/1280.
+Sonraki adım: PHASE 7 / Atomik-1 — release governance surface inventory.
+
+## PHASE 6 / Atomik-6 — Full Phase 6 E2E Gate + Closure — COMPLETE
+
+### Gate
+- Script: `tools/atomik6_phase6_e2e_gate.mjs`
+- Artifacts: `tools/gate-artifacts/atomik6-phase6-full/`
+- Result: **19/19 PASS**
+
+### Assertion Matrix
+
+| Senaryo | Açıklama | Count | Sonuç |
+|---|---|---|---|
+| A | /jobs/42 shell renders (title+desc+badge) | 3 | ✓ |
+| B | candidate apply CTA visible | 1 | ✓ |
+| C | TALENT_PROFILE_REQUIRED + /talent/profile link | 2 | ✓ |
+| D | employer Kapat+Dolu İşaretle visible | 2 | ✓ |
+| E | employer Kapat → badge closed | 2 | ✓ |
+| F | job card title link → /jobs/42 navigation | 2 | ✓ |
+| G | history İlan#id link → /jobs/42 navigation | 2 | ✓ |
+| H | regression: role isolation on detail page | 2 | ✓ |
+| I | responsive: .job-detail fits 360/768/1280 | 3 | ✓ |
+
+### PHASE 6 Closure
+
+G6 tüm acceptance criteria karşılandı. G7 (search/filter UI) PHASE 7'ye ertelendi.
+Tüm PHASE 6 atomik adımları (A2–A6) checkpoint commit'leri ile kapatıldı.
+
+**Commit:** `test(jobs): add phase6 full e2e gate and close phase6`
 
 ## PHASE 6 / Atomik-5 — Entry point links from list + history — COMPLETE
 

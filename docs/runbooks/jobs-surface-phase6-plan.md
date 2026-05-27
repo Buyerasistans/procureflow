@@ -162,20 +162,46 @@ iş ilanı yüzeyini tamamlar: job detail page + list entry points.
 
 ---
 
-### Atomik-6: Full PHASE 6 E2E gate + closure
+### Atomik-6: Full PHASE 6 E2E gate + closure — COMPLETE
 
 **Amaç:** G6 tüm akışlarını tek gate ile doğrula. PHASE 6'yı kapat.
 
 **Gate script:** `tools/atomik6_phase6_e2e_gate.mjs`
+**Artifacts:** `tools/gate-artifacts/atomik6-phase6-full/`
+**Sonuç: 19/19 PASS**
 
-**Önerilen senaryolar:**
-- A: `/jobs/:id` renders job title + meta (candidate context)
-- B: Candidate apply CTA visible + TALENT_PROFILE_REQUIRED flow on detail page
-- C: Employer Kapat button on detail page → status update
-- D: JobsPage kart başlığı link → navigates to /jobs/42
-- E: Candidate history link → navigates to /jobs/42
-- F: Regression — JobsPage list still works (no breakage)
-- G: Responsive — 360/768/1280
+| Senaryo | Açıklama | Assertion | Sonuç |
+|---|---|---|---|
+| A | /jobs/42 shell renders (title + desc + badge) | 3 | ✓ PASS |
+| B | candidate apply CTA visible on detail | 1 | ✓ PASS |
+| C | TALENT_PROFILE_REQUIRED + /talent/profile link on detail | 2 | ✓ PASS |
+| D | employer Kapat/Dolu İşaretle visible on detail | 2 | ✓ PASS |
+| E | employer Kapat click → badge closed | 2 | ✓ PASS |
+| F | job card title link → /jobs/42 navigation | 2 | ✓ PASS |
+| G | history İlan #id link → /jobs/42 navigation | 2 | ✓ PASS |
+| H | regression: role isolation on detail | 2 | ✓ PASS |
+| I | responsive: .job-detail fits 360/768/1280 | 3 | ✓ PASS |
+
+**Commit:** `test(jobs): add phase6 full e2e gate and close phase6`
+
+---
+
+## PHASE 6 — CLOSED
+
+G6 (Job Detail Page `/jobs/:id`) tamamlandı ve gate ile doğrulandı.
+
+| G6 Bileşen | Durum |
+|---|---|
+| `GET /jobs/{job_id}` backend | HAZIRDI — dokunulmadı |
+| `fetchJob(id)` frontend service | HAZIRDI — JobDetailPage'e wired |
+| `/jobs/:id` route + `JobDetailPage.tsx` shell | COMPLETE (0131f98) |
+| Candidate apply CTA on detail page | COMPLETE (f44728b) |
+| Employer close/fill actions on detail page | COMPLETE (2454f8c) |
+| Job card title → `/jobs/:id` link | COMPLETE (5fc5de8) |
+| Candidate history → `/jobs/:id` link | COMPLETE (5fc5de8) |
+| Full E2E gate 19/19 PASS | COMPLETE (bu commit) |
+
+G7 (job search/filter UI) — LOW PRIORITY, deferred to PHASE 7.
 
 ---
 
