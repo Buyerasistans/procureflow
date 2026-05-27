@@ -34,6 +34,105 @@ Fix: Tek handler içinde `route.request().method() === "POST"` kontrolü.
 
 ---
 
+## PHASE 8 / İK Rolü + Kariyer Kopya + NavBar Renk — COMPLETE
+
+### Commit: 5854f52
+
+### NavBar.css — Satın Alma Kariyerim Buton
+- Renk: `#059669` (zümrüt yeşil) + `color: #fff` — artık altın Sisteme Giriş'ten ayrışıyor
+
+### SatinAlmaKariyerimPage.tsx — SEO Odaklı Kopya
+- İşveren kartı: "Yayınlanan Pozisyonlar" / "Ekibinizin güçlü sesi burada..." / CTA: "İşveren İhtiyaçlarını İncele"
+- Profesyonel kartı: "Satın Alma Profesyonel İlanlarımız" / "Kariyerinizi vitrine çıkarın..." / CTA: "Profesyonel Pozisyonları İncele"
+- Semantic HTML: `<article>` tag, `aria-label`, `aria-hidden` emoji, `aria-label` on CTA links
+- Hero subtitle keyword-rich: "satın alma ve tedarik zinciri uzmanlarını işverenlerle buluşturan kariyer platformu"
+
+### İK Rolü Atomik-1 — COMPLETE
+
+**`api/core/authz.py`**
+- `HR_BUSINESS_ROLES = {"ik_yoneticisi", "ik_uzmani", "hr_manager", "hr_specialist"}`
+- `is_hr_member(user)` — `normalized_role(user) in HR_BUSINESS_ROLES`
+- `can_post_procurement_job()` güncellendi: `or is_hr_member(user)` eklendi
+
+**`api/core/permission_matrix.py`**
+- `_IK_YONETICISI_SET` = workspace_home + kpi_cards + operation_feed
+- `_IK_UZMANI_SET` = workspace_home + kpi_cards
+- Profil anahtarları: `ik_yoneticisi:tenant_member`, `ik_uzmani:tenant_member`, `hr_manager:tenant_member`, `hr_specialist:tenant_member`
+
+**`web/src/auth/permissions.ts`**
+- `canAccessWorkspacePanel()`: ik_yoneticisi, ik_uzmani, hr_manager, hr_specialist rolleri eklendi
+
+**`web/src/pages/JobCreatePage.tsx`**
+- `canPostJob(systemRole, businessRole?)` — ikinci parametre eklendi
+- HR business rolleri ayrı Set olarak kontrol ediliyor
+- Çağrı: `canPostJob(user.system_role, user.role)`
+
+**`CLAUDE.md` Rol Katalogu (v3)**
+- Stratejik Partner: `firma_ik_yoneticisi@` (ik_yoneticisi) + `firma_ik_uzmani@` (ik_uzmani) eklendi
+- Tedarikçi: `firma_ik_yoneticisi@` (ik_yoneticisi) eklendi
+- İş Ortağı (Kanal): `firma_ik_yoneticisi@` (ik_yoneticisi) eklendi
+
+### Bekleyen Büyük Özellikler
+
+#### Dual-Role (Atomik-A,B,C) — ONAYLANDI, implement bekliyor
+- A: `Supplier.linked_tenant_id` migration
+- B: Frontend "Tedarikçi Profilim" sekmesi stratejik partner panelinde
+- C: Fiyatlandırma entegrasyonu
+
+#### İK Rolü Atomik-2 — Bekliyor
+- İK paneli sekmesi AdminPage'de (sadece İK kullanıcısı için)
+- Jobs menu sidebar'da İK için görünür
+- Tedarikçi portal'ında İK rolü desteği (ayrı Supplier authz)
+
+#### Kariyer Modülü Paket Entegrasyonu — Bekliyor
+- Tenant tablosuna `can_post_jobs` feature flag
+- Subscription plan koduna `kariyer_modul` özelliği
+
+---
+
+## PHASE 8 / LoginPage & Kariyer CTA Fixes — COMPLETE
+
+### Commit: 91bf1ca
+
+### LoginPage Değişiklikleri (`web/src/pages/LoginPage.tsx` + `.css`)
+- Mevcut 3 buton korundu: Stratejik Partner, Tedarikçi, İş Ortağı
+- Yeni bölüm eklendi: "İşveren & Kariyer" divider + açıklama notu
+- 2 yeni buton: "🏢 İşveren Girişi" → `/strategic-partner-login`, "🎯 İş Arıyorum Girişi" → `/strategic-partner-login`
+- "Üye Ol →" toggle: tıklayınca "İşveren Kaydı" → `/employer/register` ve "Kariyer Kaydı" → `/candidate/register` seçenekleri açılır
+- Eski footer note kaldırıldı ("Platform yönetici girişi güvenlik...")
+- Responsive: kariyer-grid ve register-grid ≤860px'de tek kolon
+- useState ile showRegisterOptions toggle (no redirect, inline expand)
+
+### KariyerListingsLayout CTA Düzeltmeleri
+- Tüm public CTA butonlar (İletişime Geç, Profil Gör, Başvur, Detay Gör, İletişim, Profil) → `/login`
+- Önceki yanlış yönlendirmeler: `/employer/register` (register sayfası) ve `/talent/${pro.id}` (var olmayan sayfa → anasayfaya redirect)
+
+### Bekleyen Kararlar (kullanıcı onayı bekleniyor)
+1. "Satın Alma Kariyerim" buton rengi: Ghost outline (önerilen) / Zümrüt yeşil / Turuncu + beyaz metin
+2. SatinAlmaKariyerimPage kopya: Seçenek A/B/C (employer ve candidate kartlar için)
+
+### Büyük Mimari Planlar (onay sonrası atomik olarak implement edilecek)
+
+#### Plan A: Dual-Role (Stratejik Partner + Tedarikçi aynı firma)
+- Atomik-A: `Supplier.linked_tenant_id = ForeignKey("tenants.id", nullable=True)` + migration + authz
+- Atomik-B: Frontend panel — Stratejik partner panelinde "Tedarikçi Profilim" sekmesi + aktivasyon butonu
+- Atomik-C: Fiyatlandırma — "dual_role" feature flag subscriptions tablosuna + ek ücret tanımı
+- Şu an: bir firma ya tenant (stratejik partner) ya Supplier — ayrı auth/tablolar, köprü YOK
+
+#### Plan B: İK Rolü Ekleme (tüm panel tipleri)
+- `hr_manager` rolü: stratejik partner, tedarikçi, kanal partner panellerine
+- api/core/authz.py: HR_MEMBER_SYSTEM_ROLES set ekleme
+- api/core/permission_matrix.py: "hr_manager:tenant_member" profil tanımı
+- Frontend paneller: HR sekmesi (opsiyonel iş ilanı verme özelliği)
+- Paket entegrasyonu: "kariyer_modul" özelliği olan planlara dahil
+
+#### Plan C: İş İlanı Verme Pakete Bağlı
+- Tenant tablosuna `can_post_jobs` feature flag
+- Bazı paketlere dahil, bazılarına ek ücret
+- Kariyer modül aktivasyonu komisyon-admin panelinden platform yönetiminde
+
+---
+
 ## PHASE 8 / NavBar & Kariyer Sayfaları — COMPLETE (uncommitted dirty files)
 
 ### NavBar Değişiklikleri (`web/src/components/NavBar.tsx`)
