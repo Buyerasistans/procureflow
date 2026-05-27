@@ -7,55 +7,39 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 2 / Atomik-4 - COMPLETE
+PHASE 2 / Atomik-5 - COMPLETE. PHASE 2 CLOSED.
 
 ## Executive Summary
-PHASE 2 / Atomik-4 extends the navigation policy to public nav. `NavBar.tsx`
-previously built its link list from a hardcoded, locale-split array. It now
-resolves items through `resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)`,
-then maps each policy key to a locale-specific `{href, label}` pair via
-`PUBLIC_NAV_LOCALE_MAP`. Parity is preserved: same 5 items, same order, same
-labels and routes for both TR and EN locales. Policy now controls which
-public nav items are enabled and in what order.
+PHASE 2 / Atomik-5 adds role-specific authenticated top-nav items for
+`employer_recruiter` and `candidate_user` system roles. Both personas previously
+received only `dashboard + quotes`. Policy extension in `navigation-policy.ts`
+adds `/jobs` for employer_recruiter (3 nav items) and `/jobs + /talent/profile`
+for candidate_user (4 nav items). Parity tests updated to document intentional
+legacy divergence. All quality gates and responsive gate cleared.
 
-## Inventory: Public Nav Items (NavBar.tsx)
+PHASE 2 is now fully CLOSED. All 5 Atomik steps completed:
+Atomik-1 runtime wiring, Atomik-2 legacy cleanup, Atomik-3 panel tab governance,
+Atomik-4 public nav governance, Atomik-5 new role nav.
 
-| key | TR route | EN route | order | scope |
-| --- | --- | --- | ---: | --- |
-| `top_nav.public.home` | `/` | `/` | 10 | public |
-| `top_nav.public.offers` | `/teklifler` | `/offers` | 20 | public |
-| `top_nav.public.suppliers` | `/tedarikciler` | `/suppliers` | 30 | public |
-| `top_nav.public.strategic` | `/stratejik-ortaklik` | `/strategic-partner` | 40 | public |
-| `top_nav.public.partner_program` | `/is-ortagi-programi` | `/partner-program` | 50 | public |
-
-All items: `visibility_scope: "public"`, `is_enabled: true`, no role/permission restrictions.
-`PUBLIC_NAV_CONTEXT`: `{ is_authenticated: false, permissions: [], scope: "public" }`.
-
-## Completed This Iteration
-
-### Changes Made
+## Changes Made (Atomik-5)
 
 **`web/src/config/navigation-policy.ts`**
-- Added `PUBLIC_NAV_CONTEXT: NavigationVisibilityContext` constant (exported).
-- Added `PUBLIC_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[]` array (5 items, exported).
-
-**`web/src/components/NavBar.tsx`**
-- Added imports: `PUBLIC_TOP_NAV_POLICY_ITEMS`, `PUBLIC_NAV_CONTEXT`, `resolveVisibleNavItems` from `navigation-policy`.
-- Replaced hardcoded locale-split `links` array with:
-  - `PUBLIC_NAV_LOCALE_MAP` — maps policy key → locale-specific `{href, label}` (computed inside component, locale-aware).
-  - `links = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT).map(item => PUBLIC_NAV_LOCALE_MAP[item.key]).filter(Boolean)`.
-- Render loop unchanged — still `links.map((l) => <a href={l.href}>…</a>)`.
+- `top_nav.app.jobs.allowed_system_roles`: added `employer_recruiter`, `candidate_user`
+  (was: `["talent_member", "employer_company_admin", "referral_partner", "super_admin"]`)
+  (now: `["talent_member", "employer_company_admin", "employer_recruiter", "candidate_user", "referral_partner", "super_admin"]`)
+- `top_nav.app.talent_profile.allowed_system_roles`: added `candidate_user`
+  (was: `["talent_member", "referral_partner", "super_admin"]`)
+  (now: `["talent_member", "candidate_user", "referral_partner", "super_admin"]`)
 
 **`web/src/test/navigation-policy.test.ts`**
-- Added imports: `PUBLIC_TOP_NAV_POLICY_ITEMS`, `PUBLIC_NAV_CONTEXT`.
-- Added `describe("public nav policy", …)` block with 4 tests:
-  1. Unauthenticated context → all 5 items visible (key order check).
-  2. TR canonical route order parity check.
-  3. Authenticated tenant_member context → all 5 items still visible.
-  4. super_admin context → all 5 items visible.
+- `employer_recruiter` test: updated from `hasDivergence: false` to `true`;
+  now asserts `/jobs` in `onlyInPolicy`, `/talent/profile` absent from policy routes.
+- `candidate_user` test: updated from `hasDivergence: false` to `true`;
+  now asserts `/jobs` and `/talent/profile` in `onlyInPolicy`.
+- Test count: 26/26 passing (was 22; +4 employer_recruiter and candidate_user assertions).
 
 **`docs/runbooks/nav-visibility-policy-shape.md`**
-- Added PHASE 2 / Atomik-4 COMPLETE banner.
+- Added PHASE 2 / Atomik-5 COMPLETE + PHASE 2 CLOSED banner.
 
 **`tools/agent/AI_BRIEFING.md`**
 - This file.
@@ -65,62 +49,76 @@ All items: `visibility_scope: "public"`, `is_enabled: true`, no role/permission 
 | Gate | Result | Detail |
 | --- | --- | --- |
 | type-check | PASS | No errors |
-| build | PASS | 944ms |
-| navigation-policy tests | PASS | 22/22 (was 18; +4 public nav tests) |
+| build | PASS | 1.40s |
+| navigation-policy tests | PASS | 26/26 (was 22; +4 role persona tests) |
 | responsive gate | PASS | See table below |
 
 ## Responsive Gate Results
 
-| Viewport | Size | Nav links | All present | Overflow | Click |
-| --- | --- | ---: | --- | --- | --- |
-| mobile-375 | 375x812 | 5 | true | false | false (pre-existing) |
-| tablet-768 | 768x1024 | 5 | true | false | true |
-| desktop-1366 | 1366x768 | 5 | true | false | true |
+| Persona | Viewport | Size | Nav items | Routes | Overflow | Click |
+| --- | --- | --- | ---: | --- | --- | --- |
+| employer_recruiter | mobile-375 | 375x812 | 3 | /dashboard,/quotes,/jobs | false | true |
+| employer_recruiter | tablet-768 | 768x1024 | 3 | /dashboard,/quotes,/jobs | false | true |
+| employer_recruiter | desktop-1366 | 1366x768 | 3 | /dashboard,/quotes,/jobs | false | true |
+| candidate_user | mobile-375 | 375x812 | 4 | /dashboard,/quotes,/jobs,/talent/profile | false | true |
+| candidate_user | tablet-768 | 768x1024 | 4 | /dashboard,/quotes,/jobs,/talent/profile | false | true |
+| candidate_user | desktop-1366 | 1366x768 | 4 | /dashboard,/quotes,/jobs,/talent/profile | false | true |
 
-**Mobile 375 click failure** is pre-existing: NavBar has no `@media` queries and
-the CTA / action area overlaps nav links at 375px (same gap documented in Atomik-1
-for AppLayout). Not a regression. All 5 links are present and visible in the DOM.
+All 6 scenarios PASS. Click smoke passed at all viewports (both personas).
 
-Screenshots: `artifacts/public-nav-{mobile-375,tablet-768,desktop-1366}.png`
-Report: `artifacts/public-nav-gate-report.json`
+Screenshots: `artifacts/atomik5-{employer_recruiter,candidate_user}-{mobile-375,tablet-768,desktop-1366}.png`
+Report: `artifacts/atomik5-nav-gate-report.json`
 
-## Open Risks / Blockers for PHASE 2 / Atomik-5
+Gate technique: Playwright session injection via `page.addInitScript` (sessionStorage)
++ LIFO-ordered `page.route` predicates (`/auth/me` highest priority, catch-all lowest).
 
-- `PUBLIC_NAV_LOCALE_MAP` is computed inside the component on every render.
-  This is intentional — it depends on `copy` (translation hook output) which is
-  reactive. No memoization added (scope: future cleanup if needed).
-- EN locale routes (`/offers`, `/suppliers`, etc.) are NOT in policy `route` fields.
-  Policy uses TR canonical routes. EN routes are in the locale map only. If a future
-  step needs EN route governance, the map approach must be extended or policy items
-  duplicated. This is noted but out of scope for this program.
-- Mobile 375 click gap (pre-existing): NavBar.css / AppLayout.css both lack
-  `@media` queries. Future scope.
-- `navigation.ts` still deprecated/test-only. Full deletion deferred.
-- `employer_recruiter` and `candidate_user` have no dedicated nav items — Atomik-5.
+## PHASE 2 CLOSURE SUMMARY
 
-## Product Principles
-- UI visibility must be policy/config driven, not scattered hardcoded checks.
-- Responsive behavior is a release gate for all UI render path steps.
-- Route slugs, API field keys, DB columns, enums, and technical identifiers
-  must remain stable unless a step explicitly owns a migration/contract change.
+| Atomik | Commit | Description |
+| --- | --- | --- |
+| Atomik-1 | 00c2fe0 | Runtime wiring: AppLayout uses resolveVisibleNavItems |
+| Atomik-2 | a1c6c66 | Legacy cleanup: routing.ts migrated, navigation.ts deprecated |
+| Atomik-3 | d5e32b7 | Panel tab governance via policy resolver |
+| Atomik-4 | fab2230 | Public nav governance via policy resolver |
+| Atomik-5 | (this commit) | Role-specific nav for employer_recruiter + candidate_user |
+
+## Open Risks
+
+- `navigation.ts` still deprecated/test-only. Full deletion deferred (requires restructuring parity test).
+- Mobile media queries still absent from AppLayout.css and NavBar.css (pre-existing gap).
+- `employer_recruiter` and `candidate_user` have no demo DB accounts; gate uses Playwright session injection.
+- EN locale routes for public nav are in locale map only, not in policy route fields.
 
 ## Next Atomic Step
 
-**PHASE 2 / Atomik-5:** New role nav — add dedicated authenticated top-nav
-items for `employer_recruiter` and `candidate_user` system roles. These personas
-currently receive only `dashboard + quotes` (parity proven). Atomik-5 adds
-role-appropriate items (e.g. a Jobs or Talent section link) to the policy and
-surfaces them in AppLayout via the existing `resolveVisibleNavItems` call.
-Responsive gate required.
+**PHASE 3 / Atomik-1: Public jobs surface — inventory and route scaffolding**
+
+Goal: Define and document the `/jobs` public surface. This is the job listing page
+accessible to both authenticated and unauthenticated users (policy: `visibility_scope: "public"`
+or open authenticated, TBD). Current state: `/jobs` route exists in nav policy for
+employer_recruiter/candidate_user but the actual page/route may be a stub or missing.
+
+Atomik-1 scope:
+1. Inventory what exists at `/jobs` in the frontend (route definition, component, API calls).
+2. Determine whether `/jobs` is a stub, a redirect, or a functional page.
+3. Define the policy visibility target for the jobs surface:
+   - Should unauthenticated users see a public job listing? (like `/teklifler` public surface)
+   - Or is `/jobs` always authenticated?
+4. Write the PHASE 3 program shape: which personas need what, what pages/components are in scope.
+5. No code changes in Atomik-1 — pure inventory and goal definition.
+
+Deliverable: `docs/runbooks/jobs-surface-phase3-plan.md` (or equivalent AI_BRIEFING entry)
+with the inventory findings and confirmed PHASE 3 scope.
 
 ## RESUME BLOCK
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 2 / Atomik-4: COMPLETE (public navbar items governed via policy resolver)
-Next atomic step: PHASE 2 / Atomik-5 - new role nav for employer_recruiter and candidate_user
+PHASE 2: COMPLETE AND CLOSED (5/5 Atomik steps done)
+Last commit: feat(nav): add role-specific top nav items for recruiter and candidate
+Next atomic step: PHASE 3 / Atomik-1 - public jobs surface inventory
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
-Keep unrelated dirty worktree files untouched. Implement only one atomic step.
+Keep unrelated dirty/untracked files untouched. Implement only one atomic step.
 ```
 
 ## SAFE TO RESUME

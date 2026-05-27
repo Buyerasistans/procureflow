@@ -36,6 +36,17 @@ Scope: PHASE 1 / Atomik-1. This document defines the target minimal policy shape
 > Parity preserved: same 5 items, same order, same labels and routes.
 > Responsive gate cleared at 375/768/1366: 5 links present, no overflow.
 > Mobile 375 click blocked (pre-existing layout gap — NavBar has no media queries).
+>
+> **PHASE 2 / Atomik-5 COMPLETE. PHASE 2 CLOSED.**
+> Role-specific authenticated top-nav items added for `employer_recruiter` and
+> `candidate_user` system roles via `navigation-policy.ts`.
+> `employer_recruiter` receives `/jobs` (3 nav items total).
+> `candidate_user` receives `/jobs` + `/talent/profile` (4 nav items total).
+> No existing role regressions. 26/26 navigation-policy tests pass.
+> Responsive gate cleared at 375/768/1366 for both personas: all expected routes
+> present, no overflow, click smoke passed at all viewports.
+> Screenshots: `artifacts/atomik5-{persona}-{viewport}.png`.
+> PHASE 3 entry target: Public jobs surface — inventory and first atomic step.
 
 ## Policy Entity
 

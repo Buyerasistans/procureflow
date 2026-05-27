@@ -199,26 +199,37 @@ describe("parity adapter: role vocabulary coverage", () => {
     expect(result.inBoth).toEqual(["/dashboard", "/quotes", "/jobs"]);
   });
 
-  it("employer_recruiter (yeni program rolu): dashboard+quotes paritesi", () => {
+  it("employer_recruiter: Atomik-5 policy extension — /jobs eklendi (legacy divergence intentional)", () => {
     const user = buildUser({
       role: "user",
       business_role: "user",
       system_role: "employer_recruiter",
     });
     const result = compareAuthenticatedTopNav(user);
-    expect(result.hasDivergence).toBe(false);
+    // Intentional: policy adds /jobs for recruiter; legacy has no employer_recruiter logic
+    expect(result.hasDivergence).toBe(true);
+    expect(result.onlyInLegacy).toEqual([]);
+    expect(result.onlyInPolicy).toContain("/jobs");
     expect(result.inBoth).toEqual(["/dashboard", "/quotes"]);
+    expect(policyTopNavRoutes(user)).toContain("/jobs");
+    expect(policyTopNavRoutes(user)).not.toContain("/talent/profile");
   });
 
-  it("candidate_user (yeni program rolu): dashboard+quotes paritesi", () => {
+  it("candidate_user: Atomik-5 policy extension — /jobs + /talent/profile eklendi (legacy divergence intentional)", () => {
     const user = buildUser({
       role: "user",
       business_role: "user",
       system_role: "candidate_user",
     });
     const result = compareAuthenticatedTopNav(user);
-    expect(result.hasDivergence).toBe(false);
+    // Intentional: policy adds /jobs and /talent/profile for candidate; legacy has no candidate_user logic
+    expect(result.hasDivergence).toBe(true);
+    expect(result.onlyInLegacy).toEqual([]);
+    expect(result.onlyInPolicy).toContain("/jobs");
+    expect(result.onlyInPolicy).toContain("/talent/profile");
     expect(result.inBoth).toEqual(["/dashboard", "/quotes"]);
+    expect(policyTopNavRoutes(user)).toContain("/jobs");
+    expect(policyTopNavRoutes(user)).toContain("/talent/profile");
   });
 
   it("super_admin regression: adapter uzerinden parity saglandi", () => {
