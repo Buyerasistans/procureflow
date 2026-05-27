@@ -288,18 +288,40 @@ withdrawn   → terminal (aksiyon yok)
 
 ---
 
-### Atomik-6: Frontend — Candidate başvuru geçmişi UI
+### Atomik-6: Frontend — Candidate başvuru geçmişi UI — COMPLETE
 
-**Amaç:** G4 (frontend kısmı). TalentProfilePage'e "Başvurularım" bölümü ekle.
+**Amaç:** G4 (frontend kısmı). `/jobs` sayfasına "Başvurularım" bölümü ekle (candidate_user / talent_member görür; employer görmez).
 
-**Dosyalar:**
-- `web/src/services/jobs.service.ts` — `getMyApplications()` ekle
-- `web/src/pages/TalentProfilePage.tsx` — `MyApplicationsSection` component
-- `web/src/pages/TalentProfilePage.css` — başvuru satırı stilleri
+**Dosyalar (tamamlandı):**
+- `web/src/services/jobs.service.ts` — `getMyApplications()` fonksiyonu eklendi: `GET /my/applications` → `Promise<JobApplicationOut[]>`
+- `web/src/pages/JobsPage.tsx` — `myApplications`, `myApplicationsLoading`, `myApplicationsError` state eklendi; mount `useEffect` ile `canTalent && !canEmployer` guard'ı altında fetch; render'da job listesinin üstünde `<section className="jobs-page__my-applications">` bölümü; her satırda ilan id, status badge, applied_at, updated_at, employer_note
+- `web/src/pages/JobsPage.css` — `.jobs-page__my-applications`, `.jobs-page__my-applications-title`, `.jobs-page__my-applications-empty`, `.my-application-row`, `.my-application-row__info`, `.my-application-row__job`, `.my-application-row__date`, `.my-application-row__note` stilleri eklendi; overflow-x: hidden; flex-wrap: wrap (mobil uyumlu)
 
-**Gate:** Responsive (360/768/1280) — candidate session mock, başvuru listesi görünür, durum badge'leri doğru
-**Bağımlılık:** Atomik-5 (backend endpoint).
-**Risk:** Orta.
+**Visibility guard:**
+- `canTalent && !canEmployer` → bölümü göster (candidate_user, talent_member)
+- `canEmployer` (employer_company_admin, employer_recruiter) → bölüm görünmez
+- `super_admin`: canTalent=true + canEmployer=true → `!canEmployer=false` → görünmez (kabul edilebilir)
+
+**Selectors:**
+- `.jobs-page__my-applications` — bölüm container
+- `.jobs-page__my-applications-title` — "Başvurularım" başlığı
+- `.my-application-row` — her başvuru satırı
+- `.application-status-badge--{status}` — durum badge'i (mevcut sınıf, renk uyumlu)
+- `.my-application-row__date` — tarih alanı
+- `.my-application-row__note` — employer_note
+- `.jobs-page__my-applications-empty` — boş durum mesajı
+
+**Gate:** 14/14 PASS — `tools/atomik6_candidate_application_history_gate.mjs`
+- Scenario A (3): candidate section visible — 360/768/1280
+- Scenario B (3): mock list → 2 rows + status badges
+- Scenario C (2): date field + employer_note visible
+- Scenario D (2): empty list → empty state message
+- Scenario E (1): employer regression — no section
+- Scenario F (3): responsive overflow — 360/768/1280
+
+Artifacts: `tools/gate-artifacts/atomik6-candidate-application-history/`
+
+**G4 durumu:** DONE (backend + frontend complete)
 
 ---
 

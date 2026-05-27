@@ -155,3 +155,8 @@ export async function updateApplicationStatus(
   const res = await http.patch<JobApplicationOut>(`/applications/${applicationId}/status`, payload);
   return res.data;
 }
+
+export async function getMyApplications(): Promise<JobApplicationOut[]> {
+  const res = await http.get<JobApplicationOut[]>("/my/applications");
+  return res.data;
+}

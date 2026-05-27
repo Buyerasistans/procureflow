@@ -6,6 +6,7 @@ import {
   createJob,
   extractJobsError,
   fetchJobs,
+  getMyApplications,
   listApplications,
   updateApplicationStatus,
   updateJob,
@@ -417,6 +418,9 @@ export default function JobsPage() {
   const [applicationsMap, setApplicationsMap] = useState<Partial<Record<number, JobApplicationOut[]>>>({});
   const [loadingApplicationsJobId, setLoadingApplicationsJobId] = useState<number | null>(null);
   const [updatingApplicationId, setUpdatingApplicationId] = useState<number | null>(null);
+  const [myApplications, setMyApplications] = useState<JobApplicationOut[]>([]);
+  const [myApplicationsLoading, setMyApplicationsLoading] = useState(false);
+  const [myApplicationsError, setMyApplicationsError] = useState<string | null>(null);
 
   const PAGE_SIZE = 20;
 
@@ -437,6 +441,15 @@ export default function JobsPage() {
   useEffect(() => {
     void loadJobs();
   }, [loadJobs]);
+
+  useEffect(() => {
+    if (!canTalent || canEmployer) return;
+    setMyApplicationsLoading(true);
+    void getMyApplications()
+      .then((apps) => setMyApplications(apps))
+      .catch((err) => setMyApplicationsError(extractJobsError(err)))
+      .finally(() => setMyApplicationsLoading(false));
+  }, [canTalent, canEmployer]);
 
   function handleCreateSuccess(job: ProcurementJob) {
     setShowCreateForm(false);
@@ -528,6 +541,41 @@ export default function JobsPage() {
 
       {successMsg && <div className="jobs-page__success">{successMsg}</div>}
       {error && <div className="jobs-page__error">{error}</div>}
+
+      {canTalent && !canEmployer && (
+        <section className="jobs-page__my-applications">
+          <h2 className="jobs-page__my-applications-title">Başvurularım</h2>
+          {myApplicationsLoading ? (
+            <p className="jobs-page__my-applications-empty">Yükleniyor...</p>
+          ) : myApplicationsError ? (
+            <div className="jobs-page__error">{myApplicationsError}</div>
+          ) : myApplications.length === 0 ? (
+            <p className="jobs-page__my-applications-empty">Henüz başvurunuz bulunmuyor.</p>
+          ) : (
+            myApplications.map((app) => (
+              <div key={app.id} className="my-application-row">
+                <div className="my-application-row__info">
+                  <span className="my-application-row__job">İlan #{app.job_id}</span>
+                  <span className={`application-status-badge application-status-badge--${app.status}`}>
+                    {app.status}
+                  </span>
+                  <span className="my-application-row__date">
+                    {new Date(app.applied_at).toLocaleDateString("tr-TR")}
+                  </span>
+                  {app.updated_at && (
+                    <span className="my-application-row__date">
+                      Güncellendi: {new Date(app.updated_at).toLocaleDateString("tr-TR")}
+                    </span>
+                  )}
+                </div>
+                {app.employer_note && (
+                  <p className="my-application-row__note">{app.employer_note}</p>
+                )}
+              </div>
+            ))
+          )}
+        </section>
+      )}
 
       {loading ? (
         <div className="jobs-page__empty">Yükleniyor...</div>

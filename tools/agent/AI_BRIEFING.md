@@ -7,15 +7,50 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 5 / Atomik-5 - COMPLETE
+PHASE 5 / Atomik-6 - COMPLETE
 
 ## Executive Summary
 
-PHASE 5 / Atomik-5 tamamlandı: `GET /api/v1/my/applications` backend endpoint eklendi.
-Candidate/talent_member kendi başvurularını `applicant_user_id == current_user.id`
-filtresiyle alabilir; employer 403 alır. Test: 11/11 PASS.
+PHASE 5 / Atomik-6 tamamlandı: Candidate başvuru geçmişi UI eklendi.
+`getMyApplications()` servis fonksiyonu + JobsPage "Başvurularım" bölümü.
+`canTalent && !canEmployer` guard — employer görmez, candidate/talent görür.
+Gate: 14/14 PASS.
 
-G4 backend yarısı kapatıldı. Frontend (Atomik-6) pending.
+G4 tamamen kapatıldı (backend + frontend). G5 (withdrawal) + G6 (job detail) açık.
+
+## Atomik-6 Değişiklikleri
+
+### `web/src/services/jobs.service.ts`
+- `getMyApplications()` eklendi: `GET /my/applications` → `Promise<JobApplicationOut[]>`
+
+### `web/src/pages/JobsPage.tsx`
+- Import: `getMyApplications` eklendi
+- State: `myApplications`, `myApplicationsLoading`, `myApplicationsError` eklendi
+- `useEffect`: `canTalent && !canEmployer` guard → mount'ta `getMyApplications()` fetch
+- Render: job listesinin üstünde `<section className="jobs-page__my-applications">` eklendi
+  - Loading / error / empty / list state'leri
+  - Her satır: `my-application-row` — İlan #{job_id}, status badge, applied_at, updated_at, employer_note
+  - Status badge: mevcut `application-status-badge--{status}` sınıflarını kullanıyor
+
+### `web/src/pages/JobsPage.css`
+- `.jobs-page__my-applications` — section container, overflow-x: hidden
+- `.jobs-page__my-applications-title`, `.jobs-page__my-applications-empty`
+- `.my-application-row`, `.my-application-row__info`, `.my-application-row__job`
+- `.my-application-row__date`, `.my-application-row__note`
+
+### `tools/atomik6_candidate_application_history_gate.mjs`
+- Yeni gate script — 14 assertion, 6 senaryo
+- LIFO stack: catch-all → /api/v1/jobs → /api/v1/my/applications → /auth/refresh → /auth/me
+- Artifacts: `tools/gate-artifacts/atomik6-candidate-application-history/`
+
+### Visibility Rules
+| Role | canTalent | canEmployer | Bölüm görünür? |
+|---|---|---|---|
+| candidate_user | true | false | ✓ |
+| talent_member | true | false | ✓ |
+| employer_company_admin | false | true | ✗ |
+| employer_recruiter | false | true | ✗ |
+| super_admin | true | true | ✗ (canEmployer=true bloklar) |
 
 ## Atomik-5 Değişiklikleri
 
@@ -129,6 +164,7 @@ G4 backend yarısı kapatıldı. Frontend (Atomik-6) pending.
 | PHASE 5 Atomik-3 | 17/17 PASS |
 | PHASE 5 Atomik-4 | 15/15 PASS |
 | PHASE 5 Atomik-5 | 11/11 PASS (backend unit tests) |
+| PHASE 5 Atomik-6 | 14/14 PASS (E2E — candidate UI, employer regression, 3 viewports) |
 
 ### Atomik-3 Assertion Dağılımı
 
@@ -194,7 +230,7 @@ Total: 6 × 3 + 1 = 19
 | G1 | candidate_user TALENT_PROFILE_REQUIRED hatası linksize | P0 | **DONE** |
 | G2 | Employer ilan kapatma/dolu işaretleme UI yok | P1 | **DONE** |
 | G3 | Employer başvuru pipeline viewer yok | P1 | **DONE** |
-| G4 | Candidate kendi başvurularını göremez (backend + frontend) | P1 | Açık (backend DONE, frontend pending) |
+| G4 | Candidate kendi başvurularını göremez (backend + frontend) | P1 | **DONE** |
 | G5 | Candidate başvuru geri çekme yok (backend + frontend) | P2 | Açık |
 | G6 | Job detail page yok (/jobs/:id route) | P2 | Açık |
 
@@ -207,29 +243,30 @@ Total: 6 × 3 + 1 = 19
 | A3 | G2: employer ilan durum aksiyonları (kapat/dolu) | **COMPLETE** |
 | A4 | G3: employer başvuru pipeline viewer | **COMPLETE** |
 | A5 | G4 backend: GET /my/applications endpoint | **COMPLETE** |
-| A6 | G4 frontend: candidate başvuru geçmişi UI | Açık |
+| A6 | G4 frontend: candidate başvuru geçmişi UI | **COMPLETE** |
 | A7 | G5: candidate withdrawal (backend + frontend) | Açık |
 | A8 | Full PHASE 5 E2E gate + closure | Açık |
 
 ## Next Atomic Step
 
-**PHASE 5 / Atomik-6:** Frontend — Candidate başvuru geçmişi UI (G4 frontend)
+**PHASE 5 / Atomik-7:** Backend + Frontend — Candidate başvuru geri çekme (G5)
 
 Kapsam:
-- `web/src/services/jobs.service.ts` — `getMyApplications(): Promise<JobApplicationOut[]>` — `GET /my/applications`
-- `web/src/pages/JobsPage.tsx` veya yeni sayfa — `MyApplicationsSection`: candidate rolü için başvuru listesi; durum badge'leri; boşsa "Henüz başvurunuz yok." mesajı
-- Responsive: 360 / 768 / 1280 viewport
+- `api/routers/job_applications.py` — `POST /applications/{id}/withdraw` endpoint; `is_talent_member` guard; `applicant_user_id == current_user.id` sahiplik kontrolü; sadece `applied/shortlisted/interview` → `withdrawn` geçişi; terminal durumlar reddedilir
+- `api/tests/test_job_applications.py` — withdrawal birim testleri
+- `web/src/services/jobs.service.ts` — `withdrawApplication(applicationId)` fonksiyonu
+- `web/src/pages/JobsPage.tsx` — "Başvurularım" bölümündeki `applied/shortlisted/interview` satırlara "Geri Çek" butonu
 
-Gate: E2E Playwright gate — candidate başvuru listesi görünür; employer göremez
-Commit: `feat(jobs): add candidate application history UI`
+Gate: Backend birim test + E2E — candidate withdrawal flow, employer cannot withdraw
+Commit: `feat(jobs): add candidate application withdrawal`
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 5 / Atomik-5: COMPLETE — GET /my/applications backend endpoint, gate 11/11 PASS
-Next: PHASE 5 / Atomik-6 — candidate application history UI (G4 frontend).
+PHASE 5 / Atomik-6: COMPLETE — candidate application history UI, gate 14/14 PASS
+Next: PHASE 5 / Atomik-7 — candidate withdrawal (backend + frontend, G5).
 Runbook: docs/runbooks/posting-application-phase5-plan.md
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
