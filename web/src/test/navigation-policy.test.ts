@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { hasPermissionForUser, type Permission, type Role } from "../auth/permissions";
 import {
   AUTHENTICATED_TOP_NAV_POLICY_ITEMS,
+  PUBLIC_TOP_NAV_POLICY_ITEMS,
+  PUBLIC_NAV_CONTEXT,
   buildPolicyContext,
   resolveVisiblePanelTabKeys,
   resolveVisibleNavItems,
@@ -237,6 +239,50 @@ describe("parity adapter: role vocabulary coverage", () => {
     });
     const result = compareAuthenticatedTopNav(user);
     expect(result.hasDivergence).toBe(false);
+  });
+});
+
+describe("public nav policy", () => {
+  const EXPECTED_PUBLIC_KEYS = [
+    "top_nav.public.home",
+    "top_nav.public.offers",
+    "top_nav.public.suppliers",
+    "top_nav.public.strategic",
+    "top_nav.public.partner_program",
+  ];
+
+  const EXPECTED_TR_ROUTES = ["/", "/teklifler", "/tedarikciler", "/stratejik-ortaklik", "/is-ortagi-programi"];
+
+  it("anonim (unauthenticated) context'te tum public nav item'lari gorunur", () => {
+    const visibleKeys = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)
+      .map((item) => item.key);
+    expect(visibleKeys).toEqual(EXPECTED_PUBLIC_KEYS);
+  });
+
+  it("public nav item siralamasi hardcoded link siralamasini korur (parity)", () => {
+    const resolvedRoutes = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)
+      .map((item) => item.route);
+    expect(resolvedRoutes).toEqual(EXPECTED_TR_ROUTES);
+  });
+
+  it("authenticated tenant_member context'te de public nav item'lari gorunur", () => {
+    const tenantCtx: NavigationVisibilityContext = {
+      is_authenticated: true,
+      system_role: "tenant_member",
+      tenant_role: "user",
+      permissions: ["view:dashboard"],
+      scope: "tenant",
+    };
+    const visibleKeys = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, tenantCtx)
+      .map((item) => item.key);
+    expect(visibleKeys).toEqual(EXPECTED_PUBLIC_KEYS);
+  });
+
+  it("super_admin context'te de public nav item'lari gorunur", () => {
+    const user = buildUser({ role: "super_admin", business_role: "super_admin", system_role: "super_admin" });
+    const visibleKeys = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, buildPolicyContext(user))
+      .map((item) => item.key);
+    expect(visibleKeys).toEqual(EXPECTED_PUBLIC_KEYS);
   });
 });
 

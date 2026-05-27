@@ -237,6 +237,80 @@ export function buildPolicyContext(user: AuthUser): NavigationVisibilityContext 
   };
 }
 
+export const PUBLIC_NAV_CONTEXT: NavigationVisibilityContext = {
+  is_authenticated: false,
+  permissions: [],
+  scope: "public",
+};
+
+export const PUBLIC_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[] = [
+  {
+    key: "top_nav.public.home",
+    label: "Ana Sayfa",
+    placement: "top_nav",
+    route: "/",
+    order: 10,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
+  {
+    key: "top_nav.public.offers",
+    label: "Açık İhaleler",
+    placement: "top_nav",
+    route: "/teklifler",
+    order: 20,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
+  {
+    key: "top_nav.public.suppliers",
+    label: "Tedarikçi Havuzu",
+    placement: "top_nav",
+    route: "/tedarikciler",
+    order: 30,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
+  {
+    key: "top_nav.public.strategic",
+    label: "Stratejik Partnerlerimiz",
+    placement: "top_nav",
+    route: "/stratejik-ortaklik",
+    order: 40,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
+  {
+    key: "top_nav.public.partner_program",
+    label: "Başarılı İş Ortaklarımız",
+    placement: "top_nav",
+    route: "/is-ortagi-programi",
+    order: 50,
+    is_enabled: true,
+    visibility_scope: "public",
+    allowed_system_roles: [],
+    allowed_tenant_roles: [],
+    requires_permissions: [],
+    responsive_behavior: "collapse",
+  },
+];
+
 export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[] = [
   {
     key: "top_nav.app.dashboard",

@@ -26,6 +26,16 @@ Scope: PHASE 1 / Atomik-1. This document defines the target minimal policy shape
 > order, slugs, workspace-profile filtering, and content routes are preserved.
 > Policy parity is covered for `super_admin`, `tenant_admin`, and
 > role-management-only personas.
+>
+> **PHASE 2 / Atomik-4 COMPLETE.** Public navbar items now driven by policy.
+> `PUBLIC_TOP_NAV_POLICY_ITEMS` (5 items, `visibility_scope: "public"`) and
+> `PUBLIC_NAV_CONTEXT` exported from `navigation-policy.ts`.
+> `NavBar.tsx` replaced hardcoded locale-split link array with
+> `resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)`
+> + a `PUBLIC_NAV_LOCALE_MAP` for locale-specific href/label overrides.
+> Parity preserved: same 5 items, same order, same labels and routes.
+> Responsive gate cleared at 375/768/1366: 5 links present, no overflow.
+> Mobile 375 click blocked (pre-existing layout gap — NavBar has no media queries).
 
 ## Policy Entity
 

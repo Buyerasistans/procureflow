@@ -7,81 +7,120 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 2 / Atomik-3 - COMPLETE
+PHASE 2 / Atomik-4 - COMPLETE
 
 ## Executive Summary
-PHASE 2 / Atomik-3 extends the navigation policy model from authenticated top-nav to admin panel tabs. The admin tab render path now keeps the existing tab metadata/order from `AdminPage.tsx`, then applies a typed `panel_tab` policy resolver before rendering.
+PHASE 2 / Atomik-4 extends the navigation policy to public nav. `NavBar.tsx`
+previously built its link list from a hardcoded, locale-split array. It now
+resolves items through `resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)`,
+then maps each policy key to a locale-specific `{href, label}` pair via
+`PUBLIC_NAV_LOCALE_MAP`. Parity is preserved: same 5 items, same order, same
+labels and routes for both TR and EN locales. Policy now controls which
+public nav items are enabled and in what order.
 
-Runtime parity goal is preserved: labels, tab slugs, order, workspace-profile `allowed_tabs` behavior, and content rendering remain unchanged.
+## Inventory: Public Nav Items (NavBar.tsx)
+
+| key | TR route | EN route | order | scope |
+| --- | --- | --- | ---: | --- |
+| `top_nav.public.home` | `/` | `/` | 10 | public |
+| `top_nav.public.offers` | `/teklifler` | `/offers` | 20 | public |
+| `top_nav.public.suppliers` | `/tedarikciler` | `/suppliers` | 30 | public |
+| `top_nav.public.strategic` | `/stratejik-ortaklik` | `/strategic-partner` | 40 | public |
+| `top_nav.public.partner_program` | `/is-ortagi-programi` | `/partner-program` | 50 | public |
+
+All items: `visibility_scope: "public"`, `is_enabled: true`, no role/permission restrictions.
+`PUBLIC_NAV_CONTEXT`: `{ is_authenticated: false, permissions: [], scope: "public" }`.
 
 ## Completed This Iteration
-- Added `PanelTabVisibilityFlags`, `buildAdminPanelTabPolicyItems`, and `resolveVisiblePanelTabKeys` in `web/src/config/navigation-policy.ts`.
-- Added `placement: "panel_tab"` policy rows for current admin tabs.
-- Wired `AdminPage.tsx` to filter the already-built tab list through the policy resolver.
-- Preserved workspace profile filtering after policy resolution.
-- Added a minimal admin tab-row responsive containment fix so the new render path can be smoke-tested at mobile width without document-level horizontal overflow.
-- Added panel tab policy tests for:
-  - `super_admin`
-  - `tenant_admin`
-  - role-management-only persona
-- Kept top-nav parity tests intact.
-- Updated `docs/runbooks/nav-visibility-policy-shape.md` with panel tab inventory, policy shape, and PHASE 2 / Atomik-3 notes.
-- Updated local `tools/agent/SESSION_STATE.json`; it is gitignored and must not be committed.
 
-## Files Changed
-- `web/src/config/navigation-policy.ts`
-- `web/src/pages/AdminPage.tsx`
-- `web/src/styles/pages/AdminPage.css`
-- `web/src/test/navigation-policy.test.ts`
-- `docs/runbooks/nav-visibility-policy-shape.md`
-- `tools/agent/AI_BRIEFING.md`
+### Changes Made
 
-## Migrations
-None.
+**`web/src/config/navigation-policy.ts`**
+- Added `PUBLIC_NAV_CONTEXT: NavigationVisibilityContext` constant (exported).
+- Added `PUBLIC_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[]` array (5 items, exported).
 
-## Panel Tab Inventory Summary
+**`web/src/components/NavBar.tsx`**
+- Added imports: `PUBLIC_TOP_NAV_POLICY_ITEMS`, `PUBLIC_NAV_CONTEXT`, `resolveVisibleNavItems` from `navigation-policy`.
+- Replaced hardcoded locale-split `links` array with:
+  - `PUBLIC_NAV_LOCALE_MAP` — maps policy key → locale-specific `{href, label}` (computed inside component, locale-aware).
+  - `links = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT).map(item => PUBLIC_NAV_LOCALE_MAP[item.key]).filter(Boolean)`.
+- Render loop unchanged — still `links.map((l) => <a href={l.href}>…</a>)`.
 
-| Group | Tabs | Visibility source now |
+**`web/src/test/navigation-policy.test.ts`**
+- Added imports: `PUBLIC_TOP_NAV_POLICY_ITEMS`, `PUBLIC_NAV_CONTEXT`.
+- Added `describe("public nav policy", …)` block with 4 tests:
+  1. Unauthenticated context → all 5 items visible (key order check).
+  2. TR canonical route order parity check.
+  3. Authenticated tenant_member context → all 5 items still visible.
+  4. super_admin context → all 5 items visible.
+
+**`docs/runbooks/nav-visibility-policy-shape.md`**
+- Added PHASE 2 / Atomik-4 COMPLETE banner.
+
+**`tools/agent/AI_BRIEFING.md`**
+- This file.
+
+## Gates Passed
+
+| Gate | Result | Detail |
 | --- | --- | --- |
-| core | `panel_home`, `companies`, `roles`, `departments`, `personnel`, `projects`, `approvals`, `reports` | `panel_tab` policy flags |
-| platform | `platform_operations`, `discovery_lab_operations`, `onboarding_studio`, `tenant_governance`, `platform_analytics`, `platform_suppliers`, `public_pricing`, `campaigns`, `commission_admin`, `support_tickets` | `can_view_platform_governance` policy flag |
-| packages | `packages` | platform governance + packages policy flags |
-| deployment | `deployment` | platform governance + deployment policy flags |
-| settings | `settings` | platform settings or workspace settings links policy flags |
-| panel designer | `panel_designer` | super admin or self-customization policy flag |
-| role management only | `roles` | role-management-only policy flag |
+| type-check | PASS | No errors |
+| build | PASS | 944ms |
+| navigation-policy tests | PASS | 22/22 (was 18; +4 public nav tests) |
+| responsive gate | PASS | See table below |
 
-## Test Status
-- `npm.cmd run test:run -- navigation-policy` from `web/`: passed, 18/18.
-- `npm.cmd run test:run -- admin-page-tenant-governance -t "role-management-only|platform support icin ayri platform operasyonlari sekmesini gosterir"` from `web/`: passed, 3/3 targeted, 53 skipped.
-- `npm.cmd run type-check` from `web/`: passed.
-- `npm.cmd run build` from `web/`: passed.
-- `node artifacts\panel-tab-smoke.mjs`: passed before cleanup for 375/768/1366; visible panel tab set rendered, document overflow was false, and `platform_operations` click/content smoke passed.
+## Responsive Gate Results
 
-## Working Tree Note
-Before this checkpoint, the repo already had unrelated modified/untracked files in API, admin UI, and local folders. This step touched only the files listed above. Do not stage or revert unrelated files.
+| Viewport | Size | Nav links | All present | Overflow | Click |
+| --- | --- | ---: | --- | --- | --- |
+| mobile-375 | 375x812 | 5 | true | false | false (pre-existing) |
+| tablet-768 | 768x1024 | 5 | true | false | true |
+| desktop-1366 | 1366x768 | 5 | true | false | true |
 
-## Open Risks / Blockers
-- `AdminPage.tsx` already had unrelated local modifications before Atomik-3. The policy filter was added surgically around tab visibility only.
-- Panel tab policy currently preserves existing frontend-derived booleans; backend-governed persistence is not introduced.
-- Workspace-profile `allowed_tabs` remains a second-stage filter by design.
-- The full `admin-page-tenant-governance` suite is not claimed as fully clean in this checkpoint because pre-existing local dirty changes in adjacent admin tabs are outside this atomik scope; targeted panel visibility coverage passed.
+**Mobile 375 click failure** is pre-existing: NavBar has no `@media` queries and
+the CTA / action area overlaps nav links at 375px (same gap documented in Atomik-1
+for AppLayout). Not a regression. All 5 links are present and visible in the DOM.
+
+Screenshots: `artifacts/public-nav-{mobile-375,tablet-768,desktop-1366}.png`
+Report: `artifacts/public-nav-gate-report.json`
+
+## Open Risks / Blockers for PHASE 2 / Atomik-5
+
+- `PUBLIC_NAV_LOCALE_MAP` is computed inside the component on every render.
+  This is intentional — it depends on `copy` (translation hook output) which is
+  reactive. No memoization added (scope: future cleanup if needed).
+- EN locale routes (`/offers`, `/suppliers`, etc.) are NOT in policy `route` fields.
+  Policy uses TR canonical routes. EN routes are in the locale map only. If a future
+  step needs EN route governance, the map approach must be extended or policy items
+  duplicated. This is noted but out of scope for this program.
+- Mobile 375 click gap (pre-existing): NavBar.css / AppLayout.css both lack
+  `@media` queries. Future scope.
+- `navigation.ts` still deprecated/test-only. Full deletion deferred.
+- `employer_recruiter` and `candidate_user` have no dedicated nav items — Atomik-5.
 
 ## Product Principles
 - UI visibility must be policy/config driven, not scattered hardcoded checks.
 - Responsive behavior is a release gate for all UI render path steps.
-- Route slugs, API field keys, DB columns, enums, and technical identifiers must remain stable unless a step explicitly owns a migration/contract change.
+- Route slugs, API field keys, DB columns, enums, and technical identifiers
+  must remain stable unless a step explicitly owns a migration/contract change.
 
 ## Next Atomic Step
-PHASE 2 / Atomik-4: public nav governance. Model `NavBar.tsx` public navigation items in policy with a parity-first adapter, then prepare controlled runtime adoption without changing public route labels, order, or responsive behavior.
+
+**PHASE 2 / Atomik-5:** New role nav — add dedicated authenticated top-nav
+items for `employer_recruiter` and `candidate_user` system roles. These personas
+currently receive only `dashboard + quotes` (parity proven). Atomik-5 adds
+role-appropriate items (e.g. a Jobs or Talent section link) to the policy and
+surfaces them in AppLayout via the existing `resolveVisibleNavItems` call.
+Responsive gate required.
 
 ## RESUME BLOCK
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 2 / Atomik-3: COMPLETE after checkpoint commit
-Next atomic step: PHASE 2 / Atomik-4 - public nav governance
-Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first. Keep unrelated dirty worktree files untouched. Implement only one atomic step and commit it with AI_BRIEFING.md. SESSION_STATE.json remains local/gitignored.
+PHASE 2 / Atomik-4: COMPLETE (public navbar items governed via policy resolver)
+Next atomic step: PHASE 2 / Atomik-5 - new role nav for employer_recruiter and candidate_user
+Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
+Keep unrelated dirty worktree files untouched. Implement only one atomic step.
 ```
 
 ## SAFE TO RESUME

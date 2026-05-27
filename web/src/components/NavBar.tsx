@@ -4,6 +4,11 @@ import PublicBrandLogo from "./PublicBrandLogo";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
+import {
+  PUBLIC_TOP_NAV_POLICY_ITEMS,
+  PUBLIC_NAV_CONTEXT,
+  resolveVisibleNavItems,
+} from "../config/navigation-policy";
 
 type NavVariant = "platform" | "strategic" | "supplier" | "channel" | "neutral";
 
@@ -49,21 +54,25 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
     };
   const copy = usePublicTranslations("public_core", locale, defaultCopy);
 
-  const links: { href: string; label: string }[] = isTurkish
-    ? [
-      { href: "/", label: copy.home },
-      { href: "/teklifler", label: copy.offers },
-      { href: "/tedarikciler", label: copy.suppliers },
-      { href: "/stratejik-ortaklik", label: copy.strategic },
-      { href: "/is-ortagi-programi", label: copy.partnerProgram },
-    ]
-    : [
-      { href: "/", label: copy.home },
-      { href: "/offers", label: copy.offers },
-      { href: "/suppliers", label: copy.suppliers },
-      { href: "/strategic-partner", label: copy.strategic },
-      { href: "/partner-program", label: copy.partnerProgram },
-    ];
+  const PUBLIC_NAV_LOCALE_MAP: Record<string, { href: string; label: string }> = isTurkish
+    ? {
+      "top_nav.public.home": { href: "/", label: copy.home },
+      "top_nav.public.offers": { href: "/teklifler", label: copy.offers },
+      "top_nav.public.suppliers": { href: "/tedarikciler", label: copy.suppliers },
+      "top_nav.public.strategic": { href: "/stratejik-ortaklik", label: copy.strategic },
+      "top_nav.public.partner_program": { href: "/is-ortagi-programi", label: copy.partnerProgram },
+    }
+    : {
+      "top_nav.public.home": { href: "/", label: copy.home },
+      "top_nav.public.offers": { href: "/offers", label: copy.offers },
+      "top_nav.public.suppliers": { href: "/suppliers", label: copy.suppliers },
+      "top_nav.public.strategic": { href: "/strategic-partner", label: copy.strategic },
+      "top_nav.public.partner_program": { href: "/partner-program", label: copy.partnerProgram },
+    };
+
+  const links = resolveVisibleNavItems(PUBLIC_TOP_NAV_POLICY_ITEMS, PUBLIC_NAV_CONTEXT)
+    .map((item) => PUBLIC_NAV_LOCALE_MAP[item.key])
+    .filter((link): link is { href: string; label: string } => link !== undefined);
 
   useEffect(() => {
     return () => {
