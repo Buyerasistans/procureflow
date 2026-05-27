@@ -110,6 +110,51 @@ export function normalizeAuthUser(user: AuthUser | null | undefined): AuthUser |
   };
 }
 
+export async function registerUser(
+  fullName: string,
+  email: string,
+  password: string,
+  userType: "employer" | "candidate",
+): Promise<LoginResponse> {
+  try {
+    const res = await http.post<LoginApiResponse>("/auth/register", {
+      full_name: fullName,
+      email,
+      password,
+      user_type: userType,
+    });
+    const data = res.data;
+
+    if (!data?.access_token || !data?.refresh_token) {
+      throw new Error("Kayıt yanıtında token bilgisi eksik.");
+    }
+
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      user: normalizeAuthUser(data.user ?? null),
+    };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const detail =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message;
+
+      if (error.response?.status === 409) {
+        throw new Error(detail || "Bu e-posta adresi zaten kayıtlı.");
+      }
+      if (error.response?.status === 400) {
+        throw new Error(detail || "Geçersiz kayıt bilgileri.");
+      }
+      if (detail) {
+        throw new Error(detail);
+      }
+    }
+    throw new Error("Kayıt sırasında bir sorun oluştu.");
+  }
+}
+
 export async function loginRequest(email: string, password: string): Promise<LoginResponse> {
   try {
     const res = await http.post<LoginApiResponse>("/auth/login", { email, password }, { timeout: AUTH_REQUEST_TIMEOUT_MS });

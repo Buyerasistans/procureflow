@@ -25,6 +25,7 @@ const ChannelLoginPage = lazy(() => import("./pages/ChannelLoginPage"));
 const InternalUserActivationPage = lazy(() => import("./pages/InternalUserActivationPage"));
 const SupplierLoginPage = lazy(() => import("./pages/SupplierPortalLoginPage"));
 const SupplierRegisterPage = lazy(() => import("./pages/SupplierRegisterPage"));
+const EmployerRegisterPage = lazy(() => import("./pages/EmployerRegisterPage"));
 const SupplierDashboard = lazy(() => import("./pages/SupplierDashboard"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -127,6 +128,7 @@ export default function App() {
           <Route path="/activate-account" element={<InternalUserActivationPage />} />
           <Route path="/supplier/login" element={<SupplierLoginPage />} />
           <Route path="/supplier/register" element={<SupplierRegisterPage />} />
+          <Route path="/employer/register" element={<EmployerRegisterPage />} />
           <Route path="/supplier/email-change-confirm" element={<SupplierEmailChangeConfirmPage />} />
 
           <Route element={<SupplierRoute />}>

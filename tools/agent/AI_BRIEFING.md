@@ -7,120 +7,111 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 4 / Atomik-2 - COMPLETE
+PHASE 4 / Atomik-3 - COMPLETE
 
 ## Executive Summary
 
-PHASE 4 / Atomik-2 adds `POST /auth/register` — a public endpoint that
-creates individual employer (`employer_company_admin`) and candidate
-(`candidate_user`) accounts. No tenant affiliation. Returns a token pair
-on success for immediate session use. 14 new tests PASS; 22 existing
-auth/bootstrap tests PASS (no regression). G1 and G2 backend blockers
-are now resolved.
+PHASE 4 / Atomik-3 adds the public `/employer/register` page — a standalone
+registration form for `employer_company_admin` users. Calls
+`POST /auth/register` with `user_type="employer"`. On success, stores token
+pair in sessionStorage and redirects to `/jobs`. Responsive gate 33/33 PASS
+across 360/768/1280 × 4 scenarios. type-check PASS, build PASS.
 
-## Change Made
+## Changes Made
 
-**`api/routers/auth.py`** — extended with:
-- `Literal` import
-- `RegisterIn` schema: `{email, password, full_name, user_type}`
-- `_USER_TYPE_ROLE_MAP` constant: `employer→employer_company_admin`, `candidate→candidate_user`
-- `POST /auth/register` endpoint (HTTP 201)
+**`web/src/pages/EmployerRegisterPage.tsx`** — new file:
+- Form: full_name, email, password, confirm_password
+- Client-side validation: empty fields, min 8 chars password, password match
+- Loading state during submit
+- Backend error surfacing (sanitized message from Error)
+- On success: setAccessToken + setRefreshToken + sessionStorage pf_user → navigate("/jobs", replace)
 
-**`api/tests/test_auth_register.py`** — new test file (14 tests):
-- Role assignment for employer and candidate
-- Role map coverage guard
-- Duplicate email 409
-- Short password 400
-- Empty full_name 400
-- Invalid user_type 422 (Pydantic)
-- Schema validation
+**`web/src/pages/EmployerRegisterPage.css`** — new file:
+- Green-tinted design (employer brand color: #059669)
+- Responsive at 360 / 768 / 1280+
+- `font-size: 16px` on mobile inputs (prevents iOS zoom)
+- `box-sizing: border-box` on inputs (no overflow)
 
-## Endpoint Contract
+**`web/src/services/auth.service.ts`** — added `registerUser()`:
+- `POST /api/v1/auth/register` with `{full_name, email, password, user_type}`
+- Returns `LoginResponse` ({accessToken, refreshToken, user})
+- Maps 409 → "Bu e-posta adresi zaten kayıtlı.", 400 → backend detail
 
-```
-POST /api/v1/auth/register
-Content-Type: application/json
+**`web/src/App.tsx`** — added:
+- `const EmployerRegisterPage = lazy(() => import("./pages/EmployerRegisterPage"))`
+- `<Route path="/employer/register" element={<EmployerRegisterPage />} />` (public, outside ProtectedRoute)
 
-Request:
-{
-  "email": "user@example.com",     // EmailStr — format validated
-  "password": "min8chars",          // min 8 chars (handler check)
-  "full_name": "Ada Lovelace",      // non-empty (handler check)
-  "user_type": "employer"|"candidate"  // Literal — 422 on other values
-}
+**`web/src/context/AuthProvider.tsx`** — added:
+- `"/employer/register"` to `PUBLIC_AUTH_PATHS` set (skips admin auth init)
 
-Response 201:
-{
-  "access_token": "...",
-  "refresh_token": "...",
-  "token_type": "bearer",
-  "user": { "id": ..., "email": ..., "system_role": ..., ... }
-}
+## Responsive Gate Results
 
-Errors:
-  409  — duplicate email ("Bu e-posta adresi zaten kayıtlı.")
-  400  — password < 8 chars
-  400  — empty full_name
-  422  — invalid user_type / email format (Pydantic)
-```
+Gate script: `tools/atomik3_employer_register_gate.mjs`
+Artifacts: `tools/gate-artifacts/atomik3-employer-register/`
 
-## Security Notes
+| Viewport | Render | Empty Validation | PW Mismatch | Submit → /jobs |
+|---|---|---|---|---|
+| mobile-360 | PASS | PASS | PASS | PASS |
+| tablet-768 | PASS | PASS | PASS | PASS |
+| desktop-1280 | PASS | PASS | PASS | PASS |
 
-- Password hashed with `get_password_hash()` (same bcrypt pattern as login)
-- Duplicate email: 409 (not 200 + "already exists" — no leaking of user existence via timing; both paths share the same code path until the early return)
-- `user_type` is a strict `Literal` — no arbitrary role escalation possible
-- `tenant_id=None` — standalone user; no tenant approval flow triggered
-- Logging: `individual_register_ok user_id=X system_role=Y` (no PII in log)
+**Total: 33/33 PASS**
 
-## Gap Status After Atomik-2
+Card widths observed: 334px (360vp), 530px (768vp), 554px (1280vp) — all within viewport.
+
+## Gap Status After Atomik-3
 
 | Gap | Status |
 | --- | --- |
-| G1: No employer_company_admin onboarding path | BACKEND DONE |
-| G2: No candidate_user onboarding path | BACKEND DONE |
+| G1: No employer_company_admin onboarding path | FRONTEND DONE (employer register UI + /jobs redirect) |
+| G2: No candidate_user onboarding path | Backend DONE; Frontend PENDING (Atomik-4) |
 | G3: No guest_public entry point | PHASE 5/6 scope |
-| G4: No post-registration role-based redirect | Frontend pending (Atomik-3/4) |
+| G4: No post-registration redirect | Employer side DONE (/jobs); Candidate pending |
 
 ## Gates Passed
 
 | Gate | Result | Detail |
 | --- | --- | --- |
-| New tests | PASS 14/14 | test_auth_register.py |
-| Existing auth tests | PASS 22/22 | test_auth_login.py + test_bootstrap_secret.py |
-| type-check | N/A | Python/FastAPI — not a TypeScript project |
-| build | N/A | Backend only; no frontend change |
+| type-check | PASS | 0 errors |
+| build | PASS | EmployerRegisterPage-CH8jiTTE.js + D44WBB_C.css emitted |
+| Responsive gate | 33/33 PASS | 360/768/1280 × 4 scenarios |
+| Existing auth tests | Not re-run (no backend change) | Last run: 22/22 PASS |
 
 ## Next Atomic Step
 
-**PHASE 4 / Atomik-3:** Frontend — `EmployerRegisterPage`
+**PHASE 4 / Atomik-4:** Frontend — `CandidateRegisterPage`
 
-**Goal:** New public registration page at `/employer/register` for
-`employer_company_admin` users. Calls `POST /auth/register` with
-`user_type="employer"`. On success, stores token + user and redirects
-to `/jobs`.
+**Goal:** New public registration page at `/candidate/register` for
+`candidate_user` accounts. Calls `POST /auth/register` with
+`user_type="candidate"`. On success, stores token + user and redirects
+to `/talent/profile`.
 
 **Files:**
-- `web/src/pages/EmployerRegisterPage.tsx` (new)
-- `web/src/pages/EmployerRegisterPage.css` (new)
-- `web/src/App.tsx` — add public route `/employer/register`
-- `web/src/services/auth.service.ts` — add `registerUser()` function
+- `web/src/pages/CandidateRegisterPage.tsx` (new)
+- `web/src/pages/CandidateRegisterPage.css` (new)
+- `web/src/App.tsx` — add public route `/candidate/register`
+- `web/src/context/AuthProvider.tsx` — add `/candidate/register` to PUBLIC_AUTH_PATHS
+- `web/src/services/auth.service.ts` — `registerUser()` already exists, no change needed
 
-**Responsive gate:** 375 / 768 / 1366 — form render + submit mock.
-**Constraint:** src/api changes NOT needed (endpoint already exists).
+**Form fields:** full_name, email, password, confirm_password
+**Success redirect:** `/talent/profile` (replace: true)
+**Responsive gate:** 360 / 768 / 1280 — same 4 scenarios as Atomik-3.
+**Constraint:** No new backend changes needed; `registerUser()` already supports `user_type="candidate"`.
 
 ## Open Risks
 
 - `api/routers/onboarding_router.py` dirty (unrelated) — not touched.
 - `web/src/JobList.tsx` orphan — dead code, still deferred.
-- PHASE 3 docs still dirty (jobs-surface-phase3-plan.md Atomik-4 note).
+- Navigation guest_public CTAs for employer/candidate register — Atomik-6.
+- Activation flow enhancement — Atomik-5.
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 4 / Atomik-2: COMPLETE
-Next: PHASE 4 / Atomik-3 — Frontend EmployerRegisterPage at /employer/register.
+PHASE 4 / Atomik-3: COMPLETE
+Next: PHASE 4 / Atomik-4 — CandidateRegisterPage at /candidate/register.
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 ```

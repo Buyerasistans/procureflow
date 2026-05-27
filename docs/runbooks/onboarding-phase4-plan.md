@@ -125,29 +125,39 @@ Body: { email, password, full_name, user_type: "employer" | "candidate" }
 
 ---
 
-### Atomik-3: Frontend — EmployerRegisterPage
+### Atomik-3: Frontend — EmployerRegisterPage — COMPLETE
 
 **Amaç:** `employer_company_admin` rolü ile yeni kullanıcı oluşturacak kayıt formu.
 
 **Route:** `/employer/register` (public, no auth guard)
 
-**Dosyalar:**
-- `web/src/pages/EmployerRegisterPage.tsx` (yeni)
-- `web/src/pages/EmployerRegisterPage.css` (yeni)
-- `web/src/App.tsx` — route ekleme
-- `web/src/services/auth.service.ts` — `registerUser()` fonksiyon ekle (veya yeni service)
+**Dosyalar (tamamlandı):**
+- `web/src/pages/EmployerRegisterPage.tsx` (yeni) — form component
+- `web/src/pages/EmployerRegisterPage.css` (yeni) — responsive styles
+- `web/src/App.tsx` — lazy import + public route `/employer/register`
+- `web/src/services/auth.service.ts` — `registerUser()` fonksiyon eklendi
+- `web/src/context/AuthProvider.tsx` — `/employer/register` PUBLIC_AUTH_PATHS'e eklendi
 
-**Form alanları:**
-- Ad Soyad (full_name)
-- E-posta (email)
-- Şifre + Şifre Tekrar (password)
-- Şirket Adı (opsiyonel — `company_name` field, kaydedilmeyebilir ilk aşamada)
+**Form alanları (gerçekleşen):**
+- Ad Soyad (full_name) — boş validasyonu
+- E-posta (email) — boş validasyonu
+- Şifre (password) — min 8 karakter validasyonu
+- Şifre Tekrar (confirm_password) — eşleşme validasyonu
 
-**Başarı durumu:** "Kaydınız alındı. E-posta adresinizi onaylayın." veya direkt login redirect.
+**Başarı davranışı:** token pair sessionStorage'a set → `/jobs` redirect (replace: true)
 
-**Responsive:** 375 / 768 / 1366 gate zorunlu.
+**Responsive gate:** 33/33 PASS — 360 / 768 / 1280 × 4 senaryo × 3 viewport
+- Senaryo 1: render (title, 4 input, submit görünürlük, kart taşma yok)
+- Senaryo 2: boş submit → client validasyonu, navigation yok
+- Senaryo 3: şifre uyumsuzluğu → hata gösterimi
+- Senaryo 4: submit mock success → /jobs redirect
 
-**Test/gate:** type-check, build, responsive gate (form render + submit mock).
+**Gates:**
+- type-check: PASS (0 hata)
+- build: PASS (EmployerRegisterPage-CH8jiTTE.js, EmployerRegisterPage-D44WBB_C.css)
+- responsive gate: 33/33 PASS
+
+**G4 durumu (employer tarafı):** Frontend kayıt formu ve /jobs yönlendirmesi DONE.
 
 ---
 
