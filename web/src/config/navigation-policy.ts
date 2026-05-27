@@ -151,7 +151,7 @@ export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[
     order: 30,
     is_enabled: true,
     visibility_scope: "authenticated",
-    allowed_system_roles: ["super_admin", "platform_support", "platform_operator", "tenant_owner", "tenant_admin", "supplier_user"],
+    allowed_system_roles: ["super_admin", "platform_support", "platform_operator", "tenant_owner", "tenant_admin"],
     allowed_tenant_roles: ["admin", "super_admin", "manager", "buyer", "channel_owner", "channel_agent", "is_ortagi"],
     requires_permissions: ["view:workspace-panel"],
     responsive_behavior: "more_menu",

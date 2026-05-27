@@ -120,7 +120,7 @@ describe("parity adapter: role vocabulary coverage", () => {
     expect(result.inBoth).toEqual(["/dashboard", "/admin"]);
   });
 
-  it("supplier_admin (system_role=null): legacy ve policy paritesi saglandi", () => {
+  it("supplier_admin (system_role=null): dashboard+quotes paritesi", () => {
     const user = buildUser({
       role: "supplier_admin" as Role,
       business_role: "supplier_admin",
@@ -130,9 +130,23 @@ describe("parity adapter: role vocabulary coverage", () => {
     expect(result.hasDivergence).toBe(false);
     expect(result.onlyInLegacy).toEqual([]);
     expect(result.onlyInPolicy).toEqual([]);
+    expect(result.inBoth).toEqual(["/dashboard", "/quotes"]);
   });
 
-  it("supplier_user (system_role=null): legacy ve policy paritesi saglandi", () => {
+  it("supplier_admin (system_role=supplier_user): dashboard+quotes paritesi — /admin gizli", () => {
+    const user = buildUser({
+      role: "supplier_admin" as Role,
+      business_role: "supplier_admin",
+      system_role: "supplier_user",
+    });
+    const result = compareAuthenticatedTopNav(user);
+    expect(result.hasDivergence).toBe(false);
+    expect(result.onlyInLegacy).toEqual([]);
+    expect(result.onlyInPolicy).toEqual([]);
+    expect(result.inBoth).toEqual(["/dashboard", "/quotes"]);
+  });
+
+  it("supplier_user (system_role=null): dashboard+quotes paritesi", () => {
     const user = buildUser({
       role: "supplier_user" as Role,
       business_role: "supplier_user",
@@ -142,6 +156,20 @@ describe("parity adapter: role vocabulary coverage", () => {
     expect(result.hasDivergence).toBe(false);
     expect(result.onlyInLegacy).toEqual([]);
     expect(result.onlyInPolicy).toEqual([]);
+    expect(result.inBoth).toEqual(["/dashboard", "/quotes"]);
+  });
+
+  it("supplier_user (system_role=supplier_user): dashboard+quotes paritesi — /admin gizli", () => {
+    const user = buildUser({
+      role: "supplier_user" as Role,
+      business_role: "supplier_user",
+      system_role: "supplier_user",
+    });
+    const result = compareAuthenticatedTopNav(user);
+    expect(result.hasDivergence).toBe(false);
+    expect(result.onlyInLegacy).toEqual([]);
+    expect(result.onlyInPolicy).toEqual([]);
+    expect(result.inBoth).toEqual(["/dashboard", "/quotes"]);
   });
 
   it("tenant_admin: dashboard+quotes+admin+discovery-lab+reports paritesi", () => {

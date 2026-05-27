@@ -120,6 +120,25 @@ A user whose `system_role` and `business_role` are not listed in the policy allo
 
 PHASE 1 / Atomik-3 proves route-list parity for authenticated top-nav only. Panel tabs, quick links, and page CTAs are not yet covered. Runtime render path still reads from `navigation.ts`; `navigation-adapter.ts` is test/dev only.
 
+## PHASE 1 / Atomik-5 Supplier Role Normalization
+
+**Goal:** Close the supplier persona `/admin` divergence (system_role="supplier_user") without touching the runtime render path.
+
+**Root cause:** The `/admin` policy fixture originally included `"supplier_user"` in `allowed_system_roles` because `canAccessWorkspacePanel` returns true for that role. However, the legacy `/admin` nav item uses `hasAdminWorkspaceHome` as its `visibleFor` guard, which does NOT include `supplier_user`. These are two distinct functions with different semantics: `canAccessWorkspacePanel` governs workspace-panel permission (the `view:workspace-panel` check), while `hasAdminWorkspaceHome` governs top-nav /admin visibility specifically.
+
+**Fix:** Remove `"supplier_user"` from `/admin` fixture `allowed_system_roles`. Supplier accounts access their workspace via `/supplier/workspace`, not `/admin` top-nav. Semantically correct and minimally invasive.
+
+**Supplier role payload contract:**
+
+| Payload | system_role | business_role | Legacy /admin | Policy /admin | Outcome |
+| --- | --- | --- | --- | --- | --- |
+| supplier_admin, null | null | supplier_admin | hidden | hidden (no view:workspace-panel) | parity |
+| supplier_admin, supplier_user | supplier_user | supplier_admin | hidden (hasAdminWorkspaceHome=false) | hidden (removed from allow-list) | parity |
+| supplier_user, null | null | supplier_user | hidden | hidden | parity |
+| supplier_user, supplier_user | supplier_user | supplier_user | hidden | hidden | parity |
+
+**Fallback behavior with conflicting payloads:** If an unknown system_role is paired with a supplier business_role, the allow-list check for /admin will fail (supplier business_role is not in `allowed_tenant_roles`), so /admin remains hidden. Least-privilege preserved.
+
 ## PHASE 1 / Atomik-4 Exclusion Rule
 
 **Goal:** Close the channel_owner / channel_agent `/quotes` divergence without touching the runtime render path.
