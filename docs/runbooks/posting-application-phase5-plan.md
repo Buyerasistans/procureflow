@@ -363,18 +363,32 @@ Artifacts: `tools/gate-artifacts/atomik7-candidate-withdrawal/`
 
 ---
 
-### Atomik-8: Full PHASE 5 E2E gate + closure
+### Atomik-8: Full PHASE 5 E2E gate + closure — COMPLETE
 
-**Amaç:** PHASE 5 tüm akışlarını tek gate ile doğrula.
+**Amaç:** PHASE 5 tüm akışlarını tek gate ile doğrula. Üretim koduna dokunulmadı; yalnızca gate/docs güncellendi.
 
-**Gate script:** `tools/atomik8_phase5_e2e_gate.mjs`
+**Dosyalar (tamamlandı):**
+- `tools/atomik8_phase5_e2e_gate.mjs` — 16 assertion, 7 senaryo (A-G), 2 context factory (employer/candidate), LIFO mock pattern
+- `docs/runbooks/posting-application-phase5-plan.md` — Atomik-8 COMPLETE, PHASE 5 CLOSED
+- `tools/agent/AI_BRIEFING.md` — Atomik-8 summary, Next = PHASE 6/Atomik-1
 
-**Senaryolar:**
-- Employer: ilan oluştur → yayınla → kapat (3 viewport)
-- Employer: başvuru listesi + durum geçişi (desktop)
-- Candidate: başvur → TALENT_PROFILE_REQUIRED → link görünür (3 viewport)
-- Candidate: başvuru geçmişi listesi (desktop)
-- Candidate: geri çekme (desktop)
+**E2E Gate:** 16/16 PASS — `tools/atomik8_phase5_e2e_gate.mjs`
+- Scenario A (2): G1 — TALENT_PROFILE_REQUIRED error + `/talent/profile` link [1280]
+- Scenario B (2): G2 — employer Kapat → badge "closed" [1280]
+- Scenario C (3): G3 — pipeline toggle + rows + advance → "shortlisted" [1280]
+- Scenario D (2): G4 — candidate "Başvurularım" section + 3 rows [1280]
+- Scenario E (2): G5 — "Geri Çek" visible + click → badge "withdrawn" [1280]
+- Scenario F (2): Regression — employer no candidate section; candidate no pipeline toggle [1280]
+- Scenario G (3): Responsive — "Başvurularım" fits within 360/768/1280
+
+Artifacts: `tools/gate-artifacts/atomik8-phase5-full/`
+
+**Ek kalite gateleri:**
+- `pytest api/tests/test_job_applications.py -q` → 19/19 PASS
+- `npm run type-check` → 0 errors
+- `npm run build` → ✓ built
+
+**PHASE 5 CLOSED** — G1–G5 tüm boşluklar kapatıldı. G6 (job detail page) sonraki faza ertelendi.
 
 ---
 

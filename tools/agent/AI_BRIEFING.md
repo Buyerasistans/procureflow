@@ -7,16 +7,34 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 5 / Atomik-7 - COMPLETE
+PHASE 5 — CLOSED (Atomik-8 COMPLETE)
 
 ## Executive Summary
 
-PHASE 5 / Atomik-7 tamamlandı: Candidate başvuru geri çekme (withdrawal) eklendi.
-Backend: `POST /applications/{id}/withdraw` endpoint; sadece `applied|shortlisted|interview` → `withdrawn`.
-Frontend: "Başvurularım" satırında "Geri Çek" butonu (WITHDRAWABLE_STATUSES guard); optimistic update.
-Backend tests: 19/19 PASS. E2E gate: 11/11 PASS.
+**PHASE 5 CLOSED.** Atomik-8 tamamlandı: Full PHASE 5 E2E gate (16/16 PASS).
+G1–G5 tümü doğrulandı tek gate ile; üretim koduna dokunulmadı.
+G6 (job detail page /jobs/:id) sonraki faza (PHASE 6) ertelendi.
+Sonraki adım: PHASE 6 / Atomik-1 (surface inventory + backlog definition).
 
-G5 kapatıldı. Açık: G6 (job detail page). Sonraki adım: Atomik-8 (Full PHASE 5 E2E gate + closure).
+## Atomik-8 Değişiklikleri
+
+### `tools/atomik8_phase5_e2e_gate.mjs`
+- 16 assertion, 7 senaryo (A–G); hiçbir üretim dosyası değiştirilmedi
+- 2 context factory: `makeEmployerContext({ jobPatchStatus, appPatchStatus })`, `makeCandidateContext({ applyError, myApps, withdrawResponse })`
+- LIFO stack: catch-all → /api/v1/jobs → /api/v1/jobs/*/applications → (conditional) /api/v1/applications/*/status|withdraw → /auth/refresh → /auth/me
+- Scenario A (2): G1 — apply error → TALENT_PROFILE_REQUIRED message + /talent/profile link [1280]
+- Scenario B (2): G2 — Kapat → PATCH closed → badge `job-card__badge--closed` [1280]
+- Scenario C (3): G3 — pipeline toggle → rows → advance → badge `application-status-badge--shortlisted` [1280]
+- Scenario D (2): G4 — `jobs-page__my-applications` visible + 3 `my-application-row` [1280]
+- Scenario E (2): G5 — `my-application-row__btn--withdraw` visible + click → badge `application-status-badge--withdrawn` [1280]
+- Scenario F (2): Regression — employer no candidate section; candidate no pipeline toggle [1280]
+- Scenario G (3): Responsive — `jobs-page__my-applications` fits within 360/768/1280
+- Fix: `myApps ?? []` default in `makeCandidateContext` prevents `{}.map()` crash from catch-all returning `{}`
+- Artifacts: `tools/gate-artifacts/atomik8-phase5-full/`
+
+### `docs/runbooks/posting-application-phase5-plan.md`
+- Atomik-8 COMPLETE bölümü eklendi (gate results, file list, quality gates)
+- PHASE 5 CLOSED notu eklendi
 
 ## Atomik-7 Değişiklikleri
 
@@ -213,6 +231,7 @@ G5 kapatıldı. Açık: G6 (job detail page). Sonraki adım: Atomik-8 (Full PHAS
 | PHASE 5 Atomik-5 | 11/11 PASS (backend unit tests) |
 | PHASE 5 Atomik-6 | 14/14 PASS (E2E — candidate UI, employer regression, 3 viewports) |
 | PHASE 5 Atomik-7 | 11/11 PASS (E2E — withdrawal click, terminal guard, employer regression, 3 viewports); backend 19/19 |
+| PHASE 5 Atomik-8 | 16/16 PASS (Full Phase 5 gate — G1-G5 + regression + responsive 360/768/1280) |
 
 ### Atomik-3 Assertion Dağılımı
 
@@ -267,8 +286,8 @@ Total: 6 × 3 + 1 = 19
 | TALENT_PROFILE_REQUIRED link | G1 | **DONE (Atomik-2)** |
 | Job close/fill actions | G2 | **DONE (Atomik-3)** |
 | /jobs/:id/applications | G3 | **DONE (Atomik-4)** |
-| /my/applications | G4 | Açık |
-| Candidate withdrawal | G5 | Açık |
+| /my/applications | G4 | **DONE (Atomik-6)** |
+| Candidate withdrawal | G5 | **DONE (Atomik-7)** |
 | /jobs/:id | G6 | Açık |
 
 ## Gap Tablosu
@@ -293,36 +312,30 @@ Total: 6 × 3 + 1 = 19
 | A5 | G4 backend: GET /my/applications endpoint | **COMPLETE** |
 | A6 | G4 frontend: candidate başvuru geçmişi UI | **COMPLETE** |
 | A7 | G5: candidate withdrawal (backend + frontend) | **COMPLETE** |
-| A8 | Full PHASE 5 E2E gate + closure | Açık |
+| A8 | Full PHASE 5 E2E gate + closure | **COMPLETE** |
 
 ## Next Atomic Step
 
-**PHASE 5 / Atomik-8:** Full PHASE 5 E2E gate + closure
+**PHASE 6 / Atomik-1:** Surface inventory + backlog definition
 
-Kapsam:
-- `tools/atomik8_phase5_e2e_gate.mjs` — tüm G1-G5 akışlarını tek gate ile doğrula
-- `docs/runbooks/posting-application-phase5-plan.md` — PHASE 5 CLOSED notu
-- SESSION_STATE.json + AI_BRIEFING.md güncelle
-
-Gate senaryoları (önerilen):
-- Employer: ilan oluştur → yayınla → pipeline toggle + durum geçişi
-- Candidate: başvur → TALENT_PROFILE_REQUIRED link → başvuru geçmişi → geri çek
-- Regression: employer görmez candidate section, candidate görmez pipeline toggle
-- Responsive: 360/768/1280
-
-Commit: `feat(jobs): phase 5 full e2e gate and closure`
+PHASE 5 tamamen kapatıldı. PHASE 6 başlıyor.
+Kapsam (Atomik-1 her zaman docs-only, commit yok):
+- PHASE 6 scope belirleme: G6 (job detail page /jobs/:id) + diğer açık yüzeyler
+- Surface inventory: route eksikleri, backend endpoint boşlukları
+- PHASE 6 backlog tanımı + AI_BRIEFING.md güncelleme
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 5 / Atomik-7: COMPLETE — candidate withdrawal, backend 19/19, gate 11/11 PASS
-Next: PHASE 5 / Atomik-8 — Full PHASE 5 E2E gate + closure.
-Runbook: docs/runbooks/posting-application-phase5-plan.md
+PHASE 5: CLOSED — G1-G5 tümü tamamlandı, gate 16/16 PASS (Atomik-8, commit: next)
+Next: PHASE 6 / Atomik-1 — surface inventory + backlog definition (docs-only, no commit).
+Runbook: docs/runbooks/posting-application-phase5-plan.md (CLOSED)
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 Gate pattern: function predicates (NOT glob), pf_access_token session, 127.0.0.1:5175 base URL.
+G6 (job detail page /jobs/:id) deferred — fetchJob service exists, route/page missing.
 ```
 
 ## SAFE TO RESUME
