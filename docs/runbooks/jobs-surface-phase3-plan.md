@@ -14,7 +14,18 @@ Branch: pr/strict-gate-payment-clean-v2
 > Gap-1 (employer_recruiter backend), Gap-2 (candidate_user talent access),
 > and Gap-3 (candidate_user apply) backend blockers resolved.
 > Gap-4 (register promotion side effect) auto-resolved.
-> Frontend UI CTAs remain blocked until Atomik-3.
+>
+> **PHASE 3 / Atomik-3 COMPLETE.**
+> JobsPage UI role CTAs aligned with backend authz. `employer_recruiter` added
+> to `isEmployerAdmin()` — "Yeni İlan" button now visible. `candidate_user`
+> added to `isTalentMember()` — "Başvur" button now visible on published jobs.
+> Responsive gate cleared 6/6 scenarios (2 personas × 3 viewports).
+> employer_recruiter: createBtn visible all viewports; form opens on click
+> at tablet + desktop. candidate_user: applyBtn visible all viewports;
+> apply form opens on click at all viewports including mobile-375.
+> Mobile-375 create button click timeout is pre-existing layout gap (no media
+> queries in AppLayout.css), not a regression.
+> Screenshots: `artifacts/atomik3-{persona}-{viewport}.png`.
 
 ---
 

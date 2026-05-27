@@ -16,12 +16,12 @@ import "./JobsPage.css";
 
 function isEmployerAdmin(systemRole: string | null | undefined): boolean {
   const sr = (systemRole || "").toLowerCase();
-  return sr === "employer_company_admin" || sr === "super_admin" || sr === "tenant_admin";
+  return sr === "employer_company_admin" || sr === "employer_recruiter" || sr === "super_admin" || sr === "tenant_admin";
 }
 
 function isTalentMember(systemRole: string | null | undefined): boolean {
   const sr = (systemRole || "").toLowerCase();
-  return sr === "talent_member" || sr === "referral_partner" || sr === "super_admin";
+  return sr === "talent_member" || sr === "candidate_user" || sr === "referral_partner" || sr === "super_admin";
 }
 
 // ---------------------------------------------------------------------------
