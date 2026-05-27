@@ -14,6 +14,8 @@ export type NavigationVisibilityPolicyItem = {
   visibility_scope: VisibilityScope;
   allowed_system_roles: string[];
   allowed_tenant_roles: string[];
+  /** Tenant/business roles that are explicitly excluded even when other checks would pass. Exclusion takes precedence over allow-lists. */
+  excluded_tenant_roles?: string[];
   requires_permissions: Permission[];
   responsive_behavior: ResponsiveBehavior;
 };
@@ -46,6 +48,12 @@ function matchesAnyRole(allowedRoles: readonly string[], candidateRoles: readonl
   if (allowedRoles.length === 0) return false;
   const normalizedAllowedRoles = new Set(allowedRoles.map(normalizeRole));
   return candidateRoles.some((role) => normalizedAllowedRoles.has(normalizeRole(role)));
+}
+
+function isTenantRoleExcluded(item: NavigationVisibilityPolicyItem, context: NavigationVisibilityContext): boolean {
+  if (!item.excluded_tenant_roles || item.excluded_tenant_roles.length === 0) return false;
+  const excluded = new Set(item.excluded_tenant_roles.map(normalizeRole));
+  return [context.tenant_role, context.business_role].some((role) => excluded.has(normalizeRole(role)));
 }
 
 function matchesScope(item: NavigationVisibilityPolicyItem, context: NavigationVisibilityContext): boolean {
@@ -84,6 +92,7 @@ export function isPolicyItemVisible(
   context: NavigationVisibilityContext,
 ): boolean {
   if (!item.is_enabled || !matchesScope(item, context)) return false;
+  if (isTenantRoleExcluded(item, context)) return false;
 
   const hasRoleRestriction = item.allowed_system_roles.length > 0 || item.allowed_tenant_roles.length > 0;
   const systemRoleMatches = matchesAnyRole(item.allowed_system_roles, [context.system_role]);
@@ -130,6 +139,7 @@ export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[
     visibility_scope: "authenticated",
     allowed_system_roles: [],
     allowed_tenant_roles: [],
+    excluded_tenant_roles: ["channel_owner", "channel_agent", "is_ortagi"],
     requires_permissions: ["view:dashboard"],
     responsive_behavior: "more_menu",
   },

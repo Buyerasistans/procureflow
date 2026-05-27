@@ -93,30 +93,31 @@ describe("navigation visibility policy parity", () => {
 });
 
 describe("parity adapter: role vocabulary coverage", () => {
-  // channel personas: known divergence — legacy excludes /quotes via visibleFor callback;
-  // policy has no such exclusion yet. Tests document rather than assert parity.
-  it("channel_owner: /quotes gorulur sadece policy'de (bilinen sapma)", () => {
+  // channel personas: /quotes exclusion resolved in Atomik-4 via excluded_tenant_roles field.
+  it("channel_owner: /quotes excluded_tenant_roles ile legacy parity saglandi", () => {
     const user = buildUser({
       role: "channel_owner" as Role,
       business_role: "channel_owner",
       system_role: "tenant_member",
     });
     const result = compareAuthenticatedTopNav(user);
-    expect(result.onlyInPolicy).toEqual(["/quotes"]);
+    expect(result.hasDivergence).toBe(false);
     expect(result.onlyInLegacy).toEqual([]);
-    expect(result.hasDivergence).toBe(true);
+    expect(result.onlyInPolicy).toEqual([]);
+    expect(result.inBoth).toEqual(["/dashboard", "/admin"]);
   });
 
-  it("channel_agent: /quotes gorulur sadece policy'de (bilinen sapma)", () => {
+  it("channel_agent: /quotes excluded_tenant_roles ile legacy parity saglandi", () => {
     const user = buildUser({
       role: "channel_agent" as Role,
       business_role: "channel_agent",
       system_role: "tenant_member",
     });
     const result = compareAuthenticatedTopNav(user);
-    expect(result.onlyInPolicy).toEqual(["/quotes"]);
+    expect(result.hasDivergence).toBe(false);
     expect(result.onlyInLegacy).toEqual([]);
-    expect(result.hasDivergence).toBe(true);
+    expect(result.onlyInPolicy).toEqual([]);
+    expect(result.inBoth).toEqual(["/dashboard", "/admin"]);
   });
 
   it("supplier_admin (system_role=null): legacy ve policy paritesi saglandi", () => {

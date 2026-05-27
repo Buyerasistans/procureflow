@@ -7,62 +7,88 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 1 - Top nav governance foundation / Atomik-3
+PHASE 1 - Top nav governance foundation / Atomik-4
 
 ## Executive Summary
-This checkpoint adds a non-invasive adapter/proof layer for authenticated top-nav comparison and expands parity test coverage to 10 role personas. No runtime render path changed.
+This checkpoint closes the channel_owner / channel_agent `/quotes` parity gap
+by adding an explicit `excluded_tenant_roles` deny-list field to the policy
+model. No runtime render path changed.
 
-`navigation-adapter.ts` provides `compareAuthenticatedTopNav(user)` which runs both the legacy resolver and the policy resolver and returns a diff result. It is not wired into any render path. Tests document two known divergences (channel_owner and channel_agent on `/quotes`) and assert parity for the remaining 8 personas.
+`isPolicyItemVisible` now evaluates exclusion before allow-lists. The `/quotes`
+fixture item carries `excluded_tenant_roles: ["channel_owner", "channel_agent",
+"is_ortagi"]`, mirroring the existing `visibleFor` callback in `navigation.ts`.
+
+Parity adapter tests for both channel personas now assert `hasDivergence: false`.
+All 13 tests pass.
 
 ## Completed This Iteration
-- Added `web/src/config/navigation-adapter.ts` with `buildPolicyContext` and `compareAuthenticatedTopNav`.
-- Expanded `web/src/test/navigation-policy.test.ts` with a new `describe("parity adapter: role vocabulary coverage", ...)` block — 10 new tests covering channel_owner, channel_agent, supplier_admin, supplier_user, tenant_admin, employer_company_admin, employer_recruiter, candidate_user, and regressions for super_admin and platform_support.
-- Updated `docs/runbooks/nav-visibility-policy-shape.md` with a role vocabulary mapping table, known divergences note, unknown role fallback description, and parity scope boundary.
-- Updated this briefing so the next assistant can resume from PHASE 1 / Atomik-4 without prior chat context.
-- Updated local `tools/agent/SESSION_STATE.json`; it is gitignored and must not be committed.
+
+- Added `excluded_tenant_roles?: string[]` to `NavigationVisibilityPolicyItem`
+  type in `navigation-policy.ts`.
+- Added `isTenantRoleExcluded(item, context)` helper — normalizes and checks
+  `context.tenant_role` and `context.business_role` against the deny-list.
+- Updated `isPolicyItemVisible` to call exclusion check after scope, before
+  allow-lists.
+- Updated `/quotes` fixture item with
+  `excluded_tenant_roles: ["channel_owner", "channel_agent", "is_ortagi"]`.
+- Updated `navigation-policy.test.ts`: channel_owner and channel_agent tests
+  now assert `hasDivergence: false` and `inBoth: ["/dashboard", "/admin"]`.
+- Updated `docs/runbooks/nav-visibility-policy-shape.md`: role vocabulary table
+  corrected, Known Divergences marked RESOLVED, Atomik-4 section added with
+  rationale, exclusion priority rule, and evaluation flow updated.
+- Updated this briefing; local `tools/agent/SESSION_STATE.json` updated.
 
 ## Files Changed
-- `docs/runbooks/nav-visibility-policy-shape.md`
-- `web/src/config/navigation-adapter.ts`
+
+- `web/src/config/navigation-policy.ts`
 - `web/src/test/navigation-policy.test.ts`
+- `docs/runbooks/nav-visibility-policy-shape.md`
 - `tools/agent/AI_BRIEFING.md`
 
 ## Migrations
 None.
 
-## Tests Required For This Checkpoint
+## Tests Run + Results
+
 - `npm run type-check` — passed
-- `npm run build` — passed
-- `npm run test:run -- navigation-policy` — passed (13 tests: 3 original + 10 new)
+- `npm run build` — passed (✓ built in ~1.2s)
+- `npm run test:run -- navigation-policy` — passed (13 tests, 0 failures)
+  - channel_owner: `hasDivergence: false`, `inBoth: ["/dashboard", "/admin"]`
+  - channel_agent: `hasDivergence: false`, `inBoth: ["/dashboard", "/admin"]`
+  - All prior regression tests continue to pass
+
+## Responsive Validation
+Not applicable — no UI render path changed in this step.
 
 ## Working Tree Note
-Before this checkpoint, the repo already had unrelated modified/untracked files in API, admin UI, and local agent folders. Do not stage or revert them as part of this program unless a later atomic step explicitly owns them.
+Unrelated dirty/untracked files present before this checkpoint were not touched:
+`api/routers/*, api/services/*, web/src/components/admin/CampaignsTab.*,
+web/src/pages/AdminPage.tsx, web/src/pages/admin/{OnboardingStudioTab,
+PackagesTab, PlatformOperationsTab*, adminSecondaryTabs}.tsx,
+web/src/test/admin-page-tenant-governance.test.tsx`, and untracked `.claude/,
+Obsidian_Kasa/, tools/agent/STATE.md, tools/agent/prompts/, PricingTab.css`.
 
-## Known Divergences (Documented, Not Yet Resolved)
+## Exclusion Design Note
 
-**channel_owner / channel_agent**: Legacy excludes `/quotes` via `visibleFor` callback in `navigation.ts`. Policy fixture has no exclusion. Tests assert `onlyInPolicy: ["/quotes"]` and `hasDivergence: true` to document this gap.
+`excluded_tenant_roles` is an explicit deny-list. It wins over allow-lists.
+Evaluation order: `is_enabled` → scope → **exclusion** → allow-lists →
+permissions.
 
-Resolving it before runtime adoption requires either:
-- Adding an `excluded_tenant_roles` field to `NavigationVisibilityPolicyItem`; or
-- Adding a negation predicate to the `isPolicyItemVisible` evaluation.
+An unknown role not listed in `excluded_tenant_roles` still passes the exclusion
+gate; the allow-list gate (or empty allow-list = no restriction) then determines
+visibility. Least-privilege outcome is preserved.
 
-This must be an explicit future atomic step.
-
-## Role Vocabulary Findings
-
-- `employer_recruiter` and `candidate_user` are new program roles not in the current `visibleFor` logic — they fall through to the generic authenticated path and get `["/dashboard", "/quotes"]`.
-- Supplier personas must use `system_role: null` (not "supplier_user") to reproduce the legacy path; with `system_role: "supplier_user"` the `/admin` workspace-panel route appears in policy but not in legacy.
-- `tenant_admin` parity: `system_role: "tenant_admin"` with `role/business_role: "admin"` gives full parity across 5 routes.
-
-## Technical Findings
-- `compareAuthenticatedTopNav` mirrors the same permission resolution path as the legacy nav helper, so parity results are authoritative for the current role set.
-- The adapter is the correct place to detect and document future divergences as the policy fixture expands.
+`is_ortagi` is included in the deny-list (alongside channel_owner / channel_agent)
+to match the legacy `visibleFor` callback exactly. It is not a typed `Role` in
+`permissions.ts` but the deny-list is `string[]` so it resolves correctly.
 
 ## Product Principles
 - UI visibility must be policy/config driven, not scattered hardcoded checks.
-- Top nav, panel tabs, quick links, and page CTAs must be manageable from governance/panel design surfaces where appropriate.
+- Top nav, panel tabs, quick links, and page CTAs must be manageable from
+  governance/panel design surfaces where appropriate.
 - Responsive behavior is a release gate for all UI steps.
-- Route slugs, API field keys, DB columns, enums, and technical identifiers must remain stable unless a step explicitly owns a migration/contract change.
+- Route slugs, API field keys, DB columns, enums, and technical identifiers must
+  remain stable unless a step explicitly owns a migration/contract change.
 
 ## Role Scope
 - `super_admin`
@@ -75,21 +101,37 @@ This must be an explicit future atomic step.
 - `guest_public`
 
 ## Open Risks / Blockers
-- channel_owner / channel_agent `/quotes` exclusion must be resolved before runtime adoption of policy module.
-- Supplier personas have a `system_role: "supplier_user"` vs `null` inconsistency between legacy and policy that must be aligned before wiring.
-- New program roles (employer_recruiter, candidate_user) are not yet represented in `visibleFor` callbacks; their nav is identical to generic authenticated for now.
-- Public jobs expansion may overlap with the existing talent network; role and onboarding separation must be explicit before runtime changes.
+
+- Supplier personas: `system_role: "supplier_user"` vs `null` inconsistency
+  between legacy and policy path. Supplier personas must use `system_role: null`
+  to match legacy behavior; with `system_role: "supplier_user"` the `/admin`
+  workspace-panel route appears in policy but not legacy. Must align before
+  runtime wiring.
+- New program roles (employer_recruiter, candidate_user) not yet in `visibleFor`
+  callbacks; nav is identical to generic authenticated for now.
+- Public jobs expansion may overlap with existing talent network.
+- Panel tabs, quick links, and page CTAs not yet covered by policy module.
 
 ## Next Atomic Step
-PHASE 1 / Atomik-4: resolve the channel_owner / channel_agent `/quotes` exclusion in the policy module (add negation predicate or `excluded_tenant_roles` field) and update parity tests to assert `hasDivergence: false` for those personas. No runtime render path changes.
+
+PHASE 1 / Atomik-5: Evaluate whether PHASE 1 is complete (all authenticated
+top-nav personas at parity with no outstanding divergences) and either:
+A) Write a final PHASE 1 closure document + plan PHASE 2 scope; or
+B) Identify the next remaining divergence (supplier system_role inconsistency)
+   and resolve it in the policy module.
+
+Recommended: (B) resolve supplier system_role inconsistency next, then close
+PHASE 1.
 
 ## RESUME BLOCK
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-Current phase: PHASE 1 / Atomik-3 complete after checkpoint commit
-Next atomic step: PHASE 1 / Atomik-4
-Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first. Keep unrelated dirty worktree files untouched. Implement only one atomic step and commit it with AI_BRIEFING.md.
+Current phase: PHASE 1 / Atomik-4 complete after checkpoint commit
+Next atomic step: PHASE 1 / Atomik-5
+Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json
+first. Keep unrelated dirty worktree files untouched. Implement only one atomic
+step and commit it with AI_BRIEFING.md.
 ```
 
 ## SAFE TO RESUME

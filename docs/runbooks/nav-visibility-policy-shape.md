@@ -105,12 +105,12 @@ New non-invasive proof layer:
 | candidate_user | candidate_user | user | dashboard, quotes | same | parity |
 | supplier_admin | null | supplier_admin | dashboard, quotes | same | parity |
 | supplier_user | null | supplier_user | dashboard, quotes | same | parity |
-| channel_owner | tenant_member | channel_owner | dashboard, admin | dashboard, **quotes**, admin | **divergence** |
-| channel_agent | tenant_member | channel_agent | dashboard, admin | dashboard, **quotes**, admin | **divergence** |
+| channel_owner | tenant_member | channel_owner | dashboard, admin | dashboard, admin | parity (Atomik-4) |
+| channel_agent | tenant_member | channel_agent | dashboard, admin | dashboard, admin | parity (Atomik-4) |
 
 ### Known Divergences
 
-**channel_owner / channel_agent**: Legacy excludes `/quotes` via a `visibleFor` callback in `navigation.ts` (`normalizedBusinessRole !== "channel_owner/agent/is_ortagi"`). The policy fixture has no equivalent exclusion. The divergence is intentional and documented here; resolving it requires either adding an `excluded_tenant_roles` field to the policy shape, or adding a negation predicate to the visibility evaluation. This must be an explicit future atomic step before the policy module is wired into the runtime render path.
+**channel_owner / channel_agent — RESOLVED in Atomik-4**: `/quotes` exclusion is now enforced via `excluded_tenant_roles: ["channel_owner", "channel_agent", "is_ortagi"]` on the quotes policy item. Tests assert `hasDivergence: false` for both personas. See PHASE 1 / Atomik-4 section for the chosen approach.
 
 ### Unknown Role Fallback
 
@@ -119,6 +119,23 @@ A user whose `system_role` and `business_role` are not listed in the policy allo
 ### Parity Scope Boundary
 
 PHASE 1 / Atomik-3 proves route-list parity for authenticated top-nav only. Panel tabs, quick links, and page CTAs are not yet covered. Runtime render path still reads from `navigation.ts`; `navigation-adapter.ts` is test/dev only.
+
+## PHASE 1 / Atomik-4 Exclusion Rule
+
+**Goal:** Close the channel_owner / channel_agent `/quotes` divergence without touching the runtime render path.
+
+**Approach chosen: `excluded_tenant_roles`** (explicit deny-list per item). Added to `NavigationVisibilityPolicyItem` as an optional field. Evaluated before allow-lists in `isPolicyItemVisible`, so an explicit exclusion always wins over a matching allow-list entry. Default is `undefined` / empty — no behavior change for items that do not set it.
+
+**Why not negation predicate?** A deny-list field is self-documenting, auditable, and composable with future governance UIs. A predicate function would be opaque to config serialization.
+
+**Implementation:**
+- `NavigationVisibilityPolicyItem.excluded_tenant_roles?: string[]`
+- `isTenantRoleExcluded(item, context)` — normalizes and checks `context.tenant_role` and `context.business_role` against the deny-list.
+- `/quotes` fixture: `excluded_tenant_roles: ["channel_owner", "channel_agent", "is_ortagi"]`
+
+**Exclusion priority rule:** `is_enabled` → scope → **exclusion** → allow-lists → permissions.
+
+**Unknown role + exclusion interaction:** An unknown role not in `excluded_tenant_roles` still passes the exclusion gate. The allow-list gate (or empty allow-list = no restriction) then determines visibility. Least-privilege outcome is preserved because unknown roles have no privileged permissions.
 
 ## PHASE 1 / Atomik-2 Typed Module
 
@@ -135,6 +152,7 @@ The module defines the first typed visibility-policy contract for authenticated 
 3. `isPolicyItemVisible(item, context)` evaluates:
    - `is_enabled`
    - `visibility_scope`
+   - `excluded_tenant_roles` (explicit deny — wins over allow-lists)
    - role allowlists
    - required permissions
 4. `resolveVisibleNavItems(items, context)` filters visible items and sorts by `order`.
