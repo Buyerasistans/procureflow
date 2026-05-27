@@ -67,6 +67,18 @@ function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQ
       { label: "Raporlar", href: "/reports", description: "Rol bazlı raporları açın." },
     ];
   }
+  if (
+    businessRole === "ik_yoneticisi" ||
+    businessRole === "ik_uzmani" ||
+    businessRole === "hr_manager" ||
+    businessRole === "hr_specialist"
+  ) {
+    return [
+      { label: "İş İlanları", href: "/jobs", description: "Yayınladığınız ve açık iş ilanlarını yönetin." },
+      { label: "Yeni İlan Oluştur", href: "/jobs/new", description: "Satın alma ve tedarik zinciri pozisyonu yayınlayın." },
+      { label: "Kariyer Platformu", href: "/satin-alma-kariyerim", description: "Satın alma kariyer ekosistemini inceleyin." },
+    ];
+  }
   return [
     { label: "Genel Bakış", href: "/dashboard", description: "Genel çalışma alanına dönün." },
     { label: "Teklifler", href: "/quotes", description: "Teklif süreçlerini açın." },
@@ -279,6 +291,55 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       hero_description: "Kendi teklif, belge ve iş akışınızı tedarikçi panelinden takip edin.",
       allowed_tabs: ["panel_home"],
       quick_links: defaultQuickLinksForBusinessRole("supplier_user"),
+    },
+    // ── İK Rolleri ──────────────────────────────────────────────────────────
+    {
+      business_role: "ik_yoneticisi",
+      system_role: "tenant_member",
+      title: "İK Yöneticisi Paneli",
+      nav_label: "İK Yöneticisi",
+      workspace_label: "İnsan Kaynakları Çalışma Alanı",
+      description: "İK yöneticileri için kariyer modülü, iş ilanı yönetimi ve operasyon beslemesi.",
+      hero_title: "İK Yöneticisi Paneli",
+      hero_description: "Satın alma ve tedarik zinciri pozisyonları için iş ilanı oluşturun, yönetin ve kariyer ekosistemini takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_yoneticisi"),
+    },
+    {
+      business_role: "ik_uzmani",
+      system_role: "tenant_member",
+      title: "İK Uzmanı Paneli",
+      nav_label: "İK Uzmanı",
+      workspace_label: "İnsan Kaynakları Uzman Alanı",
+      description: "İK uzmanları için temel kariyer modülü erişimi ve iş ilanı görünümü.",
+      hero_title: "İK Uzmanı Paneli",
+      hero_description: "Kariyer ilanlarınızı inceleyin ve satın alma pozisyonlarına başvuruları takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_uzmani"),
+    },
+    {
+      business_role: "hr_manager",
+      system_role: "tenant_member",
+      title: "HR Manager Panel",
+      nav_label: "HR Manager",
+      workspace_label: "Human Resources Workspace",
+      description: "HR Manager için kariyer modülü ve iş ilanı yönetimi.",
+      hero_title: "HR Manager Panel",
+      hero_description: "Post and manage procurement job listings through the career module.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("hr_manager"),
+    },
+    {
+      business_role: "hr_specialist",
+      system_role: "tenant_member",
+      title: "HR Specialist Panel",
+      nav_label: "HR Specialist",
+      workspace_label: "Human Resources Specialist Area",
+      description: "HR Specialist için temel kariyer erişimi.",
+      hero_title: "HR Specialist Panel",
+      hero_description: "View and manage procurement career listings.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("hr_specialist"),
     },
   ],
 };

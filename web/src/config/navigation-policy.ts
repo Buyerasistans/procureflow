@@ -418,7 +418,7 @@ export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[
     is_enabled: true,
     visibility_scope: "authenticated",
     allowed_system_roles: ["talent_member", "employer_company_admin", "employer_recruiter", "candidate_user", "referral_partner", "super_admin"],
-    allowed_tenant_roles: [],
+    allowed_tenant_roles: ["ik_yoneticisi", "ik_uzmani", "hr_manager", "hr_specialist"],
     requires_permissions: ["view:dashboard"],
     responsive_behavior: "more_menu",
   },
