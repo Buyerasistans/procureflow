@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import {
   applyToJob,
@@ -158,11 +159,13 @@ function ApplyForm({ job, onSuccess, onCancel }: ApplyFormProps) {
   const [coverLetter, setCoverLetter] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [profileLinkRequired, setProfileLinkRequired] = useState(false);
   const [success, setSuccess] = useState(false);
 
   async function handleApply(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setProfileLinkRequired(false);
     setSubmitting(true);
     try {
       await applyToJob(job.id, { cover_letter: coverLetter.trim() || undefined });
@@ -173,6 +176,7 @@ function ApplyForm({ job, onSuccess, onCancel }: ApplyFormProps) {
       if (detail?.code === "DUPLICATE_APPLICATION") {
         setError("Bu iş ilanına zaten başvurdunuz.");
       } else if (detail?.code === "TALENT_PROFILE_REQUIRED") {
+        setProfileLinkRequired(true);
         setError("Başvuru için önce talent profilinizi oluşturmalısınız.");
       } else if (detail?.code === "JOB_NOT_PUBLISHED") {
         setError("Bu ilan artık başvuruya kapalı.");
@@ -190,7 +194,19 @@ function ApplyForm({ job, onSuccess, onCancel }: ApplyFormProps) {
 
   return (
     <form className="apply-form" onSubmit={handleApply}>
-      {error && <div className="jobs-page__error">{error}</div>}
+      {error && (
+        <div className="jobs-page__error">
+          {error}
+          {profileLinkRequired && (
+            <>
+              {" "}
+              <Link className="jobs-page__error-link" to="/talent/profile">
+                Profil oluştur →
+              </Link>
+            </>
+          )}
+        </div>
+      )}
       <label className="apply-form__label">Ön Yazı (opsiyonel)</label>
       <textarea
         className="apply-form__textarea"

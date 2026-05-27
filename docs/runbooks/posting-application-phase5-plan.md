@@ -168,16 +168,26 @@ Backend `GET /jobs/{job_id}/applications` ve `PATCH /applications/{id}/status` m
 
 ---
 
-### Atomik-2: Candidate UX hızlı kazanımı — `TALENT_PROFILE_REQUIRED` linki
+### Atomik-2: Candidate UX hızlı kazanımı — `TALENT_PROFILE_REQUIRED` linki — COMPLETE
 
 **Amaç:** G1'i kapat. Yeni kayıtlı candidate_user'ın başvuru engeline çarptığında `/talent/profile`'a yönlendirilmesini sağla.
 
-**Dosyalar:**
-- `web/src/pages/JobsPage.tsx` — `ApplyForm` içinde hata ayrımı + link
+**Dosyalar (tamamlandı):**
+- `web/src/pages/JobsPage.tsx` — `ApplyForm`'a `profileLinkRequired` state eklendi; TALENT_PROFILE_REQUIRED durumunda `<Link className="jobs-page__error-link" to="/talent/profile">` render edilir
+- `web/src/pages/JobsPage.css` — `.jobs-page__error-link` stili eklendi (renk, hover, focus-visible)
 
-**Gate:** Responsive (360/768/1280) — hata görünürlüğü + link tıklanabilirlik
-**Bağımlılık:** Yok.
-**Risk:** Düşük.
+**Link davranışı:**
+- Hata kodu: `TALENT_PROFILE_REQUIRED`
+- Hata mesajı: "Başvuru için önce talent profilinizi oluşturmalısınız."
+- Link metni: "Profil oluştur →"
+- Selector: `.jobs-page__error-link[href="/talent/profile"]`
+- Klavye odaklanabilir (focus-visible outline #991b1b)
+
+**Gate:** 19/19 PASS — `tools/atomik2_talent_profile_link_gate.mjs`
+- A1-A6: hata görünürlüğü + link varlığı + href doğruluğu + overflow yok — 360/768/1280
+- A7: link tıklama → /talent/profile navigation — 1280
+
+**G1 durumu:** DONE
 
 ---
 
