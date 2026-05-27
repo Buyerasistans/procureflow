@@ -7,115 +7,136 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 4 / Atomik-7 - COMPLETE — PHASE 4 CLOSED
+PHASE 5 / Atomik-1 - COMPLETE
 
 ## Executive Summary
 
-PHASE 4 / Atomik-7 is the full E2E gate for all PHASE 4 onboarding flows.
-Gate script `tools/atomik7_onboarding_gate.mjs` validated 79 assertions across
-4 scenario groups: employer register (33), candidate register (33), public nav
-CTA visibility (11), activation redirect smoke (2). All 79 PASS.
+PHASE 5 / Atomik-1 tamamlandı: posting/application lifecycle yüzeyleri envanteri
+ve gap analizi yapıldı, 6 gap (G1-G6) tespit edildi, 8 atomik backlog maddesi
+tanımlandı. Runbook: `docs/runbooks/posting-application-phase5-plan.md`.
 
-PHASE 4 is now fully closed. All G1–G4 gaps are DONE. PHASE 5 planning is next.
+No code change; test rerun not required.
 
-## Gate Results
+## Inventory Findings
 
-Gate script: `tools/atomik7_onboarding_gate.mjs`
-Artifacts: `tools/gate-artifacts/atomik7-onboarding/`
+### Backend — Mevcut Endpoints
 
-| Scenario | Assertions | Result |
-|---|---|---|
-| A: Employer register (360/768/1280) | 33 | 33/33 PASS |
-| B: Candidate register (360/768/1280) | 33 | 33/33 PASS |
-| C: Public nav CTA (360/768/1280 + popup) | 11 | 11/11 PASS |
-| D: Activation redirect smoke (desktop) | 2 | 2/2 PASS |
-| **TOTAL** | **79** | **79/79 PASS** |
-
-### Scenario A breakdown (per viewport)
-
-| Assertion | Detail |
+| Endpoint | Yetki |
 |---|---|
-| A1 | Title "İşveren Kaydı" visible |
-| A2-A5 | 4 inputs visible (full_name, email, password, confirm_password) |
-| A6 | Submit button visible |
-| A7 | Card fits viewport (334px@360, 530px@768, 554px@1280) |
-| A8 | Empty submit → error shown |
-| A9 | No navigation on empty submit |
-| A10 | Password mismatch → error shown |
-| A11 | Mock success → /jobs redirect |
+| POST /jobs | employer_company_admin, employer_recruiter, tenant_admin, platform_staff, super_admin |
+| GET /jobs | Tüm authenticated (scope-aware) |
+| GET /jobs/{id} | Tüm authenticated (scope-aware, view_count++) |
+| PATCH /jobs/{id} | Poster veya broad admin |
+| POST /jobs/{job_id}/apply | talent_member, candidate_user |
+| GET /jobs/{job_id}/applications | Employer, tenant-aware |
+| PATCH /applications/{id}/status | Employer, tenant-aware |
 
-### Scenario B breakdown (per viewport)
+### Backend — Eksik Endpoints
 
-Same pattern as A — candidate page class names, redirect to /talent/profile.
-
-### Scenario C: Nav CTA
-
-| Assertion | Detail |
+| Endpoint | Gap |
 |---|---|
-| C1 | .public-nav-cta--employer visible (all 3 viewports) |
-| C2 | .public-nav-cta--candidate visible (all 3 viewports) |
-| C3 | Employer CTA non-zero width (91px) |
-| C4 | mobile-360 popup: 2 occurrences each of /employer/register, /candidate/register |
+| GET /my/applications | G4 — candidate başvuru geçmişi |
+| POST /applications/{id}/withdraw | G5 — candidate withdrawal |
 
-### Scenario D: Activation smoke
+### Job Status State Machine
 
-| Assertion | Result |
+```
+draft → published → closed
+                 → filled
+```
+Create: yalnızca `draft | published`. Update: `draft | published | closed | filled`.
+
+### Application Status State Machine (employer-side)
+
+```
+applied → shortlisted | rejected
+shortlisted → interview | rejected
+interview → offered | rejected
+offered → rejected
+rejected → (terminal)
+withdrawn → (terminal)  ← model var, candidate endpoint yok
+```
+
+### Frontend — Mevcut Routes
+
+| Route | Sayfa | Durum |
+|---|---|---|
+| /jobs | JobsPage.tsx | MEVCUT — create + list + apply |
+| /talent/profile | TalentProfilePage.tsx | MEVCUT — profile create/edit + earnings |
+| /admin/talent-ecosystem | TalentAdminControlPage.tsx | MEVCUT — admin |
+
+### Frontend — Eksik
+
+| Route / Feature | Gap |
 |---|---|
-| employer_company_admin → /jobs | PASS |
-| candidate_user → /talent/profile | PASS |
+| /jobs/:id | G6 — job detail page (fetchJob servisi var, sayfa yok) |
+| /jobs/:id/applications | G3 — employer pipeline viewer |
+| /my/applications | G4 — candidate application history |
+| Job close/fill actions | G2 — employer job status actions |
+| TALENT_PROFILE_REQUIRED link | G1 — candidate UX |
 
-## PHASE 4 Closure
+## Gap Tablosu
 
-All G1–G4 gaps closed:
-
-| Gap | Description | Status |
+| Gap | Açıklama | Öncelik |
 |---|---|---|
-| G1 | employer_company_admin onboarding | DONE — Atomik-2 (backend) + Atomik-3 (frontend) |
-| G2 | candidate_user onboarding | DONE — Atomik-2 (backend) + Atomik-4 (frontend) |
-| G3 | guest_public entry point | DONE — Atomik-6 (nav CTA) |
-| G4 | Post-registration redirect | DONE — Atomik-5 (register-redirect-policy.ts) |
+| G1 | candidate_user TALENT_PROFILE_REQUIRED hatası linksize | P0 |
+| G2 | Employer ilan kapatma/dolu işaretleme UI yok | P1 |
+| G3 | Employer başvuru pipeline viewer yok | P1 |
+| G4 | Candidate kendi başvurularını göremez (backend + frontend) | P1 |
+| G5 | Candidate başvuru geri çekme yok (backend + frontend) | P2 |
+| G6 | Job detail page yok (/jobs/:id route) | P2 |
 
-## PHASE 4 Commit History
+## PHASE 5 Atomik Backlog
 
-| Commit | Atomik | Description |
-|---|---|---|
-| 499848a | 2 | POST /auth/register — employer + candidate |
-| 17a7b78 | 3 | EmployerRegisterPage + /employer/register |
-| 6a4e093 | 4 | CandidateRegisterPage + /candidate/register |
-| 78065c1 | 5 | register-redirect-policy + activation redirect |
-| 62de89e | 6 | NavBar guest_public CTAs |
-| (Atomik-7) | 7 | Full PHASE 4 E2E gate + closure |
+| Atomik | Hedef | Risk | Bağımlılık |
+|---|---|---|---|
+| A1 | Envanter (bu adım) | — | — |
+| A2 | G1: candidate UX — TALENT_PROFILE_REQUIRED link | Düşük | Yok |
+| A3 | G2: employer ilan durum aksiyonları (kapat/dolu) | Orta | Yok |
+| A4 | G3: employer başvuru pipeline viewer | Yüksek | A3 ile paralel |
+| A5 | G4 backend: GET /my/applications endpoint | Düşük | Yok |
+| A6 | G4 frontend: candidate başvuru geçmişi UI | Orta | A5 |
+| A7 | G5: candidate withdrawal (backend + frontend) | Orta | A5+A6 |
+| A8 | Full PHASE 5 E2E gate + closure | — | Tümü |
 
-## Gates Passed (all phases)
+## Kritik Tasarım Kararları (Atomik-7'e bırakıldı)
+
+- Withdrawal sonrası re-apply: unique constraint kaldırılacak mı?
+- Job detail page scope: okuma odaklı mı, düzenleme panelli mi?
+- Application pipeline: JobCard toggle mı, /jobs/:id/applications route mu?
+
+## Gates Passed
 
 | Gate | Result |
 |---|---|
-| type-check (Atomik-7) | PASS — 0 errors |
-| build (Atomik-7) | PASS |
-| Full E2E gate (Atomik-7) | 79/79 PASS |
-
-## Next Atomic Step
-
-**PHASE 5 / Atomik-1:** Surface inventory + PHASE 5 backlog definition.
-
-PHASE 5 scope TBD — likely covers public job discovery surface, authenticated
-employer/candidate dashboard flows, or governance of additional nav surfaces.
-
-Program closes after PHASE 7. Do NOT open PR to main before that.
+| PHASE 4 Atomik-7 E2E gate | 79/79 PASS |
+| PHASE 5 Atomik-1 | Docs only; no code gate |
 
 ## Open Risks
 
 - `api/routers/onboarding_router.py` dirty (unrelated) — not touched.
-- PHASES 5-7 still pending.
-- Backend `is_active=True` for register — intentional, no email gate.
+- candidate_user → TalentProfile uyumsuzluğu (G1 hızlı kapanacak, A2).
+- Withdrawal unique constraint (open design question, A7).
+- Responsive risk: başvuru tabloları 360px'de overflow yapabilir (A4/A6'da gate).
+
+## Next Atomic Step
+
+**PHASE 5 / Atomik-2:** Candidate UX fix — `TALENT_PROFILE_REQUIRED` hatası
+`/talent/profile`'a link içermeli.
+
+Kapsam: `web/src/pages/JobsPage.tsx` — `ApplyForm`'da hata kodu ayrımı + Link.
+Risk: Düşük. 1 dosya.
+Gate: Responsive 360/768/1280 — hata görünürlüğü + link varlığı.
+Commit: `fix(jobs): add talent profile link on TALENT_PROFILE_REQUIRED apply error`
 
 ## RESUME BLOCK
 
 ```text
 Program: NAV_GOVERNANCE_AND_JOB_MARKETPLACE
 Branch: pr/strict-gate-payment-clean-v2
-PHASE 4 / Atomik-7: COMPLETE — PHASE 4 CLOSED
-Next: PHASE 5 / Atomik-1 — surface inventory + PHASE 5 backlog definition.
+PHASE 5 / Atomik-1: COMPLETE — posting/application lifecycle inventory done
+Next: PHASE 5 / Atomik-2 — candidate UX: TALENT_PROFILE_REQUIRED error link.
+Runbook: docs/runbooks/posting-application-phase5-plan.md
 Instruction: Read tools/agent/AI_BRIEFING.md and tools/agent/SESSION_STATE.json first.
 Keep unrelated dirty/untracked files untouched. One atomic step only.
 ```
