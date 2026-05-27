@@ -7,15 +7,47 @@
 - mode: long-running atomic program
 
 ## Current Phase
-PHASE 6 — IN PROGRESS (Atomik-3 COMPLETE)
+PHASE 6 — IN PROGRESS (Atomik-4 COMPLETE)
 
 ## Executive Summary
 
-**PHASE 6 Atomik-3 COMPLETE.** Candidate apply CTA JobDetailPage'e eklendi.
-`canTalent && !canEmployer && job.status === "published"` guard; inline apply form;
-DUPLICATE_APPLICATION / TALENT_PROFILE_REQUIRED / JOB_NOT_PUBLISHED error codes;
-`/talent/profile` link. CSS: `.job-detail__apply*` selector seti + mobil @media. type-check 0 error, build ✓.
-Sonraki adım: PHASE 6 / Atomik-4 — employer close/fill actions on JobDetailPage.
+**PHASE 6 Atomik-4 COMPLETE.** Employer status actions JobDetailPage'e eklendi.
+`canEmployer && !canTalent && job.status === "published"` guard; "Kapat" + "Dolu İşaretle" butonları;
+`handleStatusUpdate` → `updateJob` → `setJob(updated)` response-based state güncelleme;
+`updatingStatus` + `statusError` states; CSS: `.job-detail__action*` + `.job-detail__status-error`. type-check 0 error, build ✓.
+Sonraki adım: PHASE 6 / Atomik-5 — entry point links (JobsPage kart başlığı + candidate history satırı).
+
+## PHASE 6 / Atomik-4 — Employer status actions on detail page — COMPLETE
+
+### Dosyalar
+
+**`web/src/pages/JobDetailPage.tsx`** (güncellendi)
+- `updateJob` import eklendi (jobs.service.ts)
+- State: `updatingStatus: "closed" | "filled" | null`, `statusError: string | null`
+- `handleStatusUpdate(newStatus: "closed" | "filled")`:
+  - `if (!job) return` guard
+  - `setUpdatingStatus(newStatus)` → `updateJob(job.id, { status: newStatus })` → `setJob(updated)`
+  - catch: `setStatusError(extractJobsError(err))`
+  - finally: `setUpdatingStatus(null)`
+- JSX: `{canEmployer && !canTalent && job.status === "published" && <div className="job-detail__actions">}`
+  - `{statusError && <div className="job-detail__status-error">}` — hata banner
+  - Kapat butonu: `disabled={updatingStatus !== null}`, label `updatingStatus === "closed" ? "Güncelleniyor..." : "Kapat"`
+  - Dolu İşaretle butonu: `disabled={updatingStatus !== null}`, label `updatingStatus === "filled" ? "Güncelleniyor..." : "Dolu İşaretle"`
+- Employer actions block: desc'in hemen altına yerleştirildi; apply block (Atomik-3) ile çakışmaz (farklı guard)
+
+**`web/src/pages/JobDetailPage.css`** (güncellendi)
+- `.job-detail__actions` — flex, flex-wrap, gap: 10px, margin-top: 24px
+- `.job-detail__action-btn` — base button (padding, border-radius, font-weight 600, disabled opacity, focus-visible)
+- `.job-detail__action-btn--close` — #fee2e2 bg / #991b1b text; hover: #fecaca
+- `.job-detail__action-btn--fill` — #e0e7ff bg / #3730a3 text; hover: #c7d2fe
+- `.job-detail__status-error` — width 100%, kırmızı hata kutusu (#fef2f2 / #fecaca)
+- `@media (max-width: 600px)` — actions flex-direction column, buttons width 100%
+
+### Kalite Gateleri
+- type-check: PASS — 0 errors
+- build: PASS ✓
+
+**Commit:** `feat(jobs): add employer status actions on job detail page`
 
 ## PHASE 6 / Atomik-3 — Candidate apply CTA on detail page — COMPLETE
 

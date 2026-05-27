@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import {
   applyToJob,
   fetchJob,
+  updateJob,
   extractJobsError,
   type ProcurementJob,
 } from "../services/jobs.service";
@@ -67,6 +68,10 @@ export default function JobDetailPage() {
   const [profileLinkRequired, setProfileLinkRequired] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
 
+  // Employer status update state
+  const [updatingStatus, setUpdatingStatus] = useState<"closed" | "filled" | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!id || isNaN(jobId) || jobId <= 0) {
       setError("Geçersiz ilan numarası.");
@@ -108,6 +113,20 @@ export default function JobDetailPage() {
     }
   }
 
+  async function handleStatusUpdate(newStatus: "closed" | "filled") {
+    if (!job) return;
+    setStatusError(null);
+    setUpdatingStatus(newStatus);
+    try {
+      const updated = await updateJob(job.id, { status: newStatus });
+      setJob(updated);
+    } catch (err: unknown) {
+      setStatusError(extractJobsError(err));
+    } finally {
+      setUpdatingStatus(null);
+    }
+  }
+
   if (loading) {
     return <div className="job-detail__loading">Yükleniyor...</div>;
   }
@@ -144,6 +163,30 @@ export default function JobDetailPage() {
         </span>
       </div>
       <p className="job-detail__desc">{job.description}</p>
+
+      {canEmployer && !canTalent && job.status === "published" && (
+        <div className="job-detail__actions">
+          {statusError && (
+            <div className="job-detail__status-error">{statusError}</div>
+          )}
+          <button
+            type="button"
+            className="job-detail__action-btn job-detail__action-btn--close"
+            disabled={updatingStatus !== null}
+            onClick={() => void handleStatusUpdate("closed")}
+          >
+            {updatingStatus === "closed" ? "Güncelleniyor..." : "Kapat"}
+          </button>
+          <button
+            type="button"
+            className="job-detail__action-btn job-detail__action-btn--fill"
+            disabled={updatingStatus !== null}
+            onClick={() => void handleStatusUpdate("filled")}
+          >
+            {updatingStatus === "filled" ? "Güncelleniyor..." : "Dolu İşaretle"}
+          </button>
+        </div>
+      )}
 
       {canTalent && !canEmployer && job.status === "published" && (
         <div className="job-detail__apply">

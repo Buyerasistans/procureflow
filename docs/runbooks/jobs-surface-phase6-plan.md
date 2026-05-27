@@ -128,15 +128,19 @@ iş ilanı yüzeyini tamamlar: job detail page + list entry points.
 
 ---
 
-### Atomik-4: Employer actions on detail page
+### Atomik-4: Employer actions on detail page — COMPLETE
 
 **Amaç:** Employer `/jobs/:id`'de kapat / dolu işaretle yapabilsin.
 
-**Değişiklikler:**
-- `JobDetailPage.tsx` — `canEmployer && !canTalent && job.status === "published"` koşulunda
-  "Kapat" / "Dolu İşaretle" butonları
-- `updateJob(jobId, { status })` → optimistic state update
-- Employer pipeline (başvuru listesi toggle) — Atomik-4 veya Atomik-5'e bırakılabilir
+**Tamamlanan değişiklikler:**
+- `web/src/pages/JobDetailPage.tsx` — `canEmployer && !canTalent && job.status === "published"` guard; `updatingStatus: "closed" | "filled" | null` state; `statusError: string | null` state; `handleStatusUpdate(newStatus)` async function (`updateJob` → `setJob(updated)`); iki buton (Kapat/Dolu İşaretle), her ikisi `disabled={updatingStatus !== null}` sırasında; hata varsa `.job-detail__status-error` banner.
+- `web/src/pages/JobDetailPage.css` — `.job-detail__actions` flex container; `.job-detail__action-btn` base; `.job-detail__action-btn--close` (kırmızı #fee2e2/#991b1b); `.job-detail__action-btn--fill` (mavi #e0e7ff/#3730a3); `.job-detail__status-error`; `@media (max-width: 600px)` column layout.
+
+**Kalite gateleri:**
+- `npm run type-check` → 0 error
+- `npm run build` → ✓
+
+**Commit:** `feat(jobs): add employer status actions on job detail page`
 
 ---
 
