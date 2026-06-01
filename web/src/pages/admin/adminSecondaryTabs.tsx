@@ -4,7 +4,8 @@ import { canAccessAdminSurface, isSuperAdminUser } from "../../auth/permissions"
 import { useAuth } from "../../hooks/useAuth";
 import { getAccessToken } from "../../lib/token";
 import { CampaignsAdminTab } from "../../components/admin/CampaignsTab.tsx";
-import { PageHeader, StatCard } from "./AdminTabContent";
+import { PageHeader, StatCard, Section, DataTable } from "./AdminTabContent";
+import "./adminSecondaryTabs.css";
 
 export function ReportsTabContent() {
   const apiBase = import.meta.env.VITE_API_URL ?? "";
@@ -456,67 +457,88 @@ export function PlatformSuppliersTab() {
     }
   }
 
-  if (loading) return <div style={{ padding: 32, color: "#6b7280" }}>Yukleniyor...</div>;
+  if (loading) {
+    return (
+      <div className="pst-tab">
+        <PageHeader eyebrow="Operasyon" title="Platform Tedarikçi Havuzu" sub="Yükleniyor…" />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: "24px 0" }}>
+    <div className="pst-tab">
       <PageHeader
         eyebrow="Operasyon"
         title="Platform Tedarikçi Havuzu"
         sub="Platform genelinde kayıtlı tedarikçi firmaları ve profil bilgileri"
       />
-      <div className="kpi-grid kpi-grid--2">
+
+      <div className="kpi-grid kpi-grid--3">
         <StatCard label="Toplam Tedarikçi" value={suppliers.length} accent="blue" sub="Kayıtlı tedarikçi firmalar" />
-        {/* TODO(data): aktif/pasif ayrımı — tedarikçi havuzu servisine is_active alanı eklenecek */}
-        <StatCard label="Yükleniyor" value={loading ? "…" : suppliers.length} accent="slate" sub="Havuz durumu" />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div />
-        {canCreate ? (
-          <button
-            onClick={() => setShowForm(!showForm)}
-            style={{ background: "#4f46e5", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-          >
-            {showForm ? "İptal" : "+ Yeni Tedarikçi"}
-          </button>
-        ) : null}
+        <StatCard label="Havuz Tipi" value="Platform Network" accent="teal" sub="Paylaşımlı tedarik ağı" />
+        {/* TODO(data): aktif/pasif ayrımı — is_active alanı backend'e eklenecek */}
+        <StatCard label="Havuz Durumu" value="Aktif" accent="green" sub="Tüm tedarikçiler erişilebilir" />
       </div>
 
-      {showForm && canCreate && (
-        <form onSubmit={handleCreate} style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 10, padding: 16, marginBottom: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {(["name", "email", "phone", "website", "city"] as const).map((f) => (
-            <input
-              key={f}
-              placeholder={f === "name" ? "Firma adi *" : f}
-              value={form[f]}
-              onChange={(e) => setForm((prev) => ({ ...prev, [f]: e.target.value }))}
-              style={{ border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 10px", fontSize: 13 }}
-            />
-          ))}
-          {err && <div style={{ gridColumn: "1/-1", color: "#b91c1c", fontSize: 13 }}>{err}</div>}
-          <button type="submit" disabled={saving} style={{ gridColumn: "1/-1", background: "#059669", color: "#fff", border: "none", borderRadius: 8, padding: "9px", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
-            {saving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
-        </form>
+      {err && (
+        <div className="pst-error">{err}</div>
       )}
 
-      {err ? (
-        <div style={{ color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: 12 }}>{err}</div>
-      ) : suppliers.length === 0 ? (
-        <div style={{ color: "#6b7280", fontStyle: "italic" }}>Platform havuzunda henüz tedarikçi yok.</div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
-          {suppliers.map((s) => (
-            <div key={String(s.id)} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 9, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{String(s.name)}</div>
-                <div style={{ fontSize: 12, color: "#6b7280" }}>{[s.email, s.phone, s.city].filter(Boolean).join(" | ")}</div>
+      {canCreate && (
+        <Section
+          title="Yeni Tedarikçi Ekle"
+          action={
+            <button type="button" className="pst-btn-toggle" onClick={() => setShowForm((v) => !v)}>
+              {showForm ? "İptal" : "+ Yeni Tedarikçi"}
+            </button>
+          }
+        >
+          {showForm ? (
+            <form onSubmit={handleCreate} className="pst-form">
+              <input className="pst-input" placeholder="Firma adı *" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+              <input className="pst-input" placeholder="E-posta *" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+              <input className="pst-input" placeholder="Telefon *" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
+              <input className="pst-input" placeholder="Web sitesi" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} />
+              <input className="pst-input" placeholder="Şehir" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} />
+              <div className="pst-form__footer">
+                {err && <span className="pst-form__err">{err}</span>}
+                <button type="submit" className="pst-btn pst-btn--save" disabled={saving}>
+                  {saving ? "Kaydediliyor…" : "Kaydet"}
+                </button>
               </div>
-              <span style={{ fontSize: 11, background: "#f0fdf4", color: "#065f46", borderRadius: 20, padding: "2px 10px", fontWeight: 600 }}>platform_network</span>
-            </div>
-          ))}
-        </div>
+            </form>
+          ) : (
+            <div className="pst-form-hint">Forma erişmek için "+ Yeni Tedarikçi" butonunu kullanın.</div>
+          )}
+        </Section>
       )}
+
+      <Section title="Tedarikçi Listesi" sub={`${suppliers.length} kayıt`} padded={false}>
+        {suppliers.length === 0 ? (
+          <div className="pst-empty">Platform havuzunda henüz tedarikçi yok.</div>
+        ) : (
+          <DataTable
+            columns={[
+              { key: "name", label: "Firma Adı" },
+              { key: "email", label: "E-posta" },
+              { key: "phone", label: "Telefon" },
+              { key: "city", label: "Şehir" },
+              {
+                key: "website", label: "Web", width: "160px",
+                render: (r) => r.website
+                  ? <a href={String(r.website)} target="_blank" rel="noopener noreferrer" className="pst-link">{String(r.website)}</a>
+                  : <span className="pst-muted">—</span>,
+              },
+              {
+                key: "_tag", label: "", width: "130px",
+                render: () => <span className="pst-badge">platform_network</span>,
+              },
+            ]}
+            rows={suppliers}
+            rowKey="id"
+          />
+        )}
+      </Section>
     </div>
   );
 }
@@ -533,22 +555,18 @@ export function PublicPricingTab() {
 
   const loadConfig = useCallback(() => {
     setLoadingConfig(true);
+    setSaveMessage(null);
+    setSaveError(null);
     fetch(`${apiBase}/api/v1/admin/public-pricing-config`, {
       headers: { Authorization: `Bearer ${getAccessToken() ?? ""}` },
     })
       .then((r) => r.json())
-      .then((data) => {
-        setConfigText(JSON.stringify(data, null, 2));
-      })
-      .catch(() => {
-        setSaveError("Public fiyatlandirma verisi yuklenemedi");
-      })
+      .then((data) => setConfigText(JSON.stringify(data, null, 2)))
+      .catch(() => setSaveError("Public fiyatlandırma verisi yüklenemedi"))
       .finally(() => setLoadingConfig(false));
   }, [apiBase]);
 
-  useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
+  useEffect(() => { loadConfig(); }, [loadConfig]);
 
   async function handleSave() {
     setSavingConfig(true);
@@ -558,66 +576,70 @@ export function PublicPricingTab() {
       const parsed = JSON.parse(configText);
       const response = await fetch(`${apiBase}/api/v1/admin/public-pricing-config`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAccessToken() ?? ""}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAccessToken() ?? ""}` },
         body: JSON.stringify(parsed),
       });
       const payload = await response.json();
-      if (!response.ok) {
-        setSaveError(payload.detail ?? "Kayit basarisiz");
-        return;
-      }
+      if (!response.ok) { setSaveError(payload.detail ?? "Kayıt başarısız"); return; }
       setConfigText(JSON.stringify(payload, null, 2));
-      setSaveMessage("Public fiyatlandirma guncellendi");
+      setSaveMessage("Fiyatlandırma konfigürasyonu güncellendi.");
     } catch {
-      setSaveError("Gecersiz JSON veya sunucu hatasi");
+      setSaveError("Geçersiz JSON veya sunucu hatası.");
     } finally {
       setSavingConfig(false);
     }
   }
 
+  const accessLabel = canWritePricing ? "Yazma yetkisi" : "Salt okuma";
+
   return (
-    <div style={{ padding: "24px 0" }}>
+    <div className="ppt-tab">
       <PageHeader
         eyebrow="Ticari"
         title="Genel Fiyatlandırma"
-        sub={`Public /fiyatlandırma sayfası plan konfigürasyonu · Yetki: ${canWritePricing ? "Yazma" : "Salt Okuma"}`}
+        sub={`Public /fiyatlandırma sayfası plan konfigürasyonu · ${accessLabel}`}
+        actions={
+          canWritePricing ? (
+            <div className="ppt-actions">
+              <button type="button" className="ppt-btn ppt-btn--ghost" onClick={loadConfig} disabled={loadingConfig}>
+                Yenile
+              </button>
+              <button type="button" className="ppt-btn ppt-btn--primary" onClick={handleSave} disabled={savingConfig || loadingConfig}>
+                {savingConfig ? "Kaydediliyor…" : "Kaydet"}
+              </button>
+            </div>
+          ) : undefined
+        }
       />
 
-      {loadingConfig ? (
-        <div style={{ color: "#6b7280" }}>Yukleniyor...</div>
-      ) : (
-        <>
+      <div className="ppt-sync-bar">
+        <span className="ppt-sync-bar__dot" />
+        <span>
+          <strong>Tek kaynak (single source of truth)</strong> — buradaki değişiklikler public fiyatlandırma sayfasına ve kayıt akışlarına uygulanır.
+        </span>
+        <span className={`ppt-sync-bar__badge ${canWritePricing ? "ppt-sync-bar__badge--live" : "ppt-sync-bar__badge--ro"}`}>
+          {canWritePricing ? "CANLI" : "SALT OKUMA"}
+        </span>
+      </div>
+
+      {saveError && <div className="ppt-msg ppt-msg--err">{saveError}</div>}
+      {saveMessage && <div className="ppt-msg ppt-msg--ok">{saveMessage}</div>}
+
+      <Section title="JSON Konfigürasyonu" sub="Audience başına plan, eklenti ve fiyat tanımları">
+        {loadingConfig ? (
+          <div className="ppt-loading">Yükleniyor…</div>
+        ) : (
           <textarea
+            className="ppt-editor"
+            aria-label="Public fiyatlandırma JSON konfigürasyonu"
             value={configText}
-            onChange={(event) => setConfigText(event.target.value)}
-            rows={22}
-            style={{ width: "100%", border: "1px solid #cbd5e1", borderRadius: 10, padding: 12, fontFamily: "Consolas, monospace", fontSize: 12 }}
+            onChange={(e) => setConfigText(e.target.value)}
+            rows={24}
             disabled={!canWritePricing}
+            spellCheck={false}
           />
-
-          {saveError && <div style={{ marginTop: 10, background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", borderRadius: 8, padding: 10, fontSize: 13 }}>{saveError}</div>}
-          {saveMessage && <div style={{ marginTop: 10, background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46", borderRadius: 8, padding: 10, fontSize: 13 }}>{saveMessage}</div>}
-
-          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              onClick={handleSave}
-              disabled={!canWritePricing || savingConfig}
-              style={{ background: canWritePricing ? "#0f766e" : "#9ca3af", color: "#fff", border: "none", borderRadius: 8, padding: "9px 14px", fontWeight: 700, cursor: canWritePricing ? "pointer" : "not-allowed" }}
-            >
-              {savingConfig ? "Kaydediliyor..." : "Kaydet"}
-            </button>
-            <button
-              onClick={loadConfig}
-              style={{ background: "#fff", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: 8, padding: "9px 14px", fontWeight: 700, cursor: "pointer" }}
-            >
-              Yenile
-            </button>
-          </div>
-        </>
-      )}
+        )}
+      </Section>
     </div>
   );
 }

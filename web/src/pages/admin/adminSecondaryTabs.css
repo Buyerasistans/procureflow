@@ -1,0 +1,254 @@
+/* ── Platform Suppliers Tab (pst-) ── */
+.pst-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pst-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 0.625rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.pst-empty {
+  padding: 1rem;
+  color: var(--text-secondary, #64748b);
+  font-style: italic;
+}
+
+.pst-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.pst-form__footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pst-form__err {
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  flex: 1;
+}
+
+.pst-input {
+  min-height: 2.375rem;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 0.875rem;
+  background: var(--surface, #fff);
+  color: var(--text-primary, #0f172a);
+}
+
+.pst-input:focus {
+  outline: 2px solid var(--color-primary, #4f46e5);
+  outline-offset: 2px;
+}
+
+.pst-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pst-btn--save {
+  background: #059669;
+  color: #fff;
+}
+
+.pst-btn--save:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.pst-btn-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface, #fff);
+  color: var(--color-primary, #4f46e5);
+}
+
+.pst-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f0fdf4;
+  color: #065f46;
+}
+
+.pst-link {
+  color: var(--color-primary, #2563eb);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 150px;
+}
+
+.pst-link:hover { text-decoration: underline; }
+
+.pst-muted {
+  color: var(--text-secondary, #94a3b8);
+}
+
+.pst-form-hint {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+@media (max-width: 40rem) {
+  .pst-form { grid-template-columns: 1fr; }
+}
+
+/* ── Public Pricing Tab (ppt-) ── */
+.ppt-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ppt-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ppt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ppt-btn--ghost {
+  background: var(--surface, #fff);
+  color: var(--text-primary, #0f172a);
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.ppt-btn--primary {
+  background: #0f766e;
+  color: #fff;
+  border: none;
+}
+
+.ppt-btn--primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.ppt-btn--ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ppt-sync-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface-muted, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0.625rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #475569);
+}
+
+.ppt-sync-bar__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+.ppt-sync-bar strong {
+  color: var(--text-primary, #0f172a);
+}
+
+.ppt-sync-bar__badge {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.ppt-sync-bar__badge--live { background: #dcfce7; color: #15803d; }
+.ppt-sync-bar__badge--ro  { background: #f1f5f9; color: #64748b; }
+
+.ppt-msg {
+  border-radius: 0.625rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.ppt-msg--err { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.ppt-msg--ok  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #065f46; }
+
+.ppt-editor {
+  width: 100%;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 0.625rem;
+  padding: 0.75rem;
+  font-family: "Consolas", "Fira Mono", monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  resize: vertical;
+  background: var(--surface-muted, #f8fafc);
+  color: var(--text-primary, #0f172a);
+}
+
+.ppt-editor:focus {
+  outline: 2px solid var(--color-primary, #2563eb);
+  outline-offset: 2px;
+}
+
+.ppt-editor:disabled {
+  background: var(--surface-subtle, #f1f5f9);
+  color: var(--text-secondary, #64748b);
+  cursor: not-allowed;
+}
+
+.ppt-loading {
+  padding: 1rem;
+  color: var(--text-secondary, #64748b);
+}
