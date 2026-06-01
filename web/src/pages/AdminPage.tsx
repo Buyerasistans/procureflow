@@ -76,6 +76,7 @@ import { buildPolicyContext, resolveVisiblePanelTabKeys } from "../config/naviga
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
 import "../styles/pages/AdminPage.css";
+import AdminShell from "./admin/AdminShell";
 
 type ServiceUsageCard = {
   key: string;
@@ -4041,7 +4042,9 @@ export default function AdminPage() {
     isUpgradeExtrasPage ? "admin-page__tab-link--active" : "",
   ].filter(Boolean).join(" ");
 
-  return (
+  const _shellMode = isSuperAdminUser(user);
+
+  const _adminNode = (
     <div className="admin-page">
       <ImpersonationBanner />
 
@@ -4099,6 +4102,7 @@ export default function AdminPage() {
         </section>
       )}
 
+      {!_shellMode && (
       <section className="admin-page__card admin-page__card--padded">
         <div className={menuRowClassName}>
           {tabConfigs.map((tab) => (
@@ -4129,6 +4133,7 @@ export default function AdminPage() {
           </Link>
         </div>
       </section>
+      )}
 
       {activeTab === "panel_home" && (() => {
         const _scope = String(user?.scope_type || "").toLowerCase();
@@ -5902,4 +5907,17 @@ export default function AdminPage() {
       )}
     </div>
   );
+
+  if (_shellMode) {
+    return (
+      <AdminShell
+        activeKey={activeTab}
+        onNavigate={(key) => navigateAdminTab(key as AdminTabKey)}
+        user={user}
+      >
+        {_adminNode}
+      </AdminShell>
+    );
+  }
+  return _adminNode;
 }
