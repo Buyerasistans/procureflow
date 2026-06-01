@@ -16,6 +16,144 @@ from api.models.user import User
 DEMO_PASSWORD = "Aa1234!!"
 DEMO_EMAIL_DOMAIN = "buyerasistans.com.tr"
 
+DEMO_PLATFORM_ROLE_SEED = [
+    {
+        "name": "Platform Operasyon Admin",
+        "description": "Platform operasyon ekibinin tam yetkili yöneticisi.",
+        "hierarchy_level": 1,
+        "permissions": [
+            "create:personnel", "read:personnel", "update:personnel",
+            "read:company", "read:department", "read:project",
+            "read:quote", "update:quote",
+        ],
+    },
+    {
+        "name": "Platform Operasyon Yöneticisi",
+        "description": "Operasyon süreçlerini yönetir ve koordine eder.",
+        "hierarchy_level": 2,
+        "permissions": [
+            "read:personnel", "read:company", "read:department", "read:project",
+            "read:quote", "update:quote",
+        ],
+    },
+    {
+        "name": "Platform Operasyon Uzmanı",
+        "description": "Operasyon destek ve süreç takibi.",
+        "hierarchy_level": 3,
+        "permissions": [
+            "read:personnel", "read:company", "read:department", "read:project",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform Destek Admin",
+        "description": "Destek ekibinin tam yetkili yöneticisi.",
+        "hierarchy_level": 1,
+        "permissions": [
+            "create:personnel", "read:personnel", "update:personnel",
+            "read:company", "read:department",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform Destek Yöneticisi",
+        "description": "Destek süreçlerini yönetir.",
+        "hierarchy_level": 2,
+        "permissions": [
+            "read:personnel", "read:company", "read:department",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform Destek Uzmanı",
+        "description": "Kullanıcı destek taleplerini işler.",
+        "hierarchy_level": 3,
+        "permissions": [
+            "read:personnel", "read:company",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform Finans Admin",
+        "description": "Platform finansal işlemlerinin tam yetkili yöneticisi.",
+        "hierarchy_level": 1,
+        "permissions": [
+            "read:personnel", "read:company", "read:department", "read:project",
+            "create:quote", "read:quote", "update:quote", "approve:quote",
+        ],
+    },
+    {
+        "name": "Platform Finans Yöneticisi",
+        "description": "Finansal süreçleri ve raporlamayı yönetir.",
+        "hierarchy_level": 2,
+        "permissions": [
+            "read:company", "read:department", "read:project",
+            "read:quote", "update:quote", "approve:quote",
+        ],
+    },
+    {
+        "name": "Platform Finans Uzmanı",
+        "description": "Finansal veri girişi ve süreç desteği.",
+        "hierarchy_level": 3,
+        "permissions": [
+            "read:company", "read:department",
+            "read:quote", "update:quote",
+        ],
+    },
+    {
+        "name": "Platform Denetçi / Finans İzleyici",
+        "description": "Salt okunur finansal denetim ve izleme.",
+        "hierarchy_level": 99,
+        "permissions": [
+            "read:company", "read:department", "read:project",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform Güvenlik Uzmanı",
+        "description": "Platform güvenlik politikaları ve denetim.",
+        "hierarchy_level": 2,
+        "permissions": [
+            "read:personnel", "read:company", "read:department",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform Raporlama Analisti",
+        "description": "Platform geneli raporlama ve veri analizi.",
+        "hierarchy_level": 3,
+        "permissions": [
+            "read:company", "read:department", "read:project",
+            "read:quote",
+        ],
+    },
+    {
+        "name": "Platform İK Admin",
+        "description": "Kariyer modülünün tam yetkili platform İK yöneticisi. İK Yöneticisi ve Uzmanı yetkilendirebilir.",
+        "hierarchy_level": 1,
+        "permissions": [
+            "create:personnel", "read:personnel", "update:personnel",
+            "read:company", "read:department",
+        ],
+    },
+    {
+        "name": "Platform İK Yöneticisi",
+        "description": "İK süreçlerini yönetir, iş ilanı oluşturur ve İK uzmanlarını koordine eder.",
+        "hierarchy_level": 2,
+        "permissions": [
+            "read:personnel", "read:company", "read:department",
+        ],
+    },
+    {
+        "name": "Platform İK Uzmanı",
+        "description": "İş ilanı hazırlama ve aday yönetimi operasyonları.",
+        "hierarchy_level": 3,
+        "permissions": [
+            "read:personnel", "read:company",
+        ],
+    },
+]
+
 DEMO_PARTNER_TENANT = {
     "slug": "demo-stratejik-ortak",
     "legal_name": "Buyera Asistans Demo Stratejik Ortak A.S.",
@@ -23,11 +161,227 @@ DEMO_PARTNER_TENANT = {
     "subscription_plan_code": "growth",
 }
 
+DEMO_CAREER_TENANT = {
+    "slug": "ba-demo-kariyer",          # "kariyer" → inferTenantScope returns "career"
+    "legal_name": "BA Demo Kariyer ve İş Piyasası",
+    "brand_name": "BA Demo Kariyer",
+    "category": "kariyer",
+}
+
+DEMO_CAREER_ROLE_SEED = [
+    {
+        "name": "İşveren Admin",
+        "description": "İşveren firmasının tam yetkili yöneticisi. İş ilanı yönetimi ve aday pipeline görünürlüğü.",
+        "hierarchy_level": 0,
+        "permissions": ["read:personnel", "read:company", "read:department"],
+    },
+    {
+        "name": "İşveren Recruiter",
+        "description": "İşveren adına işe alım süreçlerini yürüten recruiter. İlan yönetimi ve aday takibi.",
+        "hierarchy_level": 1,
+        "permissions": ["read:personnel", "read:company"],
+    },
+    {
+        "name": "Aday",
+        "description": "İş arayan kullanıcı. Profil oluşturma, iş ilanına başvuru ve süreç takibi.",
+        "hierarchy_level": 2,
+        "permissions": ["read:company"],
+    },
+    {
+        "name": "Satın Alma Yeteneği",
+        "description": "Satın alma ve tedarik zinciri alanında kariyer hedefleyen yetenek profili.",
+        "hierarchy_level": 3,
+        "permissions": ["read:company"],
+    },
+]
+
 DEMO_CHANNEL_TENANT = {
     "slug": "demo-kanal-is-ortagi",
     "legal_name": "Buyera Asistans Demo Kanal İş Ortağı Workspace",
     "brand_name": "BA Demo İş Ortağı",
 }
+
+DEMO_SUPPLIER_TENANT = {
+    "slug": "demo-tedarikci-firma",   # "tedarikci" → inferTenantScope returns "supplier"
+    "legal_name": "BA Demo Tedarikçi Firma A.Ş.",
+    "brand_name": "BA Demo Tedarikçi",
+    "category": "tedarikci",
+    "subscription_plan_code": "starter",
+}
+
+DEMO_SUPPLIER_COMPANIES = [
+    {
+        "name": "BA Demo Tedarikçi Merkez",
+        "description": "Tedarikçi ana organizasyon merkezi.",
+        "color": "#0f766e",
+    },
+]
+
+DEMO_SUPPLIER_DEPARTMENTS = [
+    {
+        "name": "Pazarlama ve Satış",
+        "description": "Teklif hazırlama, müşteri iletişimi ve pazarlama operasyonları.",
+    },
+    {
+        "name": "Teknik ve Ürün",
+        "description": "Teknik şartname, ürün katalog ve fiyatlandırma.",
+    },
+]
+
+DEMO_SUPPLIER_ROLE_SEED = [
+    {
+        "name": "Tedarikçi Admin",
+        "description": "Tedarikçi organizasyonunun tam yetki sahibi.",
+        "hierarchy_level": 0,
+        "permissions": [
+            "create:personnel", "read:personnel", "update:personnel", "delete:personnel",
+            "create:department", "read:department", "update:department", "delete:department",
+            "create:company", "read:company", "update:company", "delete:company",
+            "read:quote", "update:quote",
+        ],
+    },
+    {
+        "name": "Pazarlama Müdürü",
+        "description": "Pazarlama ekibi yönetimi ve teklif stratejisi.",
+        "hierarchy_level": 1,
+        "permissions": ["read:personnel", "read:company", "read:department", "read:quote", "update:quote"],
+    },
+    {
+        "name": "Pazarlama Müdür Yardımcısı",
+        "description": "Pazarlama müdürüne operasyonel destek.",
+        "hierarchy_level": 2,
+        "permissions": ["read:company", "read:department", "read:quote", "update:quote"],
+    },
+    {
+        "name": "Pazarlama Yöneticisi",
+        "description": "Günlük pazarlama ve teklif süreçleri.",
+        "hierarchy_level": 3,
+        "permissions": ["read:company", "read:department", "read:quote", "update:quote"],
+    },
+    {
+        "name": "Kıdemli Pazarlama Uzmanı",
+        "description": "Teklif hazırlama ve müşteri iletişimi.",
+        "hierarchy_level": 4,
+        "permissions": ["read:company", "read:department", "read:quote", "update:quote"],
+    },
+    {
+        "name": "Pazarlama Uzmanı",
+        "description": "Standart teklif hazırlama ve veri girişi.",
+        "hierarchy_level": 5,
+        "permissions": ["read:company", "read:department", "read:quote"],
+    },
+    {
+        "name": "Teknik Uzman ve Mimar",
+        "description": "Teknik şartname değerlendirme ve ürün mimarisi.",
+        "hierarchy_level": 6,
+        "permissions": ["read:company", "read:department", "read:quote"],
+    },
+    {
+        "name": "Teklif Uzmanı",
+        "description": "Teklif akışı uzmanı.",
+        "hierarchy_level": 7,
+        "permissions": ["read:company", "read:quote", "update:quote"],
+    },
+    {
+        "name": "Özel Tedarikçi Rolü",
+        "description": "Tedarikçiye özel esnek rol şablonu.",
+        "hierarchy_level": 99,
+        "permissions": ["read:company", "read:quote"],
+    },
+    {
+        "name": "Finans İzleyici",
+        "description": "Salt okunur finansal izleme.",
+        "hierarchy_level": 99,
+        "permissions": ["read:company", "read:quote"],
+    },
+    {
+        "name": "İK Yöneticisi",
+        "description": "Tedarikçi organizasyonu İK yöneticisi.",
+        "hierarchy_level": 99,
+        "permissions": ["read:company", "read:department"],
+    },
+    {
+        "name": "İK Uzmanı",
+        "description": "Temel İK operasyonları ve iş ilanı desteği.",
+        "hierarchy_level": 99,
+        "permissions": ["read:company"],
+    },
+]
+
+DEMO_SUPPLIER_USERS = [
+    {
+        "email": f"tedarikci_admin@{DEMO_EMAIL_DOMAIN}",
+        "full_name": "Tedarikçi Admin Demo",
+        "role": "supplier_admin",
+        "system_role": "supplier_user",
+        "scope_type": "supplier",
+        "role_profile_code": "supplier_tenant.admin",
+        "approval_limit": 0,
+        "department": "Pazarlama ve Satış",
+        "company": "BA Demo Tedarikçi Merkez",
+        "assignment_role": "Tedarikçi Admin",
+    },
+    {
+        "email": f"tedarikci_mudur@{DEMO_EMAIL_DOMAIN}",
+        "full_name": "Pazarlama Müdürü Demo",
+        "role": "pazarlama_muduru",
+        "system_role": "supplier_user",
+        "scope_type": "supplier",
+        "role_profile_code": "supplier_tenant.marketing_manager",
+        "approval_limit": 0,
+        "department": "Pazarlama ve Satış",
+        "company": "BA Demo Tedarikçi Merkez",
+        "assignment_role": "Pazarlama Müdürü",
+    },
+    {
+        "email": f"tedarikci_yonetici@{DEMO_EMAIL_DOMAIN}",
+        "full_name": "Pazarlama Yöneticisi Demo",
+        "role": "pazarlama_yoneticisi",
+        "system_role": "supplier_user",
+        "scope_type": "supplier",
+        "role_profile_code": "supplier_tenant.marketing_supervisor",
+        "approval_limit": 0,
+        "department": "Pazarlama ve Satış",
+        "company": "BA Demo Tedarikçi Merkez",
+        "assignment_role": "Pazarlama Yöneticisi",
+    },
+    {
+        "email": f"tedarikci_uzman@{DEMO_EMAIL_DOMAIN}",
+        "full_name": "Pazarlama Uzmanı Demo",
+        "role": "pazarlama_uzmani",
+        "system_role": "supplier_user",
+        "scope_type": "supplier",
+        "role_profile_code": "supplier_tenant.marketing_specialist",
+        "approval_limit": 0,
+        "department": "Pazarlama ve Satış",
+        "company": "BA Demo Tedarikçi Merkez",
+        "assignment_role": "Pazarlama Uzmanı",
+    },
+    {
+        "email": f"tedarikci_teknik@{DEMO_EMAIL_DOMAIN}",
+        "full_name": "Teknik Uzman ve Mimar Demo",
+        "role": "teknik_uzman_mimar",
+        "system_role": "supplier_user",
+        "scope_type": "supplier",
+        "role_profile_code": "supplier_tenant.technical_architect",
+        "approval_limit": 0,
+        "department": "Teknik ve Ürün",
+        "company": "BA Demo Tedarikçi Merkez",
+        "assignment_role": "Teknik Uzman ve Mimar",
+    },
+    {
+        "email": f"tedarikci_teklif@{DEMO_EMAIL_DOMAIN}",
+        "full_name": "Teklif Uzmanı Demo",
+        "role": "teklif_uzmani",
+        "system_role": "supplier_user",
+        "scope_type": "supplier",
+        "role_profile_code": "supplier_tenant.quotation_specialist",
+        "approval_limit": 0,
+        "department": "Teknik ve Ürün",
+        "company": "BA Demo Tedarikçi Merkez",
+        "assignment_role": "Teklif Uzmanı",
+    },
+]
 
 DEMO_PARTNER_COMPANIES = [
     {
@@ -168,6 +522,18 @@ DEMO_PARTNER_ROLE_SEED = [
         "description": "Salt okunur finansal izleme.",
         "hierarchy_level": 99,
         "permissions": ["read:company", "read:department", "read:project", "read:quote"],
+    },
+    {
+        "name": "İK Yöneticisi",
+        "description": "İş ilanı verme yetkisine sahip İK yöneticisi.",
+        "hierarchy_level": 99,
+        "permissions": ["read:personnel", "read:company", "read:department"],
+    },
+    {
+        "name": "İK Uzmanı",
+        "description": "Temel İK ve iş ilanı operasyonları.",
+        "hierarchy_level": 99,
+        "permissions": ["read:personnel", "read:company"],
     },
 ]
 
@@ -498,6 +864,50 @@ DEMO_CHANNEL_USERS = [
     },
 ]
 
+DEMO_CHANNEL_ROLE_SEED = [
+    {
+        "name": "Kanal Hesap Sahibi",
+        "description": "Kanal workspace hesabının tam yetkili sahibi.",
+        "hierarchy_level": 0,
+        "permissions": [
+            "create:personnel", "read:personnel", "update:personnel",
+            "read:company", "read:department", "read:quote",
+        ],
+    },
+    {
+        "name": "Kanal Ekip Lideri",
+        "description": "Kanal ekibini yönetir ve operasyonları koordine eder.",
+        "hierarchy_level": 1,
+        "permissions": [
+            "read:personnel", "read:company", "read:department", "read:quote",
+        ],
+    },
+    {
+        "name": "Kanal Temsilcisi",
+        "description": "Müşteri ilişkileri ve kanal temsili.",
+        "hierarchy_level": 2,
+        "permissions": ["read:company", "read:department", "read:quote"],
+    },
+    {
+        "name": "Kanal Finans",
+        "description": "Kanal finansal görünürlük ve raporlama.",
+        "hierarchy_level": 99,
+        "permissions": ["read:company", "read:department", "read:quote"],
+    },
+    {
+        "name": "Özel Kanal Rolü",
+        "description": "Kanala özel esnek rol şablonu.",
+        "hierarchy_level": 99,
+        "permissions": ["read:company", "read:quote"],
+    },
+    {
+        "name": "İK Yöneticisi",
+        "description": "Kanal organizasyonu İK yöneticisi.",
+        "hierarchy_level": 99,
+        "permissions": ["read:personnel", "read:company", "read:department"],
+    },
+]
+
 DEMO_SUPPLIERS = [
     {
         "company_name": "BA Demo Tedarikçi A",
@@ -549,6 +959,7 @@ def _new_results() -> dict[str, dict[str, int]]:
             "platform_users": 0,
             "partner_users": 0,
             "channel_users": 0,
+            "supplier_tenant_users": 0,
             "supplier_users": 0,
             "tenants": 0,
             "tenant_settings": 0,
@@ -562,6 +973,7 @@ def _new_results() -> dict[str, dict[str, int]]:
             "platform_users": 0,
             "partner_users": 0,
             "channel_users": 0,
+            "supplier_tenant_users": 0,
             "supplier_users": 0,
             "tenants": 0,
             "tenant_settings": 0,
@@ -614,6 +1026,62 @@ def _ensure_tenant(db: Session, results: dict[str, dict[str, int]]) -> Tenant:
         tenant.onboarding_status = "bootstrap_completed"
         tenant.onboarding_payment_status = "verified"
         tenant.onboarding_approval_status = "approved"
+        tenant.is_active = True
+    _upsert_counter(results, "tenants", action)
+    return tenant
+
+
+def _ensure_supplier_tenant(db: Session, results: dict[str, dict[str, int]]) -> Tenant:
+    tenant = db.query(Tenant).filter(Tenant.slug == DEMO_SUPPLIER_TENANT["slug"]).first()
+    action = "updated" if tenant else "created"
+    if tenant is None:
+        tenant = Tenant(
+            slug=DEMO_SUPPLIER_TENANT["slug"],
+            legal_name=DEMO_SUPPLIER_TENANT["legal_name"],
+            brand_name=DEMO_SUPPLIER_TENANT["brand_name"],
+            category=DEMO_SUPPLIER_TENANT["category"],
+            subscription_plan_code=DEMO_SUPPLIER_TENANT["subscription_plan_code"],
+            status="active",
+            onboarding_status="bootstrap_completed",
+            onboarding_payment_status="not_required",
+            onboarding_approval_status="not_required",
+            is_active=True,
+        )
+        db.add(tenant)
+        db.flush()
+    else:
+        tenant.legal_name = DEMO_SUPPLIER_TENANT["legal_name"]
+        tenant.brand_name = DEMO_SUPPLIER_TENANT["brand_name"]
+        tenant.category = DEMO_SUPPLIER_TENANT["category"]
+        tenant.status = "active"
+        tenant.is_active = True
+    _upsert_counter(results, "tenants", action)
+    return tenant
+
+
+def _ensure_career_tenant(db: Session, results: dict[str, dict[str, int]]) -> Tenant:
+    tenant = db.query(Tenant).filter(Tenant.slug == DEMO_CAREER_TENANT["slug"]).first()
+    action = "updated" if tenant else "created"
+    if tenant is None:
+        tenant = Tenant(
+            slug=DEMO_CAREER_TENANT["slug"],
+            legal_name=DEMO_CAREER_TENANT["legal_name"],
+            brand_name=DEMO_CAREER_TENANT["brand_name"],
+            category=DEMO_CAREER_TENANT["category"],
+            subscription_plan_code="starter",
+            status="active",
+            onboarding_status="bootstrap_completed",
+            onboarding_payment_status="not_required",
+            onboarding_approval_status="not_required",
+            is_active=True,
+        )
+        db.add(tenant)
+        db.flush()
+    else:
+        tenant.legal_name = DEMO_CAREER_TENANT["legal_name"]
+        tenant.brand_name = DEMO_CAREER_TENANT["brand_name"]
+        tenant.category = DEMO_CAREER_TENANT["category"]
+        tenant.status = "active"
         tenant.is_active = True
     _upsert_counter(results, "tenants", action)
     return tenant
@@ -738,6 +1206,41 @@ def _ensure_department(
         department.is_active = True
     _upsert_counter(results, "departments", action)
     return department
+
+
+def _ensure_platform_role(
+    db: Session,
+    item: dict[str, object],
+    owner_user_id: int | None,
+    results: dict[str, dict[str, int]],
+) -> Role:
+    role = (
+        db.query(Role)
+        .filter(Role.tenant_id.is_(None), Role.name == str(item["name"]))
+        .first()
+    )
+    action = "updated" if role else "created"
+    permissions = _resolve_permissions(db, item.get("permissions", []))
+    if role is None:
+        role = Role(
+            tenant_id=None,
+            name=str(item["name"]),
+            description=str(item["description"]),
+            hierarchy_level=int(item["hierarchy_level"]),
+            created_by_id=owner_user_id,
+            is_active=True,
+        )
+        role.permissions = permissions
+        db.add(role)
+        db.flush()
+    else:
+        role.description = str(item["description"])
+        role.hierarchy_level = int(item["hierarchy_level"])
+        role.created_by_id = owner_user_id
+        role.is_active = True
+        role.permissions = permissions
+    _upsert_counter(results, "roles", action)
+    return role
 
 
 def _ensure_role(
@@ -940,6 +1443,10 @@ def seed_scope_demo_data(db: Session) -> dict[str, object]:
         for item in DEMO_PLATFORM_USERS
     }
 
+    superadmin = platform_users["platform.super_admin"]
+    for item in DEMO_PLATFORM_ROLE_SEED:
+        _ensure_platform_role(db, item, superadmin.id, results)
+
     companies = {
         item["name"]: _ensure_company(
             db, tenant, item, platform_users["platform.super_admin"].id, results
@@ -997,6 +1504,48 @@ def seed_scope_demo_data(db: Session) -> dict[str, object]:
         for supplier_user_item in supplier_item["users"]:
             _ensure_supplier_user(db, supplier, supplier_user_item, results)
 
+    # Supplier tenant (platform tenant classified as supplier scope)
+    supplier_tenant = _ensure_supplier_tenant(db, results)
+    _ensure_tenant_settings(db, supplier_tenant, results)
+
+    supplier_tenant_companies = {
+        item["name"]: _ensure_company(
+            db, supplier_tenant, item, platform_users["platform.super_admin"].id, results
+        )
+        for item in DEMO_SUPPLIER_COMPANIES
+    }
+    supplier_tenant_departments = {
+        item["name"]: _ensure_department(
+            db, supplier_tenant, item, platform_users["platform.super_admin"].id, results
+        )
+        for item in DEMO_SUPPLIER_DEPARTMENTS
+    }
+    supplier_tenant_roles = {
+        str(item["name"]): _ensure_role(
+            db, supplier_tenant, item, platform_users["platform.super_admin"].id, results
+        )
+        for item in DEMO_SUPPLIER_ROLE_SEED
+    }
+
+    supplier_tenant_owner = None
+    for item in DEMO_SUPPLIER_USERS:
+        user = _ensure_user(
+            db, item, tenant_id=supplier_tenant.id, results=results, bucket="supplier_tenant_users"
+        )
+        _ensure_assignment(
+            db,
+            user,
+            supplier_tenant_companies[str(item["company"])],
+            supplier_tenant_departments[str(item["department"])],
+            supplier_tenant_roles[str(item["assignment_role"])],
+            results,
+        )
+        if str(item.get("role_profile_code", "")) == "supplier_tenant.admin":
+            supplier_tenant_owner = user
+
+    if supplier_tenant_owner is not None:
+        supplier_tenant.owner_user_id = supplier_tenant_owner.id
+
     db.flush()
     db.commit()
 
@@ -1016,8 +1565,180 @@ def seed_scope_demo_data(db: Session) -> dict[str, object]:
                 + results["updated"]["partner_users"]
                 + results["created"]["channel_users"]
                 + results["updated"]["channel_users"]
+                + results["created"]["supplier_tenant_users"]
+                + results["updated"]["supplier_tenant_users"]
                 + results["created"]["supplier_users"]
                 + results["updated"]["supplier_users"]
             ),
+        },
+    }
+
+
+def seed_role_catalogs(db: Session) -> dict[str, object]:
+    """Platform ve tedarikci rol kataloglarini bagımsız olarak oluşturur (idempotent)."""
+    results = _new_results()
+
+    # Superadmin user'ı bul (owner_id olarak kullan)
+    superadmin = db.query(User).filter(User.email == f"superadmin@{DEMO_EMAIL_DOMAIN}").first()
+    owner_id = superadmin.id if superadmin else None
+
+    # Platform rol katalogu
+    for item in DEMO_PLATFORM_ROLE_SEED:
+        _ensure_platform_role(db, item, owner_id, results)
+
+    # Tedarikçi tenant katalogu
+    supplier_tenant = _ensure_supplier_tenant(db, results)
+    _ensure_tenant_settings(db, supplier_tenant, results)
+
+    supplier_tenant_companies = {
+        item["name"]: _ensure_company(db, supplier_tenant, item, owner_id, results)
+        for item in DEMO_SUPPLIER_COMPANIES
+    }
+    supplier_tenant_departments = {
+        item["name"]: _ensure_department(db, supplier_tenant, item, owner_id, results)
+        for item in DEMO_SUPPLIER_DEPARTMENTS
+    }
+    supplier_tenant_roles = {
+        str(item["name"]): _ensure_role(db, supplier_tenant, item, owner_id, results)
+        for item in DEMO_SUPPLIER_ROLE_SEED
+    }
+
+    for item in DEMO_SUPPLIER_USERS:
+        user = _ensure_user(
+            db, item, tenant_id=supplier_tenant.id, results=results, bucket="supplier_tenant_users"
+        )
+        _ensure_assignment(
+            db,
+            user,
+            supplier_tenant_companies[str(item["company"])],
+            supplier_tenant_departments[str(item["department"])],
+            supplier_tenant_roles[str(item["assignment_role"])],
+            results,
+        )
+
+    # Kanal rol katalogu
+    channel_tenant = db.query(Tenant).filter(Tenant.slug == DEMO_CHANNEL_TENANT["slug"]).first()
+    if channel_tenant:
+        for item in DEMO_CHANNEL_ROLE_SEED:
+            _ensure_role(db, channel_tenant, item, owner_id, results)
+
+    # Partner rol katalogu
+    partner_tenant = db.query(Tenant).filter(Tenant.slug == DEMO_PARTNER_TENANT["slug"]).first()
+    if partner_tenant:
+        for item in DEMO_PARTNER_ROLE_SEED:
+            _ensure_role(db, partner_tenant, item, owner_id, results)
+
+    # Kariyer rol katalogu
+    career_tenant = _ensure_career_tenant(db, results)
+    for item in DEMO_CAREER_ROLE_SEED:
+        _ensure_role(db, career_tenant, item, owner_id, results)
+
+    db.flush()
+    db.commit()
+
+    return {
+        "message": "Rol kataloglari olusturuldu",
+        "created": results["created"],
+        "updated": results["updated"],
+        "total": {
+            "created": sum(results["created"].values()),
+            "updated": sum(results["updated"].values()),
+        },
+    }
+
+
+def reset_role_catalogs(db: Session) -> dict[str, object]:
+    """Eski demo rollerini siler ve v3 katalogu yeniden yukler (destructive, idempotent)."""
+    results = _new_results()
+    results["deleted"] = {"roles": 0, "assignments": 0}
+
+    # Demo tenant'ları bul
+    partner_tenant = db.query(Tenant).filter(Tenant.slug == DEMO_PARTNER_TENANT["slug"]).first()
+    supplier_tenant = db.query(Tenant).filter(Tenant.slug == DEMO_SUPPLIER_TENANT["slug"]).first()
+    channel_tenant = db.query(Tenant).filter(Tenant.slug == DEMO_CHANNEL_TENANT["slug"]).first()
+    career_tenant = db.query(Tenant).filter(Tenant.slug == DEMO_CAREER_TENANT["slug"]).first()
+
+    demo_tenant_ids = [t.id for t in [partner_tenant, supplier_tenant, channel_tenant, career_tenant] if t]
+
+    # Platform rolleri (SUPER_ADMIN hariç) + demo tenant rolleri topla
+    old_platform_roles = (
+        db.query(Role)
+        .filter(Role.tenant_id.is_(None), Role.name != "SUPER_ADMIN")
+        .all()
+    )
+    old_tenant_roles = (
+        db.query(Role).filter(Role.tenant_id.in_(demo_tenant_ids)).all()
+        if demo_tenant_ids else []
+    )
+    all_old = old_platform_roles + old_tenant_roles
+    old_ids = [r.id for r in all_old]
+
+    if old_ids:
+        deleted_a = db.query(CompanyRole).filter(CompanyRole.role_id.in_(old_ids)).delete(
+            synchronize_session=False
+        )
+        results["deleted"]["assignments"] = deleted_a  # type: ignore[index]
+    for role in all_old:
+        db.delete(role)
+    results["deleted"]["roles"] = len(all_old)  # type: ignore[index]
+    db.flush()
+
+    # v3 katalogu yukle
+    superadmin = db.query(User).filter(User.email == f"superadmin@{DEMO_EMAIL_DOMAIN}").first()
+    owner_id = superadmin.id if superadmin else None
+
+    for item in DEMO_PLATFORM_ROLE_SEED:
+        _ensure_platform_role(db, item, owner_id, results)
+
+    if partner_tenant:
+        for item in DEMO_PARTNER_ROLE_SEED:
+            _ensure_role(db, partner_tenant, item, owner_id, results)
+
+    supplier_tenant2 = _ensure_supplier_tenant(db, results)
+    _ensure_tenant_settings(db, supplier_tenant2, results)
+    s_companies = {
+        item["name"]: _ensure_company(db, supplier_tenant2, item, owner_id, results)
+        for item in DEMO_SUPPLIER_COMPANIES
+    }
+    s_departments = {
+        item["name"]: _ensure_department(db, supplier_tenant2, item, owner_id, results)
+        for item in DEMO_SUPPLIER_DEPARTMENTS
+    }
+    s_roles = {
+        str(item["name"]): _ensure_role(db, supplier_tenant2, item, owner_id, results)
+        for item in DEMO_SUPPLIER_ROLE_SEED
+    }
+    for item in DEMO_SUPPLIER_USERS:
+        user = _ensure_user(
+            db, item, tenant_id=supplier_tenant2.id, results=results, bucket="supplier_tenant_users"
+        )
+        _ensure_assignment(
+            db, user,
+            s_companies[str(item["company"])],
+            s_departments[str(item["department"])],
+            s_roles[str(item["assignment_role"])],
+            results,
+        )
+
+    if channel_tenant:
+        for item in DEMO_CHANNEL_ROLE_SEED:
+            _ensure_role(db, channel_tenant, item, owner_id, results)
+
+    # Kariyer tenant + 4 rol
+    career_tenant2 = _ensure_career_tenant(db, results)
+    for item in DEMO_CAREER_ROLE_SEED:
+        _ensure_role(db, career_tenant2, item, owner_id, results)
+
+    db.flush()
+    db.commit()
+
+    return {
+        "message": "Rol katalogu v3 olarak sifirlanip yuklendi",
+        "deleted": results["deleted"],
+        "created": results["created"],
+        "updated": results["updated"],
+        "total": {
+            "created": sum(results["created"].values()),
+            "updated": sum(results["updated"].values()),
         },
     }

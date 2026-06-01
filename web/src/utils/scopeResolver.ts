@@ -1,6 +1,6 @@
 import type { AdminSupplierListItem, Company, Tenant, TenantUser } from "../services/admin.service";
 
-export type EntityScope = "portal" | "partner" | "supplier" | "channel";
+export type EntityScope = "portal" | "partner" | "supplier" | "channel" | "career";
 
 type TenantScopeMap = Map<number, EntityScope>;
 
@@ -16,6 +16,7 @@ const SUPPLIER_TOKENS = ["supplier", "tedarik", "vendor", "satici"];
 const CHANNEL_TOKENS = ["channel", "kanal", "is ortagi", "partner program", "workspace"];
 const PARTNER_TOKENS = ["partner", "stratejik", "strategic"];
 const PLATFORM_TOKENS = ["platform", "poseydon", "buyer asistans", "buyera asistans"];
+const CAREER_TOKENS = ["kariyer", "career"];
 
 export function normalizeScopeText(value: string): string {
   const repaired = String(value || "")
@@ -57,12 +58,15 @@ function getTenantTokenBlob(tenant: Tenant): string {
 
 function inferTenantScope(tenant: Tenant): EntityScope {
   const category = normalizeScopeText(tenant.category || "");
+  // career check must be first — "kariyer" must not fall through to "partner"
+  if (containsAnyToken(category, CAREER_TOKENS)) return "career";
   if (containsAnyToken(category, SUPPLIER_TOKENS)) return "supplier";
   if (containsAnyToken(category, CHANNEL_TOKENS)) return "channel";
   if (containsAnyToken(category, PLATFORM_TOKENS)) return "portal";
   if (containsAnyToken(category, PARTNER_TOKENS)) return "partner";
 
   const blob = getTenantTokenBlob(tenant);
+  if (containsAnyToken(blob, CAREER_TOKENS)) return "career";
   if (containsAnyToken(blob, SUPPLIER_TOKENS)) return "supplier";
   if (containsAnyToken(blob, CHANNEL_TOKENS)) return "channel";
   // PARTNER before PLATFORM: a slug like "demo-stratejik-ortak" must win over
@@ -76,13 +80,15 @@ export function tenantMatchesScope(scope: EntityScope, tenant: Tenant): boolean 
   if (scope === "portal") return false;
 
   const blob = getTenantTokenBlob(tenant);
+  const hasCareerToken = containsAnyToken(blob, CAREER_TOKENS);
   const hasSupplierToken = containsAnyToken(blob, SUPPLIER_TOKENS);
   const hasChannelToken = containsAnyToken(blob, CHANNEL_TOKENS);
   const hasPartnerToken = containsAnyToken(blob, PARTNER_TOKENS);
 
-  if (scope === "supplier") return hasSupplierToken;
-  if (scope === "channel") return hasChannelToken && !hasSupplierToken;
-  return hasPartnerToken && !hasSupplierToken && !hasChannelToken;
+  if (scope === "career") return hasCareerToken;
+  if (scope === "supplier") return hasSupplierToken && !hasCareerToken;
+  if (scope === "channel") return hasChannelToken && !hasSupplierToken && !hasCareerToken;
+  return hasPartnerToken && !hasSupplierToken && !hasChannelToken && !hasCareerToken;
 }
 
 export function buildTenantScopeMap(

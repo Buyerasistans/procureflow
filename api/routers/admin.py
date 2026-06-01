@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from sqlalchemy import and_, case, delete, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from typing import Any, Literal
 
 from api.core.deps import get_db, get_current_user
@@ -142,7 +142,7 @@ from api.services.public_pricing_service import (
     parse_public_pricing_config,
     serialize_public_pricing_config,
 )
-from api.services.scope_demo_bootstrap import seed_scope_demo_data
+from api.services.scope_demo_bootstrap import reset_role_catalogs, seed_scope_demo_data
 from api.services.system_settings_runtime import get_or_create_system_settings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -6411,7 +6411,11 @@ async def list_users(
         )
 
     query = query.order_by(User.full_name.asc(), User.id.asc())
-    users = query.all()
+    users = query.options(
+        selectinload(User.company_roles).selectinload(CompanyRole.company),
+        selectinload(User.company_roles).selectinload(CompanyRole.role),
+        selectinload(User.company_roles).selectinload(CompanyRole.department),
+    ).all()
     for user in users:
         resolve_effective_department_id(db, user)
     db.commit()
@@ -6976,6 +6980,18 @@ async def load_demo_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Demo veri yükleme hatası: {str(e)}",
         )
+
+
+@router.post("/reset-role-catalogs")
+async def reset_role_catalogs_endpoint(
+    db: Session = Depends(get_db), _: User = Depends(require_tenant_governance_manager)
+):
+    """Rol katalogunu v3 ile sıfırla (destructive — mevcut demo rollerini siler ve yeniden yükler)"""
+    try:
+        return reset_role_catalogs(db)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Katalog sıfırlama hatası: {str(e)}")
 
 
 # ==================== COMPANY ASSIGNMENT ENDPOINTS ====================

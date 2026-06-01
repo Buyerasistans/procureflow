@@ -13,9 +13,13 @@ import {
   getPermissions,
   getRoles,
   getTenantUsers,
+  removeUserCompanyAssignment,
   rollbackCatalogMerge,
+  resetRoleCatalogs,
   updateDepartment,
   updateRole,
+  updateUserCompanyAssignment,
+  type AdminSupplierListItem,
   type CatalogMergeApplyResult,
   type CatalogMergePreview,
   type Company,
@@ -27,7 +31,7 @@ import {
 } from "../../services/admin.service";
 import { buildTenantScopeMap, resolveCompanyScope, type EntityScope } from "../../utils/scopeResolver";
 
-type GovernanceScope = "platform" | "partner" | "supplier" | "channel";
+type GovernanceScope = "platform" | "partner" | "supplier" | "channel" | "career";
 type MergeEntity = "role" | "department";
 type RoleEditorState = {
   name: string;
@@ -40,6 +44,7 @@ interface RoleDepartmentGovernanceTabProps {
   canManage: boolean;
   isSuperAdmin: boolean;
   currentUser?: AuthUser | null;
+  suppliers?: AdminSupplierListItem[];
 }
 
 const SCOPE_TITLES: Record<GovernanceScope, string> = {
@@ -47,6 +52,7 @@ const SCOPE_TITLES: Record<GovernanceScope, string> = {
   partner: "Stratejik Partner Rolleri",
   supplier: "Tedarikçi Rolleri",
   channel: "İş Ortağı Rolleri",
+  career: "Kariyer Rolleri",
 };
 
 function normalizeText(value: string): string {
@@ -83,7 +89,8 @@ function governanceToEntityScope(scope: GovernanceScope): EntityScope {
   if (scope === "platform") return "portal";
   if (scope === "partner") return "partner";
   if (scope === "supplier") return "supplier";
-  return "channel";
+  if (scope === "channel") return "channel";
+  return "career";
 }
 
 function toRoleKey(value: string | null | undefined): string {
@@ -153,15 +160,16 @@ export function RoleDepartmentGovernanceTab({
   canManage,
   isSuperAdmin,
   currentUser,
+  suppliers = [],
 }: RoleDepartmentGovernanceTabProps) {
   const userScope = getUserScopeType(currentUser);
   const canViewAllScopes = isSuperAdminUser(currentUser) || isPlatformStaffUser(currentUser) || userScope === "platform";
   const visibleScopes = useMemo<GovernanceScope[]>(() => {
     if (canViewAllScopes) {
-      return ["platform", "partner", "supplier", "channel"];
+      return ["platform", "partner", "supplier", "channel", "career"];
     }
 
-    const allowedScopes: GovernanceScope[] = ["platform", "partner", "supplier", "channel"];
+    const allowedScopes: GovernanceScope[] = ["platform", "partner", "supplier", "channel", "career"];
     return allowedScopes.includes(userScope as GovernanceScope)
       ? [userScope as GovernanceScope]
       : ["platform"];
@@ -185,9 +193,12 @@ export function RoleDepartmentGovernanceTab({
   const [roleEditor, setRoleEditor] = useState<RoleEditorState>({ name: "", description: "", parent_id: undefined });
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([]);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+  const [editingPersonKey, setEditingPersonKey] = useState<string | null>(null);
+  const [editingNewRoleId, setEditingNewRoleId] = useState<number | null>(null);
   const [loading, setloading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [seedingCatalog, setSeedingCatalog] = useState(false);
 
   const currentUserEmail = normalizeText(currentUser?.email || "");
 
@@ -214,8 +225,8 @@ export function RoleDepartmentGovernanceTab({
   }, [currentTenantFromIdentity, currentTenantFromUsers]);
 
   const tenantScopeMap = useMemo(
-    () => buildTenantScopeMap(tenants, tenantUsers, []),
-    [tenants, tenantUsers],
+    () => buildTenantScopeMap(tenants, tenantUsers, [], companies),
+    [tenants, tenantUsers, companies],
   );
 
   const tenantOptionsByScope = useMemo(() => {
@@ -223,6 +234,7 @@ export function RoleDepartmentGovernanceTab({
       partner: tenants.filter((item) => tenantScopeMap.get(item.id) === "partner"),
       supplier: tenants.filter((item) => tenantScopeMap.get(item.id) === "supplier"),
       channel: tenants.filter((item) => tenantScopeMap.get(item.id) === "channel"),
+      career: tenants.filter((item) => tenantScopeMap.get(item.id) === "career"),
     };
   }, [tenants, tenantScopeMap]);
 
@@ -244,6 +256,9 @@ export function RoleDepartmentGovernanceTab({
       if (activeScope === "channel" && tenantOptionsByScope.channel.length === 1) {
         return tenantOptionsByScope.channel;
       }
+      if (activeScope === "career" && tenantOptionsByScope.career.length === 1) {
+        return tenantOptionsByScope.career;
+      }
       return [];
     }
     if (activeScope === "partner") {
@@ -254,6 +269,9 @@ export function RoleDepartmentGovernanceTab({
     }
     if (activeScope === "channel") {
       return tenantOptionsByScope.channel;
+    }
+    if (activeScope === "career") {
+      return tenantOptionsByScope.career;
     }
     return [] as Tenant[];
   }, [activeScope, canViewAllScopes, currentTenant, tenantOptionsByScope, tenantScopeMap]);
@@ -282,11 +300,6 @@ export function RoleDepartmentGovernanceTab({
     if (typeof fallback !== "number") return;
     setTenantSelection((prev) => ({ ...prev, [activeScope]: fallback }));
   }, [activeScope, tenantSelection, activeTenantOptions, canViewAllScopes, currentTenant]);
-
-  const activeTenant = useMemo(() => {
-    if (activeScope === "platform") return null;
-    return activeTenantOptions.find((tenant) => tenant.id === activeTenantId) || activeTenantOptions[0] || null;
-  }, [activeScope, activeTenantId, activeTenantOptions]);
 
   const activeCompanyOptions = useMemo(() => {
     const sortedAll = [...companies].sort((left, right) => left.name.localeCompare(right.name, "tr"));
@@ -337,21 +350,42 @@ export function RoleDepartmentGovernanceTab({
   }, [activeScope, activeCompanyId, activeCompanyOptions, tenantSelection]);
 
   const scopeCompanies = useMemo(() => {
-    if (activeCompanyOptions.length > 0) return activeCompanyOptions;
     if (activeScope === "platform") return activeCompanyOptions;
-    if (activeTenantOptions.length === 0) return activeCompanyOptions;
 
-    return activeTenantOptions.map((tenant) => ({
-      id: -tenant.id,
-      tenant_id: tenant.id,
-      name: tenant.legal_name || tenant.brand_name || tenant.slug,
-      short_name: tenant.brand_name || null,
-      color: "#0f172a",
-      is_active: true,
-      created_at: tenant.created_at,
-      updated_at: tenant.updated_at,
-    } as Company));
-  }, [activeCompanyOptions, activeScope, activeTenantOptions]);
+    const base: Company[] =
+      activeCompanyOptions.length > 0
+        ? activeCompanyOptions
+        : activeTenantOptions.map((tenant) => ({
+            id: -tenant.id,
+            tenant_id: tenant.id,
+            name: tenant.legal_name || tenant.brand_name || tenant.slug,
+            short_name: tenant.brand_name || null,
+            color: "#0f172a",
+            is_active: true,
+            created_at: tenant.created_at,
+            updated_at: tenant.updated_at,
+          } as Company));
+
+    if (activeScope === "supplier" && suppliers.length > 0) {
+      const existingNames = new Set(base.map((c) => normalizeText(c.name)));
+      const demoTenantId = activeTenantOptions[0]?.id ?? null;
+      const externals = suppliers
+        .filter((s) => !existingNames.has(normalizeText(s.company_name)))
+        .map((s) => ({
+          id: -(s.id + 50000),
+          tenant_id: demoTenantId,
+          name: s.company_name,
+          short_name: s.company_name,
+          color: "#64748b",
+          is_active: s.is_active ?? true,
+          created_at: "",
+          updated_at: "",
+        } as Company));
+      return [...base, ...externals];
+    }
+
+    return base;
+  }, [activeCompanyOptions, activeScope, activeTenantOptions, suppliers]);
 
   const roleTree = useMemo(() => buildRoleTree(roles), [roles]);
 
@@ -378,15 +412,18 @@ export function RoleDepartmentGovernanceTab({
     return scopeCompanies.find((company) => company.id === activeCompanyId) || null;
   }, [activeCompanyId, scopeCompanies]);
 
+  type SummaryPerson = { userId: number; fullName: string; email: string; departments: string[]; assignmentIds: number[] };
+  type SummaryRow = { role: Role; people: SummaryPerson[] };
+
   const companySummaryRows = useMemo(() => {
-    if (!selectedCompany) return [] as Array<{ role: Role; people: Array<{ userId: number; fullName: string; email: string; departments: string[] }> }>;
+    if (!selectedCompany) return [] as SummaryRow[];
 
     const roleMap = new Map(roles.map((role) => [role.id, role] as const));
     const grouped = new Map<number, {
       roleName: string;
       hierarchyLevel: number;
       parentId: number | null;
-      people: Map<number, { userId: number; fullName: string; email: string; departments: Set<string> }>;
+      people: Map<number, { userId: number; fullName: string; email: string; departments: Set<string>; assignmentIds: number[] }>;
     }>();
 
     for (const user of tenantUsers) {
@@ -412,9 +449,11 @@ export function RoleDepartmentGovernanceTab({
           fullName: user.full_name || user.email,
           email: user.email,
           departments: new Set<string>(),
+          assignmentIds: [] as number[],
         };
         const departmentName = assignment.department?.name || (assignment.department_id ? `Departman #${assignment.department_id}` : "Departman bağımsız");
         existing.departments.add(departmentName);
+        existing.assignmentIds.push(assignment.id);
         roleUsers.people.set(user.id, existing);
       }
     }
@@ -425,7 +464,7 @@ export function RoleDepartmentGovernanceTab({
         roleName: string;
         hierarchyLevel: number;
         parentId: number | null;
-        people: Map<number, { userId: number; fullName: string; email: string; departments: Set<string> }>;
+        people: Map<number, { userId: number; fullName: string; email: string; departments: Set<string>; assignmentIds: number[] }>;
       }>();
       let nextSyntheticId = -1;
 
@@ -451,6 +490,7 @@ export function RoleDepartmentGovernanceTab({
           fullName: user.full_name || user.email,
           email: user.email,
           departments: new Set<string>(),
+          assignmentIds: [] as number[],
         };
         const departmentName = user.department_id
           ? (departments.find((department) => department.id === user.department_id)?.name || `Departman #${user.department_id}`)
@@ -489,6 +529,7 @@ export function RoleDepartmentGovernanceTab({
             fullName: person.fullName,
             email: person.email,
             departments: Array.from(person.departments).sort((left, right) => left.localeCompare(right, "tr")),
+            assignmentIds: person.assignmentIds,
           })),
         };
       })
@@ -524,8 +565,22 @@ export function RoleDepartmentGovernanceTab({
 
       setCompanies(companyRows);
       setTenantUsers(userRows);
-      setRoles(activeScope === "platform" ? roleRows.filter((row) => row.tenant_id == null) : roleRows);
-      setDepartments(activeScope === "platform" ? departmentRows.filter((row) => row.tenant_id == null) : departmentRows);
+
+      if (targetTenantId != null) {
+        // Specific tenant selected — API already filtered, use as-is
+        setRoles(roleRows);
+        setDepartments(departmentRows);
+      } else if (activeScope === "platform") {
+        // Platform scope, no company selected — show only platform-level roles
+        setRoles(roleRows.filter((row) => row.tenant_id == null));
+        setDepartments(departmentRows.filter((row) => row.tenant_id == null));
+      } else {
+        // No specific tenant selected; filter client-side by scope to avoid cross-scope contamination
+        const scopeKey = activeScope as keyof typeof tenantOptionsByScope;
+        const scopeTenantIds = new Set((tenantOptionsByScope[scopeKey] ?? []).map((t) => t.id));
+        setRoles(roleRows.filter((row) => row.tenant_id != null && scopeTenantIds.has(row.tenant_id)));
+        setDepartments(departmentRows.filter((row) => row.tenant_id != null && scopeTenantIds.has(row.tenant_id)));
+      }
       setRoleMergePreview(roleDup);
       setDepartmentMergePreview(departmentDup);
 
@@ -562,6 +617,48 @@ export function RoleDepartmentGovernanceTab({
   useEffect(() => {
     void loadScopeData();
   }, [activeScope, activeTenantId, isSuperAdmin]);
+
+  async function handleSeedCatalogs() {
+    setSeedingCatalog(true);
+    setError(null);
+    try {
+      await resetRoleCatalogs();
+      await loadScopeData();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setSeedingCatalog(false);
+    }
+  }
+
+  async function handleRemoveAssignment(userId: number, assignmentId: number) {
+    if (!window.confirm("Bu personelin rol atamasını silmek istediğinizden emin misiniz?")) return;
+    setBusy(`del-assign-${assignmentId}`);
+    setError(null);
+    try {
+      await removeUserCompanyAssignment(userId, assignmentId);
+      await loadScopeData();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleReassignPerson(userId: number, assignmentId: number, newRoleId: number) {
+    setBusy(`reassign-${assignmentId}`);
+    setError(null);
+    try {
+      await updateUserCompanyAssignment(userId, assignmentId, { role_id: newRoleId });
+      setEditingPersonKey(null);
+      setEditingNewRoleId(null);
+      await loadScopeData();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function handleCreateRole() {
     const name = roleEditor.name.trim();
@@ -863,35 +960,29 @@ export function RoleDepartmentGovernanceTab({
           </div>
         ) : null}
 
-        <div style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: 10, alignItems: "center" }}>
-          <div style={{ color: "#334155", fontWeight: 700 }}>Firma</div>
-          <select
-            value={activeCompanyId ?? ""}
-            onChange={(event) => {
-              const nextCompanyId = Number(event.target.value);
-              const selected = scopeCompanies.find((company) => company.id === nextCompanyId);
-              if (!selected) return;
-              setCompanySelection((prev) => ({ ...prev, [activeScope]: nextCompanyId }));
-              if (typeof selected.tenant_id === "number") {
-                setTenantSelection((prev) => ({ ...prev, [activeScope]: selected.tenant_id as number }));
-              }
-            }}
-            style={{ borderRadius: 10, border: "1px solid #cbd5e1", background: "#ffffff", padding: "10px 12px" }}
-          >
-            {scopeCompanies.length === 0 ? <option value="">Firma bulunamadı</option> : null}
-            {scopeCompanies.map((company) => (
-              <option key={company.id} value={company.id}>{company.name}</option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => setSummaryModalOpen(true)}
-            disabled={!selectedCompany}
-            style={{ borderRadius: 10, border: "1px solid #2563eb", background: "#eff6ff", color: "#1d4ed8", padding: "10px 12px", fontWeight: 800, cursor: "pointer", opacity: selectedCompany ? 1 : 0.6 }}
-          >
-            Firma Özeti
-          </button>
-        </div>
+        {canManage ? (
+          <div style={{ borderRadius: 12, background: "#f0fdfa", border: "1px solid #99f6e4", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+            <div style={{ color: "#0f766e", fontSize: 13 }}>
+              {activeScope === "supplier"
+                ? "v3 tedarikçi rol kataloğu: İK Yöneticisi, İK Uzmanı dahil 12 rol. (Eski roller silinir.)"
+                : activeScope === "platform"
+                  ? "v3 platform rol kataloğu: Platform İK Admin dahil 15 platform rolü. (Eski roller silinir.)"
+                  : activeScope === "partner"
+                    ? "v3 partner rol kataloğu: İK Yöneticisi, İK Uzmanı dahil 14 rol. (Eski roller silinir.)"
+                    : activeScope === "career"
+                      ? "v3 kariyer rol kataloğu: İşveren Admin, İşveren Recruiter, Aday, Satın Alma Yeteneği — 4 rol. (Eski roller silinir.)"
+                      : "v3 kanal rol kataloğu: İK Yöneticisi dahil 6 kanal rolü. (Eski roller silinir.)"}
+            </div>
+            <button
+              type="button"
+              onClick={() => { void handleSeedCatalogs(); }}
+              disabled={seedingCatalog}
+              style={{ borderRadius: 8, border: "none", background: "#0f766e", color: "#ffffff", padding: "8px 14px", fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", opacity: seedingCatalog ? 0.6 : 1 }}
+            >
+              {seedingCatalog ? "Yükleniyor…" : "Kataloğu Sıfırla ve Yükle"}
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {error ? (
@@ -908,7 +999,7 @@ export function RoleDepartmentGovernanceTab({
             <div style={{ color: "#64748b", fontSize: 12 }}>
               {activeScope === "platform"
                 ? "Platform rol yapısı"
-                : `${selectedCompany?.name || activeTenant?.legal_name || activeTenant?.brand_name || "Seçili firma"} için rol hiyerarşisi`}
+                : `${SCOPE_TITLES[activeScope]} kataloğu`}
             </div>
             <button
               type="button"
@@ -924,7 +1015,7 @@ export function RoleDepartmentGovernanceTab({
             {roleTree.map((row) => {
               const parentRole = roles.find((candidate) => candidate.id === row.parent_id);
               return (
-              <div key={row.id} style={{ borderRadius: 10, border: "1px solid #e2e8f0", padding: 10, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginLeft: `${Math.max(row.hierarchy_level - 1, 0) * 18}px`, background: row.childCount > 0 ? "#f8fafc" : "#ffffff" }}>
+              <div key={row.id} style={{ borderRadius: 10, border: "1px solid #e2e8f0", padding: 10, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginLeft: `${Math.min(Math.max(row.hierarchy_level - 1, 0) * 14, 56)}px`, background: row.childCount > 0 ? "#f8fafc" : "#ffffff" }}>
                 <div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     <div style={{ fontWeight: 800, color: "#0f172a" }}>{row.name}</div>
@@ -1000,42 +1091,151 @@ export function RoleDepartmentGovernanceTab({
         </div>
       </section>
 
+      <section style={{ borderRadius: 16, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 14, display: "grid", gap: 10 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ fontWeight: 700, color: "#334155", fontSize: 14 }}>Firma Atama Görünümü</div>
+          <div style={{ color: "#94a3b8", fontSize: 12 }}>— firma seçerek o firmadaki personel-rol dağılımını görüntüleyin</div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: 10, alignItems: "center" }}>
+          <div style={{ color: "#334155", fontWeight: 700 }}>Firma</div>
+          <select
+            aria-label="Firma seç"
+            value={activeCompanyId ?? ""}
+            onChange={(event) => {
+              const nextCompanyId = Number(event.target.value);
+              const selected = scopeCompanies.find((company) => company.id === nextCompanyId);
+              if (!selected) return;
+              setCompanySelection((prev) => ({ ...prev, [activeScope]: nextCompanyId }));
+              if (typeof selected.tenant_id === "number") {
+                setTenantSelection((prev) => ({ ...prev, [activeScope]: selected.tenant_id as number }));
+              }
+            }}
+            style={{ borderRadius: 10, border: "1px solid #cbd5e1", background: "#ffffff", padding: "10px 12px" }}
+          >
+            {scopeCompanies.length === 0 ? <option value="">— seçilebilir firma yok —</option> : null}
+            {scopeCompanies.map((company) => (
+              <option key={company.id} value={company.id}>{company.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setSummaryModalOpen(true)}
+            disabled={!selectedCompany}
+            style={{ borderRadius: 10, border: "1px solid #2563eb", background: "#eff6ff", color: "#1d4ed8", padding: "10px 12px", fontWeight: 800, cursor: "pointer", opacity: selectedCompany ? 1 : 0.6 }}
+          >
+            Firma Özeti
+          </button>
+        </div>
+      </section>
+
       {summaryModalOpen ? (
         <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.45)", display: "grid", placeItems: "center", padding: 20, zIndex: 990 }}>
-          <div style={{ width: "min(980px, 100%)", maxHeight: "90vh", overflowY: "auto", borderRadius: 20, background: "#ffffff", border: "1px solid #dbeafe", boxShadow: "0 24px 60px rgba(15, 23, 42, 0.18)", padding: 20, display: "grid", gap: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
-              <div>
+          <div style={{ width: "min(980px, 100%)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden", borderRadius: 20, background: "#ffffff", border: "1px solid #dbeafe", boxShadow: "0 24px 60px rgba(15, 23, 42, 0.18)", display: "grid", gridTemplateRows: "auto 1fr", gap: 0 }}>
+            {/* sticky header — always visible even when scrolled */}
+            <div style={{ position: "sticky", top: 0, zIndex: 2, background: "#ffffff", borderRadius: "20px 20px 0 0", borderBottom: "1px solid #e2e8f0", padding: "16px 20px", display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
+              <div style={{ minWidth: 0, overflow: "hidden", flex: 1 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "#2563eb" }}>Firma Özeti</div>
-                <div style={{ marginTop: 4, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>{selectedCompany?.name || "Seçili Firma"}</div>
-                <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>Rol, bu role bagli personeller ve departman dağılımı hiyerarşik olarak listelenir.</div>
+                <div style={{ marginTop: 4, fontSize: 22, fontWeight: 900, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedCompany?.name || "Seçili Firma"}</div>
+                <div style={{ marginTop: 4, color: "#475569", fontSize: 13 }}>Rol hiyerarşisi, bağlı personel ve departman dağılımı. Atamayı düzenle veya sil.</div>
               </div>
-              <button type="button" onClick={() => setSummaryModalOpen(false)} style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>
-                Kapat
+              <button
+                type="button"
+                onClick={() => { setSummaryModalOpen(false); setEditingPersonKey(null); setEditingNewRoleId(null); }}
+                style={{ flexShrink: 0, borderRadius: 999, border: "1px solid #cbd5e1", background: "#f1f5f9", color: "#334155", padding: "8px 16px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+              >
+                ✕ Kapat
               </button>
             </div>
 
-            <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ padding: "16px 20px 20px", display: "grid", gap: 10 }}>
               {companySummaryRows.map((row) => (
-                <div key={row.role.id} style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 12, marginLeft: `${Math.max(row.role.hierarchy_level - 1, 0) * 14}px`, display: "grid", gap: 8 }}>
+                <div key={row.role.id} style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 12, marginLeft: `${Math.min(Math.max(row.role.hierarchy_level - 1, 0) * 12, 48)}px`, display: "grid", gap: 8 }}>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     <div style={{ fontWeight: 900, color: "#0f172a" }}>{row.role.name}</div>
                     <span style={{ borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", padding: "3px 8px", fontSize: 11, fontWeight: 800 }}>L{row.role.hierarchy_level}</span>
                     <span style={{ color: "#64748b", fontSize: 12 }}>{row.people.length} personel</span>
                   </div>
                   <div style={{ display: "grid", gap: 6 }}>
-                    {row.people.map((person) => (
-                      <div key={`${row.role.id}-${person.userId}`} style={{ borderRadius: 10, border: "1px solid #dbeafe", background: "#ffffff", padding: 10, display: "grid", gap: 4 }}>
-                        <div style={{ fontWeight: 700, color: "#0f172a" }}>{person.fullName}</div>
-                        <div style={{ color: "#64748b", fontSize: 12 }}>{person.email}</div>
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                          {person.departments.map((departmentName) => (
-                            <span key={`${person.userId}-${departmentName}`} style={{ borderRadius: 999, background: "#ecfeff", color: "#0f766e", padding: "3px 8px", fontSize: 11, fontWeight: 700 }}>
-                              {departmentName}
-                            </span>
-                          ))}
+                    {row.people.map((person) => {
+                      const personKey = `${person.userId}-${row.role.id}`;
+                      const isEditing = editingPersonKey === personKey;
+                      const firstAssignmentId = person.assignmentIds[0];
+                      const hasRealAssignment = typeof firstAssignmentId === "number";
+                      return (
+                        <div key={personKey} style={{ borderRadius: 10, border: `1px solid ${isEditing ? "#93c5fd" : "#dbeafe"}`, background: isEditing ? "#eff6ff" : "#ffffff", padding: 10, display: "grid", gap: 6 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "start", flexWrap: "wrap" }}>
+                            <div style={{ minWidth: 0, overflow: "hidden", flex: 1 }}>
+                              <div style={{ fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{person.fullName}</div>
+                              <div style={{ color: "#64748b", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{person.email}</div>
+                            </div>
+                            {canManage && hasRealAssignment ? (
+                              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                {!isEditing ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      disabled={Boolean(busy)}
+                                      onClick={() => { setEditingPersonKey(personKey); setEditingNewRoleId(row.role.id); }}
+                                      style={{ borderRadius: 8, border: "1px solid #93c5fd", background: "#eff6ff", color: "#1d4ed8", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                                    >
+                                      Düzenle
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={Boolean(busy)}
+                                      onClick={() => { void handleRemoveAssignment(person.userId, firstAssignmentId); }}
+                                      style={{ borderRadius: 8, border: "1px solid #fca5a5", background: "#fef2f2", color: "#b91c1c", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                                    >
+                                      Sil
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      type="button"
+                                      disabled={Boolean(busy) || editingNewRoleId === row.role.id}
+                                      onClick={() => { if (editingNewRoleId !== null) void handleReassignPerson(person.userId, firstAssignmentId, editingNewRoleId); }}
+                                      style={{ borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer", opacity: editingNewRoleId === row.role.id ? 0.5 : 1 }}
+                                    >
+                                      Kaydet
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => { setEditingPersonKey(null); setEditingNewRoleId(null); }}
+                                      style={{ borderRadius: 8, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#334155", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                                    >
+                                      İptal
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
+                          {isEditing ? (
+                            <div style={{ display: "grid", gap: 6 }}>
+                              <div style={{ fontSize: 12, color: "#334155", fontWeight: 600 }}>Yeni rol seç:</div>
+                              <select
+                                aria-label="Yeni rol seç"
+                                value={editingNewRoleId ?? ""}
+                                onChange={(e) => setEditingNewRoleId(Number(e.target.value))}
+                                style={{ borderRadius: 8, border: "1px solid #93c5fd", padding: "8px 10px", fontSize: 13 }}
+                              >
+                                {roles.map((r) => (
+                                  <option key={r.id} value={r.id}>{r.name} (L{r.hierarchy_level})</option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {person.departments.map((departmentName) => (
+                              <span key={`${person.userId}-${departmentName}`} style={{ borderRadius: 999, background: "#ecfeff", color: "#0f766e", padding: "3px 8px", fontSize: 11, fontWeight: 700 }}>
+                                {departmentName}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}

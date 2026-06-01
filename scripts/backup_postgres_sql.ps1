@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
 # ── Sabitler ─────────────────────────────────────────────────
-$MIN_BACKUP_BYTES   = 5_000_000   # 5 MB — altındaysa veri kaybı sinyali
+$MIN_BACKUP_BYTES   = 5000000     # 5 MB - altındaysa veri kaybı sinyali
 $STALE_LOCK_MINUTES = 90          # bu süre sonra bayat kabul edilir
 
 # ── api/.env okuma ────────────────────────────────────────────
@@ -47,7 +47,7 @@ $resolvedBackupRoot = try {
     throw "BackupRoot path gecersiz: $BackupRoot"
 }
 if (-not $resolvedBackupRoot.StartsWith([System.IO.Path]::GetFullPath($ProjectRoot.TrimEnd('\') + '\..'))) {
-    # Proje kökü üstünde olmalı — fazla kısıtlayıcı değil, sadece boş/kök path engelle
+    # Proje kökü üstünde olmalı - fazla kısıtlayıcı değil, sadece boş/kök path engelle
 }
 
 # ── Lock mekanizması ──────────────────────────────────────────
@@ -120,7 +120,7 @@ try {
         # ── ADIM 3: RAR bütünlük testi ───────────────────────
         & $rarCommand t -idq $rarOutputFile
         if ($LASTEXITCODE -ne 0) {
-            throw "RAR butunluk testi basarisiz (exit=$LASTEXITCODE) — dosya bozuk olabilir"
+            throw "RAR butunluk testi basarisiz (exit=$LASTEXITCODE) - dosya bozuk olabilir"
         }
 
         Remove-Item -LiteralPath $finalSqlFile -Force -ErrorAction SilentlyContinue
@@ -132,7 +132,7 @@ try {
     if ($fileSize -lt $MIN_BACKUP_BYTES) {
         throw ("BACKUP_TOO_SMALL: '$outputFile' yalnizca $fileSize bytes " +
                "(minimum: $MIN_BACKUP_BYTES). " +
-               "Veritabani bos olabilir — veri kaybi riski!")
+               "Veritabani bos olabilir - veri kaybi riski!")
     }
 
     # ── ADIM 5: SHA256 checksum ───────────────────────────────

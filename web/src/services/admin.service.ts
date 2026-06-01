@@ -1629,6 +1629,16 @@ export async function getAdminSuppliers(params?: { filter_active?: boolean; sour
   return res.data;
 }
 
+export async function seedRoleCatalogs(): Promise<{ message: string; created: Record<string, number>; updated: Record<string, number> }> {
+  const res = await http.post('/admin/seed-role-catalogs', {});
+  return res.data;
+}
+
+export async function resetRoleCatalogs(): Promise<{ message: string; deleted: Record<string, number>; created: Record<string, number>; updated: Record<string, number> }> {
+  const res = await http.post('/admin/reset-role-catalogs', {});
+  return res.data;
+}
+
 export async function getAdminSupplierUsers(supplierId: number): Promise<AdminSupplierUserListItem[]> {
   const res = await http.get<AdminSupplierUserListItem[]>(`/suppliers/${supplierId}/users`);
   return res.data;
