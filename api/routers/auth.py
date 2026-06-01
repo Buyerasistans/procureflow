@@ -8,7 +8,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from api.core.config import REFRESH_TOKEN_EXPIRE_DAYS
-from api.core.authz import normalized_system_role
+from api.core.authz import normalized_system_role, is_super_admin
 from api.core.deps import get_current_user
 from api.core.security import (
     create_access_token,
@@ -478,5 +478,32 @@ def register_individual(data: RegisterIn, db: Session = Depends(get_db)):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
+        "user": auth_user,
+    }
+
+
+@router.post("/impersonate/{user_id}")
+def impersonate_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Super admin only — 30-minute token for viewing a user's panel in a new tab."""
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=403, detail="Sadece Super Admin bu işlemi yapabilir.")
+
+    target = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı veya pasif.")
+
+    auth_user = _build_auth_user_payload(db, target)
+    access_token = create_access_token(
+        sub=str(target.id),
+        role=target.role,
+        system_role=str(auth_user["system_role"]),
+    )
+
+    return {
+        "access_token": access_token,
         "user": auth_user,
     }

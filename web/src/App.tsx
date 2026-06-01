@@ -66,6 +66,8 @@ const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const PublicPricingAdminPage = lazy(() => import("./pages/PublicPricingAdminPage"));
 const ReferralLandingPage = lazy(() => import("./pages/ReferralLandingPage.tsx"));
 const KnowledgeLandingPage = lazy(() => import("./pages/KnowledgeLandingPage"));
+const ViewAsPage = lazy(() => import("./pages/ViewAsPage"));
+const RoleMatrixPage = lazy(() => import("./pages/RoleMatrixPage"));
 
 function LegacyPublicRedirect({ to }: { to: string }) {
   const location = useLocation();
@@ -134,6 +136,8 @@ export default function App() {
           <Route path="/supplier/:code" element={<ReferralLandingPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/activate-account" element={<InternalUserActivationPage />} />
+          <Route path="/view-as" element={<ViewAsPage />} />
+          <Route path="/rol-matrisi" element={<RoleMatrixPage />} />
           <Route path="/supplier/login" element={<SupplierLoginPage />} />
           <Route path="/supplier/register" element={<SupplierRegisterPage />} />
           <Route path="/employer/register" element={<EmployerRegisterPage />} />

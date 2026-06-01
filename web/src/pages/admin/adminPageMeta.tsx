@@ -17,6 +17,7 @@ export type AdminTabKey =
   | "campaigns"
   | "commission_admin"
   | "support_tickets"
+  | "kariyer_yonetimi"
   | "companies"
   | "roles"
   | "departments"

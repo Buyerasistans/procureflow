@@ -197,6 +197,52 @@
   }
 }
 
+/* ── Registration / Onboarding — Audience Role Tokens ── */
+/* Per-audience brand identity for the 5 registration flows.
+   These are SET dynamically via useLayoutEffect on :root.
+   Static fallbacks below are the strategic (default) theme. */
+:root {
+  /* Strategic Partner — forest + gold */
+  --role-strategic-bg:           #112a25;
+  --role-strategic-accent:       #D4AF37;
+  --role-strategic-accent-soft:  #20463e;
+  --role-strategic-text:         #f0fdf4;
+
+  /* Supplier — sky / navy */
+  --role-supplier-bg:            #1a3a5c;
+  --role-supplier-accent:        #0ea5e9;
+  --role-supplier-accent-dark:   #0284c7;
+  --role-supplier-text:          #f0f9ff;
+
+  /* Channel / Business Partner — espresso + amber */
+  --role-channel-bg:             #2f1a0d;
+  --role-channel-accent:         #f59e0b;
+  --role-channel-accent-dark:    #9a4d0f;
+  --role-channel-text:           #fff7ed;
+
+  /* Employer — indigo */
+  --role-employer-bg:            #312e81;
+  --role-employer-accent:        #6366f1;
+  --role-employer-accent-dark:   #4338ca;
+  --role-employer-text:          #eef2ff;
+
+  /* Candidate — emerald */
+  --role-candidate-bg:           #064e3b;
+  --role-candidate-accent:       #16a34a;
+  --role-candidate-accent-dark:  #15803d;
+  --role-candidate-text:         #f0fdf4;
+
+  /* Dynamic registration vars — set per-audience at runtime */
+  --reg-acc:         #112a25;
+  --reg-acc-soft:    #20463e;
+  --reg-acc-tint:    #D4AF37;
+  --reg-acc-ring:    rgba(17, 42, 37, 0.15);
+  --reg-acc-shadow:  rgba(17, 42, 37, 0.28);
+  --reg-rail-bg:     linear-gradient(135deg, #112a25 0%, #173630 52%, #20463e 100%);
+  --reg-page-bg:     radial-gradient(circle at top left, rgba(212,175,55,0.20), transparent 30%), linear-gradient(135deg, #f7f1e7 0%, #dfe8e2 48%, #eef4f7 100%);
+  --reg-page-tint:   #f7f5ef;
+}
+
 /* ── Reduced Motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

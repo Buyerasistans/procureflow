@@ -56,14 +56,31 @@ const rolePermissions: Record<Role, Permission[]> = {
   supplier_user: ["view:dashboard"],
 };
 const roleLabels: Record<string, string> = {
+  // ── Platform Sistem Rolleri ──────────────────────────────────────────────
   super_admin: "Süper Admin",
-  admin: "Admin",
-  tenant_owner: "Tenant Sahibi",
-  tenant_admin: "Tenant Admin",
-  tenant_member: "Tenant Üyesi",
   platform_support: "Platform Destek",
   platform_operator: "Platform Operasyon",
-  // Stratejik Partner v2
+  finance_officer: "Platform Finans",
+  moderator_compliance: "Platform Denetçi",
+  ik_admin: "Platform İK Admin",
+  // ── Platform İş Rolleri (business_role) ─────────────────────────────────
+  operasyon_admin: "Platform Operasyon Admin",
+  operasyon_yoneticisi: "Platform Operasyon Yöneticisi",
+  operasyon_uzmani: "Platform Operasyon Uzmanı",
+  destek_admin: "Platform Destek Admin",
+  destek_yoneticisi: "Platform Destek Yöneticisi",
+  destek_uzmani: "Platform Destek Uzmanı",
+  finans_admin: "Platform Finans Admin",
+  finans_yoneticisi: "Platform Finans Yöneticisi",
+  finans_uzmani: "Platform Finans Uzmanı",
+  guvenlik_uzmani: "Platform Güvenlik Uzmanı",
+  raporlama_analisti: "Platform Raporlama Analisti",
+  // ── Tenant Sistem Rolleri ────────────────────────────────────────────────
+  tenant_owner: "Partner Sahibi",
+  tenant_admin: "Partner Admin",
+  tenant_member: "Partner Üyesi",
+  // ── Stratejik Partner İş Rolleri ────────────────────────────────────────
+  admin: "Admin",
   partner_admin: "Partner Admin",
   satinalma_direktoru: "Satın Alma Direktörü",
   satinalma_muduru: "Satın Alma Müdürü",
@@ -76,13 +93,39 @@ const roleLabels: Record<string, string> = {
   teknik_uzman: "Teknik Uzman",
   ozel_partner_rolu: "Özel Stratejik Partner Rolü",
   finans_izleyici: "Finans İzleyici",
-  // Kanal v2
+  // ── İK Rolleri (tüm tenant tipleri) ─────────────────────────────────────
+  ik_yoneticisi: "İK Yöneticisi",
+  ik_uzmani: "İK Uzmanı",
+  hr_manager: "HR Manager",
+  hr_specialist: "HR Specialist",
+  // ── Kanal / İş Ortağı İş Rolleri ────────────────────────────────────────
+  channel_owner: "Kanal Hesap Sahibi",
   kanal_hesap_sahibi: "Kanal Hesap Sahibi",
   kanal_ekip_lideri: "Kanal Ekip Lideri",
+  channel_agent: "Kanal Temsilcisi",
   kanal_temsilcisi: "Kanal Temsilcisi",
   kanal_finans: "Kanal Finans",
   ozel_kanal_rolu: "Özel Kanal Rolü",
-  // Eski / genel
+  is_ortagi: "İş Ortağı",
+  // ── Tedarikçi İş Rolleri ────────────────────────────────────────────────
+  supplier_admin: "Tedarikçi Admin",
+  supplier_user: "Tedarikçi",
+  pazarlama_muduru: "Pazarlama Müdürü",
+  pazarlama_mudur_yrd: "Pazarlama Müdür Yardımcısı",
+  pazarlama_yoneticisi: "Pazarlama Yöneticisi",
+  pazarlama_kidemli_uzmani: "Kıdemli Pazarlama Uzmanı",
+  pazarlama_uzmani: "Pazarlama Uzmanı",
+  teknik_uzman_mimar: "Teknik Uzman ve Mimar",
+  teklif_uzmani: "Teklif Uzmanı",
+  ozel_tedarikci_rolu: "Özel Tedarikçi Rolü",
+  tedarikci_finans_izleyici: "Tedarikçi Finans İzleyici",
+  // ── İş Piyasası / Kariyer Sistem Rolleri ────────────────────────────────
+  employer_company_admin: "İşveren Admin",
+  employer_recruiter: "İşveren Recruiter",
+  candidate_user: "Aday",
+  talent_member: "Satın Alma Yeteneği",
+  referral_partner: "Referral Partner",
+  // ── Eski / Genel ────────────────────────────────────────────────────────
   satinalmaci: "Satın Almacı",
   manager: "Yönetici",
   buyer: "Satın Alma",
@@ -90,10 +133,6 @@ const roleLabels: Record<string, string> = {
   department_manager: "Departman Yöneticisi",
   company_manager: "Şirket Yöneticisi",
   supplier: "Tedarikçi",
-  supplier_admin: "Tedarikçi Yöneticisi",
-  supplier_user: "Tedarikçi Kullanıcısı",
-  channel_owner: "Kanal Hesap Sahibi",
-  channel_agent: "Kanal Temsilcisi",
   user: "Kullanıcı",
 };
 
@@ -251,8 +290,13 @@ export function isPlatformStaffUser(user: PermissionContext | null | undefined):
   return (
     systemRole === "platform_support" ||
     systemRole === "platform_operator" ||
-    systemRole === "finance_officer"
+    systemRole === "finance_officer" ||
+    systemRole === "moderator_compliance"
   );
+}
+
+export function isIkAdminUser(user: PermissionContext | null | undefined): boolean {
+  return normalizedSystemRole(user) === "ik_admin";
 }
 
 export function canManageTenantIdentitySettings(user: PermissionContext | null | undefined): boolean {
@@ -644,27 +688,70 @@ export function getPersonnelRolePermissionMatrix(): RolePermissionMatrixRow[] {
   type Combo = { businessRole: string; systemRole: string; group: string };
 
   const combinations: Combo[] = [
-    // --- PLATFORM GRUBU ---
-    { businessRole: "super_admin",        systemRole: "super_admin",        group: "platform" },
-    { businessRole: "platform_support",   systemRole: "platform_support",   group: "platform" },
-    { businessRole: "platform_operator",  systemRole: "platform_operator",  group: "platform" },
+    // ── PLATFORM GRUBU ──────────────────────────────────────────────────────
+    { businessRole: "super_admin",             systemRole: "super_admin",        group: "platform" },
+    { businessRole: "operasyon_admin",         systemRole: "platform_operator",  group: "platform" },
+    { businessRole: "operasyon_yoneticisi",    systemRole: "platform_operator",  group: "platform" },
+    { businessRole: "operasyon_uzmani",        systemRole: "platform_operator",  group: "platform" },
+    { businessRole: "destek_admin",            systemRole: "platform_support",   group: "platform" },
+    { businessRole: "destek_yoneticisi",       systemRole: "platform_support",   group: "platform" },
+    { businessRole: "destek_uzmani",           systemRole: "platform_support",   group: "platform" },
+    { businessRole: "finans_admin",            systemRole: "finance_officer",    group: "platform" },
+    { businessRole: "finans_yoneticisi",       systemRole: "finance_officer",    group: "platform" },
+    { businessRole: "finans_uzmani",           systemRole: "finance_officer",    group: "platform" },
+    { businessRole: "finans_izleyici",         systemRole: "moderator_compliance", group: "platform" },
+    { businessRole: "guvenlik_uzmani",         systemRole: "platform_support",   group: "platform" },
+    { businessRole: "raporlama_analisti",      systemRole: "platform_support",   group: "platform" },
+    { businessRole: "ik_admin",                systemRole: "ik_admin",           group: "platform" },
+    { businessRole: "ik_yoneticisi",           systemRole: "ik_admin",           group: "platform" },
+    { businessRole: "ik_uzmani",               systemRole: "ik_admin",           group: "platform" },
 
-    // --- PORTAL / SATIN ALMA GRUBU ---
-    { businessRole: "admin",              systemRole: "tenant_owner",       group: "portal" },
-    { businessRole: "admin",              systemRole: "tenant_admin",       group: "portal" },
-    { businessRole: "satinalma_direktoru",  systemRole: "tenant_member",    group: "portal" },
-    { businessRole: "satinalma_yoneticisi", systemRole: "tenant_member",    group: "portal" },
-    { businessRole: "satinalma_uzmani",     systemRole: "tenant_member",    group: "portal" },
-    { businessRole: "satinalmaci",          systemRole: "tenant_member",    group: "portal" },
-    { businessRole: "user",                 systemRole: "tenant_member",    group: "portal" },
+    // ── STRATEJİK PARTNER GRUBU ─────────────────────────────────────────────
+    { businessRole: "admin",                   systemRole: "tenant_owner",       group: "portal" },
+    { businessRole: "admin",                   systemRole: "tenant_admin",       group: "portal" },
+    { businessRole: "satinalma_direktoru",     systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "satinalma_muduru",        systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "satinalma_mudur_yrd",     systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "satinalma_yoneticisi",    systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "satinalma_kidemli_uzmani", systemRole: "tenant_member",     group: "portal" },
+    { businessRole: "satinalma_uzman_yrd",     systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "satinalma_uzmani",        systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "proje_mimari",            systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "teknik_uzman",            systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "ozel_partner_rolu",       systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "finans_izleyici",         systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "ik_yoneticisi",           systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "ik_uzmani",               systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "satinalmaci",             systemRole: "tenant_member",      group: "portal" },
+    { businessRole: "user",                    systemRole: "tenant_member",      group: "portal" },
 
-    // --- KANAL / IS ORTAGI GRUBU ---
-    { businessRole: "channel_owner",      systemRole: "tenant_member",      group: "channel" },
-    { businessRole: "channel_agent",      systemRole: "tenant_member",      group: "channel" },
+    // ── KANAL / İŞ ORTAĞI GRUBU ─────────────────────────────────────────────
+    { businessRole: "channel_owner",           systemRole: "tenant_member",      group: "channel" },
+    { businessRole: "kanal_ekip_lideri",       systemRole: "tenant_member",      group: "channel" },
+    { businessRole: "channel_agent",           systemRole: "tenant_member",      group: "channel" },
+    { businessRole: "kanal_finans",            systemRole: "tenant_member",      group: "channel" },
+    { businessRole: "ozel_kanal_rolu",         systemRole: "tenant_member",      group: "channel" },
+    { businessRole: "ik_yoneticisi",           systemRole: "tenant_member",      group: "channel" },
 
-    // --- TEDARIKCI GRUBU ---
-    { businessRole: "supplier_admin",     systemRole: "supplier_user",      group: "supplier" },
-    { businessRole: "supplier_user",      systemRole: "supplier_user",      group: "supplier" },
+    // ── TEDARİKÇİ GRUBU ─────────────────────────────────────────────────────
+    { businessRole: "supplier_admin",          systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "pazarlama_muduru",        systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "pazarlama_mudur_yrd",     systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "pazarlama_yoneticisi",    systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "pazarlama_kidemli_uzmani", systemRole: "supplier_user",     group: "supplier" },
+    { businessRole: "pazarlama_uzmani",        systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "teknik_uzman_mimar",      systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "teklif_uzmani",           systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "ozel_tedarikci_rolu",     systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "tedarikci_finans_izleyici", systemRole: "supplier_user",    group: "supplier" },
+    { businessRole: "ik_yoneticisi",           systemRole: "supplier_user",      group: "supplier" },
+    { businessRole: "ik_uzmani",               systemRole: "supplier_user",      group: "supplier" },
+
+    // ── İŞ PİYASASI / KARİYER GRUBU ─────────────────────────────────────────
+    { businessRole: "employer_company_admin",  systemRole: "employer_company_admin", group: "employer" },
+    { businessRole: "employer_recruiter",      systemRole: "employer_recruiter",     group: "employer" },
+    { businessRole: "candidate_user",          systemRole: "candidate_user",         group: "talent" },
+    { businessRole: "talent_member",           systemRole: "talent_member",          group: "talent" },
   ];
 
   return combinations.map(({ businessRole, systemRole, group }) => {
@@ -675,9 +762,11 @@ export function getPersonnelRolePermissionMatrix(): RolePermissionMatrixRow[] {
     };
     const canReadTenantGovernance = isSuperAdminUser(previewUser) || isPlatformStaffUser(previewUser);
 
-    // Overrides for channel / supplier personas
     const isChannel  = group === "channel";
     const isSupplier = group === "supplier";
+    const isEmployer = group === "employer";
+    const isTalent   = group === "talent";
+    const isCareer   = isEmployer || isTalent;
 
     return {
       businessRole,
@@ -685,15 +774,15 @@ export function getPersonnelRolePermissionMatrix(): RolePermissionMatrixRow[] {
       systemRole,
       systemRoleLabel: getRoleLabel(systemRole),
       group,
-      adminSurface:          isChannel || isSupplier ? false : canAccessAdminSurface(previewUser),
-      manageUsers:           isChannel || isSupplier ? false : hasPermissionForUser(previewUser, "manage:users"),
-      quoteWorkspace:        isSupplier ? true  : isChannel ? false : canManageQuoteWorkspace(previewUser),
-      reviewApprovals:       isChannel || isSupplier ? false : canReviewApprovals(previewUser),
-      tenantGovernanceRead:  canReadTenantGovernance,
-      tenantGovernanceWrite: canManageTenantGovernance(previewUser),
-      supportWorkflow:       canReadTenantGovernance,
+      adminSurface:           isChannel || isSupplier || isCareer ? false : canAccessAdminSurface(previewUser),
+      manageUsers:            isChannel || isSupplier || isCareer ? false : hasPermissionForUser(previewUser, "manage:users"),
+      quoteWorkspace:         isSupplier ? true : isChannel || isCareer ? false : canManageQuoteWorkspace(previewUser),
+      reviewApprovals:        isChannel || isSupplier || isCareer ? false : canReviewApprovals(previewUser),
+      tenantGovernanceRead:   canReadTenantGovernance,
+      tenantGovernanceWrite:  canManageTenantGovernance(previewUser),
+      supportWorkflow:        canReadTenantGovernance,
       tenantIdentitySettings: canManageTenantIdentitySettings(previewUser),
-      sharedEmailProfiles:   canManageSharedEmailProfiles(previewUser),
+      sharedEmailProfiles:    canManageSharedEmailProfiles(previewUser),
     };
   });
 }
@@ -817,23 +906,42 @@ export function getScopeLabel(scopeType: string): string {
 export function canAccessWorkspacePanel(user: PermissionContext | null | undefined): boolean {
   if (!user) return false;
   if (isSuperAdminUser(user) || isPlatformStaffUser(user) || isTenantAdminUser(user)) return true;
+  if (isIkAdminUser(user)) return true;
   const role = normalizedBusinessRole(user);
   const sr = normalizedSystemRole(user);
   return (
+    // Stratejik Partner — tüm satın alma hiyerarşisi
     role === "manager" ||
     role === "buyer" ||
     role === "satinalmaci" ||
+    role === "satinalma_uzman_yrd" ||
     role === "satinalma_uzmani" ||
+    role === "satinalma_kidemli_uzmani" ||
     role === "satinalma_yoneticisi" ||
+    role === "satinalma_mudur_yrd" ||
+    role === "satinalma_muduru" ||
     role === "satinalma_direktoru" ||
+    role === "proje_mimari" ||
+    role === "teknik_uzman" ||
+    role === "ozel_partner_rolu" ||
+    role === "finans_izleyici" ||
+    // Kanal / İş Ortağı hiyerarşisi
     role === "channel_owner" ||
+    role === "kanal_ekip_lideri" ||
     role === "channel_agent" ||
+    role === "kanal_finans" ||
+    role === "ozel_kanal_rolu" ||
     role === "is_ortagi" ||
+    // İK rolleri (tüm tenant tipleri)
     role === "ik_yoneticisi" ||
     role === "ik_uzmani" ||
     role === "hr_manager" ||
     role === "hr_specialist" ||
-    sr === "supplier_user"
+    // Tedarikçi hiyerarşisi
+    sr === "supplier_user" ||
+    // İşveren / İş Piyasası
+    sr === "employer_company_admin" ||
+    sr === "employer_recruiter"
   );
 }
 

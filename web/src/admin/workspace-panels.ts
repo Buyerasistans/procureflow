@@ -16,6 +16,7 @@ export type WorkspacePanelTabKey =
   | "public_pricing"
   | "campaigns"
   | "commission_admin"
+  | "kariyer_yonetimi"
   | "companies"
   | "roles"
   | "departments"
@@ -46,36 +47,81 @@ export type WorkspacePanelTheme = {
 };
 
 function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQuickLink[] {
-  if (businessRole === "supplier_admin" || businessRole === "supplier_user") {
+  // ── Tedarikçi ──────────────────────────────────────────────────────────────
+  if (
+    businessRole === "supplier_admin" || businessRole === "supplier_user" ||
+    businessRole === "pazarlama_muduru" || businessRole === "pazarlama_mudur_yrd" ||
+    businessRole === "pazarlama_yoneticisi" || businessRole === "pazarlama_kidemli_uzmani" ||
+    businessRole === "pazarlama_uzmani" || businessRole === "teknik_uzman_mimar" ||
+    businessRole === "teklif_uzmani" || businessRole === "ozel_tedarikci_rolu" ||
+    businessRole === "tedarikci_finans_izleyici"
+  ) {
     return [
       { label: "Tedarikçi Workspace", href: "/supplier/workspace?tab=offers", description: "Teklif, belge ve operasyon işlerinizi supplier workspace üzerinden yönetin." },
       { label: "Tedarikçi Dashboard", href: "/supplier/dashboard", description: "Tedarikçi özet ekranına gidin." },
       { label: "Finans Modülü", href: "/supplier/finance", description: "Finans ve ödeme özetlerini inceleyin." },
     ];
   }
-  if (businessRole === "channel_owner" || businessRole === "channel_agent") {
+  // ── Kanal / İş Ortağı ─────────────────────────────────────────────────────
+  if (
+    businessRole === "channel_owner" || businessRole === "kanal_ekip_lideri" ||
+    businessRole === "channel_agent" || businessRole === "kanal_finans" ||
+    businessRole === "ozel_kanal_rolu"
+  ) {
     return [
       { label: "İş Ortağı Programı", href: "/is-ortagi-programi", description: "Kanal programı kapsamındaki akışları inceleyin." },
       { label: "Programa Başvuru", href: "/is-ortagi-basvuru", description: "Kanal / komisyon programı başvuru akışını açın." },
       { label: "Public Fiyatlandırma", href: "/fiyatlandirma", description: "Kanal teklif kurgusu için güncel planları görün." },
     ];
   }
-  if (businessRole === "manager" || businessRole === "satinalma_direktoru") {
+  // ── Satın Alma Liderlik (Direktör/Müdür) ────────────────────────────────
+  if (
+    businessRole === "manager" || businessRole === "satinalma_direktoru" ||
+    businessRole === "satinalma_muduru" || businessRole === "satinalma_mudur_yrd"
+  ) {
     return [
       { label: "Genel Bakış", href: "/dashboard", description: "Rol özetinizi ve anlık kartları görün." },
       { label: "Teklifler", href: "/quotes", description: "Teklif ve satın alma akışlarına gidin." },
       { label: "Raporlar", href: "/reports", description: "Rol bazlı raporları açın." },
     ];
   }
+  // ── Satın Alma Uzman / Operasyon ─────────────────────────────────────────
   if (
-    businessRole === "ik_yoneticisi" ||
-    businessRole === "ik_uzmani" ||
-    businessRole === "hr_manager" ||
-    businessRole === "hr_specialist"
+    businessRole === "satinalma_yoneticisi" || businessRole === "satinalma_kidemli_uzmani" ||
+    businessRole === "satinalma_uzman_yrd" || businessRole === "satinalma_uzmani" ||
+    businessRole === "satinalmaci" || businessRole === "proje_mimari" ||
+    businessRole === "teknik_uzman" || businessRole === "ozel_partner_rolu" ||
+    businessRole === "finans_izleyici"
+  ) {
+    return [
+      { label: "Genel Bakış", href: "/dashboard", description: "Genel çalışma alanına dönün." },
+      { label: "Teklifler", href: "/quotes", description: "Teklif süreçlerini açın." },
+    ];
+  }
+  // ── İK Rolleri (tüm tenant tipleri) ─────────────────────────────────────
+  if (
+    businessRole === "ik_yoneticisi" || businessRole === "ik_uzmani" ||
+    businessRole === "hr_manager" || businessRole === "hr_specialist"
   ) {
     return [
       { label: "İş İlanları", href: "/jobs", description: "Yayınladığınız ve açık iş ilanlarını yönetin." },
       { label: "Yeni İlan Oluştur", href: "/jobs/new", description: "Satın alma ve tedarik zinciri pozisyonu yayınlayın." },
+      { label: "Kariyer Platformu", href: "/satin-alma-kariyerim", description: "Satın alma kariyer ekosistemini inceleyin." },
+    ];
+  }
+  // ── Platform İK Admin ────────────────────────────────────────────────────
+  if (businessRole === "ik_admin") {
+    return [
+      { label: "Kariyer Yönetimi", href: "/admin?tab=kariyer_yonetimi", description: "İş ilanlarını ve aday profillerini yönetin." },
+      { label: "İş İlanları", href: "/jobs", description: "Tüm iş ilanlarını görüntüleyin." },
+      { label: "Talent Ekosistemi", href: "/admin/talent-ecosystem", description: "Talent ve aday kayıtlarını yönetin." },
+    ];
+  }
+  // ── İşveren / Kariyer Rolleri ────────────────────────────────────────────
+  if (businessRole === "employer_company_admin" || businessRole === "employer_recruiter") {
+    return [
+      { label: "İş İlanları", href: "/jobs", description: "Yayınladığınız iş ilanlarını yönetin." },
+      { label: "Yeni İlan Oluştur", href: "/jobs/new", description: "Yeni bir pozisyon ilanı oluşturun." },
       { label: "Kariyer Platformu", href: "/satin-alma-kariyerim", description: "Satın alma kariyer ekosistemini inceleyin." },
     ];
   }
@@ -104,6 +150,7 @@ export const WORKSPACE_PANEL_TAB_OPTIONS: Array<{
   { key: "public_pricing", label: "Genel Fiyatlandırma" },
   { key: "campaigns", label: "Kampanyalar ve Landing" },
   { key: "commission_admin", label: "Komisyon Yönetimi" },
+  { key: "kariyer_yonetimi", label: "Kariyer ve İş Piyasası" },
   { key: "companies", label: "Firmalar" },
   { key: "roles", label: "Roller ve Yetkiler" },
   { key: "departments", label: "Departmanlar" },
@@ -138,6 +185,7 @@ export const WORKSPACE_PANEL_DATA_TABS = new Set<WorkspacePanelTabKey>([
   "platform_suppliers",
   "public_pricing",
   "campaigns",
+  "kariyer_yonetimi",
   "companies",
   "roles",
   "departments",
@@ -169,7 +217,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Platform genelindeki tüm yönetim alanları, tenant governance ve panel tasarımı bu panelden yönetilir.",
       hero_title: "Super Admin Paneli - Platform Kontrol Merkezi",
       hero_description: "Platform operasyonları, stratejik partner geçişi, rol panelleri ve global ayarlar bu panel altında birleştirilir.",
-      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "discovery_lab_operations", "onboarding_studio", "tenant_governance", "packages", "deployment", "platform_analytics", "platform_suppliers", "public_pricing", "campaigns", "commission_admin", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings", "panel_designer"],
+      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "discovery_lab_operations", "onboarding_studio", "tenant_governance", "packages", "deployment", "platform_analytics", "platform_suppliers", "public_pricing", "campaigns", "commission_admin", "kariyer_yonetimi", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings", "panel_designer"],
       quick_links: defaultQuickLinksForBusinessRole("super_admin"),
     },
     {
@@ -292,7 +340,483 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       allowed_tabs: ["panel_home"],
       quick_links: defaultQuickLinksForBusinessRole("supplier_user"),
     },
-    // ── İK Rolleri ──────────────────────────────────────────────────────────
+    // ── Platform İK ──────────────────────────────────────────────────────────
+    {
+      business_role: "ik_admin",
+      system_role: "ik_admin",
+      title: "Platform İK Admin Paneli",
+      nav_label: "İK Admin",
+      workspace_label: "Kariyer ve İş Piyasası Yönetimi",
+      description: "Platform İK Admin için kariyer modülü yönetimi, iş ilanı ve aday takip paneli.",
+      hero_title: "Platform İK Admin Paneli",
+      hero_description: "İş ilanlarını, aday profillerini ve IK kullanıcılarını merkezi olarak yönetin.",
+      allowed_tabs: ["panel_home", "kariyer_yonetimi"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_admin"),
+    },
+    {
+      business_role: "ik_yoneticisi",
+      system_role: "ik_admin",
+      title: "Platform İK Yöneticisi Paneli",
+      nav_label: "İK Yöneticisi",
+      workspace_label: "İK Yönetici Alanı",
+      description: "Platform İK Yöneticisi için kariyer modülü operasyonları.",
+      hero_title: "Platform İK Yöneticisi Paneli",
+      hero_description: "Kariyer ilanlarını ve aday süreçlerini platform düzeyinde yönetin.",
+      allowed_tabs: ["panel_home", "kariyer_yonetimi"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_yoneticisi"),
+    },
+    {
+      business_role: "ik_uzmani",
+      system_role: "ik_admin",
+      title: "Platform İK Uzmanı Paneli",
+      nav_label: "İK Uzmanı",
+      workspace_label: "İK Uzman Alanı",
+      description: "Platform İK Uzmanı için kariyer modülü temel erişimi.",
+      hero_title: "Platform İK Uzmanı Paneli",
+      hero_description: "Kariyer ilanlarını inceleyin ve başvuru süreçlerini takip edin.",
+      allowed_tabs: ["panel_home", "kariyer_yonetimi"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_uzmani"),
+    },
+    // ── Platform Operasyon ────────────────────────────────────────────────
+    {
+      business_role: "operasyon_admin",
+      system_role: "platform_operator",
+      title: "Platform Operasyon Admin Paneli",
+      nav_label: "Ops Admin",
+      workspace_label: "Platform Operasyon Yönetimi",
+      description: "Platform operasyon yönetimi ve tenant koordinasyonu.",
+      hero_title: "Platform Operasyon Admin Paneli",
+      hero_description: "Operasyon kuyrukları, tenant akışları ve sistem yönetimini bu panelden koordine edin.",
+      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "discovery_lab_operations", "onboarding_studio", "tenant_governance", "deployment", "companies", "roles", "departments", "personnel", "projects", "reports", "settings"],
+      quick_links: defaultQuickLinksForBusinessRole("operasyon_admin"),
+    },
+    {
+      business_role: "operasyon_yoneticisi",
+      system_role: "platform_operator",
+      title: "Platform Operasyon Yöneticisi Paneli",
+      nav_label: "Ops Yöneticisi",
+      workspace_label: "Operasyon Yönetici Alanı",
+      description: "Platform operasyon yöneticisi çalışma alanı.",
+      hero_title: "Platform Operasyon Yöneticisi",
+      hero_description: "Operasyon süreçlerini ve tenant yönetimini yöneticisi perspektifinden koordine edin.",
+      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "tenant_governance", "companies", "roles", "departments", "personnel", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("operasyon_yoneticisi"),
+    },
+    {
+      business_role: "operasyon_uzmani",
+      system_role: "platform_operator",
+      title: "Platform Operasyon Uzmanı Paneli",
+      nav_label: "Ops Uzmanı",
+      workspace_label: "Operasyon Uzman Alanı",
+      description: "Platform operasyon uzmanı temel çalışma alanı.",
+      hero_title: "Platform Operasyon Uzmanı",
+      hero_description: "Atanan operasyon görevlerini ve tenant akışlarını takip edin.",
+      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "companies", "personnel", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("operasyon_uzmani"),
+    },
+    // ── Platform Destek ───────────────────────────────────────────────────
+    {
+      business_role: "destek_admin",
+      system_role: "platform_support",
+      title: "Platform Destek Admin Paneli",
+      nav_label: "Destek Admin",
+      workspace_label: "Platform Destek Yönetimi",
+      description: "Platform destek yönetimi ve governance paneli.",
+      hero_title: "Platform Destek Admin Paneli",
+      hero_description: "Destek kuyrukları, tenant sorunları ve platform governance bu panelden yönetilir.",
+      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "discovery_lab_operations", "onboarding_studio", "tenant_governance", "deployment", "companies", "roles", "departments", "personnel", "projects", "reports", "settings"],
+      quick_links: defaultQuickLinksForBusinessRole("destek_admin"),
+    },
+    {
+      business_role: "destek_yoneticisi",
+      system_role: "platform_support",
+      title: "Platform Destek Yöneticisi Paneli",
+      nav_label: "Destek Yöneticisi",
+      workspace_label: "Destek Yönetici Alanı",
+      description: "Platform destek yöneticisi çalışma alanı.",
+      hero_title: "Platform Destek Yöneticisi",
+      hero_description: "Destek taleplerini ve tenant sorunlarını yönetici perspektifinden ele alın.",
+      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "tenant_governance", "companies", "personnel", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("destek_yoneticisi"),
+    },
+    {
+      business_role: "destek_uzmani",
+      system_role: "platform_support",
+      title: "Platform Destek Uzmanı Paneli",
+      nav_label: "Destek Uzmanı",
+      workspace_label: "Destek Uzman Alanı",
+      description: "Platform destek uzmanı temel erişim alanı.",
+      hero_title: "Platform Destek Uzmanı",
+      hero_description: "Destek taleplerini ve kullanıcı sorunlarını takip edin.",
+      allowed_tabs: ["panel_home", "platform_overview", "companies", "personnel", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("destek_uzmani"),
+    },
+    {
+      business_role: "guvenlik_uzmani",
+      system_role: "platform_support",
+      title: "Platform Güvenlik Uzmanı Paneli",
+      nav_label: "Güvenlik",
+      workspace_label: "Güvenlik İzleme Alanı",
+      description: "Platform güvenlik uzmanı izleme ve denetim alanı.",
+      hero_title: "Platform Güvenlik Uzmanı",
+      hero_description: "Platform güvenlik akışlarını ve erişim kayıtlarını takip edin.",
+      allowed_tabs: ["panel_home", "platform_overview", "roles", "personnel", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("guvenlik_uzmani"),
+    },
+    {
+      business_role: "raporlama_analisti",
+      system_role: "platform_support",
+      title: "Platform Raporlama Analisti Paneli",
+      nav_label: "Analiz",
+      workspace_label: "Raporlama ve Analitik Alanı",
+      description: "Platform raporlama analisti veri ve analitik çalışma alanı.",
+      hero_title: "Platform Raporlama Analisti",
+      hero_description: "Platform metriklerini ve operasyon analizlerini bu alandan yönetin.",
+      allowed_tabs: ["panel_home", "platform_overview", "platform_analytics", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("raporlama_analisti"),
+    },
+    // ── Platform Finans ───────────────────────────────────────────────────
+    {
+      business_role: "finans_admin",
+      system_role: "finance_officer",
+      title: "Platform Finans Admin Paneli",
+      nav_label: "Finans Admin",
+      workspace_label: "Platform Finans Yönetimi",
+      description: "Platform finans yönetimi, ödeme onayı ve komisyon paneli.",
+      hero_title: "Platform Finans Admin Paneli",
+      hero_description: "Ödeme talepleri, komisyon yönetimi ve fiyatlandırma akışlarını bu panelden koordine edin.",
+      allowed_tabs: ["panel_home", "platform_overview", "public_pricing", "commission_admin", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("finans_admin"),
+    },
+    {
+      business_role: "finans_yoneticisi",
+      system_role: "finance_officer",
+      title: "Platform Finans Yöneticisi Paneli",
+      nav_label: "Finans Yöneticisi",
+      workspace_label: "Finans Yönetici Alanı",
+      description: "Platform finans yöneticisi çalışma alanı.",
+      hero_title: "Platform Finans Yöneticisi",
+      hero_description: "Finans akışlarını ve ödeme süreçlerini yönetici perspektifinden takip edin.",
+      allowed_tabs: ["panel_home", "public_pricing", "commission_admin", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("finans_yoneticisi"),
+    },
+    {
+      business_role: "finans_uzmani",
+      system_role: "finance_officer",
+      title: "Platform Finans Uzmanı Paneli",
+      nav_label: "Finans Uzmanı",
+      workspace_label: "Finans Uzman Alanı",
+      description: "Platform finans uzmanı temel çalışma alanı.",
+      hero_title: "Platform Finans Uzmanı",
+      hero_description: "Finans işlemlerini ve komisyon verilerini takip edin.",
+      allowed_tabs: ["panel_home", "commission_admin", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("finans_uzmani"),
+    },
+    {
+      business_role: "finans_izleyici",
+      system_role: "moderator_compliance",
+      title: "Platform Denetçi / Finans İzleyici Paneli",
+      nav_label: "Denetçi",
+      workspace_label: "Denetim ve İzleme Alanı",
+      description: "Platform denetçi ve finans izleyici sadece okuma erişimi.",
+      hero_title: "Platform Denetçi Paneli",
+      hero_description: "Finansal akışları ve uyum verilerini salt okunur modda izleyin.",
+      allowed_tabs: ["panel_home", "platform_overview", "reports"],
+      quick_links: defaultQuickLinksForBusinessRole("finans_izleyici"),
+    },
+    // ── Stratejik Partner Hiyerarşisi (tüm satın alma rolleri) ─────────────
+    {
+      business_role: "satinalma_muduru",
+      system_role: "tenant_member",
+      title: "Satın Alma Müdürü Paneli",
+      nav_label: "Müdür",
+      workspace_label: "Satın Alma Liderlik Alanı",
+      description: "Satın alma müdürü için yönetim ve yönlendirme paneli.",
+      hero_title: "Satın Alma Müdürü Paneli",
+      hero_description: "Ekibinizin teklif, onay ve operasyon akışlarını müdür perspektifinden yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalma_muduru"),
+    },
+    {
+      business_role: "satinalma_mudur_yrd",
+      system_role: "tenant_member",
+      title: "Satın Alma Müdür Yardımcısı Paneli",
+      nav_label: "Müdür Yrd.",
+      workspace_label: "Satın Alma Müdür Yrd. Alanı",
+      description: "Satın alma müdür yardımcısı çalışma alanı.",
+      hero_title: "Satın Alma Müdür Yardımcısı Paneli",
+      hero_description: "Teklif ve satın alma süreçlerini müdür yardımcısı perspektifinden koordine edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalma_mudur_yrd"),
+    },
+    {
+      business_role: "satinalma_yoneticisi",
+      system_role: "tenant_member",
+      title: "Satın Alma Yöneticisi Paneli",
+      nav_label: "Yönetici",
+      workspace_label: "Satın Alma Yönetici Alanı",
+      description: "Satın alma yöneticisi için operasyonel çalışma alanı.",
+      hero_title: "Satın Alma Yöneticisi Paneli",
+      hero_description: "Teklif akışlarını ve onay süreçlerini yönetici rolüyle takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalma_yoneticisi"),
+    },
+    {
+      business_role: "satinalma_kidemli_uzmani",
+      system_role: "tenant_member",
+      title: "Satın Alma Kıdemli Uzmanı Paneli",
+      nav_label: "Kıdemli Uzman",
+      workspace_label: "Satın Alma Kıdemli Uzman Alanı",
+      description: "Satın alma kıdemli uzmanı çalışma alanı.",
+      hero_title: "Satın Alma Kıdemli Uzmanı Paneli",
+      hero_description: "Teklif ve satın alma operasyonlarını kıdemli uzman olarak yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalma_kidemli_uzmani"),
+    },
+    {
+      business_role: "satinalma_uzman_yrd",
+      system_role: "tenant_member",
+      title: "Satın Alma Uzman Yardımcısı Paneli",
+      nav_label: "Uzman Yrd.",
+      workspace_label: "Satın Alma Uzman Yrd. Alanı",
+      description: "Satın alma uzman yardımcısı temel çalışma alanı.",
+      hero_title: "Satın Alma Uzman Yardımcısı Paneli",
+      hero_description: "Satın alma görevlerini uzman yardımcısı perspektifinden takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalma_uzman_yrd"),
+    },
+    {
+      business_role: "satinalma_uzmani",
+      system_role: "tenant_member",
+      title: "Satın Alma Uzmanı Paneli",
+      nav_label: "Uzman",
+      workspace_label: "Satın Alma Uzman Alanı",
+      description: "Satın alma uzmanı temel çalışma alanı.",
+      hero_title: "Satın Alma Uzmanı Paneli",
+      hero_description: "Teklif ve satın alma operasyonlarını uzman olarak yürütün.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalma_uzmani"),
+    },
+    {
+      business_role: "satinalmaci",
+      system_role: "tenant_member",
+      title: "Satın Almacı Paneli",
+      nav_label: "Satın Almacı",
+      workspace_label: "Satın Almacı Çalışma Alanı",
+      description: "Satın almacı temel çalışma alanı.",
+      hero_title: "Satın Almacı Paneli",
+      hero_description: "Günlük satın alma görevlerinizi bu alandan takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("satinalmaci"),
+    },
+    {
+      business_role: "proje_mimari",
+      system_role: "tenant_member",
+      title: "Proje Mimarı Paneli",
+      nav_label: "Proje Mimarı",
+      workspace_label: "Proje Mimar Alanı",
+      description: "Proje mimarı teknik yönlendirme ve teklif alanı.",
+      hero_title: "Proje Mimarı Paneli",
+      hero_description: "Teknik proje süreçleri ve tedarik akışlarına bu alandan erişin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("proje_mimari"),
+    },
+    {
+      business_role: "teknik_uzman",
+      system_role: "tenant_member",
+      title: "Teknik Uzman Paneli",
+      nav_label: "Teknik Uzman",
+      workspace_label: "Teknik Uzman Alanı",
+      description: "Teknik uzman temel çalışma alanı.",
+      hero_title: "Teknik Uzman Paneli",
+      hero_description: "Teknik süreçler ve tedarik operasyonlarını bu alandan takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("teknik_uzman"),
+    },
+    {
+      business_role: "ozel_partner_rolu",
+      system_role: "tenant_member",
+      title: "Özel Stratejik Partner Paneli",
+      nav_label: "Özel Rol",
+      workspace_label: "Özel Partner Alanı",
+      description: "Özel stratejik partner rolü için yönlendirme paneli.",
+      hero_title: "Özel Stratejik Partner Paneli",
+      hero_description: "Size atanan özel rol kapsamındaki akışlara bu alandan erişin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ozel_partner_rolu"),
+    },
+    {
+      business_role: "finans_izleyici",
+      system_role: "tenant_member",
+      title: "Finans İzleyici Paneli",
+      nav_label: "Finans İzleyici",
+      workspace_label: "Finans İzleme Alanı",
+      description: "Stratejik partner finans izleyici salt okunur alanı.",
+      hero_title: "Finans İzleyici Paneli",
+      hero_description: "Finansal akışları ve teklif verilerini izleyici perspektifinden takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("finans_izleyici"),
+    },
+    // ── Kanal Hiyerarşisi ─────────────────────────────────────────────────
+    {
+      business_role: "kanal_ekip_lideri",
+      system_role: "tenant_member",
+      title: "Kanal Ekip Lideri Paneli",
+      nav_label: "Ekip Lideri",
+      workspace_label: "Kanal Ekip Lider Alanı",
+      description: "Kanal ekip lideri için yönlendirme ve koordinasyon paneli.",
+      hero_title: "Kanal Ekip Lideri Paneli",
+      hero_description: "Ekip temsilcilerinizin aktivitelerini ve kanal programını bu panelden koordine edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("kanal_ekip_lideri"),
+    },
+    {
+      business_role: "kanal_finans",
+      system_role: "tenant_member",
+      title: "Kanal Finans Paneli",
+      nav_label: "Kanal Finans",
+      workspace_label: "Kanal Finans Alanı",
+      description: "Kanal finans rolü için yönlendirme paneli.",
+      hero_title: "Kanal Finans Paneli",
+      hero_description: "Kanal finansal süreçleri ve komisyon akışlarını bu alandan takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("kanal_finans"),
+    },
+    {
+      business_role: "ozel_kanal_rolu",
+      system_role: "tenant_member",
+      title: "Özel Kanal Rolü Paneli",
+      nav_label: "Özel Kanal",
+      workspace_label: "Özel Kanal Alanı",
+      description: "Özel kanal rolü için yönlendirme paneli.",
+      hero_title: "Özel Kanal Rolü Paneli",
+      hero_description: "Size atanan özel kanal rolü kapsamındaki akışlara bu alandan erişin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ozel_kanal_rolu"),
+    },
+    // ── Tedarikçi Hiyerarşisi ────────────────────────────────────────────
+    {
+      business_role: "pazarlama_muduru",
+      system_role: "supplier_user",
+      title: "Pazarlama Müdürü Paneli",
+      nav_label: "Paz. Müdürü",
+      workspace_label: "Pazarlama Liderlik Alanı",
+      description: "Tedarikçi pazarlama müdürü yönetim alanı.",
+      hero_title: "Pazarlama Müdürü Paneli",
+      hero_description: "Tedarikçi pazarlama operasyonlarını müdür perspektifinden yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("pazarlama_muduru"),
+    },
+    {
+      business_role: "pazarlama_mudur_yrd",
+      system_role: "supplier_user",
+      title: "Pazarlama Müdür Yrd. Paneli",
+      nav_label: "Paz. Müdür Yrd.",
+      workspace_label: "Pazarlama Müdür Yrd. Alanı",
+      description: "Tedarikçi pazarlama müdür yardımcısı alanı.",
+      hero_title: "Pazarlama Müdür Yardımcısı Paneli",
+      hero_description: "Pazarlama süreçlerini müdür yardımcısı olarak koordine edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("pazarlama_mudur_yrd"),
+    },
+    {
+      business_role: "pazarlama_yoneticisi",
+      system_role: "supplier_user",
+      title: "Pazarlama Yöneticisi Paneli",
+      nav_label: "Paz. Yöneticisi",
+      workspace_label: "Pazarlama Yönetici Alanı",
+      description: "Tedarikçi pazarlama yöneticisi operasyon alanı.",
+      hero_title: "Pazarlama Yöneticisi Paneli",
+      hero_description: "Tedarikçi tekliflerini ve pazarlama akışlarını yönetici rolüyle takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("pazarlama_yoneticisi"),
+    },
+    {
+      business_role: "pazarlama_kidemli_uzmani",
+      system_role: "supplier_user",
+      title: "Kıdemli Pazarlama Uzmanı Paneli",
+      nav_label: "Kıd. Paz. Uzmanı",
+      workspace_label: "Kıdemli Pazarlama Uzman Alanı",
+      description: "Tedarikçi kıdemli pazarlama uzmanı alanı.",
+      hero_title: "Kıdemli Pazarlama Uzmanı Paneli",
+      hero_description: "Pazarlama ve teklif operasyonlarını kıdemli uzman olarak yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("pazarlama_kidemli_uzmani"),
+    },
+    {
+      business_role: "pazarlama_uzmani",
+      system_role: "supplier_user",
+      title: "Pazarlama Uzmanı Paneli",
+      nav_label: "Paz. Uzmanı",
+      workspace_label: "Pazarlama Uzman Alanı",
+      description: "Tedarikçi pazarlama uzmanı temel çalışma alanı.",
+      hero_title: "Pazarlama Uzmanı Paneli",
+      hero_description: "Tedarikçi pazarlama görevlerini uzman olarak yürütün.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("pazarlama_uzmani"),
+    },
+    {
+      business_role: "teknik_uzman_mimar",
+      system_role: "supplier_user",
+      title: "Teknik Uzman ve Mimar Paneli",
+      nav_label: "Teknik/Mimar",
+      workspace_label: "Teknik Uzman Alanı",
+      description: "Tedarikçi teknik uzman ve mimar çalışma alanı.",
+      hero_title: "Teknik Uzman ve Mimar Paneli",
+      hero_description: "Teknik süreçler ve çözüm mimarisini tedarikçi perspektifinden yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("teknik_uzman_mimar"),
+    },
+    {
+      business_role: "ozel_tedarikci_rolu",
+      system_role: "supplier_user",
+      title: "Özel Tedarikçi Rolü Paneli",
+      nav_label: "Özel Rol",
+      workspace_label: "Özel Tedarikçi Alanı",
+      description: "Özel tedarikçi rolü yönlendirme paneli.",
+      hero_title: "Özel Tedarikçi Rolü Paneli",
+      hero_description: "Size atanan özel tedarikçi rolü kapsamındaki akışlara erişin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ozel_tedarikci_rolu"),
+    },
+    {
+      business_role: "tedarikci_finans_izleyici",
+      system_role: "supplier_user",
+      title: "Tedarikçi Finans İzleyici Paneli",
+      nav_label: "Finans İzleyici",
+      workspace_label: "Tedarikçi Finans İzleme",
+      description: "Tedarikçi finans izleyici salt okunur alanı.",
+      hero_title: "Tedarikçi Finans İzleyici Paneli",
+      hero_description: "Tedarikçi finansal akışlarını ve ödeme verilerini izleyici modda takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("tedarikci_finans_izleyici"),
+    },
+    // ── İşveren / Kariyer Rolleri ─────────────────────────────────────────
+    {
+      business_role: "employer_company_admin",
+      system_role: "employer_company_admin",
+      title: "İşveren Admin Paneli",
+      nav_label: "İşveren Admin",
+      workspace_label: "İşveren Çalışma Alanı",
+      description: "İşveren admin için iş ilanı yönetimi ve başvuru takip paneli.",
+      hero_title: "İşveren Admin Paneli",
+      hero_description: "İş ilanlarınızı oluşturun, başvuruları takip edin ve satın alma pozisyonlarını yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("employer_company_admin"),
+    },
+    {
+      business_role: "employer_recruiter",
+      system_role: "employer_recruiter",
+      title: "İşveren Recruiter Paneli",
+      nav_label: "Recruiter",
+      workspace_label: "Recruiter Çalışma Alanı",
+      description: "İşveren recruiter için iş ilanı oluşturma ve aday yönetim paneli.",
+      hero_title: "İşveren Recruiter Paneli",
+      hero_description: "Açık pozisyonlar için ilan oluşturun ve başvuru sürecini yönetin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("employer_recruiter"),
+    },
+    // ── İK Rolleri (tenant_member — tüm partner/kanal/tedarikçi tipleri) ──
     {
       business_role: "ik_yoneticisi",
       system_role: "tenant_member",
@@ -340,6 +864,31 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       hero_description: "View and manage procurement career listings.",
       allowed_tabs: ["panel_home"],
       quick_links: defaultQuickLinksForBusinessRole("hr_specialist"),
+    },
+    // ── Tedarikçi İK rolleri (supplier_user system_role) ─────────────────
+    {
+      business_role: "ik_yoneticisi",
+      system_role: "supplier_user",
+      title: "Tedarikçi İK Yöneticisi Paneli",
+      nav_label: "İK Yöneticisi",
+      workspace_label: "İnsan Kaynakları Çalışma Alanı",
+      description: "Tedarikçi bünyesindeki İK yöneticisi için kariyer modülü erişimi.",
+      hero_title: "Tedarikçi İK Yöneticisi Paneli",
+      hero_description: "Satın alma ve tedarik pozisyonları için iş ilanı oluşturun ve kariyer ekosistemini takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_yoneticisi"),
+    },
+    {
+      business_role: "ik_uzmani",
+      system_role: "supplier_user",
+      title: "Tedarikçi İK Uzmanı Paneli",
+      nav_label: "İK Uzmanı",
+      workspace_label: "İnsan Kaynakları Uzman Alanı",
+      description: "Tedarikçi bünyesindeki İK uzmanı için temel kariyer modülü erişimi.",
+      hero_title: "Tedarikçi İK Uzmanı Paneli",
+      hero_description: "Kariyer ilanlarını inceleyin ve başvuruları takip edin.",
+      allowed_tabs: ["panel_home"],
+      quick_links: defaultQuickLinksForBusinessRole("ik_uzmani"),
     },
   ],
 };

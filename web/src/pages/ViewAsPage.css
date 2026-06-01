@@ -1,0 +1,7 @@
+.view-as-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: #475569;
+  font-size: 0.875rem;
+}

@@ -47,6 +47,7 @@ export type PanelTabVisibilityFlags = {
   show_settings_workspace_links: boolean;
   can_use_panel_designer: boolean;
   can_view_supplier_profile_tab: boolean;
+  can_view_kariyer_yonetimi_tab: boolean;
 };
 
 function normalizeRole(value?: string | null): string {
@@ -143,7 +144,8 @@ type PanelTabPolicyGroup =
   | "deployment"
   | "settings"
   | "panel_designer"
-  | "supplier_profile";
+  | "supplier_profile"
+  | "kariyer_yonetimi";
 
 const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   key: string;
@@ -164,6 +166,7 @@ const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   { key: "campaigns", label: "Kampanya Yönetimi", order: 110, group: "platform" },
   { key: "commission_admin", label: "Komisyon Yönetimi", order: 120, group: "platform" },
   { key: "support_tickets", label: "Destek Talepleri", order: 130, group: "platform" },
+  { key: "kariyer_yonetimi", label: "Kariyer ve İş Piyasası", order: 135, group: "kariyer_yonetimi" },
   { key: "settings", label: "Ayarlar", order: 140, group: "settings" },
   { key: "companies", label: "Firmalar", order: 150, group: "core" },
   { key: "roles", label: "Roller ve Yetkiler", order: 160, group: "role_management" },
@@ -197,6 +200,8 @@ function isPanelTabGroupEnabled(group: PanelTabPolicyGroup, flags: PanelTabVisib
       return flags.can_use_panel_designer;
     case "supplier_profile":
       return flags.can_view_supplier_profile_tab;
+    case "kariyer_yonetimi":
+      return flags.can_view_kariyer_yonetimi_tab;
     default:
       return false;
   }
@@ -231,6 +236,11 @@ export function resolveVisiblePanelTabKeys(
 /** Derives a NavigationVisibilityContext from an AuthUser. */
 export function buildPolicyContext(user: AuthUser): NavigationVisibilityContext {
   const systemRole = String(user.system_role || "").toLowerCase();
+  const isPlatformScope =
+    systemRole.startsWith("platform") ||
+    systemRole === "super_admin" ||
+    systemRole === "ik_admin" ||
+    systemRole === "moderator_compliance";
   const permissions = KNOWN_PERMISSIONS.filter((p) => hasPermissionForUser(user, p));
   return {
     is_authenticated: true,
@@ -238,7 +248,7 @@ export function buildPolicyContext(user: AuthUser): NavigationVisibilityContext 
     tenant_role: user.business_role || user.role,
     business_role: user.business_role,
     permissions,
-    scope: systemRole.startsWith("platform") || systemRole === "super_admin" ? "platform" : "tenant",
+    scope: isPlatformScope ? "platform" : "tenant",
   };
 }
 
@@ -378,8 +388,8 @@ export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[
     order: 30,
     is_enabled: true,
     visibility_scope: "authenticated",
-    allowed_system_roles: ["super_admin", "platform_support", "platform_operator", "tenant_owner", "tenant_admin"],
-    allowed_tenant_roles: ["admin", "super_admin", "manager", "buyer", "channel_owner", "channel_agent", "is_ortagi"],
+    allowed_system_roles: ["super_admin", "platform_support", "platform_operator", "finance_officer", "moderator_compliance", "ik_admin", "employer_company_admin", "employer_recruiter", "tenant_owner", "tenant_admin"],
+    allowed_tenant_roles: ["admin", "super_admin", "manager", "buyer", "channel_owner", "kanal_ekip_lideri", "channel_agent", "kanal_finans", "ozel_kanal_rolu", "is_ortagi", "satinalma_direktoru", "satinalma_muduru", "satinalma_mudur_yrd", "satinalma_yoneticisi", "satinalma_kidemli_uzmani", "satinalma_uzman_yrd", "satinalma_uzmani", "proje_mimari", "teknik_uzman", "ozel_partner_rolu", "finans_izleyici", "satinalmaci", "ik_yoneticisi", "ik_uzmani", "hr_manager", "hr_specialist"],
     requires_permissions: ["view:workspace-panel"],
     responsive_behavior: "more_menu",
   },
@@ -417,7 +427,7 @@ export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[
     order: 60,
     is_enabled: true,
     visibility_scope: "authenticated",
-    allowed_system_roles: ["talent_member", "employer_company_admin", "employer_recruiter", "candidate_user", "referral_partner", "super_admin"],
+    allowed_system_roles: ["talent_member", "employer_company_admin", "employer_recruiter", "candidate_user", "referral_partner", "super_admin", "ik_admin"],
     allowed_tenant_roles: ["ik_yoneticisi", "ik_uzmani", "hr_manager", "hr_specialist"],
     requires_permissions: ["view:dashboard"],
     responsive_behavior: "more_menu",
@@ -456,7 +466,7 @@ export const AUTHENTICATED_TOP_NAV_POLICY_ITEMS: NavigationVisibilityPolicyItem[
     order: 90,
     is_enabled: true,
     visibility_scope: "authenticated",
-    allowed_system_roles: ["super_admin", "platform_support", "platform_operator", "moderator_compliance"],
+    allowed_system_roles: ["super_admin", "platform_support", "platform_operator", "moderator_compliance", "ik_admin"],
     allowed_tenant_roles: [],
     requires_permissions: ["view:dashboard"],
     responsive_behavior: "more_menu",
