@@ -1,3 +1,100 @@
+/* ── Channel Reports Tab (ch-) ── */
+.ch-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ch-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 0.625rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.ch-empty {
+  padding: 1.25rem 1rem;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.ch-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.375rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ch-badge--paid     { background: #dcfce7; color: #166534; }
+.ch-badge--approved { background: #dbeafe; color: #1e40af; }
+.ch-badge--pending  { background: #fef9c3; color: #92400e; }
+
+.ch-entry-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #374151);
+}
+
+.ch-entry-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #94a3b8);
+  margin-top: 0.125rem;
+}
+
+.ch-amount {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #059669;
+}
+
+/* ── Reports Tab (rpt-) ── */
+.rpt-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rpt-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.875rem;
+}
+
+.rpt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  border: 1px solid;
+  border-radius: 0.75rem;
+  padding: 1rem 1.125rem;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.rpt-card:hover { opacity: 0.85; }
+
+.rpt-card__label {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.rpt-card__desc {
+  font-size: 0.8125rem;
+  opacity: 0.75;
+  line-height: 1.5;
+}
+
+.rpt-card__arrow {
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 /* ── Platform Suppliers Tab (pst-) ── */
 .pst-tab {
   display: flex;

@@ -7,31 +7,42 @@ import { CampaignsAdminTab } from "../../components/admin/CampaignsTab.tsx";
 import { PageHeader, StatCard, Section, DataTable } from "./AdminTabContent";
 import "./adminSecondaryTabs.css";
 
+const REPORT_TYPES = [
+  { code: "quote_comparison", label: "Teklif Karşılaştırma", desc: "RFQ bazında tedarikçi tekliflerini yan yana görüntüle", href: "/quotes", accent: "#065f46", bg: "#f0fdf4", border: "#bbf7d0", external: false },
+  { code: "quote_comparison_api", label: "Karşılaştırma API", desc: "Ham rapor verisini JSON olarak dışa aktar", href: "/api/v1/reports/quote-comparison", accent: "#1e40af", bg: "#eff6ff", border: "#bfdbfe", external: true },
+] as const;
+
 export function ReportsTabContent() {
   const apiBase = import.meta.env.VITE_API_URL ?? "";
   return (
-    <div style={{ padding: "24px 0" }}>
+    <div className="rpt-tab">
       <PageHeader
         eyebrow="Sistem"
         title="Raporlar"
         sub="RFQ karşılaştırma, tedarikçi performans ve satın alma süreci raporları"
       />
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
-        <a
-          href="/quotes"
-          style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "14px 18px", textDecoration: "none", color: "#065f46", fontWeight: 600, fontSize: 14 }}
-        >
-          Teklif Listesi {"->"} Karsilastirma raporlarina erismek icin bir RFQ secin
-        </a>
-        <a
-          href={`${apiBase}/api/v1/reports/quote-comparison`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "14px 18px", textDecoration: "none", color: "#1e40af", fontWeight: 600, fontSize: 14 }}
-        >
-          Karsilastirma Raporu API {"->"}
-        </a>
+      <div className="kpi-grid kpi-grid--2">
+        <StatCard label="Rapor Şablonu" value={REPORT_TYPES.length} accent="blue" sub="mevcut rapor türü" />
+        <StatCard label="RFQ Karşılaştırma" value="Anlık" accent="green" sub="üretildiğinde indir" />
       </div>
+      <Section title="Mevcut Raporlar" sub="Rapor oluşturmak için ilgili kaynağa gidin">
+        <div className="rpt-cards">
+          {REPORT_TYPES.map((r) => (
+            <a
+              key={r.code}
+              href={r.external ? `${apiBase}${r.href}` : r.href}
+              target={r.external ? "_blank" : undefined}
+              rel={r.external ? "noopener noreferrer" : undefined}
+              className="rpt-card"
+              style={{ background: r.bg, borderColor: r.border, color: r.accent }}
+            >
+              <div className="rpt-card__label">{r.label}</div>
+              <div className="rpt-card__desc">{r.desc}</div>
+              <div className="rpt-card__arrow">{r.external ? "↗" : "→"}</div>
+            </a>
+          ))}
+        </div>
+      </Section>
     </div>
   );
 }
@@ -65,6 +76,9 @@ interface ChannelCommissionReport {
   }>;
 }
 
+const COMMISSION_STATUS_LABELS: Record<string, string> = { paid: "Ödendi", approved: "Onaylandı", pending: "Bekliyor" };
+const COMMISSION_STATUS_CLASS: Record<string, string> = { paid: "ch-badge ch-badge--paid", approved: "ch-badge ch-badge--approved", pending: "ch-badge ch-badge--pending" };
+
 export function ChannelReportsTabContent() {
   const apiBase = import.meta.env.VITE_API_URL ?? "";
   const token = getAccessToken();
@@ -89,91 +103,85 @@ export function ChannelReportsTabContent() {
       .finally(() => setLoading(false));
   }, [apiBase, token]);
 
-  if (loading) return <div style={{ padding: 32, color: "#6b7280" }}>Yukleniyor...</div>;
-  if (error) return <div style={{ padding: 32, color: "#b91c1c" }}>Hata: {error}</div>;
-
   const fmt = (n: number) =>
     new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(n);
 
+  if (loading) {
+    return (
+      <div className="ch-tab">
+        <PageHeader eyebrow="İş Ortağı" title="İş Ortağı Raporları" sub="Yükleniyor…" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="ch-tab">
+        <PageHeader eyebrow="İş Ortağı" title="İş Ortağı Raporları" />
+        <div className="ch-error">Hata: {error}</div>
+      </div>
+    );
+  }
+
+  const entries = report?.entries ?? [];
+
   return (
-    <div style={{ padding: "24px 0", display: "grid", gap: 20 }}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>İş Ortağı Raporları</h2>
-        <p style={{ color: "#6b7280", fontSize: 14, margin: 0 }}>
-          Komisyon kazanclariniz, referans donusum performansiniz ve ekip aktivite ozetiniz.
-        </p>
+    <div className="ch-tab">
+      <PageHeader
+        eyebrow="İş Ortağı"
+        title="İş Ortağı Raporları"
+        sub="Komisyon kazançları, referans dönüşüm performansı ve ekip aktivite özeti"
+      />
+
+      <div className="kpi-grid kpi-grid--4">
+        <StatCard label="Bekleyen Komisyon" value={fmt(summary?.commission_pending ?? 0)} accent="gold" />
+        <StatCard label="Onaylanan Komisyon" value={fmt(summary?.commission_approved ?? 0)} accent="green" />
+        <StatCard label="Ödenen Komisyon" value={fmt(summary?.commission_paid ?? 0)} accent="blue" />
+        <StatCard label="Bu Ay Net" value={fmt(summary?.commission_net_current_month ?? 0)} accent="violet" />
       </div>
 
-      {/* Komisyon Özeti */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        {[
-          { label: "Bekleyen Komisyon", value: fmt(summary?.commission_pending ?? 0), color: "#f59e0b", bg: "#fffbeb", border: "#fde68a" },
-          { label: "Onaylanan Komisyon", value: fmt(summary?.commission_approved ?? 0), color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
-          { label: "Odenen Komisyon", value: fmt(summary?.commission_paid ?? 0), color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
-          { label: "Bu Ay Net", value: fmt(summary?.commission_net_current_month ?? 0), color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
-        ].map(kpi => (
-          <div key={kpi.label} style={{ background: kpi.bg, border: `1px solid ${kpi.border}`, borderRadius: 12, padding: "14px 16px" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 4, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-              {kpi.label}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: kpi.color }}>{kpi.value}</div>
+      <div className="kpi-grid kpi-grid--4">
+        <StatCard label="Toplam Ekip" value={summary?.total_team_size ?? 0} accent="slate" sub="kayıtlı üye" />
+        <StatCard label="Aktif Üye" value={summary?.active_team_size ?? 0} accent="teal" sub="son 30 gün aktif" />
+        <StatCard label="Yeni Müşteri" value={summary?.last_30d_new_customers ?? 0} accent="blue" sub="son 30 gün" />
+        <StatCard label="Performans" value={`${Math.round(summary?.performance_score ?? 0)} / 100`} accent="green" sub="puan skoru" />
+      </div>
+
+      <Section title="Son Komisyon Kayıtları" sub={`${entries.length} kayıt`} padded={false}>
+        {entries.length === 0 ? (
+          <div className="ch-empty">
+            Henüz komisyon kaydı bulunmuyor. Referans linkleri ile müşteri yönlendirmeleri yaptığınızda komisyon kazançlarınız burada görünecek.
           </div>
-        ))}
-      </div>
-
-      {/* Ekip ve Müşteri Özeti */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
-        {[
-          { label: "Toplam Ekip Buyuklugu", value: summary?.total_team_size ?? 0 },
-          { label: "Aktif Ekip Uyeleri", value: summary?.active_team_size ?? 0 },
-          { label: "Son 30 Günde Yeni Müşteri", value: summary?.last_30d_new_customers ?? 0 },
-          { label: "Performans Skoru", value: `${Math.round(summary?.performance_score ?? 0)} / 100` },
-        ].map(kpi => (
-          <div key={kpi.label} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 16px" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 4, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-              {kpi.label}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#1e293b" }}>{kpi.value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Komisyon Kayıtları */}
-      {report && report.entries && report.entries.length > 0 && (
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#374151", marginBottom: 10 }}>Son Komisyon Kayitlari</div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {report.entries.slice(0, 10).map(entry => (
-              <div key={entry.id} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
-                    {entry.description || entry.reference_type || "Komisyon"}
+        ) : (
+          <DataTable
+            columns={[
+              {
+                key: "description", label: "Açıklama",
+                render: (r) => (
+                  <div>
+                    <div className="ch-entry-title">{String(r.description || r.reference_type || "Komisyon")}</div>
+                    <div className="ch-entry-date">{new Date(String(r.created_at)).toLocaleDateString("tr-TR")}</div>
                   </div>
-                  <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                    {new Date(entry.created_at).toLocaleDateString("tr-TR")}
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
-                    background: entry.status === "paid" ? "#dcfce7" : entry.status === "approved" ? "#dbeafe" : "#fef9c3",
-                    color: entry.status === "paid" ? "#166534" : entry.status === "approved" ? "#1e40af" : "#92400e",
-                  }}>
-                    {entry.status === "paid" ? "Odendi" : entry.status === "approved" ? "Onaylandi" : "Bekliyor"}
+                ),
+              },
+              {
+                key: "status", label: "Durum", width: "120px",
+                render: (r) => (
+                  <span className={COMMISSION_STATUS_CLASS[String(r.status)] ?? "ch-badge"}>
+                    {COMMISSION_STATUS_LABELS[String(r.status)] ?? String(r.status)}
                   </span>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#059669" }}>{fmt(entry.amount)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(!report || !report.entries || report.entries.length === 0) && (
-        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "24px 20px", textAlign: "center" as const, color: "#94a3b8", fontSize: 14 }}>
-          Henüz komisyon kaydı bulunmuyor. Referans linkleri ile müşteri yönlendirmeleri yaptığınızda komisyon kazançlarınız burada görünecek.
-        </div>
-      )}
+                ),
+              },
+              {
+                key: "amount", label: "Tutar", align: "right",
+                render: (r) => <strong className="ch-amount">{fmt(Number(r.amount))}</strong>,
+              },
+            ]}
+            rows={entries.slice(0, 10) as unknown as Record<string, unknown>[]}
+            rowKey="id"
+          />
+        )}
+      </Section>
     </div>
   );
 }
