@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { AdminSupplierListItem, OnboardingStudioSummary } from "../../services/admin.service";
 import { resendTenantUserInvitation } from "../../services/admin.service";
 import type { AdminFocusBannerTone, AdminTabKey } from "./adminPageMeta";
+import { PageHeader, StatCard } from "./AdminTabContent";
 import "./OnboardingStudioTab.css";
 
 type OnboardingStudioTabProps = {
@@ -105,18 +106,20 @@ export function OnboardingStudioTab({
     <section className="osTab">
 
       {/* ── Header ─────────────────────────────────────────────── */}
-      <div className="osTab__header">
-        <div className="osTab__headerLeft">
-          <div className="osTab__eyebrow osTab__eyebrow--amber">Kurulum Stüdyosu</div>
-          <h2 className="osTab__title">Yeni Üyelik Onay Masası</h2>
-          <p className="osTab__desc">
-            Public kayıt formundan gelen stratejik partner ve tedarikçi başvuruları burada onaylanır.
-            Ücretli planlarda ödeme doğrulanmadan, tüm planlarda süper admin onayı verilmeden aktivasyon tamamlanmaz.
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Operasyon"
+        title="Kurulum Stüdyosu"
+        sub="Public kayıt formundan gelen stratejik partner ve tedarikçi başvuruları — ödeme ve onay akışı"
+      />
+      <div className="kpi-grid">
+        <StatCard label="Toplam Partner" value={s.tenant_count} accent="blue" sub="Kayıtlı stratejik partner" />
+        <StatCard label="Onboarding Kuyruğu" value={s.onboarding_queue_count} accent="warn" sub="Aktif işlem bekleyen" />
+        <StatCard label="Ödeme Kontrolü" value={s.payment_review_count} accent="violet" sub="Ödeme doğrulaması gerekli" />
+        <StatCard label="Onay Bekliyor" value={s.activation_approval_waiting_count} accent="slate" sub="Süper admin onayı bekleniyor" />
+        <StatCard label="Onaylandı" value={s.approved_membership_count} accent="green" sub="Aktivasyon tamamlandı" />
       </div>
 
-      {/* ── Metric strip ───────────────────────────────────────── */}
+      {/* ── Metric strip (legacy — detay satırları) ────────────── */}
       <div className="osTab__metrics">
         {[
           { label: "Toplam Stratejik Partner", value: s.tenant_count, tone: "blue" },

@@ -6,6 +6,7 @@
  *   - SLA aşım uyarısı
  */
 import { useCallback, useEffect, useState } from "react";
+import { PageHeader, StatCard } from "../../pages/admin/AdminTabContent";
 import {
   adminListSupportTickets,
   adminUpdateSupportTicket,
@@ -327,11 +328,16 @@ export function SupportTicketAdminTab() {
 
   return (
     <div className="support-ticket-admin-tab">
-      <div className="support-ticket-admin-tab__page-header">
-        <div className="support-ticket-admin-tab__title">Destek Talepleri</div>
-        <div className="support-ticket-admin-tab__subtitle">
-          Tenant kullanıcılarının platform personeline ilettiği destek talepleri.
-        </div>
+      <PageHeader
+        eyebrow="Sistem"
+        title="Destek Talepleri"
+        sub="Tenant kullanıcılarının platform personeline ilettiği destek talepleri"
+      />
+      <div className="kpi-grid kpi-grid--4">
+        <StatCard label="Açık" value={openCount} accent="blue" sub="Yanıt bekleyen talepler" />
+        <StatCard label="İşlemde" value={inProgressCount} accent="warn" sub="Aktif müdahale" />
+        <StatCard label="SLA Aşımı" value={breachedCount} accent="red" sub="Süre aşıldı" />
+        <StatCard label="Acil" value={urgentCount} accent="violet" sub="Yüksek öncelikli" />
       </div>
 
       <div className="support-ticket-admin-tab__summary-row">

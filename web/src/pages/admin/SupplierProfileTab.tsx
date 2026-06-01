@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageHeader } from "./AdminTabContent";
 import "./SupplierProfileTab.css";
 
 type DualRoleStatus = "none" | "pending" | "active" | "rejected";
@@ -45,13 +46,11 @@ export function SupplierProfileTab({
 
   return (
     <div className="spt">
-      <div className="spt__header">
-        <h2 className="spt__title">Tedarikçi Profilim</h2>
-        <p className="spt__subtitle">
-          Firmanız hem Stratejik Partner hem de Tedarikçi olarak platformda yer alabilir.
-          Dual-role aktivasyonu ile teklif akışına katılabilir, RFQ'lara yanıt verebilirsiniz.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Tedarikçi"
+        title="Tedarikçi Profilim"
+        sub="Firmanız hem Stratejik Partner hem de Tedarikçi olarak platformda yer alabilir. Dual-role aktivasyonu ile teklif akışına katılabilir, RFQ'lara yanıt verebilirsiniz."
+      />
 
       <div className="spt__card">
         <div className="spt__card-row">

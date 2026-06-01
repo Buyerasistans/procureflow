@@ -8,6 +8,7 @@ import {
   type PaginatedAdminTalentProfiles,
   type PayoutSummary,
 } from "../services/talent-admin.service";
+import { PageHeader } from "./admin/AdminTabContent";
 import "./TalentAdminControlPage.css";
 
 // ---------------------------------------------------------------------------
@@ -276,7 +277,11 @@ function TalentProfilesSection() {
 export default function TalentAdminControlPage() {
   return (
     <div className="talent-admin">
-      <h1 className="talent-admin__title">Talent Ekosistemi Kontrolü</h1>
+      <PageHeader
+        eyebrow="Kariyer & Yetenek"
+        title="Kariyer ve İş Piyasası"
+        sub="Talent profilleri, ödeme talepleri ve işveren hesaplarını merkezi olarak yönetin"
+      />
 
       <section className="talent-admin__section" aria-labelledby="talent-profiles-title">
         <h2 id="talent-profiles-title" className="talent-admin__section-title">

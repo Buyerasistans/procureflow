@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, type ChangeEvent } from "react";
 import styled from "styled-components";
+import { PageHeader } from "../pages/admin/AdminTabContent";
 import "./ApprovalDashboard.css";
 
 const Container = styled.div`
@@ -304,6 +305,11 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
 
   return (
     <Container>
+      <PageHeader
+        eyebrow="Yönetişim"
+        title="Onay Akışları"
+        sub={`${approvals.length} teklif onay beklemektedir`}
+      />
       <Header>
         <h2>📋 Onay Bekleyen Teklifler</h2>
         <p>

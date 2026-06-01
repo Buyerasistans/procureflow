@@ -3,6 +3,7 @@ import { CompanyCreateModal } from "../../components/CompanyCreateModal";
 import type { AdminSupplierListItem, Company, Tenant, TenantUser } from "../../services/admin.service";
 import { deleteAdminSupplier, updateAdminSupplierManagementDetail, updateCompany } from "../../services/admin.service";
 import { buildTenantScopeMap, resolveCompanyScope } from "../../utils/scopeResolver";
+import { PageHeader, StatCard } from "./AdminTabContent";
 
 type CompanySegment = "portal" | "partner" | "supplier" | "channel";
 
@@ -704,6 +705,16 @@ export function CompaniesTab({
 
   return (
     <div>
+      <PageHeader
+        eyebrow="Yönetişim"
+        title="Firmalar"
+        sub="Platform genelinde kayıtlı tüm firmalar — stratejik partner, tedarikçi ve iş ortağı"
+      />
+      <div className="kpi-grid kpi-grid--3">
+        <StatCard label="Aktif Firma" value={companies.filter((c) => c.is_active).length} accent="blue" sub={`${companies.filter((c) => !c.is_active).length} pasif kayıt`} />
+        <StatCard label="Tedarikçi" value={suppliers?.length ?? 0} accent="teal" sub="Platform tedarikçi havuzu" />
+        <StatCard label="Toplam Firma" value={companies.length} accent="slate" sub="Tüm segmentler dahil" />
+      </div>
       {readOnly && (
         <div style={{ marginBottom: 16, padding: 12, borderRadius: 12, background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa", fontSize: 13 }}>
           Platform personeli firma portföyünü inceleyebilir; yeni firma ekleme, düzenleme ve silme aksiyonları bu yüzeyde salt okunur moda alınmıştır.

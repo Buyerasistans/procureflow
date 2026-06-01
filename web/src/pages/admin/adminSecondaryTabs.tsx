@@ -4,15 +4,17 @@ import { canAccessAdminSurface, isSuperAdminUser } from "../../auth/permissions"
 import { useAuth } from "../../hooks/useAuth";
 import { getAccessToken } from "../../lib/token";
 import { CampaignsAdminTab } from "../../components/admin/CampaignsTab.tsx";
+import { PageHeader, StatCard } from "./AdminTabContent";
 
 export function ReportsTabContent() {
   const apiBase = import.meta.env.VITE_API_URL ?? "";
   return (
     <div style={{ padding: "24px 0" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Raporlar</h2>
-      <p style={{ color: "#6b7280", marginBottom: 20, fontSize: 14 }}>
-        RFQ karşılaştırma, tedarikçi performans ve satın alma süreci raporlarınızı görüntüleyin.
-      </p>
+      <PageHeader
+        eyebrow="Sistem"
+        title="Raporlar"
+        sub="RFQ karşılaştırma, tedarikçi performans ve satın alma süreci raporları"
+      />
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
         <a
           href="/quotes"
@@ -458,8 +460,18 @@ export function PlatformSuppliersTab() {
 
   return (
     <div style={{ padding: "24px 0" }}>
+      <PageHeader
+        eyebrow="Operasyon"
+        title="Platform Tedarikçi Havuzu"
+        sub="Platform genelinde kayıtlı tedarikçi firmaları ve profil bilgileri"
+      />
+      <div className="kpi-grid kpi-grid--2">
+        <StatCard label="Toplam Tedarikçi" value={suppliers.length} accent="blue" sub="Kayıtlı tedarikçi firmalar" />
+        {/* TODO(data): aktif/pasif ayrımı — tedarikçi havuzu servisine is_active alanı eklenecek */}
+        <StatCard label="Yükleniyor" value={loading ? "…" : suppliers.length} accent="slate" sub="Havuz durumu" />
+      </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Platform Tedarikçi Havuzu</h2>
+        <div />
         {canCreate ? (
           <button
             onClick={() => setShowForm(!showForm)}
@@ -568,13 +580,11 @@ export function PublicPricingTab() {
 
   return (
     <div style={{ padding: "24px 0" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Public Fiyatlandırma Yönetimi</h2>
-        <div style={{ fontSize: 12, color: "#64748b" }}>Yetki: {canWritePricing ? "Yazma" : "Salt Okuma"}</div>
-      </div>
-      <p style={{ marginTop: 0, color: "#64748b", fontSize: 13 }}>
-        Bu konfigürasyon public `/fiyatlandirma` sayfasında Stratejik Partner ve Tedarikçi planlarını belirler.
-      </p>
+      <PageHeader
+        eyebrow="Ticari"
+        title="Genel Fiyatlandırma"
+        sub={`Public /fiyatlandırma sayfası plan konfigürasyonu · Yetki: ${canWritePricing ? "Yazma" : "Salt Okuma"}`}
+      />
 
       {loadingConfig ? (
         <div style={{ color: "#6b7280" }}>Yukleniyor...</div>

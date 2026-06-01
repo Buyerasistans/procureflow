@@ -6,6 +6,7 @@ import { deleteProject, getProjects } from "../services/project.service";
 import type { Company } from "../services/admin.service";
 import type { Project } from "../types/project";
 import { getShortCompanyName } from "../utils/companyDisplay";
+import { PageHeader, StatCard } from "../pages/admin/AdminTabContent";
 import { ProjectCreateModal } from "./ProjectCreateModal";
 import "./ProjectsTab.css";
 
@@ -151,6 +152,15 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
 
   return (
     <div className="projects-tab">
+      <PageHeader
+        eyebrow="Yönetişim"
+        title="Projeler"
+        sub="Platform genelinde kayıtlı tüm proje portföyü"
+      />
+      <div className="kpi-grid kpi-grid--2">
+        <StatCard label="Toplam Proje" value={projects.length} accent="blue" sub={`${companies.length} firma dahil`} />
+        <StatCard label="Firma Sayısı" value={companies.length} accent="teal" sub="Proje sahibi firmalar" />
+      </div>
       {readOnly && (
         <div className="projects-tab__read-only-note">
           Platform personeli proje portföyünü inceleyebilir; yeni proje ekleme ve silme aksiyonları bu yüzeyde kapatıldı.

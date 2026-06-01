@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAccessToken } from "../../lib/token";
+import { PageHeader } from "./AdminTabContent";
 import "./PlatformAnalyticsTab.css";
 
 type MetricCard = {
@@ -167,9 +168,11 @@ export function PlatformAnalyticsTab() {
 
   return (
     <section className="platform-analytics-tab">
-      <div>
-        <h2 className="platform-analytics-tab__title">📊 Platform Analitikleri</h2>
-      </div>
+      <PageHeader
+        eyebrow="Platform Analitikleri"
+        title="Platform Analitikleri"
+        sub="Ziyaretçi trafiği, sayfa görüntülemeleri ve dönüşüm metrikleri"
+      />
 
       <div className="platform-analytics-tab__metric-grid">
         {renderMetricCards(metricCards)}

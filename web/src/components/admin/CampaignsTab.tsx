@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PageHeader, StatCard } from "../../pages/admin/AdminTabContent";
 
 import {
   applyCampaignGrant,
@@ -180,13 +181,17 @@ export function CampaignsAdminTab() {
 
   return (
     <div className="campaigns-admin-tab">
+      <PageHeader
+        eyebrow="Ticari"
+        title="Kampanyalar & Landing"
+        sub="Kampanya programları, ödeme sağlayıcıları ve grant yönetimi"
+      />
+      <div className="kpi-grid kpi-grid--2">
+        <StatCard label="Kampanya Programı" value={campaigns.length} accent="blue" sub="Aktif kampanya tanımları" />
+        <StatCard label="Ödeme Sağlayıcı" value={providers.length} accent="teal" sub="Entegre ödeme sağlayıcıları" />
+      </div>
       <div className="campaigns-admin-tab__header">
-        <div>
-          <h2 className="campaigns-admin-tab__title">Kampanyalar ve ?deme Ayarlar?</h2>
-          <p className="campaigns-admin-tab__description">
-            Ödeme sağlayıcılarının aktif/pasif ve credential ayarlarını yönetin; pasif olanlar ödeme ekranına düşmez.
-          </p>
-        </div>
+        <div />
         <button
           type="button"
           onClick={() => void loadData()}

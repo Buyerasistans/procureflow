@@ -474,6 +474,14 @@
   background: var(--pf-slate-300);
 }
 
+.personnel-tab__person-button--teal {
+  background: #0d9488;
+}
+
+.personnel-tab__person-button--teal:hover:not(:disabled) {
+  background: #0f766e;
+}
+
 .personnel-tab__person-button:disabled {
   cursor: not-allowed;
 }

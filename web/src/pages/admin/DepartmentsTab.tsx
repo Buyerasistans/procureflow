@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { DepartmentCreateModal } from "../../components/DepartmentCreateModal";
 import { deleteDepartment, updateDepartment } from "../../services/admin.service";
 import type { CatalogRequest, Department } from "../../services/admin.service";
+import { PageHeader, StatCard } from "./AdminTabContent";
 
 interface DepartmentsTabProps {
   departments: Department[];
@@ -72,6 +73,15 @@ export function DepartmentsTab({
 
   return (
     <div style={{ display: 'grid', gap: 20 }}>
+      <PageHeader
+        eyebrow="Yönetişim"
+        title="Departmanlar"
+        sub="Organizasyon yapısı — departman kataloğu ve onay akışı"
+      />
+      <div className="kpi-grid kpi-grid--2">
+        <StatCard label="Toplam Departman" value={departments.length} accent="blue" sub="Katalogdaki aktif departmanlar" />
+        <StatCard label="Bekleyen Talep" value={catalogRequests?.filter((r) => r.review_status === "pending_review").length ?? 0} accent="warn" sub="Onay kuyruğundaki yeni departman talepleri" />
+      </div>
       {onCreateDepartmentRequest && !readOnly && (
         <section style={{ borderRadius: 18, border: '1px solid #dbeafe', background: '#f8fbff', padding: 16, display: 'grid', gap: 12 }}>
           <div>

@@ -1,20 +1,5 @@
-import type {
-  BillingInvoice,
-  BillingWebhookEvent,
-  CommercialRequestItem,
-  SubscriptionAddonAdminItem,
-  SubscriptionTenantUsage,
-  TenantSubscription,
-} from '../../services/admin.service';
+import { PageHeader } from './AdminTabContent';
 import './PackagesTab.css';
-
-type AdminPackageRow =
-  | SubscriptionTenantUsage
-  | TenantSubscription
-  | BillingInvoice
-  | BillingWebhookEvent
-  | SubscriptionAddonAdminItem
-  | CommercialRequestItem;
 
 const PACKAGE_STATUS_OPTIONS = [
   'All statuses',
@@ -39,7 +24,6 @@ const PACKAGE_SORT_OPTIONS = [
   'Tenant name',
 ] as const;
 
-const EMPTY_ROWS: ReadonlyArray<AdminPackageRow> = [];
 
 type PackagesTabProps = Record<string, unknown>;
 
@@ -51,22 +35,11 @@ export function PackagesTab(props: PackagesTabProps) {
 
   return (
     <div className="packages-tab">
-      <header className="packages-tab__header">
-        <div>
-          <h2 className="packages-tab__title">Packages</h2>
-          <p className="packages-tab__description">
-            Review subscriptions, invoices, webhooks, add-ons, and commercial requests from one
-            place.
-          </p>
-        </div>
-
-        <div className="packages-tab__header-meta">
-          <span className="packages-tab__badge">Admin only</span>
-          <span className="packages-tab__badge packages-tab__badge--muted">
-            {EMPTY_ROWS.length} records loaded
-          </span>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Ticari"
+        title="Paket & Kullanım"
+        sub="Abonelikler, faturalar, webhook'lar, eklentiler ve ticari talepler"
+      />
 
       <section className="packages-tab__toolbar" aria-labelledby="packages-tab-filters-title">
         <h3 id="packages-tab-filters-title" className="packages-tab__section-title">

@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import PersonnelDetailModal from "../../components/PersonnelDetailModal";
 import { PersonnelCreateModal } from "../../components/PersonnelCreateModal";
+import { PageHeader, StatCard } from "./AdminTabContent";
 import type { Company, Role, Tenant, TenantUser } from "../../services/admin.service";
 import type { TenantUsersQueryParams } from "../../services/admin.service";
 import {
@@ -14,8 +15,10 @@ import {
   type AdminSupplierListItem,
   type AdminSupplierUserListItem,
 } from "../../services/admin.service";
-import { getPersonnelRolePermissionMatrix, getRoleLabel } from "../../auth/permissions";
+import { getPersonnelRolePermissionMatrix, getRoleLabel, isSuperAdminUser } from "../../auth/permissions";
 import { buildTenantScopeMap, resolvePersonnelScope as resolvePersonnelScopeByMap } from "../../utils/scopeResolver";
+import { http } from "../../lib/http";
+import { useAuth } from "../../hooks/useAuth";
 import "./PersonnelTab.css";
 
 interface PersonnelTabProps {
@@ -60,6 +63,8 @@ type SupplierPersonnelGroup = {
 
 export function PersonnelTab(props: PersonnelTabProps) {
   const { personnel, roles, companies = [], loadData, readOnly = false, isChannelUser = false, tenants = [] } = props;
+  const { user: authUser } = useAuth();
+  const canOpenPanel = isSuperAdminUser(authUser);
   const PLATFORM_SUPER_ADMIN_EMAIL = "superadmin@buyerasistans.com.tr";
   const segmentStorageKey = isChannelUser ? "procureflow.personnel.segment.channel" : "procureflow.personnel.segment.admin";
 
@@ -87,6 +92,26 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const [loadingPersonId, setLoadingPersonId] = useState<number | null>(null);
   const [supplierReloadNonce, setSupplierReloadNonce] = useState(0);
   const [notice, setNotice] = useState<NoticeState>(null);
+  const [openingPanelId, setOpeningPanelId] = useState<number | null>(null);
+
+  const openPersonnelPanel = useCallback(async (person: TenantUser) => {
+    setOpeningPanelId(person.id);
+    try {
+      const res = await http.post<{ access_token: string; user: Record<string, unknown> }>(
+        `/auth/impersonate/${person.id}`,
+      );
+      const { access_token, user } = res.data;
+      // btoa only handles Latin-1; encode to URI percent-encoding first for Turkish chars
+      const userB64 = btoa(encodeURIComponent(JSON.stringify(user)));
+      const displayName = encodeURIComponent(String(user.full_name || user.email || person.email));
+      const url = `/view-as#t=${access_token}&u=${userB64}&n=${displayName}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      setNotice({ type: "error", text: "Panel açılamadı. Lütfen tekrar deneyin." });
+    } finally {
+      setOpeningPanelId(null);
+    }
+  }, []);
 
   const normalizeTrText = useCallback((value?: string | null): string => {
     if (!value) return "";
@@ -645,7 +670,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const renderPersonActionButton = useCallback(
     (
       label: string,
-      variant: "indigo" | "blue" | "red" | "gray",
+      variant: "indigo" | "blue" | "red" | "gray" | "teal",
       onClick: () => void,
       disabled?: boolean,
     ) => (
@@ -710,6 +735,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
               loadingPersonId === tenantPerson.id,
             )}
 
+            {canOpenPanel && renderPersonActionButton(
+              openingPanelId === tenantPerson.id ? "Açılıyor..." : "Paneli Aç ↗",
+              "teal",
+              () => { void openPersonnelPanel(tenantPerson); },
+              openingPanelId === tenantPerson.id,
+            )}
+
             {!readOnly ? (
               <>
                 {renderPersonActionButton(
@@ -733,9 +765,12 @@ export function PersonnelTab(props: PersonnelTabProps) {
       );
     },
     [
+      canOpenPanel,
       getSystemRoleLabelForPerson,
       loadingPersonId,
       normalizeTrText,
+      openPersonnelPanel,
+      openingPanelId,
       readOnly,
       removePersonnel,
       renderPersonActionButton,
@@ -813,6 +848,16 @@ export function PersonnelTab(props: PersonnelTabProps) {
 
   return (
     <div className="personnel-tab">
+      <PageHeader
+        eyebrow="Yönetişim"
+        title="Ekip Üyeleri"
+        sub="Platform genelinde kayıtlı tüm kullanıcılar — rol, atama ve iletişim bilgileri"
+      />
+      <div className="kpi-grid kpi-grid--3">
+        <StatCard label="Aktif Personel" value={personnel.filter((p) => p.is_active).length} accent="blue" sub={`${personnel.filter((p) => !p.is_active).length} pasif kayıt`} />
+        <StatCard label="Toplam Kullanıcı" value={personnel.length} accent="slate" sub="Tüm segmentler dahil" />
+        <StatCard label="Rol Sayısı" value={roles.length} accent="teal" sub="Tanımlı rol kataloğu" />
+      </div>
       {notice ? <div className={`personnel-tab__notice personnel-tab__notice--${notice.type}`}>{notice.text}</div> : null}
 
       {readOnly ? (

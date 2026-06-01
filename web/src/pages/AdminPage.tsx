@@ -23,6 +23,7 @@ import { SupplierProfileTab } from "./admin/SupplierProfileTab";
 import { SettingsTab } from "../components/SettingsTab";
 import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
 import { ApprovalDashboard } from "../components/ApprovalDashboard";
+import { PageHeader, StatCard } from "./admin/AdminTabContent";
 
 import { getAccessToken } from "../lib/token";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -4060,6 +4061,16 @@ export default function AdminPage() {
         </div>
       )}
 
+      {activeTab === "panel_home" && (
+        <div className="atc-page--header">
+          <PageHeader
+            eyebrow="Platform Yönetim Alanı"
+            title="Panel Ana Sayfa"
+            sub="Workspace özeti, hızlı linkler ve operasyon kuyruğu"
+          />
+        </div>
+      )}
+
       {/* ScopeWorkspaceHome - panel_home en uste */}
       {activeTab === "panel_home" && (
         <section className="admin-page__section">
@@ -4234,6 +4245,31 @@ export default function AdminPage() {
         </section>
       )}
 
+
+      {activeTab === "platform_overview" && (
+        <div className="atc-page--header">
+          <PageHeader
+            eyebrow="Genel"
+            title="Platform Genel Bakış"
+            sub="Finans, partner sağlığı ve operasyon metrikleri"
+          />
+          <div className="kpi-grid">
+            {/* TODO(data): MRR — finans/fatura servisi gerekli */}
+            <StatCard label="MRR" value="—" sub="TODO(data): finans servisi" accent="blue" />
+            {/* TODO(data): ARR — finans/fatura servisi gerekli */}
+            <StatCard label="ARR" value="—" sub="TODO(data): finans servisi" accent="gold" />
+            <StatCard
+              label="Aktif Partner"
+              value={tenants.filter((t) => t.is_active).length}
+              sub={`${tenants.filter((t) => !t.is_active).length} pasif kayıt`}
+            />
+            {/* TODO(data): Churn — abonelik geçmişi servisi gerekli */}
+            <StatCard label="Churn (30 gün)" value="—" unit="%" sub="TODO(data): abonelik servisi" accent="green" />
+            {/* TODO(data): SLA — izleme/uptime servisi gerekli */}
+            <StatCard label="SLA Sağlık" value="—" unit="%" sub="TODO(data): izleme servisi" accent="green" />
+          </div>
+        </div>
+      )}
 
       {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (
         <section className="admin-page__grid">
@@ -4908,6 +4944,19 @@ export default function AdminPage() {
       })()}
 
       {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="AI & Keşif" title="Discovery Lab Operasyonları" sub="Answer audit ve RFQ bağlantı merkezi — Discovery Lab operasyon masası" />
+          <div className="kpi-grid">
+            <StatCard label="Toplam Oturum" value={discoveryLabSummary.total_sessions} accent="blue" />
+            <StatCard label="Quote Hazır" value={discoveryLabSummary.quote_ready_sessions} accent="green" />
+            <StatCard label="Kilitli Oturum" value={discoveryLabSummary.locked_sessions} accent="warn" />
+            <StatCard label="Aktif Proje" value={discoveryLabSummary.active_project_count} accent="violet" />
+            <StatCard label="Toplam Audit" value={discoveryLabSummary.answer_audit_count} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           <div className="admin-page__panel-card admin-page__panel-card--stacked">
             <div className="admin-page__discovery-title">Discovery Lab Operasyon Masası</div>
@@ -5537,6 +5586,12 @@ export default function AdminPage() {
       )}
 
       {activeTab === "tenant_governance" && canViewPlatformGovernance && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="Yönetişim" title="Tenant Yönetişimi" sub="Stratejik partner açılışı, onboarding şablonları ve yaşam döngüsü yönetimi" />
+        </div>
+      )}
+
+      {activeTab === "tenant_governance" && canViewPlatformGovernance && (
         <TenantGovernanceTab
           canEditTenantGovernance={canEditTenantGovernance}
           tenantMessage={tenantMessage}
@@ -5788,6 +5843,12 @@ export default function AdminPage() {
 
       {/* Suppliers Tab */}
       {activeTab === "suppliers" && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="Tedarik" title="Tedarikçiler" sub="Özel ve global tedarikçi listesi, mail hesapları ve kategori etiketleri" />
+        </div>
+      )}
+
+      {activeTab === "suppliers" && (
         <SuppliersTab />
       )}
 
@@ -5816,6 +5877,12 @@ export default function AdminPage() {
       {activeTab === "settings" && <SettingsTab />}
 
       {activeTab === "panel_designer" && (isSuperAdminUser(user) || canUseSelfPanelDesigner) && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="Platform" title="Panel Tasarımcısı" sub="Rol bazlı panel şablonlarını, sekme görünürlüğünü ve renk temalarını düzenleyin" />
+        </div>
+      )}
+
+      {activeTab === "panel_designer" && (isSuperAdminUser(user) || canUseSelfPanelDesigner) && (
         <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
           <WorkspacePanelDesignerTab
             key={JSON.stringify(mergedWorkspacePanelConfig)}
@@ -5836,6 +5903,12 @@ export default function AdminPage() {
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             {isChannelUser ? <ChannelReportsTabContent /> : <ReportsTabContent />}
           </Suspense>
+        )}
+
+        {activeTab === "mail" && (
+          <div className="atc-page--header">
+            <PageHeader eyebrow="Sistem" title="E-posta & Gelişmiş Ayarlar" sub="E-posta profilleri, API anahtarları, yedek ve bildirim ayarları" />
+          </div>
         )}
 
         {activeTab === "mail" && (

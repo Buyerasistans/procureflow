@@ -9,6 +9,7 @@ import { getQuotePriceRules, updateQuotePriceRules, type QuotePriceRules } from 
 import { getMyTenantPremiumPurchaseContext, type TenantPremiumPurchaseContext } from "../services/payment.service";
 import { useAuth } from "../hooks/useAuth";
 import { canManageTenantIdentitySettings, getUserScopeType, isTenantOwnerUser } from "../auth/permissions";
+import { PageHeader } from "../pages/admin/AdminTabContent";
 
 type TabType = "basic" | "advanced" | "demo" | "price_rules" | "premium";
 
@@ -151,18 +152,16 @@ export const SettingsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">{isChannelWorkspace ? "E-posta Ayarlari" : "Sistem Ayarları"}</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          {isChannelWorkspace ? "Mail gönderim profilinizi ve sistem mailbox ayarlarınızı yönetin" : "Uygulamanın ayarlarını yönetin"}
-        </p>
-        {!isChannelWorkspace && !canEditTenantIdentity && (
-          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Bu alanda tenant kimliği ve temel ayarlar salt okunur gösterilir. Değişiklik yapmak için tenant owner veya super admin hesabı gerekir.
-          </div>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Sistem"
+        title={isChannelWorkspace ? "E-posta Ayarları" : "Sistem Ayarları"}
+        sub={isChannelWorkspace ? "Mail gönderim profilinizi ve sistem mailbox ayarlarınızı yönetin" : "Uygulamanın temel ve gelişmiş ayarlarını yönetin"}
+      />
+      {!isChannelWorkspace && !canEditTenantIdentity && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Bu alanda tenant kimliği ve temel ayarlar salt okunur gösterilir. Değişiklik yapmak için tenant owner veya super admin hesabı gerekir.
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="flex gap-3 border-b-2 border-gray-200 pb-3 overflow-x-auto">

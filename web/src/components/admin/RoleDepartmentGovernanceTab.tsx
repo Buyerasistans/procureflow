@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import type { AuthUser } from "../../context/auth-types";
 import { getUserScopeType, isPlatformStaffUser, isSuperAdminUser } from "../../auth/permissions";
+import { PageHeader, StatCard } from "../../pages/admin/AdminTabContent";
 import {
   applyCatalogMerge,
   createDepartment,
@@ -932,6 +933,15 @@ export function RoleDepartmentGovernanceTab({
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
+      <PageHeader
+        eyebrow="Yönetişim"
+        title="Roller & Yetkiler"
+        sub="Scope ayrışmalı rol ve departman kataloğu — platform, partner, tedarikçi, kanal"
+      />
+      <div className="kpi-grid kpi-grid--2">
+        <StatCard label="Toplam Rol" value={roles.length} accent="blue" sub="Katalogdaki rol tanımları" />
+        <StatCard label="Toplam Departman" value={departments.length} accent="teal" sub="Katalogdaki departman tanımları" />
+      </div>
       <section style={{ borderRadius: 16, border: `1px solid ${sectionColor}33`, background: "#f8fafc", padding: 14, display: "grid", gap: 10 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {visibleScopes.map((scope) => (

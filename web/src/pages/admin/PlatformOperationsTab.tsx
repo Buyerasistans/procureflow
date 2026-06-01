@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
 import type { AdminFocusBannerTone, AdminTabKey } from "./adminPageMeta";
 import type { Tenant } from "../../services/admin.service";
+import { PageHeader, StatCard } from "./AdminTabContent";
 import "./PlatformOperationsTab.css";
 
 type PlatformOpsStatus = "new" | "in_progress" | "waiting_owner" | "resolved";
@@ -202,6 +203,17 @@ export function PlatformOperationsTab({
 
   return (
     <section className="platform-operations-tab">
+      <PageHeader
+        eyebrow="Operasyon"
+        title="Platform Operasyonları"
+        sub="Tenant destek kuyruğu, sorumlu atama ve kapanış takibi"
+      />
+      <div className="kpi-grid kpi-grid--4">
+        <StatCard label="Yeni" value={platformOpsStatusSummary.new} sub="Henüz işleme alınmadı" accent="blue" />
+        <StatCard label="İşlemde" value={platformOpsStatusSummary.in_progress} sub="Aktif müdahale" accent="warn" />
+        <StatCard label="Owner Bekliyor" value={platformOpsStatusSummary.waiting_owner} sub="Geri dönüş bekleniyor" accent="violet" />
+        <StatCard label="Çözüldü" value={platformOpsStatusSummary.resolved} sub="Kapanış nedeni girildi" accent="green" />
+      </div>
       {activePlatformOpsFocusSummary.length > 0
         ? renderAdminFocusBanner({
             eyebrow: "Filtre Özeti",
