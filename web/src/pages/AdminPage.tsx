@@ -766,6 +766,10 @@ const DeploymentPanel = lazy(async () => ({
   default: (await import("../components/admin/DeploymentPanel")).DeploymentPanel,
 }));
 
+const TalentAdminControlPage = lazy(async () => ({
+  default: (await import("./TalentAdminControlPage")).default,
+}));
+
 export default function AdminPage() {
   const { user } = useAuth();
   const { locale } = useLocale();
@@ -5954,6 +5958,13 @@ export default function AdminPage() {
         {activeTab === "commission_admin" && (
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <CommissionAdminTab />
+          </Suspense>
+        )}
+
+        {/* Kariyer Yönetimi Tab */}
+        {activeTab === "kariyer_yonetimi" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <TalentAdminControlPage />
           </Suspense>
         )}
 
