@@ -12,7 +12,8 @@ import { UpgradeExtrasWorkspace } from "./admin/UpgradeExtrasWorkspace";
 import { renderTabIconBadge, translateServiceLabel } from "./admin/adminPageMeta";
 import type { AdminFocusBannerTone, AdminTabKey, TabConfig } from "./admin/adminPageMeta";
 import { useAuth } from "../hooks/useAuth";
-import { canAccessAdminSurface, canAccessProcurementSettings, canAccessWorkspacePanel, canManageRoleCatalog, canManageTenantGovernance, getUserDisplayRoleLabel, isPlatformStaffUser, isSuperAdminUser, isTenantAdminUser, resolveApprovalRoleLabel } from "../auth/permissions";
+import ImpersonationBanner from "../components/ImpersonationBanner";
+import { canAccessAdminSurface, canAccessProcurementSettings, canAccessWorkspacePanel, canManageRoleCatalog, canManageTenantGovernance, getUserDisplayRoleLabel, isIkAdminUser, isPlatformStaffUser, isSuperAdminUser, isTenantAdminUser, resolveApprovalRoleLabel } from "../auth/permissions";
 import { ProjectsTab } from "../components/ProjectsTab";
 import { RoleDepartmentGovernanceTab } from "../components/admin/RoleDepartmentGovernanceTab";
 import { OnboardingStudioTab } from "./admin/OnboardingStudioTab";
@@ -1011,6 +1012,7 @@ export default function AdminPage() {
   const canViewPlatformGovernance = isPlatformStaff || isSuperAdminUser(user);
   const canViewPackagesTab = isSuperAdminUser(user);
   const canViewSupplierProfileTab = isTenantAdminUser(user) && !canViewPlatformGovernance;
+  const canViewKariyerYonetimiTab = isSuperAdminUser(user) || isIkAdminUser(user);
   const canViewSettingsTab = canAccessProcurementSettings(user);
   const showSettingsWorkspaceLinks = !canViewPlatformGovernance && (canViewSettingsTab || isChannelUser);
   const isLocalhostRuntime = typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
@@ -2933,6 +2935,15 @@ export default function AdminPage() {
         : []),
     ];
 
+    if (canViewKariyerYonetimiTab) {
+      baseTabs.push({
+        key: "kariyer_yonetimi" as const,
+        label: "Kariyer ve İş Piyasası",
+        icon: "ILN",
+        description: "İş ilanları, talent profilleri ve işveren hesaplarını merkezi olarak yönetin.",
+      });
+    }
+
     if (canViewSupplierProfileTab) {
       baseTabs.push({
         key: "supplier_profile" as const,
@@ -2965,6 +2976,7 @@ export default function AdminPage() {
       show_settings_workspace_links: showSettingsWorkspaceLinks,
       can_use_panel_designer: Boolean(isSuperAdminUser(user) || activeWorkspacePanelProfile?.allow_user_self_customization),
       can_view_supplier_profile_tab: canViewSupplierProfileTab,
+      can_view_kariyer_yonetimi_tab: canViewKariyerYonetimiTab,
     }) as AdminTabKey[]);
     const policyFilteredTabs = baseTabs.filter((tab) => policyVisibleTabKeys.has(tab.key));
 
@@ -2973,8 +2985,8 @@ export default function AdminPage() {
     }
 
     const allowedTabs = new Set(activeWorkspacePanelProfile.allowed_tabs as AdminTabKey[]);
-    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer" || tab.key === "supplier_profile");
-  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, canViewSupplierProfileTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
+    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer" || tab.key === "supplier_profile" || tab.key === "kariyer_yonetimi");
+  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewKariyerYonetimiTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, canViewSupplierProfileTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
 
   const shouldLoadAdminWorkspaceData = useMemo(
     () => tabConfigs.some((item) => WORKSPACE_PANEL_DATA_TABS.has(item.key as WorkspacePanelTabKey)),
@@ -4031,6 +4043,19 @@ export default function AdminPage() {
 
   return (
     <div className="admin-page">
+      <ImpersonationBanner />
+
+      {isSuperAdminUser(user) && (
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 16px", background: "#faf5ff", borderBottom: "1px solid #e9d5ff" }}>
+          <button
+            type="button"
+            onClick={() => navigate("/rol-matrisi")}
+            style={{ background: "#7c3aed", color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer" }}
+          >
+            🔐 Rol & İzin Matrisi
+          </button>
+        </div>
+      )}
 
       {/* ScopeWorkspaceHome - panel_home en uste */}
       {activeTab === "panel_home" && (
@@ -5540,6 +5565,11 @@ export default function AdminPage() {
           handleEditTenant={handleEditTenant}
           handleTenantStatusAction={handleTenantStatusAction}
           handleDeleteTenant={handleDeleteTenant}
+          companies={companies}
+          subscriptionCatalog={subscriptionCatalog}
+          navigateAdminTab={(tab, tenantId) =>
+            navigateAdminTab(tab as AdminTabKey, tenantId != null ? { tenantFocusId: String(tenantId) } : undefined)
+          }
         />
       )}
 
@@ -5727,6 +5757,7 @@ export default function AdminPage() {
             canManage={canAccessRoleCatalog}
             isSuperAdmin={isSuperAdminUser(user)}
             currentUser={user}
+            suppliers={tenantGovernanceSuppliers}
           />
         </section>
       )}

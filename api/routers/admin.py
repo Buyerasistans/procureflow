@@ -7355,6 +7355,8 @@ async def list_platform_suppliers(
             "city": s.city,
             "is_active": s.is_active,
             "source_type": s.source_type,
+            "dual_role_status": s.dual_role_status,
+            "linked_tenant_id": s.linked_tenant_id,
             "created_at": s.created_at.isoformat() if s.created_at else None,
         }
         for s in suppliers
@@ -7460,6 +7462,8 @@ async def list_tenant_suppliers(
             "city": s.city,
             "is_active": s.is_active,
             "source_type": s.source_type,
+            "dual_role_status": s.dual_role_status,
+            "linked_tenant_id": s.linked_tenant_id,
             "tenant_id": s.tenant_id,
             "inviter_company_name": inviter_company_name,
             "special_listing_active": special_listing_active,

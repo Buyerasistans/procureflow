@@ -374,6 +374,8 @@ export interface AdminSupplierListItem {
   tenant_name?: string | null;
   inviter_company_name?: string | null;
   special_listing_active?: boolean;
+  dual_role_status?: string | null;
+  linked_tenant_id?: number | null;
 }
 
 export interface AdminSupplierUserListItem {
