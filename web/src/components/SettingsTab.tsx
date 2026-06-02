@@ -7,7 +7,7 @@ import type { SettingsUpdatePayload } from "../services/settings.service";
 import { getQuotePriceRules, updateQuotePriceRules, type QuotePriceRules } from "../services/admin.service";
 import { getMyTenantPremiumPurchaseContext, type TenantPremiumPurchaseContext } from "../services/payment.service";
 import { useAuth } from "../hooks/useAuth";
-import { canManageTenantIdentitySettings, getUserScopeType, isTenantOwnerUser } from "../auth/permissions";
+import { canManageTenantIdentitySettings, getUserScopeType, isSuperAdminUser, isTenantOwnerUser } from "../auth/permissions";
 import { PageHeader } from "../pages/admin/AdminTabContent";
 import "./SettingsTab.css";
 
@@ -197,6 +197,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
   const isChannelWorkspace = getUserScopeType(user) === "channel";
   const isTenantOwner = isTenantOwnerUser(user);
   const canEditTenantIdentity = canManageTenantIdentitySettings(user);
+  const isSuperAdmin = isSuperAdminUser(user);
 
   const defaultGroup: SettingsGroupCode = isChannelWorkspace ? "email" : "basic";
   const [activeGroup, setActiveGroup] = useState<SettingsGroupCode>(defaultGroup);
@@ -401,7 +402,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
                     </div>
                   </div>
                 </div>
-                {onNavigate && (
+                {onNavigate && isSuperAdmin && (
                   <div className="st-row">
                     <div className="st-row__label">
                       <label>Navigasyon Yönetimi</label>
