@@ -29,23 +29,12 @@ import {
 import type { StatusLog } from "../services/quote.service";
 import { useAuth } from "../hooks/useAuth";
 import { canAccessAdminSurface, canManageQuoteWorkspace, isPlatformStaffUser, isProcurementUser, normalizedBusinessRole, resolveApprovalBusinessRole, resolveApprovalRoleLabel } from "../auth/permissions";
-import { QuoteStatusLabel, QuoteStatusColor, normalizeQuoteStatus } from "../types/quote.types";
+import { QuoteStatusLabel, normalizeQuoteStatus, type QuoteStatus } from "../types/quote.types";
 import { getSettings } from "../services/settings.service";
 import { SupplierQuotesGroupedView } from "../components/SupplierQuotesGroupedView";
 import { ReviseRequestModal } from "../components/ReviseRequestModal";
 import { ReviseSubmitModal } from "../components/ReviseSubmitModal";
-
-const IS = {
-  inp: {
-    width: "100%", padding: "7px 9px", border: "1px solid #d1d5db",
-    borderRadius: "5px", fontSize: "14px", boxSizing: "border-box" as const,
-  },
-  cellInp: {
-    width: "100%", padding: "4px 6px", border: "1px solid #d1d5db",
-    borderRadius: "4px", fontSize: "13px", boxSizing: "border-box" as const,
-  },
-  label: { display: "block", fontSize: "13px", fontWeight: 600, marginBottom: "4px", color: "#374151" } as React.CSSProperties,
-};
+import "./QuoteDetailPage.css";
 
 const EMPTY_ITEM = (): QuoteItemPayload => ({
   line_number: "", category_code: "", category_name: "",
@@ -168,6 +157,11 @@ const renumberItems = (rows: QuoteItemPayload[]): QuoteItemPayload[] => {
   });
 };
 
+function quoteStatusBadgeClass(status: QuoteStatus, isReviewBack: boolean): string {
+  if (isReviewBack) return "qdp-status-badge qdp-status-badge--review-back";
+  return `qdp-status-badge qdp-status-badge--${status}`;
+}
+
 export default function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -191,8 +185,7 @@ export default function QuoteDetailPage() {
   const [actionReason, setActionReason] = useState("");
   const [collapsedEditGroups, setCollapsedEditGroups] = useState<Record<string, boolean>>({});
   const [collapsedViewGroups, setCollapsedViewGroups] = useState<Record<string, boolean>>({});
-  
-  // Revize sistemi state'leri
+
   const [supplierQuotes, setSupplierQuotes] = useState<SupplierQuotesGrouped[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
   const [supplierActionLoading, setSupplierActionLoading] = useState(false);
@@ -274,8 +267,7 @@ export default function QuoteDetailPage() {
       setAuditTrail(audit);
       const approvals = await getRfqPendingApprovals(Number(id));
       setPendingApprovals(Array.isArray(approvals) ? approvals : []);
-      
-      // Supplier quotes'ı fetch et
+
       try {
         setLoadingSuppliers(true);
         const suppliers = await getSupplierQuotesGrouped(Number(id));
@@ -437,7 +429,6 @@ export default function QuoteDetailPage() {
         title: editData.title,
         description: editData.description || undefined,
       });
-      // Kalem değişikliği varsa kaydet
       const validItems = editItems
         .filter((it) => it.description.trim() || it.line_number.trim())
         .map((it) => {
@@ -534,13 +525,12 @@ export default function QuoteDetailPage() {
     }
   }, [quote, user, searchParams, location.pathname, readOnly]);
 
-  if (loading) return <div style={{ textAlign: "center", padding: 20 }}>Yükleniyor...</div>;
-  if (!quote) return <div style={{ textAlign: "center", padding: 20 }}>Teklif bulunamadı</div>;
+  if (loading) return <div className="qdp-centered">Yükleniyor...</div>;
+  if (!quote) return <div className="qdp-centered">Teklif bulunamadı</div>;
 
   const quoteStatus = normalizeQuoteStatus(quote.status);
   const isReviewBackDraft = quoteStatus === "draft" && String(quote.transition_reason || "").toLowerCase().startsWith("hata ve eksikler var");
   const displayStatusLabel = isReviewBackDraft ? "İade Edildi (Gözden Geçirme)" : QuoteStatusLabel[quoteStatus];
-  const displayStatusColor = isReviewBackDraft ? "#fee2e2" : QuoteStatusColor[quoteStatus];
   const approvalsCompleted = String(quote.transition_reason || "").toLowerCase().includes("gönderim onayları tamamlandı");
   const sentToSuppliers = Boolean(quote.sent_at);
   const isOwner = user?.id === quote.created_by_id;
@@ -677,9 +667,9 @@ export default function QuoteDetailPage() {
 
     if (lines.length === 0) return null;
     return (
-      <ul style={{ margin: "6px 0 0 16px", padding: 0, color: "#475569", fontSize: "12px" }}>
+      <ul className="qdp-timeline-ul">
         {lines.map((line, i) => (
-          <li key={`${event.type}-${i}`} style={{ marginBottom: "2px" }}>{line}</li>
+          <li key={`${event.type}-${i}`} className="qdp-timeline-li">{line}</li>
         ))}
       </ul>
     );
@@ -719,7 +709,7 @@ export default function QuoteDetailPage() {
       });
       clearRevisionActionParams();
       autoRevisionOpenedRef.current = false;
-      fetchData(); // Veriyi yenile
+      fetchData();
     } catch (err) {
       alert("Revize talebi gönderilemedi: " + (err instanceof Error ? err.message : "Bilinmeyen hata"));
     }
@@ -731,7 +721,7 @@ export default function QuoteDetailPage() {
       const result = await submitRevisionedQuote(quote.id, reviseSubmitModal.supplierQuoteId, revisedPrices);
       alert(`Revize teklif gönderildi. Tasarruf: ₺${(result.profitability.amount || 0).toLocaleString("tr-TR", {maximumFractionDigits: 2})}`);
       setReviseSubmitModal({ visible: false, supplierQuoteId: 0, supplierName: "" });
-      fetchData(); // Veriyi yenile
+      fetchData();
     } catch (err) {
       alert("Revize teklif gönderilemedi: " + (err instanceof Error ? err.message : "Bilinmeyen hata"));
     }
@@ -773,7 +763,6 @@ export default function QuoteDetailPage() {
   };
 
   const handleViewSupplierQuote = (supplierQuoteId: number) => {
-    // Tedarikçi quote'ünü bul ve state'e koy
     const findQuote = (quotes: SupplierQuoteRevision[]): SupplierQuoteRevision | null => {
       for (const q of quotes) {
         if (q.id === supplierQuoteId) return q;
@@ -812,90 +801,54 @@ export default function QuoteDetailPage() {
   void selectedSupplierQuote;
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+    <div className="qdp-page">
       <button
+        type="button"
         onClick={() => navigate(-1)}
-        style={{
-          marginBottom: "16px",
-          padding: "8px 12px",
-          background: "#f3f4f6",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
+        className="qdp-back-btn"
       >
         ← Geri
       </button>
 
       {error && (
-        <div style={{ color: "red", padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px" }}>
-          {error}
-        </div>
+        <div className="qdp-error">{error}</div>
       )}
 
       {readOnly && (
-        <div style={{ marginBottom: "16px", padding: "12px 14px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", color: "#1e3a8a" }}>
+        <div className="qdp-readonly-banner">
           Platform personeli bu teklifi inceleyebilir; düzenleme, onaya gönderme, onay, revize ve tedarikçi seçimi aksiyonları salt okunur modda kapatıldı.
         </div>
       )}
 
       {/* Header */}
-      <div style={{ background: "#f9fafb", padding: "20px", borderRadius: "8px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+      <div className="qdp-header-card">
+        <div className="qdp-header-row">
           <div>
-            <h2 style={{ margin: "0 0 8px 0" }}>{quote.title}</h2>
-            <p style={{ margin: "4px 0", color: "#666", fontSize: "14px" }}>
+            <h2>{quote.title}</h2>
+            <p className="qdp-subtitle">
               RFQ #{rfqId} • Teklif ID: {quote.id} • V{quote.version}
             </p>
             {buildAdminReturnHref() ? (
-              <a href={buildAdminReturnHref() || "#"} style={{ display: "inline-block", marginTop: "8px", color: "#1d4ed8", fontSize: "13px", fontWeight: 700, textDecoration: "none" }}>
+              <a href={buildAdminReturnHref() || "#"} className="qdp-admin-link">
                 Admin odagina don
               </a>
             ) : null}
           </div>
-          <span
-            style={{
-              padding: "8px 12px",
-              borderRadius: "4px",
-              background: displayStatusColor,
-              fontWeight: "bold",
-              fontSize: "14px",
-              color: isReviewBackDraft ? "#991b1b" : "inherit",
-            }}
-          >
+          <span className={quoteStatusBadgeClass(quoteStatus, isReviewBackDraft)}>
             {displayStatusLabel}
           </span>
         </div>
         {isReviewBackDraft && (
-          <p style={{ margin: "10px 0 0 0", color: "#991b1b", fontSize: "13px" }}>
-            {quote.transition_reason}
-          </p>
+          <p className="qdp-review-back-note">{quote.transition_reason}</p>
         )}
       </div>
 
       {/* Details */}
-      <div
-        ref={detailsCardRef}
-        style={{ background: "white", border: "1px solid #ddd", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}
-      >
-        <h3 style={{ margin: "0 0 16px 0" }}>Teklif Detayları</h3>
+      <div ref={detailsCardRef} className="qdp-card">
+        <h3>Teklif Detayları</h3>
 
         {selectedSupplierQuoteDetail && (
-          <div
-            style={{
-              marginBottom: "12px",
-              padding: "10px 12px",
-              borderRadius: "6px",
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              color: "#1e3a8a",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "10px",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="qdp-supplier-banner">
             <div>
               Gösterilen detay: <strong>{selectedSupplierQuoteDetail.supplier_name || "Tedarikçi"}</strong>
               {" "}teklifi (#{selectedSupplierQuoteDetail.id}) - Durum: {selectedSupplierQuoteDetail.status}
@@ -908,16 +861,7 @@ export default function QuoteDetailPage() {
                 next.delete("supplierQuoteId");
                 setSearchParams(next, { replace: true });
               }}
-              style={{
-                padding: "5px 9px",
-                borderRadius: "4px",
-                border: "1px solid #93c5fd",
-                background: "#fff",
-                color: "#1d4ed8",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontWeight: 600,
-              }}
+              className="qdp-btn-outline"
             >
               Ana Teklife Dön
             </button>
@@ -927,30 +871,30 @@ export default function QuoteDetailPage() {
         {isEditing ? (
           <div>
             {/* Başlık / Açıklama */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+            <div className="qdp-edit-header-grid">
               <div>
-                <label style={IS.label}>Başlık *</label>
-                <input style={IS.inp} value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} />
+                <label className="qdp-label">Başlık *</label>
+                <input className="qdp-inp" aria-label="Başlık" value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} />
               </div>
               <div>
-                <label style={IS.label}>Açıklama</label>
-                <input style={IS.inp} value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} placeholder="İsteğe bağlı" />
+                <label className="qdp-label">Açıklama</label>
+                <input className="qdp-inp" value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} placeholder="İsteğe bağlı" />
               </div>
             </div>
 
             {/* Kalem Tablosu */}
-            <div style={{ overflowX: "auto", marginBottom: "8px" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: "860px" }}>
+            <div className="qdp-table-scroll">
+              <table className="qdp-edit-table">
                 <thead>
-                  <tr style={{ background: "#f3f4f6" }}>
-                    <th style={{ padding: "8px 6px", textAlign: "left", width: "60px" }}>Sıra</th>
-                    <th style={{ padding: "8px 6px", textAlign: "left" }}>Açıklama</th>
-                    <th style={{ padding: "8px 6px", textAlign: "center", width: "70px" }}>Birim</th>
-                    <th style={{ padding: "8px 6px", textAlign: "right", width: "80px" }}>Miktar</th>
-                    <th style={{ padding: "8px 6px", textAlign: "right", width: "110px" }}>Birim Fiyat</th>
-                    <th style={{ padding: "8px 6px", textAlign: "right", width: "80px" }}>KDV %</th>
-                    <th style={{ padding: "8px 6px", textAlign: "right", width: "120px" }}>Toplam (KDVsiz)</th>
-                    <th style={{ padding: "8px 6px", textAlign: "center", width: "44px" }}></th>
+                  <tr>
+                    <th>Sıra</th>
+                    <th>Açıklama</th>
+                    <th>Birim</th>
+                    <th>Miktar</th>
+                    <th>Birim Fiyat</th>
+                    <th>KDV %</th>
+                    <th>Toplam (KDVsiz)</th>
+                    <th aria-label="İşlem"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -965,50 +909,50 @@ export default function QuoteDetailPage() {
 
                     return (
                       <Fragment key={idx}>
-                        <tr style={{ borderBottom: "1px solid #e5e7eb", background: header ? "#fef9c3" : "transparent" }}>
-                          <td style={{ padding: "6px" }}>
+                        <tr className={header ? "qdp-edit-row qdp-edit-row--header" : "qdp-edit-row"}>
+                          <td className="qdp-edit-td">
                             {header ? (
-                              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                              <div className="qdp-group-toggle-wrap">
                                 <button
                                   type="button"
                                   onClick={() => toggleEditGroup(key)}
-                                  style={{ border: "none", background: "transparent", cursor: "pointer", color: "#92400e", fontWeight: 700 }}
+                                  className="qdp-group-toggle"
                                 >
                                   {collapsedEditGroups[key] ? "▶" : "▼"}
                                 </button>
-                                <span style={{ fontSize: "11px", background: "#f59e0b", color: "#fff", borderRadius: "999px", padding: "1px 6px", fontWeight: 700 }}>G</span>
+                                <span className="qdp-group-badge">G</span>
                               </div>
                             ) : (
-                              <span style={{ color: "#9ca3af", fontSize: "12px" }}>{item.line_number}</span>
+                              <span className="qdp-line-num">{item.line_number}</span>
                             )}
                           </td>
-                          <td style={{ padding: "6px" }}>
+                          <td className="qdp-edit-td">
                             <input
-                              style={{ ...IS.cellInp, fontWeight: header ? 700 : 400, background: header ? "#fef3c7" : undefined }}
+                              className={`qdp-cell-inp${header ? " qdp-cell-inp--header" : ""}`}
                               value={item.description}
                               onChange={(e) => updateEditItem(idx, "description", e.target.value)}
                               placeholder={header ? "Grup adı" : "Kalem açıklaması"}
                             />
                             {!header && (
-                              <div style={{ marginTop: "4px", display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-                                <label style={{ fontSize: "11px", color: "#6b7280", cursor: "pointer" }}>
+                              <div className="qdp-item-meta-row">
+                                <label className="qdp-img-label">
                                   Görsel:
                                   <input
                                     type="file"
                                     accept="image/*"
-                                    style={{ display: "none" }}
+                                    className="qdp-file-input-hidden"
                                     onChange={(e) => {
                                       const f = e.target.files?.[0];
                                       if (f) handleEditItemImageSelect(idx, f);
                                     }}
                                   />
-                                  <span style={{ marginLeft: "4px", color: "#3b82f6", textDecoration: "underline" }}>Seç</span>
+                                  <span className="qdp-img-select-link">Seç</span>
                                 </label>
                                 {parseItemMeta(item.notes).imageUrl && (
-                                  <img src={parseItemMeta(item.notes).imageUrl} alt="" style={{ height: "28px", borderRadius: "3px", border: "1px solid #ddd" }} />
+                                  <img src={parseItemMeta(item.notes).imageUrl} alt="" className="qdp-thumb" />
                                 )}
                                 <input
-                                  style={{ ...IS.cellInp, flex: 1 }}
+                                  className="qdp-cell-inp qdp-cell-inp--flex1"
                                   value={parseItemMeta(item.notes).detail}
                                   onChange={(e) => updateEditItem(idx, "notes", composeItemMeta(e.target.value, parseItemMeta(item.notes).imageUrl))}
                                   placeholder="Detay notu (opsiyonel)"
@@ -1016,45 +960,47 @@ export default function QuoteDetailPage() {
                               </div>
                             )}
                           </td>
-                          <td style={{ padding: "6px" }}>
+                          <td className="qdp-edit-td">
                             {!header && (
                               <input
-                                style={IS.cellInp}
+                                className="qdp-cell-inp"
                                 value={item.unit}
                                 onChange={(e) => updateEditItem(idx, "unit", e.target.value)}
                                 placeholder="adet"
                               />
                             )}
                           </td>
-                          <td style={{ padding: "6px" }}>
+                          <td className="qdp-edit-td">
                             {!header && (
                               <input
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                style={{ ...IS.cellInp, textAlign: "right" }}
+                                aria-label="Miktar"
+                                className="qdp-cell-inp qdp-cell-inp--right"
                                 value={item.quantity ?? ""}
                                 onChange={(e) => updateEditItem(idx, "quantity", parseFloat(e.target.value) || 0)}
                               />
                             )}
                           </td>
-                          <td style={{ padding: "6px" }}>
+                          <td className="qdp-edit-td">
                             {!header && (
                               <input
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                style={{ ...IS.cellInp, textAlign: "right" }}
+                                className="qdp-cell-inp qdp-cell-inp--right"
                                 value={item.unit_price ?? ""}
                                 onChange={(e) => updateEditItem(idx, "unit_price", parseFloat(e.target.value) || undefined)}
                                 placeholder="0.00"
                               />
                             )}
                           </td>
-                          <td style={{ padding: "6px" }}>
+                          <td className="qdp-edit-td">
                             {!header && (
                               <select
-                                style={{ ...IS.cellInp, textAlign: "right" }}
+                                className="qdp-cell-inp qdp-cell-inp--right"
+                                aria-label="KDV Oranı"
                                 value={item.vat_rate ?? 20}
                                 onChange={(e) => updateEditItem(idx, "vat_rate", Number(e.target.value))}
                               >
@@ -1064,18 +1010,18 @@ export default function QuoteDetailPage() {
                               </select>
                             )}
                           </td>
-                          <td style={{ padding: "6px", textAlign: "right", fontWeight: header ? 700 : 400, color: header ? "#92400e" : undefined }}>
+                          <td className={header ? "qdp-edit-td qdp-edit-td--amount-header" : "qdp-edit-td qdp-edit-td--amount"}>
                             {header
                               ? `₺${rowNet.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
                               : rowNet > 0
                                 ? `₺${rowNet.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
                                 : ""}
                           </td>
-                          <td style={{ padding: "6px", textAlign: "center" }}>
+                          <td className="qdp-edit-td qdp-edit-td--center">
                             <button
                               type="button"
                               onClick={() => setEditItems((prev) => renumberItems(prev.filter((_, i) => i !== idx)))}
-                              style={{ border: "none", background: "transparent", color: "#ef4444", cursor: "pointer", fontSize: "16px", lineHeight: 1 }}
+                              className="qdp-del-btn"
                               title="Satırı sil"
                             >
                               ×
@@ -1088,18 +1034,18 @@ export default function QuoteDetailPage() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={6} style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700, fontSize: "13px" }}>Toplam (KDVsiz):</td>
-                    <td style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700 }}>₺{editNetTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                    <td colSpan={6} className="qdp-tfoot-label">Toplam (KDVsiz):</td>
+                    <td className="qdp-tfoot-value">₺{editNetTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
                     <td></td>
                   </tr>
                   <tr>
-                    <td colSpan={6} style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700 }}>KDV:</td>
-                    <td style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700 }}>₺{(editNetTotal + editVatTotal - editNetTotal).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                    <td colSpan={6} className="qdp-tfoot-label">KDV:</td>
+                    <td className="qdp-tfoot-value">₺{(editNetTotal + editVatTotal - editNetTotal).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
                     <td></td>
                   </tr>
                   <tr>
-                    <td colSpan={6} style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>Genel Toplam (KDV Dahil):</td>
-                    <td style={{ padding: "8px 6px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>₺{editGrossTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
+                    <td colSpan={6} className="qdp-tfoot-label qdp-tfoot-label--green">Genel Toplam (KDV Dahil):</td>
+                    <td className="qdp-tfoot-value qdp-tfoot-value--green">₺{editGrossTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</td>
                     <td></td>
                   </tr>
                 </tfoot>
@@ -1107,55 +1053,55 @@ export default function QuoteDetailPage() {
             </div>
 
             {/* Yeni satır / grup ekleme */}
-            <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+            <div className="qdp-edit-actions-row">
               <button
                 type="button"
                 onClick={addEditItem}
-                style={{ padding: "6px 14px", background: "#e0f2fe", color: "#0369a1", border: "1px solid #7dd3fc", borderRadius: "5px", cursor: "pointer", fontSize: "13px" }}
+                className="qdp-btn-add-item"
               >
                 + Kalem Ekle
               </button>
               <button
                 type="button"
                 onClick={addEditGroup}
-                style={{ padding: "6px 14px", background: "#fef3c7", color: "#92400e", border: "1px solid #fcd34d", borderRadius: "5px", cursor: "pointer", fontSize: "13px" }}
+                className="qdp-btn-add-group"
               >
                 + Grup Ekle
               </button>
             </div>
 
             {/* Kaydet / Vazgeç */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <div className="qdp-edit-save-row">
               <button
                 type="button"
                 onClick={handleUpdate}
-                style={{ padding: "8px 20px", background: "#2563eb", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
+                className="qdp-btn-save"
               >
                 Kaydet
               </button>
               <button
                 type="button"
                 onClick={() => { setIsEditing(false); void fetchData(); }}
-                style={{ padding: "8px 16px", background: "#e5e7eb", color: "#111827", border: "none", borderRadius: "6px", cursor: "pointer" }}
+                className="qdp-btn-cancel"
               >
                 Vazgeç
               </button>
             </div>
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+          <div className="qdp-table-scroll">
+            <table className="qdp-view-table">
               <thead>
-                <tr style={{ background: "#f3f4f6" }}>
-                  <th style={{ padding: "10px", textAlign: "left" }}>Sıra</th>
-                  <th style={{ padding: "10px", textAlign: "left" }}>Açıklama</th>
-                  <th style={{ padding: "10px", textAlign: "center" }}>Birim</th>
-                  <th style={{ padding: "10px", textAlign: "right" }}>Miktar</th>
-                  <th style={{ padding: "10px", textAlign: "right" }}>Birim Fiyat</th>
-                  <th style={{ padding: "10px", textAlign: "right" }}>Birim Toplam Fiyat</th>
-                  <th style={{ padding: "10px", textAlign: "right" }}>KDV</th>
-                  <th style={{ padding: "10px", textAlign: "right" }}>KDV Tutar</th>
-                  <th style={{ padding: "10px", textAlign: "right" }}>KDV Dahil Toplam</th>
+                <tr>
+                  <th>Sıra</th>
+                  <th>Açıklama</th>
+                  <th>Birim</th>
+                  <th>Miktar</th>
+                  <th>Birim Fiyat</th>
+                  <th>Birim Toplam Fiyat</th>
+                  <th>KDV</th>
+                  <th>KDV Tutar</th>
+                  <th>KDV Dahil Toplam</th>
                 </tr>
               </thead>
               <tbody>
@@ -1175,61 +1121,59 @@ export default function QuoteDetailPage() {
 
                   return (
                     <Fragment key={item.id}>
-                      <tr style={{ borderBottom: header ? "2px solid #eab308" : "1px solid #eee", background: header ? "#fef3c7" : "transparent", fontWeight: header ? 700 : 400 }}>
-                        <td style={{ padding: "10px" }}>{item.line_number || idx + 1}</td>
-                        <td style={{ padding: "10px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                      <tr className={header ? "qdp-view-row qdp-view-row--header" : "qdp-view-row"}>
+                        <td className="qdp-view-td">{item.line_number || idx + 1}</td>
+                        <td className="qdp-view-td">
+                          <div className="qdp-desc-flex">
                             {header && (
                               <button
                                 type="button"
                                 onClick={() => toggleViewGroup(key)}
-                                style={{ border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, color: "#92400e", flexShrink: 0 }}
+                                className="qdp-group-toggle"
                                 title={collapsedViewGroups[key] ? "Alt kalemleri aç" : "Alt kalemleri kapat"}
                               >
                                 {collapsedViewGroups[key] ? "▶" : "▼"}
                               </button>
                             )}
                             {header && (
-                              <span style={{ fontSize: "11px", background: "#f59e0b", color: "#fff", borderRadius: "999px", padding: "2px 7px", fontWeight: 700, flexShrink: 0 }}>
-                                Grup
-                              </span>
+                              <span className="qdp-group-badge-lg">Grup</span>
                             )}
-                            <div style={{ minWidth: 0, overflowWrap: "anywhere" }}>{item.description}</div>
+                            <div className="qdp-desc-text">{item.description}</div>
                           </div>
                         </td>
-                        <td style={{ padding: "10px", textAlign: "center" }}>{header ? "" : item.unit}</td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>{header ? "" : item.quantity}</td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>
+                        <td className="qdp-view-td qdp-view-td--center">{header ? "" : item.unit}</td>
+                        <td className="qdp-view-td qdp-view-td--right">{header ? "" : item.quantity}</td>
+                        <td className="qdp-view-td qdp-view-td--right">
                           {header ? (
-                            <span style={{ fontSize: "11px", color: "#92400e", fontWeight: 700 }}>Grup Toplamı</span>
+                            <span className="qdp-group-total-label">Grup Toplamı</span>
                           ) : (
                             <span>{net > 0 ? formatViewMoney(Number(item.unit_price || 0)) : ""}</span>
                           )}
                         </td>
-                        <td style={{ padding: "10px", textAlign: "right", fontWeight: "bold" }}>
+                        <td className="qdp-view-td qdp-view-td--right qdp-view-td--bold">
                           <span>{formatViewMoney(net)}</span>
                         </td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>{header ? "" : `%${vatRate}`}</td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>{formatViewMoney(vat)}</td>
-                        <td style={{ padding: "10px", textAlign: "right" }}>{formatViewMoney(gross)}</td>
+                        <td className="qdp-view-td qdp-view-td--right">{header ? "" : `%${vatRate}`}</td>
+                        <td className="qdp-view-td qdp-view-td--right">{formatViewMoney(vat)}</td>
+                        <td className="qdp-view-td qdp-view-td--right">{formatViewMoney(gross)}</td>
                       </tr>
                       {!header ? (
-                        <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
-                          <td style={{ padding: "0 10px 10px" }}></td>
-                          <td colSpan={8} style={{ padding: "0 10px 10px" }}>
-                            <div style={{ display: "grid", gridTemplateColumns: meta.imageUrl ? "180px minmax(0, 1fr)" : "minmax(0, 1fr)", gap: "10px", alignItems: "start" }}>
+                        <tr className="qdp-detail-sub-row">
+                          <td className="qdp-detail-spacer-td"></td>
+                          <td colSpan={8} className="qdp-detail-content-td">
+                            <div className={`qdp-item-detail-grid${meta.imageUrl ? " qdp-item-detail-grid--with-img" : ""}`}>
                               {meta.imageUrl && (
                                 <div>
                                   <a href={meta.imageUrl} target="_blank" rel="noopener noreferrer" title="Görseli yeni sekmede aç">
                                     <img
                                       src={meta.imageUrl}
                                       alt="Kalem görseli"
-                                      style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "6px", border: "1px solid #e5e7eb" }}
+                                      className="qdp-detail-img"
                                     />
                                   </a>
                                 </div>
                               )}
-                              <div style={{ fontSize: "12px", color: "#6b7280", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                              <div className="qdp-detail-text">
                                 {meta.detail || (meta.imageUrl ? "-" : "")}
                               </div>
                             </div>
@@ -1242,16 +1186,16 @@ export default function QuoteDetailPage() {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={8} style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>Teklif Toplamı:</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>{formatViewMoney(netTotal)}</td>
+                  <td colSpan={8} className="qdp-view-tfoot-label">Teklif Toplamı:</td>
+                  <td className="qdp-view-tfoot-value">{formatViewMoney(netTotal)}</td>
                 </tr>
                 <tr>
-                  <td colSpan={8} style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>KDV Toplamı:</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>{formatViewMoney(vatTotal)}</td>
+                  <td colSpan={8} className="qdp-view-tfoot-label">KDV Toplamı:</td>
+                  <td className="qdp-view-tfoot-value">{formatViewMoney(vatTotal)}</td>
                 </tr>
                 <tr>
-                  <td colSpan={8} style={{ padding: "10px", textAlign: "right", fontWeight: 700 }}>Genel Toplam (KDV Dahil):</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#15803d" }}>{formatViewMoney(grossTotal)}</td>
+                  <td colSpan={8} className="qdp-view-tfoot-label">Genel Toplam (KDV Dahil):</td>
+                  <td className="qdp-view-tfoot-value qdp-view-tfoot-value--green">{formatViewMoney(grossTotal)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -1261,55 +1205,34 @@ export default function QuoteDetailPage() {
 
       {/* Actions */}
       {(canEdit || canSubmit || canApprove || canReject) && (
-        <div style={{ background: "white", border: "1px solid #ddd", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
+        <div className="qdp-card">
           <h3>İşlemler</h3>
 
           {canEdit && (
             <button
+              type="button"
               onClick={() => {
                 setIsEditing(true);
                 detailsCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              style={{
-                marginRight: "8px",
-                marginBottom: "8px",
-                padding: "8px 16px",
-                background: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
+              className="qdp-action-btn"
             >
               Düzenle
             </button>
           )}
 
           {canSubmit && (
-            <div style={{ marginBottom: "12px" }}>
+            <div className="qdp-action-section">
               <textarea
                 placeholder="Onaya gönderme notu (opsiyonel)"
                 value={actionReason}
                 onChange={(e) => setActionReason(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #ddd",
-                  marginBottom: "8px",
-                  boxSizing: "border-box",
-                }}
+                className="qdp-textarea"
               />
               <button
+                type="button"
                 onClick={handleSubmit}
-                style={{
-                  padding: "8px 16px",
-                  background: "#f59e0b",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                className="qdp-btn-submit"
               >
                 Onaya Gönder
               </button>
@@ -1317,50 +1240,30 @@ export default function QuoteDetailPage() {
           )}
 
           {canApprove && (
-            <div style={{ marginBottom: "12px" }}>
+            <div className="qdp-action-section">
               <textarea
                 placeholder="Onay veya tekrar gözden geçirme notu (zorunlu)"
                 value={actionReason}
                 onChange={(e) => setActionReason(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #ddd",
-                  marginBottom: "8px",
-                  boxSizing: "border-box",
-                }}
+                className="qdp-textarea"
               />
               <button
+                type="button"
                 onClick={handleApprove}
-                style={{
-                  marginRight: "8px",
-                  padding: "8px 16px",
-                  background: "#10b981",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                className="qdp-btn-approve"
               >
                 Tedarikçiye Gönder Onayı Ver
               </button>
               {canReject && (
                 <button
+                  type="button"
                   onClick={handleReject}
-                  style={{
-                    padding: "8px 16px",
-                    background: "#ef4444",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
+                  className="qdp-btn-reject"
                 >
                   Teklifi Tekrar Gözden Geçirin
                 </button>
               )}
-              <div style={{ marginTop: "8px", fontSize: "12px", color: "#7f1d1d" }}>
+              <div className="qdp-action-hint">
                 Hata ve eksikler var ise açıklama yazarak teklifi düzenleme döngüsüne geri alın.
               </div>
             </div>
@@ -1368,16 +1271,9 @@ export default function QuoteDetailPage() {
 
           {canEdit && (
             <button
+              type="button"
               onClick={handleDelete}
-              style={{
-                marginTop: "8px",
-                padding: "8px 16px",
-                background: "#dc2626",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
+              className="qdp-btn-delete"
             >
               Sil
             </button>
@@ -1387,25 +1283,16 @@ export default function QuoteDetailPage() {
 
       {/* Supplier Quotes / Responses */}
       {supplierQuotes.length > 0 && (
-        <div style={{ background: "white", border: "1px solid #ddd", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
-            <h3 style={{ margin: 0 }}>Tedarikçi Teklifleri</h3>
+        <div className="qdp-card">
+          <div className="qdp-section-header-row">
+            <h3>Tedarikçi Teklifleri</h3>
             {canManageSupplierComparison && (
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div className="qdp-compare-btns">
                 <button
                   type="button"
                   onClick={() => navigate(`/quotes/${quote.id}/comparison`)}
                   disabled={supplierActionLoading}
-                  style={{
-                    padding: "8px 12px",
-                    border: "1px solid #93c5fd",
-                    borderRadius: "6px",
-                    background: "#eff6ff",
-                    color: "#1e3a8a",
-                    cursor: supplierActionLoading ? "wait" : "pointer",
-                    opacity: supplierActionLoading ? 0.7 : 1,
-                    fontWeight: 600,
-                  }}
+                  className={`qdp-btn-compare${supplierActionLoading ? " qdp-btn--loading" : ""}`}
                 >
                   Karşılaştırma Sayfası
                 </button>
@@ -1413,16 +1300,7 @@ export default function QuoteDetailPage() {
                   type="button"
                   onClick={handleDownloadComparisonReport}
                   disabled={supplierActionLoading}
-                  style={{
-                    padding: "8px 12px",
-                    border: "none",
-                    borderRadius: "6px",
-                    background: "#1d4ed8",
-                    color: "white",
-                    cursor: supplierActionLoading ? "wait" : "pointer",
-                    opacity: supplierActionLoading ? 0.7 : 1,
-                    fontWeight: 600,
-                  }}
+                  className={`qdp-btn-excel${supplierActionLoading ? " qdp-btn--loading" : ""}`}
                 >
                   Karşılaştırma Excel Raporu
                 </button>
@@ -1431,17 +1309,7 @@ export default function QuoteDetailPage() {
           </div>
 
           {approvedSupplier && (
-            <div
-              style={{
-                marginBottom: "12px",
-                padding: "10px 12px",
-                background: "#ecfdf5",
-                border: "1px solid #86efac",
-                borderRadius: "6px",
-                color: "#166534",
-                fontWeight: 600,
-              }}
-            >
+            <div className="qdp-approved-banner">
               Onaylanan Tedarikçi: {approvedSupplier.supplierName} (Teklif #{approvedSupplier.quoteId} - ₺{approvedSupplier.total.toLocaleString("tr-TR", { maximumFractionDigits: 2 })})
             </div>
           )}
@@ -1468,61 +1336,49 @@ export default function QuoteDetailPage() {
 
       {/* History */}
       {history.length > 0 && (
-        <div ref={historySectionRef} style={{ background: "white", border: focusedInsight === "status-history" ? "2px solid #1d4ed8" : "1px solid #ddd", borderRadius: "8px", padding: "20px" }}>
+        <div ref={historySectionRef} className={`qdp-card${focusedInsight === "status-history" ? " qdp-card--focused" : ""}`}>
           <h3>Durum Geçişi Geçmişi</h3>
-          {focusedInsight === "status-history" ? <div style={{ marginBottom: "10px", color: "#1d4ed8", fontSize: "12px", fontWeight: 700 }}>Deep-link odagi: Durum Gecisi Gecmisi</div> : null}
-          <div style={{ fontSize: "14px" }}>
+          {focusedInsight === "status-history" ? <div className="qdp-focus-hint">Deep-link odagi: Durum Gecisi Gecmisi</div> : null}
+          <div className="qdp-history-content">
             {history.map((log, idx) => (
               <div
                 key={idx}
-                style={{
-                  padding: "8px 0",
-                  borderBottom: idx < history.length - 1 ? "1px solid #eee" : "none",
-                }}
+                className={`qdp-history-log${idx < history.length - 1 ? " qdp-history-log--bordered" : ""}`}
               >
                 <strong>{log.from_status}</strong> → <strong>{log.to_status}</strong>
                 <br />
-                <small style={{ color: "#666" }}>
+                <small className="qdp-history-date">
                   {log.changed_by_name ? `${log.changed_by_name} • ` : ""}
                   {new Date(log.created_at || log.changed_at || "").toLocaleString("tr-TR")}
                 </small>
                 {Array.isArray(log.approval_details) && log.approval_details.length > 0 && (
-                  <div style={{ marginTop: "10px", display: "grid", gap: "8px" }}>
+                  <div className="qdp-approval-grid">
                     {log.approval_details.map((approval) => (
                       <div
                         key={`${log.id}-${approval.level}`}
-                        style={{
-                          background: "#f8fafc",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "6px",
-                          padding: "10px 12px",
-                        }}
+                        className="qdp-approval-detail"
                       >
-                        <div style={{ fontWeight: 600, color: "#0f172a" }}>
+                        <div className="qdp-approval-title">
                           Seviye {approval.level}: {resolveApprovalRoleLabel(approval)}
                         </div>
-                        <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
-                          Durum: {approval.status}
-                        </div>
+                        <div className="qdp-approval-info">Durum: {approval.status}</div>
                         {approval.requested_at && (
-                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                          <div className="qdp-approval-info">
                             Talep: {new Date(approval.requested_at).toLocaleString("tr-TR")}
                           </div>
                         )}
                         {approval.completed_at && (
-                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                          <div className="qdp-approval-info">
                             Tamamlandı: {new Date(approval.completed_at).toLocaleString("tr-TR")}
                           </div>
                         )}
                         {approval.approved_by_name && (
-                          <div style={{ fontSize: "12px", color: "#475569" }}>
+                          <div className="qdp-approval-info">
                             İşlem Yapan: {approval.approved_by_name}
                           </div>
                         )}
                         {approval.comment && (
-                          <div style={{ fontSize: "12px", color: "#475569" }}>
-                            Not: {approval.comment}
-                          </div>
+                          <div className="qdp-approval-info">Not: {approval.comment}</div>
                         )}
                       </div>
                     ))}
@@ -1535,28 +1391,23 @@ export default function QuoteDetailPage() {
       )}
 
       {auditTrail && auditTrail.timeline.length > 0 && (
-        <div ref={auditTrailSectionRef} style={{ background: "white", border: focusedInsight === "full-audit-trail" ? "2px solid #1d4ed8" : "1px solid #ddd", borderRadius: "8px", padding: "20px", marginTop: "16px" }}>
+        <div ref={auditTrailSectionRef} className={`qdp-card qdp-card--mt${focusedInsight === "full-audit-trail" ? " qdp-card--focused" : ""}`}>
           <h3>Tam İşlem Zaman Çizgisi</h3>
-          {focusedInsight === "full-audit-trail" ? <div style={{ marginBottom: "10px", color: "#1d4ed8", fontSize: "12px", fontWeight: 700 }}>Deep-link odagi: Tam Audit Trail</div> : null}
-          <div style={{ display: "grid", gap: "10px" }}>
+          {focusedInsight === "full-audit-trail" ? <div className="qdp-focus-hint">Deep-link odagi: Tam Audit Trail</div> : null}
+          <div className="qdp-audit-grid">
             {auditTrail.timeline.map((event, idx) => (
               <div
                 key={`${event.type}-${event.timestamp || idx}-${idx}`}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  background: "#fcfcfd",
-                }}
+                className="qdp-audit-event"
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                <div className="qdp-audit-event-header">
                   <strong>{event.icon ? `${event.icon} ${event.title}` : event.title}</strong>
-                  <small style={{ color: "#64748b" }}>
+                  <small className="qdp-audit-date">
                     {event.timestamp ? new Date(event.timestamp).toLocaleString("tr-TR") : "-"}
                   </small>
                 </div>
                 {event.actor && (
-                  <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
+                  <div className="qdp-audit-actor">
                     İşlem Yapan: {String(event.actor)}
                   </div>
                 )}
