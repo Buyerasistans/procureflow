@@ -1,0 +1,176 @@
+/* SupplierLoginPage.css — sll-* namespace */
+
+.sll-page {
+  min-height: 100vh;
+}
+
+.sll-container {
+  min-height: calc(100vh - 60px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 26%),
+    linear-gradient(135deg, #eef2ff 0%, #e0e7ff 56%, #f5f3ff 100%);
+}
+
+/* ── Left panel ── */
+.sll-left {
+  padding: 56px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top right, rgba(129, 140, 248, 0.3), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.18), transparent 26%),
+    linear-gradient(135deg, #4338ca 0%, #5b21b6 55%, #7c3aed 100%);
+}
+
+.sll-left h1 {
+  font-size: 46px;
+  line-height: 1.04;
+  margin: 18px 0 10px;
+  font-weight: 900;
+}
+
+.sll-left p {
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.7;
+  color: #e0e7ff;
+  font-size: 15px;
+}
+
+/* ── Right panel ── */
+.sll-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.sll-form-card {
+  width: 100%;
+  max-width: 430px;
+  background: #fff;
+  border-radius: 22px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 55px rgba(30, 41, 59, 0.16);
+  padding: 36px 32px;
+}
+
+.sll-form-card h2 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.08;
+  color: #0f172a;
+  font-weight: 900;
+}
+
+.sll-form-card p {
+  margin: 10px 0 24px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Form ── */
+.sll-form {
+  display: grid;
+  gap: 14px;
+}
+
+.sll-label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.sll-input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid #dbe3ef;
+  background: #f8fafc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.sll-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.sll-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.sll-submit {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: none;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sll-submit:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.sll-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Messages ── */
+.sll-msg {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.sll-msg--error {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.sll-msg--success {
+  border: 1px solid #86efac;
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ── Responsive ── */
+@media (max-width: 980px) {
+  .sll-container {
+    grid-template-columns: 1fr;
+  }
+
+  .sll-left {
+    padding: 40px 24px;
+    min-height: 260px;
+  }
+
+  .sll-left h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sll-right {
+    padding: 24px 16px;
+  }
+
+  .sll-form-card {
+    padding: 24px 20px;
+  }
+}

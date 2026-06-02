@@ -1,37 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import styled from "styled-components";
 import { clearSupplierToken } from "../lib/session";
 import { confirmSupplierEmailChange } from "../services/supplier-profile.service";
-
-const Wrap = styled.div`
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: #eef2f7;
-  padding: 16px;
-`;
-
-const Card = styled.div`
-  width: 100%;
-  max-width: 560px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
-  padding: 26px;
-`;
-
-const Btn = styled.button`
-  margin-top: 18px;
-  border: none;
-  background: #0f766e;
-  color: #fff;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-`;
+import "./SupplierEmailChangeConfirmPage.css";
 
 export default function SupplierEmailChangeConfirmPage() {
   const navigate = useNavigate();
@@ -99,44 +70,46 @@ export default function SupplierEmailChangeConfirmPage() {
   }, [loading, success, countdown, navigate]);
 
   return (
-    <Wrap>
-      <Card>
-        <h2 style={{ marginTop: 0, color: "#1f2937" }}>E-posta Doğrulama</h2>
-        <p style={{ color: "#475569", fontSize: 15 }}>
+    <div className="secc-wrap">
+      <div className="secc-card">
+        <h2 className="secc-card__title">E-posta Doğrulama</h2>
+        <p className="secc-card__msg">
           {loading ? "İşlem sürüyor..." : message}
         </p>
         {!loading && !success && (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="secc-form">
             <input
               type="password"
+              className="secc-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Yeni şifre (opsiyonel)"
-              style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", fontSize: 14 }}
+              aria-label="Yeni şifre"
             />
             <input
               type="password"
+              className="secc-input"
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
               placeholder="Yeni şifre tekrar"
-              style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", fontSize: 14 }}
+              aria-label="Yeni şifre tekrar"
             />
-            <Btn onClick={handleConfirm} disabled={submitting}>
+            <button type="button" className="secc-btn" onClick={handleConfirm} disabled={submitting}>
               {submitting ? "Onaylanıyor..." : "E-postayı Onayla"}
-            </Btn>
+            </button>
           </div>
         )}
         {!loading && success && (
-          <p style={{ color: "#0f766e", fontSize: 14, fontWeight: 700 }}>
+          <p className="secc-card__countdown">
             Oturumunuz güvenlik için kapatıldı. {countdown} sn içinde giriş sayfasına yönlendirileceksiniz.
           </p>
         )}
         {!loading && success && (
-          <Btn onClick={() => navigate("/supplier/login", { replace: true })}>
-            {success ? "Giriş Sayfasına Git" : "Tekrar Girişe Dön"}
-          </Btn>
+          <button type="button" className="secc-btn" onClick={() => navigate("/supplier/login", { replace: true })}>
+            Giriş Sayfasına Git
+          </button>
         )}
-      </Card>
-    </Wrap>
+      </div>
+    </div>
   );
 }

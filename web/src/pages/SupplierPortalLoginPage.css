@@ -1,0 +1,176 @@
+/* SupplierPortalLoginPage.css — spll-* namespace */
+
+.spll-page {
+  min-height: 100vh;
+}
+
+.spll-container {
+  min-height: calc(100vh - 60px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 26%),
+    linear-gradient(135deg, #eef7ff 0%, #dbeafe 56%, #e0f2fe 100%);
+}
+
+/* ── Left panel ── */
+.spll-left {
+  padding: 56px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.3), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.2), transparent 26%),
+    linear-gradient(135deg, #1a3a5c 0%, #1e4f78 55%, #0f70a8 100%);
+}
+
+.spll-left h1 {
+  font-size: 46px;
+  line-height: 1.04;
+  margin: 18px 0 10px;
+  font-weight: 900;
+}
+
+.spll-left p {
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.7;
+  color: #dbeafe;
+  font-size: 15px;
+}
+
+/* ── Right panel ── */
+.spll-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.spll-form-card {
+  width: 100%;
+  max-width: 430px;
+  background: #fff;
+  border-radius: 22px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 55px rgba(30, 41, 59, 0.16);
+  padding: 36px 32px;
+}
+
+.spll-form-card h2 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.08;
+  color: #0f172a;
+  font-weight: 900;
+}
+
+.spll-form-card p {
+  margin: 10px 0 24px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Form ── */
+.spll-form {
+  display: grid;
+  gap: 14px;
+}
+
+.spll-label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.spll-input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid #dbe3ef;
+  background: #f8fafc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.spll-input:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.spll-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.spll-submit {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: none;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.spll-submit:hover:not(:disabled) {
+  background: #0284c7;
+}
+
+.spll-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Messages ── */
+.spll-msg {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.spll-msg--error {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.spll-msg--success {
+  border: 1px solid #86efac;
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ── Responsive ── */
+@media (max-width: 980px) {
+  .spll-container {
+    grid-template-columns: 1fr;
+  }
+
+  .spll-left {
+    padding: 40px 24px;
+    min-height: 260px;
+  }
+
+  .spll-left h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .spll-right {
+    padding: 24px 16px;
+  }
+
+  .spll-form-card {
+    padding: 24px 20px;
+  }
+}

@@ -1,145 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import { supplierLoginRequest } from "../services/auth.service";
 import { isSupplierLoggedIn } from "../lib/session";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
-
-const Container = styled.div`
-  min-height: calc(100vh - 60px);
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 26%), linear-gradient(135deg, #eef2ff 0%, #e0e7ff 56%, #f5f3ff 100%);
-
-  @media (max-width: 980px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const LeftSection = styled.section`
-  padding: 56px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at top right, rgba(129, 140, 248, 0.3), transparent 24%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.18), transparent 26%), linear-gradient(135deg, #4338ca 0%, #5b21b6 55%, #7c3aed 100%);
-
-  h1 {
-    font-size: 46px;
-    line-height: 1.04;
-    margin: 18px 0 10px;
-    font-weight: 900;
-  }
-
-  p {
-    margin: 0;
-    max-width: 520px;
-    line-height: 1.7;
-    color: #e0e7ff;
-    font-size: 15px;
-  }
-`;
-
-const RightSection = styled.section`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-`;
-
-const FormContainer = styled.div`
-  width: 100%;
-  max-width: 430px;
-  background: white;
-  border-radius: 22px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 20px 55px rgba(30, 41, 59, 0.16);
-  padding: 36px 32px;
-
-  h2 {
-    margin: 0;
-    font-size: 32px;
-    line-height: 1.08;
-    color: #0f172a;
-    font-weight: 900;
-  }
-
-  p {
-    margin: 10px 0 24px;
-    color: #64748b;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-`;
-
-const Form = styled.form`
-  display: grid;
-  gap: 14px;
-`;
-
-const FormGroup = styled.label`
-  display: grid;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #334155;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 13px 14px;
-  border-radius: 12px;
-  border: 1px solid #dbe3ef;
-  background: #f8fafc;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
-`;
-
-const SubmitButton = styled.button`
-  width: 100%;
-  padding: 13px 16px;
-  border-radius: 12px;
-  border: none;
-  background: #4f46e5;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  border-radius: 12px;
-  border: 1px solid #fecaca;
-  background: #fff1f2;
-  color: #be123c;
-  padding: 10px 12px;
-  font-size: 13px;
-`;
-
-const SuccessMessage = styled.div`
-  border-radius: 12px;
-  border: 1px solid #86efac;
-  background: #dcfce7;
-  color: #166534;
-  padding: 10px 12px;
-  font-size: 13px;
-`;
+import "./SupplierLoginPage.css";
 
 interface LoginError {
   field?: string;
@@ -201,10 +66,10 @@ export default function SupplierLoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div className="sll-page">
       <NavBar variant="supplier" activePath="/supplier/login" />
-      <Container>
-        <LeftSection>
+      <div className="sll-container">
+        <section className="sll-left">
           <div>
             <PublicBrandLogo height={44} maxWidth={220} marginBottom={24} invert />
             <h1>Tedarikçi Portalı</h1>
@@ -213,52 +78,54 @@ export default function SupplierLoginPage() {
               tek bir panelden takip edin.
             </p>
           </div>
-        </LeftSection>
+        </section>
 
-        <RightSection>
-          <FormContainer>
+        <section className="sll-right">
+          <div className="sll-form-card">
             <h2>Tedarikçi Girişi</h2>
             <p>Tedarikçi hesabınızla giriş yaparak kendi tedarikçi panelinize erişin.</p>
 
-            <Form onSubmit={handleSubmit}>
-              {error && <ErrorMessage>{error.message}</ErrorMessage>}
-              {success && <SuccessMessage>{success}</SuccessMessage>}
+            <form className="sll-form" onSubmit={handleSubmit}>
+              {error && <div className="sll-msg sll-msg--error">{error.message}</div>}
+              {success && <div className="sll-msg sll-msg--success">{success}</div>}
 
-              <FormGroup htmlFor="email">
+              <label className="sll-label" htmlFor="email">
                 E-posta Adresi
-                <Input
+                <input
                   type="email"
                   id="email"
                   name="email"
+                  className="sll-input"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="ornek@tedarikci.com"
                   disabled={loading}
                   required
                 />
-              </FormGroup>
+              </label>
 
-              <FormGroup htmlFor="password">
+              <label className="sll-label" htmlFor="password">
                 Şifre
-                <Input
+                <input
                   type="password"
                   id="password"
                   name="password"
+                  className="sll-input"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
                   disabled={loading}
                   required
                 />
-              </FormGroup>
+              </label>
 
-              <SubmitButton type="submit" disabled={loading}>
+              <button type="submit" className="sll-submit" disabled={loading}>
                 {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
-              </SubmitButton>
-            </Form>
-          </FormContainer>
-        </RightSection>
-      </Container>
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
