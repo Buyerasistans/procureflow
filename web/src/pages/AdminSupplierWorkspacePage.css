@@ -1,0 +1,206 @@
+/* AdminSupplierWorkspacePage.css — asw-* namespace */
+
+.asw-page {
+  min-height: 100vh;
+  background: #f0f4f8;
+}
+
+/* ── Top bar ── */
+.asw-topbar {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+  padding: 0 28px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.asw-topbar__title {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+}
+
+.asw-topbar__back {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Body ── */
+.asw-body {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px 50px;
+}
+
+/* ── Card ── */
+.asw-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Tab row ── */
+.asw-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.asw-tab-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.asw-tab-btn--active {
+  border-color: #0f766e;
+  background: #ccfbf1;
+  color: #134e4a;
+}
+
+/* ── Action row (filter + upload) ── */
+.asw-action-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.asw-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.asw-upload-btn {
+  border: none;
+  background: #2d6a9f;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.asw-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Document list ── */
+.asw-list {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  margin-top: 12px;
+}
+
+.asw-row {
+  border-bottom: 1px dashed #dbe3ee;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.asw-row:last-child {
+  border-bottom: none;
+}
+
+.asw-row--empty {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.asw-row__filename {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.asw-row__date {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.asw-row__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Row action buttons ── */
+.asw-action-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.asw-action-btn--danger {
+  border-color: #fecaca;
+  background: #fff5f5;
+  color: #b91c1c;
+}
+
+/* ── Loading ── */
+.asw-loading {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* ── Hidden file input ── */
+.asw-hidden {
+  display: none;
+}
+
+/* ── Toast notification ── */
+.asw-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 9999;
+}
+
+.asw-toast--success {
+  background: #065f46;
+}
+
+.asw-toast--error {
+  background: #991b1b;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .asw-topbar {
+    padding: 0 16px;
+  }
+
+  .asw-action-row {
+    grid-template-columns: 1fr;
+  }
+}
