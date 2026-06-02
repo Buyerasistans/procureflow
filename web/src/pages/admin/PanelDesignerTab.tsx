@@ -245,7 +245,7 @@ function pdRoleLabel(code: string): string {
 }
 
 // ── Main component ───────────────────────────────────────────────
-export default function PanelDesignerTab() {
+export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: string) => void } = {}) {
   const [profiles, setProfiles] = useState<PdProfile[]>(() => {
     try {
       const saved = localStorage.getItem("pf_panel_profiles");
@@ -361,6 +361,11 @@ export default function PanelDesignerTab() {
           </p>
         </div>
         <div className="pd-hdr__actions">
+          {onNavigate && (
+            <button type="button" className="pd-hdr-btn" onClick={() => onNavigate("nav_management")}>
+              Navigasyon Yönetimi
+            </button>
+          )}
           <button type="button" className="pd-hdr-btn" onClick={reset}>
             <RefreshCcw size={14} /> Varsayılana sıfırla
           </button>

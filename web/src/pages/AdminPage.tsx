@@ -6440,12 +6440,12 @@ export default function AdminPage() {
       )}
 
       {/* Settings Tab */}
-      {activeTab === "settings" && <SettingsTab />}
+      {activeTab === "settings" && <SettingsTab onNavigate={(tab) => navigateAdminTab(tab as AdminTabKey)} />}
 
       {/* panel_designer: super admin → PanelDesignerTab; self-customizers → WorkspacePanelDesignerTab */}
       {activeTab === "panel_designer" && isSuperAdminUser(user) && (
         <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
-          <PanelDesignerTab />
+          <PanelDesignerTab onNavigate={(tab) => navigateAdminTab(tab as AdminTabKey)} />
         </Suspense>
       )}
       {activeTab === "panel_designer" && !isSuperAdminUser(user) && canUseSelfPanelDesigner && (

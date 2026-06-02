@@ -191,7 +191,7 @@ function StaticFieldRow({ field }: { field: StaticField }) {
   );
 }
 
-export const SettingsTab: React.FC = () => {
+export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { settings, loading, error, updateSettings } = useSettings();
   const isChannelWorkspace = getUserScopeType(user) === "channel";
@@ -401,6 +401,20 @@ export const SettingsTab: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                {onNavigate && (
+                  <div className="st-row">
+                    <div className="st-row__label">
+                      <label>Navigasyon Yönetimi</label>
+                      <span>Tam menü yerleşimi, rol matrisi ve görünürlük ayarları</span>
+                    </div>
+                    <div className="st-row__input">
+                      <button type="button" className="st-btn st-btn--ghost"
+                        onClick={() => onNavigate("nav_management")}>
+                        Navigasyon Yönetimi'ni Aç →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               <form onSubmit={(e) => void handleSave(e)} className="st-fields">
                 <div className="st-row">
