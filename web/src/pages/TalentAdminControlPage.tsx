@@ -294,7 +294,7 @@ function TalentProfilesSection() {
 // TalentAdminControlPage — two-tab hub
 // ---------------------------------------------------------------------------
 
-export default function TalentAdminControlPage() {
+export default function TalentAdminControlPage({ jobsOnly = false }: { jobsOnly?: boolean } = {}) {
   const [tab, setTab] = useState<"jobs" | "talent">("jobs");
   const [apps, setApps] = useState<NhApp[]>(() => [...MOCK_APPS_INIT]);
   const [jobFilter, setJobFilter] = useState("all");
@@ -353,22 +353,24 @@ export default function TalentAdminControlPage() {
         sub="İş ilanları ve başvuru akışı · talent profilleri, KYC onayı ve ödeme takibi."
       />
 
-      <div className="nh-tabs">
-        <button
-          type="button"
-          className={"nh-tab" + (tab === "jobs" ? " on" : "")}
-          onClick={() => setTab("jobs")}
-        >
-          İş İlanları &amp; Başvurular
-        </button>
-        <button
-          type="button"
-          className={"nh-tab" + (tab === "talent" ? " on" : "")}
-          onClick={() => setTab("talent")}
-        >
-          Yetenek &amp; Katkı Ekonomisi
-        </button>
-      </div>
+      {!jobsOnly && (
+        <div className="nh-tabs">
+          <button
+            type="button"
+            className={"nh-tab" + (tab === "jobs" ? " on" : "")}
+            onClick={() => setTab("jobs")}
+          >
+            İş İlanları &amp; Başvurular
+          </button>
+          <button
+            type="button"
+            className={"nh-tab" + (tab === "talent" ? " on" : "")}
+            onClick={() => setTab("talent")}
+          >
+            Yetenek &amp; Katkı Ekonomisi
+          </button>
+        </div>
+      )}
 
       {/* ── Jobs tab ────────────────────────────────────────────────── */}
       {tab === "jobs" && (

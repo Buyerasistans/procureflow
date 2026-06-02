@@ -6774,7 +6774,7 @@ export default function AdminPage() {
         {/* Kariyer Yönetimi Tab */}
         {activeTab === "kariyer_yonetimi" && (
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
-            <TalentAdminControlPage />
+            <TalentAdminControlPage jobsOnly />
           </Suspense>
         )}
 
