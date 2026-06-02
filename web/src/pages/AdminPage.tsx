@@ -23,7 +23,7 @@ import { SupplierProfileTab } from "./admin/SupplierProfileTab";
 import { SettingsTab } from "../components/SettingsTab";
 import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
 import { ApprovalDashboard } from "../components/ApprovalDashboard";
-import { PageHeader, StatCard } from "./admin/AdminTabContent";
+import { DataTable, PageHeader, Section, StatCard } from "./admin/AdminTabContent";
 
 import { getAccessToken } from "../lib/token";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -743,7 +743,7 @@ const ChannelReportsTabContent = lazy(async () => ({
 }));
 
 const PlatformAnalyticsTab = lazy(async () => ({
-  default: (await import("./admin/adminSecondaryTabs")).PlatformAnalyticsTab,
+  default: (await import("./admin/PlatformAnalyticsTab")).PlatformAnalyticsTab,
 }));
 
 const PlatformSuppliersTab = lazy(async () => ({
@@ -758,6 +758,14 @@ const CampaignsTab = lazy(async () => ({
   default: (await import("./admin/adminSecondaryTabs")).CampaignsTab,
 }));
 
+const ChannelPartnersAdminTab = lazy(async () => ({
+  default: (await import("./admin/adminSecondaryTabs")).ChannelPartnersAdminTab,
+}));
+
+const AiLabAdminTab = lazy(async () => ({
+  default: (await import("./admin/adminSecondaryTabs")).AiLabAdminTab,
+}));
+
 const WorkspacePanelDesignerTab = lazy(async () => ({
   default: (await import("../components/admin/WorkspacePanelDesignerTab")).WorkspacePanelDesignerTab,
 }));
@@ -769,6 +777,184 @@ const DeploymentPanel = lazy(async () => ({
 const TalentAdminControlPage = lazy(async () => ({
   default: (await import("./TalentAdminControlPage")).default,
 }));
+const PanelDesignerTab = lazy(async () => ({
+  default: (await import("./admin/PanelDesignerTab")).default,
+}));
+const NavManagerTab = lazy(async () => ({
+  default: (await import("./admin/NavManagerTab")).default,
+}));
+
+// TODO(data): Phase B — panel_home mock data (replace with API when finans servisi hazır)
+const PH_OPS_QUEUE = [
+  { code: "setup",   label: "Kurulum Kuyruğu",         count: 4, color: "#b45309", desc: "Onboarding tamamlanmayı bekleyen partner.", cta: "Kuruluma git" },
+  { code: "owner",   label: "Sorumlu Aksiyonu",         count: 0, color: "#be123c", desc: "Sorumlu ataması yapılmayan bekleyen kayıt yok.", cta: "İncele" },
+  { code: "brand",   label: "Marka Kimliği Eksiği",     count: 5, color: "#7c3aed", desc: "Logo veya görünen ad bilgisi eksik partner.", cta: "Logoları tamamla" },
+  { code: "passive", label: "Pasif Stratejik Partner",  count: 0, color: "#0f172a", desc: "Duraklatılmış veya pasif durumdaki partner.", cta: "Geçmişi gör" },
+] as const;
+
+const PH_SUPPORT_QUEUE = [
+  { code: "open",    label: "Açık Destek Kaydı",        count: 2, color: "#1d4ed8", desc: "Yeni veya işlemde olan destek kayıtları.", cta: "Detaya git" },
+  { code: "waiting", label: "Sorumlu Bekleyen Destek",  count: 0, color: "#7c3aed", desc: "Platform ekibinin geri dönüşü beklediği kayıtlar.", cta: "Detaya git" },
+  { code: "closed",  label: "Kapanışı Tamamlanan",      count: 4, color: "#15803d", desc: "Çözüldü durumuna alınmış kayıtlar.", cta: "Detaya git" },
+  { code: "stale",   label: "Teması Geciken Kayıt",     count: 0, color: "#b45309", desc: "3 gün ve üzeri temas edilmeyen aktif kayıtlar.", cta: "Detaya git" },
+] as const;
+
+const PH_SUPPORT_SUMMARY = [
+  { code: "orphan", label: "Sorumlusuz Destek Kaydı",     value: "0",                                   color: "#be123c", desc: "Operasyon sorumlusu atanmamış aktif kayıt sayısı.", cta: "Detaya git", isPerson: false },
+  { code: "top",    label: "En Yoğun Destek Sorumlusu",  value: "Platform Destek Admin · Destek",       color: "#15803d", desc: "1 aktif kayıt", cta: "Detaya git", isPerson: true },
+];
+
+const PH_PRIORITY_TENANTS = [
+  { name: "BA Demo Stratejik Ortak",  slug: "demo-stratejik-ortak",                           tags: ["Kurulum: bootstrap completed", "Marka kimliği eksik", "Destek: Çözüldü"] },
+  { name: "Kanal Ana Yönetici Demo",  slug: "kanal-ana-yonetici-demo",                        tags: ["Kurulum: bootstrap completed", "Marka kimliği eksik", "Destek: Çözüldü"] },
+  { name: "BA Demo İş Ortağı",        slug: "demo-kanal-is-ortagi",                           tags: ["Kurulum: bootstrap completed", "Marka kimliği eksik"] },
+  { name: "PİZZA MAX",                slug: "pi-zza-max",                                     tags: ["Kurulum: bootstrap completed"] },
+  { name: "OLİMPOS TEKNOLOJİ",        slug: "oli-mpos-teknoloji",                             tags: ["Marka kimliği eksik", "Destek: Çözüldü"] },
+];
+
+const PH_ALERTS = [
+  { id: 1, level: "critical", title: "Doğan Otomotiv",     desc: "Churn risk · 14 gün hareketsiz · Kurumsal plan ₺14.900/ay",  cta: "Müşteri başarıyı uyar" },
+  { id: 2, level: "critical", title: "Polat Tekstil",       desc: "Vade aşımı · ₺4.990 + KDV · 2 gün",                          cta: "Tahsilat süreci başlat" },
+  { id: 3, level: "warning",  title: "Kurulum Kuyruğu",     desc: "Egem Makina · Bursa Otomasyon · 2 partner SLA içinde",        cta: "Stüdyoya git" },
+  { id: 4, level: "warning",  title: "Tetra Holding",       desc: "Sözleşme süresi 14 gün · yenileme süreci başlatılmalı",      cta: "Yenileme paketi gönder" },
+];
+
+const PH_MRR_SERIES = [
+  { m: "2025-06", mrr: 820000  }, { m: "2025-07", mrr: 894000  }, { m: "2025-08", mrr: 950000  },
+  { m: "2025-09", mrr: 1012000 }, { m: "2025-10", mrr: 1068000 }, { m: "2025-11", mrr: 1102000 },
+  { m: "2025-12", mrr: 1140000 }, { m: "2026-01", mrr: 1188000 }, { m: "2026-02", mrr: 1207000 },
+  { m: "2026-03", mrr: 1241000 }, { m: "2026-04", mrr: 1252000 }, { m: "2026-05", mrr: 1284500 },
+];
+
+const PH_NET_GROWTH_SERIES = [
+  { m: "2025-12", newMrr: 102000, churn: 64000 },
+  { m: "2026-01", newMrr: 124000, churn: 76000 },
+  { m: "2026-02", newMrr: 95000,  churn: 76000 },
+  { m: "2026-03", newMrr: 118000, churn: 84000 },
+  { m: "2026-04", newMrr: 99000,  churn: 88000 },
+  { m: "2026-05", newMrr: 132000, churn: 99500 },
+];
+
+const PH_PLAN_DISTRIBUTION = [
+  { code: "starter",    label: "Başlangıç", count: 11, percent: 26, color: "#94a3b8" },
+  { code: "growth",     label: "Gelişim",   count: 22, percent: 52, color: "#2563eb" },
+  { code: "enterprise", label: "Kurumsal",  count: 6,  percent: 14, color: "#7c3aed" },
+  { code: "custom",     label: "Özel",      count: 3,  percent: 8,  color: "#D4AF37" },
+];
+
+const PH_SYSTEM_HEALTH = {
+  metrics: [
+    { code: "api",     label: "API",         value: "200 OK",      status: "ok"   },
+    { code: "db",      label: "DB",          value: "12ms",        status: "ok"   },
+    { code: "mail",    label: "MAIL",        value: "SMTP",        status: "ok"   },
+    { code: "webhook", label: "WEBHOOK",     value: "3 kuyruk",    status: "ok"   },
+    { code: "uptime",  label: "UPTİME 90G", value: "%99.98",      status: "ok"   },
+    { code: "backup",  label: "BACKUP",      value: "06:00 ✓",    status: "ok"   },
+    { code: "payment", label: "ÖDEME SAĞ.",  value: "3 aktif",    status: "idle" },
+    { code: "cdn",     label: "CDN",         value: "Cloudflare",  status: "idle" },
+  ],
+  domains: [
+    { host: "buyerasistans.com.tr", role: "Ana TR vitrini" },
+    { host: "buyerasistans.com",    role: "Global EN" },
+    { host: "buyerasistans.online", role: "Kampanya" },
+    { host: "buyerasistans.info",   role: "Bilgi merkezi" },
+  ],
+};
+
+// TODO(data): replace with API
+const TE_TIERS = [
+  { name: "Platin", min: 800, count: 6,  color: "#0ea5e9", perk: "Öncelikli görev + %0 komisyon" },
+  { name: "Altın",  min: 600, count: 22, color: "#D4AF37", perk: "Erken görev erişimi + rozet" },
+  { name: "Gümüş",  min: 300, count: 41, color: "#94a3b8", perk: "Standart görev havuzu" },
+  { name: "Bronz",  min: 0,   count: 55, color: "#b45309", perk: "Onboarding & değerlendirme" },
+] as const;
+
+const TE_SKILLS = [
+  { k: "Tedarik Analizi",      n: 44 },
+  { k: "Kategori Yönetimi",    n: 38 },
+  { k: "Pazarlık & Sözleşme",  n: 33 },
+  { k: "Lojistik & Operasyon", n: 26 },
+  { k: "Hammadde / Kimya",     n: 19 },
+  { k: "Sürdürülebilirlik",    n: 12 },
+] as const;
+
+const TE_LEADERS = [
+  { name: "Emre Şahin",  rep: 740, tasks: 28, earned: 12400, tier: "Altın"  },
+  { name: "Aslı Tan",    rep: 520, tasks: 19, earned: 8700,  tier: "Gümüş"  },
+  { name: "Nehir Kılıç", rep: 815, tasks: 34, earned: 16850, tier: "Platin" },
+  { name: "Deniz Kaya",  rep: 210, tasks: 7,  earned: 3200,  tier: "Bronz"  },
+  { name: "Onur Demir",  rep: 660, tasks: 24, earned: 11200, tier: "Altın"  },
+] as const;
+
+const TE_PILLARS = [
+  { k: "Yetenek Havuzu",  d: "Bağımsız, KYC doğrulamalı satınalma uzmanları. Stratejik Partnerler bu havuzdan iş ve görev için kaynak bulur.", color: "#1d4ed8" },
+  { k: "Katkı Ekonomisi", d: "Mikro görevler (tedarikçi keşfi, RFQ zenginleştirme, referans) ile uzmanlar katkı sağlar ve ödül kazanır.",      color: "#7c3aed" },
+  { k: "İtibar & Ödül",   d: "Tamamlanan görevler itibar puanına dönüşür; seviye yükseldikçe görev önceliği ve ödül oranı artar.",              color: "#047857" },
+] as const;
+
+const TE_TALENTS_INIT = [
+  { id: 101, name: "Emre Şahin",   avail: "full_time", exp: 8, rep: 740, earned: 12400, kyc: "approved", skills: ["kategori yönetimi", "sözleşme"]  },
+  { id: 102, name: "Deniz Kaya",   avail: "freelance",  exp: 3, rep: 210, earned: 3200,  kyc: "pending",  skills: ["tedarik", "analiz"]              },
+  { id: 103, name: "Aslı Tan",     avail: "part_time",  exp: 5, rep: 520, earned: 8700,  kyc: "approved", skills: ["lojistik", "pazarlık"]           },
+  { id: 104, name: "Burak Yılmaz", avail: "freelance",  exp: 2, rep: 60,  earned: 450,   kyc: "pending",  skills: ["hammadde"]                       },
+];
+
+const TE_TASKS_MOCK = [
+  { id: "T-7", title: "Ambalaj tedarikçisi keşfi — 5 firma", type: "supplier_discovery", reward: 750,  subs: 6  },
+  { id: "T-8", title: "Lojistik partner referansı",           type: "partner_referral",   reward: 1500, subs: 2  },
+  { id: "T-9", title: "RFQ zenginleştirme (kimya)",           type: "rfq_enrichment",     reward: 400,  subs: 11 },
+] as const;
+
+const TE_PAYOUTS_INIT = [
+  { id: "P-44", name: "Emre Şahin", amount: 3200, method: "IBAN ••4521", status: "pending"  },
+  { id: "P-45", name: "Aslı Tan",   amount: 1800, method: "IBAN ••9087", status: "pending"  },
+  { id: "P-46", name: "Deniz Kaya", amount: 950,  method: "IBAN ••3344", status: "approved" },
+];
+
+const TE_AVAIL_LABEL: Record<string, string> = {
+  full_time:     "Tam zamanlı",
+  part_time:     "Yarı zamanlı",
+  freelance:     "Freelance",
+  not_available: "Müsait değil",
+};
+
+const TE_TIER_COLORS: Record<string, string>  = { Platin: "#0ea5e9", Altın: "#D4AF37", Gümüş: "#94a3b8", Bronz: "#b45309" };
+const TE_TIER_BG:     Record<string, string>  = { Platin: "#e0f2fe", Altın: "#fef9c3", Gümüş: "#f1f5f9", Bronz: "#fef3c7" };
+
+/* ── Discovery Lab Oturum Yönetimi — statik veriler ─────────────────────── */
+type DiscFocusItem = {
+  id: string; tenant: string; project: string; file: string;
+  stage: string; layers: number; qa: string; owner: string;
+  age: string; priority: "critical" | "high" | "normal";
+};
+
+const DISC_KPI = {
+  openSessions: 18, activeChains: 4, replayCount: 142, anomalies: 3, avgDuration: "3 dk 24 sn",
+} as const;
+
+const DISC_FOCUSES: DiscFocusItem[] = [
+  { id: "AIL-1142", tenant: "ACME Holding",  project: "Kocaeli Fabrika Genişleme",     file: "kocaeli_fabrika_v3.dwg", stage: "soru-cevap", layers: 6,  qa: "3/5",  owner: "Tuba A.",   age: "4 dk",  priority: "high"     },
+  { id: "AIL-1141", tenant: "Tetra Holding", project: "İstanbul Lojistik Üssü",         file: "lojistik_us_v8.dxf",     stage: "replay",     layers: 12, qa: "8/8",  owner: "Mehmet T.", age: "38 dk", priority: "critical" },
+  { id: "AIL-1140", tenant: "BorTeknik",     project: "Bursa Otomasyon Üretim Hattı",   file: "bursa_otomasyon.dwg",     stage: "çözüldü",    layers: 8,  qa: "4/4",  owner: "Ali D.",    age: "2 sa",  priority: "normal"   },
+  { id: "AIL-1139", tenant: "Nova Lojistik", project: "Soğuk Zincir Depo Modülü",       file: "sogukzincir_v2.dwg",      stage: "metraj",     layers: 4,  qa: "0/3",  owner: "Sema Y.",   age: "4 sa",  priority: "high"     },
+  { id: "AIL-1138", tenant: "Zümrüt Kimya",  project: "Reaktör Bina Genişletme",         file: "reaktor_v1.dwg",          stage: "anomali",    layers: 7,  qa: "0/12", owner: "—",         age: "6 sa",  priority: "high"     },
+];
+
+const DISC_CHAINS = [
+  { name: "cad-layer-extractor-v4",  stages: 4, success: 96, lastRun: "4 dk",  duration: "47 sn", desc: "DWG/DXF'ten katman çıkarımı" },
+  { name: "metraj-calculator-v3",     stages: 6, success: 92, lastRun: "8 dk",  duration: "32 sn", desc: "Birim bazlı metraj hesabı"    },
+  { name: "ai-question-generator-v2", stages: 5, success: 88, lastRun: "14 dk", duration: "21 sn", desc: "Bilişsel soru üretimi"         },
+  { name: "rfq-draft-composer-v1",    stages: 3, success: 94, lastRun: "24 dk", duration: "12 sn", desc: "RFQ taslak oluşturma"         },
+];
+
+const DISC_TELEMETRY = [
+  { time: "14:42:01", actor: "Tuba A.",   source: "ai-lab",  action: "session-open",  detail: "AIL-1142 · ACME · Kocaeli Fabrika"          },
+  { time: "14:38:14", actor: "Sistem",    source: "cron",    action: "replay-batch",  detail: "7 zincir tetiklendi · 142 olay"               },
+  { time: "14:24:42", actor: "Mehmet T.", source: "ai-lab",  action: "answer-save",   detail: "AIL-1141 · Q-3 onaylandı · S355J2"            },
+  { time: "13:56:18", actor: "Sistem",    source: "model",   action: "anomaly-fire",  detail: "Zümrüt Kimya · katman çıkarımında %18 sapma" },
+  { time: "13:42:09", actor: "Sema Y.",   source: "ai-lab",  action: "rfq-transfer",  detail: "AIL-1138 → RFQ-2025-1142 oluşturuldu"         },
+  { time: "13:18:55", actor: "Sistem",    source: "export",  action: "csv-export",    detail: "Tuba A. · oturum logu indirildi"               },
+];
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -799,6 +985,9 @@ export default function AdminPage() {
     personal_theme: "Kişisel Tema",
     partner_settings: "Stratejik Partner Ayarları",
     channel_settings: "İş Ortağı Platform Ayarları",
+    channel_partners: "İş Ortakları (Kanal)",
+    ai_lab: "AI Keşif Lab",
+    nav_management: "Navigasyon Yönetimi",
   });
   const isChannelUser = String(user?.scope_type || "").toLowerCase() === "channel"
     || String(user?.business_role || user?.role || "").toLowerCase() === "channel_owner"
@@ -895,6 +1084,9 @@ export default function AdminPage() {
   const [platformOpsSavingTenantId, setPlatformOpsSavingTenantId] = useState<number | null>(null);
   const [platformOpsStatusFilter, setPlatformOpsStatusFilter] = useState<"all" | "new" | "in_progress" | "waiting_owner" | "resolved">("all");
   const [platformOpsOwnerFilter, setPlatformOpsOwnerFilter] = useState<string>("all");
+  const [phKpiOpen, setPhKpiOpen] = useState(false);
+  const [teTalents, setTeTalents] = useState<Array<{ id: number; name: string; avail: string; exp: number; rep: number; earned: number; kyc: string; skills: string[] }>>(() => [...TE_TALENTS_INIT]);
+  const [tePayouts, setTePayouts] = useState<Array<{ id: string; name: string; amount: number; method: string; status: string }>>(() => [...TE_PAYOUTS_INIT]);
   const [billingSubscriptionFilter, setBillingSubscriptionFilter] = useState<"all" | "active" | "trialing" | "other">("all");
   const [billingInvoiceFilter, setBillingInvoiceFilter] = useState<"all" | "open" | "paid" | "other">("all");
   const [billingWebhookFilter, setBillingWebhookFilter] = useState<"all" | "processed" | "failed" | "other">("all");
@@ -2860,6 +3052,18 @@ export default function AdminPage() {
               description: "Kanal komisyon ledger kayıtlarını görüntüleyin, onaylayın ve ödeme durumunu yönetin.",
             },
             {
+              key: "channel_partners" as const,
+              label: tAdmin.channel_partners,
+              icon: "KNL",
+              description: "Acente ve broker iş ortaklarının organizasyon kaydını ve komisyon sözleşmelerini yönetin.",
+            },
+            {
+              key: "ai_lab" as const,
+              label: tAdmin.ai_lab,
+              icon: "AIC",
+              description: "AI destekli mimari proje analizi, metraj çıkarımı ve RFQ üretim istatistiklerini izleyin.",
+            },
+            {
               key: "support_tickets" as const,
               label: tAdmin.support_tickets,
               icon: "DST",
@@ -4047,31 +4251,21 @@ export default function AdminPage() {
     isUpgradeExtrasPage ? "admin-page__tab-link--active" : "",
   ].filter(Boolean).join(" ");
 
-  const _shellMode = isSuperAdminUser(user);
+  const _shellMode = canAccessAdminSurface(user);
 
   const _adminNode = (
     <div className="admin-page">
       <ImpersonationBanner />
 
       {isSuperAdminUser(user) && (
-        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 16px", background: "#faf5ff", borderBottom: "1px solid #e9d5ff" }}>
+        <div className="admin-page__role-matrix-bar">
           <button
             type="button"
-            onClick={() => navigate("/rol-matrisi")}
-            style={{ background: "#7c3aed", color: "#fff", border: "none", borderRadius: 6, padding: "4px 12px", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer" }}
+            className="admin-page__role-matrix-btn"
+            onClick={() => navigateAdminTab("roles")}
           >
-            🔐 Rol & İzin Matrisi
+            Rol & İzin Matrisi
           </button>
-        </div>
-      )}
-
-      {activeTab === "panel_home" && (
-        <div className="atc-page--header">
-          <PageHeader
-            eyebrow="Platform Yönetim Alanı"
-            title="Panel Ana Sayfa"
-            sub="Workspace özeti, hızlı linkler ve operasyon kuyruğu"
-          />
         </div>
       )}
 
@@ -4152,81 +4346,293 @@ export default function AdminPage() {
 
       {activeTab === "panel_home" && (() => {
         const _scope = String(user?.scope_type || "").toLowerCase();
+        const isPlat = _scope === "platform";
         const requestSummaryTop = {
           pending: catalogRequests.filter((item) => item.review_status === "pending_review").length,
           approved: catalogRequests.filter((item) => item.review_status === "approved").length,
           rejected: catalogRequests.filter((item) => item.review_status === "rejected").length,
         };
-        const quickLinkTone = _scope === "platform" ? "navy" : _scope === "channel" ? "amber" : _scope === "supplier" ? "red" : "blue";
+        const quickLinkTone = isPlat ? "navy" : _scope === "channel" ? "amber" : _scope === "supplier" ? "red" : "blue";
         return (
-          <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
-            {_scope === "platform" && panelHomePlatformMetrics ? (
-              <div className="admin-page__grid admin-page__grid--sm">
-                <div className="admin-page__section-title admin-page__section-title--accent">Platform Yönetim Alanı</div>
-                <div className="admin-page__metric-grid">
-                  {[
-                    {
-                      label: "Stratejik Partner",
-                      tone: "blue",
-                      note: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
-                      items: [
-                        { key: "Firma", value: panelHomePlatformMetrics.partnerCompanies },
-                        { key: "Personel", value: panelHomePlatformMetrics.partnerPersonnel },
-                        { key: "Proje", value: panelHomePlatformMetrics.partnerProjects },
-                        { key: "Teklif", value: panelHomePlatformMetrics.partnerQuotes },
-                      ],
-                    },
-                    {
-                      label: "Tedarikçi",
-                      tone: "red",
-                      note: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
-                      items: [
-                        { key: "Firma", value: panelHomePlatformMetrics.supplierCompanies },
-                        { key: "Yanıtlanan Teklif", value: panelHomePlatformMetrics.supplierRespondedQuotes },
-                        { key: "Revize Teklif", value: panelHomePlatformMetrics.supplierRevisedQuotes },
-                      ],
-                    },
-                    {
-                      label: "İş Ortağı",
-                      tone: "teal",
-                      note: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
-                      items: [
-                        { key: "Firma", value: panelHomePlatformMetrics.channelCompanies },
-                        { key: "Personel", value: panelHomePlatformMetrics.channelPersonnel },
-                        { key: "Proje", value: panelHomePlatformMetrics.channelProjects },
-                        { key: "Teklif", value: panelHomePlatformMetrics.channelQuotes },
-                      ],
-                    },
-                  ].map((group) => (
-                    <div key={group.label} className={`admin-page__metric-group admin-page__tone--${group.tone}`}>
-                      <div className="admin-page__metric-group-title">{group.label}</div>
-                      <div className="admin-page__metric-group-note">{group.note}</div>
-                      {group.items.map((entry) => (
-                        <div key={`${group.label}-${entry.key}`} className="admin-page__metric-group-row">
-                          <span className="admin-page__metric-group-key">{entry.key}</span>
-                          <span className="admin-page__metric-group-value">{entry.value}</span>
+          <div className="ph-page">
+            {/* ── Platform Yönetim Alanı — audience cards + approval strip ── */}
+            {isPlat && panelHomePlatformMetrics ? (
+              <>
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Platform Yönetim Alanı</div>
+                      <div className="ph-section__sub">Aktif kitle dağılımı ve onay durumu</div>
+                    </div>
+                  </div>
+                  <div className="ph-aud-grid">
+                    {([
+                      {
+                        code: "strategic", label: "Stratejik Partner", color: "#1d4ed8", bg: "#eef4ff",
+                        subLabel: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
+                        metrics: [
+                          { k: "Firma",     v: panelHomePlatformMetrics.partnerCompanies },
+                          { k: "Personel",  v: panelHomePlatformMetrics.partnerPersonnel },
+                          { k: "Proje",     v: panelHomePlatformMetrics.partnerProjects },
+                          { k: "Aylık RFQ", v: panelHomePlatformMetrics.partnerQuotes },
+                        ],
+                        ctaKey: "tenant_governance",
+                      },
+                      {
+                        code: "supplier", label: "Tedarikçi", color: "#be123c", bg: "#fff1f1",
+                        subLabel: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
+                        metrics: [
+                          { k: "Firma",             v: panelHomePlatformMetrics.supplierCompanies },
+                          { k: "Yanıtlanan Teklif", v: panelHomePlatformMetrics.supplierRespondedQuotes },
+                          { k: "Revize Teklif",     v: panelHomePlatformMetrics.supplierRevisedQuotes },
+                        ],
+                        ctaKey: "platform_suppliers",
+                      },
+                      {
+                        code: "channel", label: "İş Ortağı", color: "#047857", bg: "#ecfdf5",
+                        subLabel: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
+                        metrics: [
+                          { k: "Firma",      v: panelHomePlatformMetrics.channelCompanies },
+                          { k: "Personel",   v: panelHomePlatformMetrics.channelPersonnel },
+                          { k: "Proje",      v: panelHomePlatformMetrics.channelProjects },
+                          { k: "Hak ediş",   v: panelHomePlatformMetrics.channelQuotes },
+                        ],
+                        ctaKey: "channel_partners",
+                      },
+                    ] as const).map((a) => (
+                      <div key={a.code} className="ph-aud-card" style={{ "--aud": a.color, "--aud-bg": a.bg } as React.CSSProperties}>
+                        <div className="ph-aud-card__head">
+                          <span className="ph-aud-card__title">{a.label}</span>
+                          <span className="ph-aud-card__badge">{a.subLabel}</span>
+                        </div>
+                        <div className="ph-aud-card__body">
+                          {a.metrics.map((m) => (
+                            <div key={m.k} className="ph-aud-card__row">
+                              <span>{m.k}</span>
+                              <b>{m.v}</b>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="ph-aud-card__foot">
+                          <button type="button" className="ph-aud-card__cta" onClick={() => navigateAdminTab(a.ctaKey)}>
+                            Yönet →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Approval strip */}
+                  <div className="ph-approval-strip">
+                    {[
+                      { label: "Bekleyen Talep", value: requestSummaryTop.pending,            cls: "warn", sub: "Son 24 saatte hareketsiz" },
+                      { label: "Onaylanan",       value: requestSummaryTop.approved,           cls: "ok",   sub: "▲ %12 · son 7 gün" },
+                      { label: "Reddedilen",      value: requestSummaryTop.rejected,           cls: "bad",  sub: "▼ %3 · son 7 gün" },
+                      { label: "Hızlı Link",      value: workspacePanelQuickLinks.length,      cls: "blue", sub: "Sabitlenmiş kısayollar" },
+                    ].map((c) => (
+                      <div key={c.label} className={`ph-appr-card ph-appr-card--${c.cls}`}>
+                        <div className="ph-appr-card__label">{c.label}</div>
+                        <div className="ph-appr-card__value">{c.value}</div>
+                        <div className="ph-appr-card__sub">{c.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Collapsible KPI strip ── */}
+                <div className={`ph-kpi-collapse${phKpiOpen ? " ph-kpi-collapse--open" : ""}`}>
+                  <button type="button" className="ph-kpi-collapse__toggle" onClick={() => setPhKpiOpen((c) => !c)}>
+                    <span className="ph-kpi-collapse__title">Finans &amp; Sağlık Özeti</span>
+                    <span className="ph-kpi-collapse__summary">
+                      <span>MRR <b>₺1.284K</b></span>
+                      <span>ARR <b>₺15.4M</b></span>
+                      <span>Partner <b>42</b></span>
+                      <span>Churn <b>%1.4</b></span>
+                      <span>SLA <b>%99.98</b></span>
+                    </span>
+                    <span className="ph-kpi-collapse__chevron">{phKpiOpen ? "▲" : "▼"}</span>
+                  </button>
+                  {phKpiOpen && (
+                    <div className="ph-kpi-grid">
+                      {[
+                        { label: "Aylık Tekrarlayan Gelir (MRR)", value: "₺1.284.500", delta: "+%12.3", accent: "blue" },
+                        { label: "Yıllık Gelir (ARR)",            value: "₺15.4M",     delta: "+%14.8", accent: "gold" },
+                        { label: "Aktif Partner",                  value: "42",          delta: "+4",     accent: "" },
+                        { label: "Churn (30 gün)",                 value: "%1.4",        delta: "▼ %0.3", accent: "green" },
+                        { label: "SLA Sağlık",                     value: "%99.98",      sub: "Son 30 gün · hedef ≥%99.9", accent: "green" },
+                      ].map((k) => (
+                        <div key={k.label} className={`ph-kpi-card${k.accent ? ` ph-kpi-card--${k.accent}` : ""}`}>
+                          <div className="ph-kpi-card__label">{k.label}</div>
+                          <div className="ph-kpi-card__value">{k.value}</div>
+                          {"delta" in k && k.delta && <div className="ph-kpi-card__delta">{k.delta}</div>}
+                          {"sub" in k && k.sub && <div className="ph-kpi-card__sub">{k.sub}</div>}
                         </div>
                       ))}
                     </div>
+                  )}
+                </div>
+
+                {/* ── Operasyonel Uyarılar ── */}
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Operasyonel Uyarılar</div>
+                      <div className="ph-section__sub">Anlık aksiyon gerektiren kuyruklar</div>
+                    </div>
+                    <button type="button" className="ph-lnk" onClick={() => navigateAdminTab("platform_operations")}>Tümünü gör →</button>
+                  </div>
+                  <div className="ph-ops-grid">
+                    {PH_OPS_QUEUE.map((o) => (
+                      <div key={o.code} className="ph-ops-card" style={{ "--ops": o.color } as React.CSSProperties}>
+                        <div className="ph-ops-card__label">{o.label}</div>
+                        <div className="ph-ops-card__value">{o.count}</div>
+                        <div className="ph-ops-card__desc">{o.desc}</div>
+                        <button type="button" className="ph-ops-card__cta">{o.cta} →</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Destek Kuyruğu ── */}
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Destek Kuyruğu</div>
+                      <div className="ph-section__sub">Platform desteği · gelen ticket durumları</div>
+                    </div>
+                  </div>
+                  <div className="ph-ops-grid">
+                    {PH_SUPPORT_QUEUE.map((s) => (
+                      <div key={s.code} className="ph-ops-card" style={{ "--ops": s.color } as React.CSSProperties}>
+                        <div className="ph-ops-card__label">{s.label}</div>
+                        <div className="ph-ops-card__value">{s.count}</div>
+                        <div className="ph-ops-card__desc">{s.desc}</div>
+                        <button type="button" className="ph-ops-card__cta">{s.cta} →</button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="ph-sup-summary">
+                    {PH_SUPPORT_SUMMARY.map((s) => (
+                      <div key={s.code} className="ph-sup-card" style={{ "--sup": s.color } as React.CSSProperties}>
+                        <div className="ph-sup-card__label">{s.label}</div>
+                        <div className={`ph-sup-card__value${s.isPerson ? " ph-sup-card__value--person" : ""}`}>{s.value}</div>
+                        <div className="ph-sup-card__desc">{s.desc}</div>
+                        <button type="button" className="ph-sup-card__cta">{s.cta} →</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Operasyon Kuyruğu ── */}
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Operasyon Kuyruğu · Platform destek öncelikleri</div>
+                      <div className="ph-section__sub">Müdahale önceliği yüksek Stratejik Partner kayıtları tek görünümde.</div>
+                    </div>
+                  </div>
+                  <div className="ph-priority-list">
+                    {PH_PRIORITY_TENANTS.map((t) => (
+                      <div key={t.slug} className="ph-priority-row">
+                        <div className="ph-priority-row__main">
+                          <div className="ph-priority-row__name">{t.name}</div>
+                          <div className="ph-priority-row__tags">
+                            {t.tags.map((tag, i) => (
+                              <span key={i} className={`ph-priority-tag${
+                                tag.includes("Kurulum") ? " ph-tag-blue"  :
+                                tag.includes("Marka")   ? " ph-tag-amber" :
+                                tag.includes("Destek")  ? " ph-tag-green" : ""
+                              }`}>{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="ph-priority-row__slug">{t.slug}</div>
+                        <button type="button" className="ph-row-act" title="Detay">↗</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── MRR Trendi + Uyarılar — 2:1 split ── */}
+                <div className="ph-split-2-1">
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <div>
+                        <div className="ph-section__title">MRR Trendi</div>
+                        <div className="ph-section__sub">Son 12 ay · net büyüme = yeni − churn</div>
+                      </div>
+                      <div className="ph-legend">
+                        <span className="ph-legend-dot" style={{ background: "#2563eb" }} />MRR
+                      </div>
+                    </div>
+                    <div className="ph-mrr-chart">
+                      <svg viewBox="0 0 480 120" className="ph-mrr-svg" preserveAspectRatio="none">
+                        {PH_MRR_SERIES.map((d, i) => {
+                          const maxMrr = 1284500;
+                          const barH = Math.round((d.mrr / maxMrr) * 100);
+                          const x = 2 + i * 40;
+                          return (
+                            <rect key={d.m} x={x} y={110 - barH} width={34} height={barH} rx={3}
+                              fill="#2563eb" opacity={i === PH_MRR_SERIES.length - 1 ? 1 : 0.5} />
+                          );
+                        })}
+                      </svg>
+                      <div className="ph-mrr-labels">
+                        {PH_MRR_SERIES.map((d) => (
+                          <span key={d.m}>{d.m.slice(5)}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="ph-mrr-stats">
+                      <div><span>Bu ay yeni</span><b className="ph-pos">+₺132.000</b></div>
+                      <div><span>Bu ay churn</span><b className="ph-neg">−₺99.500</b></div>
+                      <div><span>Net büyüme</span><b className="ph-pos">+₺32.500</b></div>
+                      <div><span>Büyüme oranı</span><b className="ph-pos">+%2.6</b></div>
+                    </div>
+                  </div>
+
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <div>
+                        <div className="ph-section__title">Operasyonel Uyarılar</div>
+                        <div className="ph-section__sub">Bekleyen {PH_ALERTS.length}</div>
+                      </div>
+                      <button type="button" className="ph-lnk">Tümünü gör →</button>
+                    </div>
+                    <div className="ph-alert-list">
+                      {PH_ALERTS.map((a) => (
+                        <div key={a.id} className={`ph-alert-row ph-alert-row--${a.level}`}>
+                          <div className="ph-alert-row__dot" />
+                          <div className="ph-alert-row__body">
+                            <div className="ph-alert-row__title">{a.title}</div>
+                            <div className="ph-alert-row__desc">{a.desc}</div>
+                          </div>
+                          <button type="button" className="ph-alert-row__cta">{a.cta}</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Non-platform: compact summary strip */
+              <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
+                <div className="admin-page__summary-grid">
+                  {[
+                    { label: "Bekleyen Talep", value: requestSummaryTop.pending, tone: "amber" },
+                    { label: "Onaylanan",       value: requestSummaryTop.approved, tone: "green" },
+                    { label: "Reddedilen",      value: requestSummaryTop.rejected, tone: "red-dark" },
+                    { label: "Hizli Link",      value: workspacePanelQuickLinks.length, tone: quickLinkTone },
+                  ].map((item) => (
+                    <div key={item.label} className={`admin-page__summary-card admin-page__tone--${item.tone}`}>
+                      <div className="admin-page__summary-label">{item.label}</div>
+                      <div className="admin-page__summary-value">{item.value}</div>
+                    </div>
                   ))}
                 </div>
-              </div>
-            ) : null}
-
-            <div className="admin-page__summary-grid">
-              {[
-                { label: "Bekleyen Talep", value: requestSummaryTop.pending, tone: "amber" },
-                { label: "Onaylanan", value: requestSummaryTop.approved, tone: "green" },
-                { label: "Reddedilen", value: requestSummaryTop.rejected, tone: "red-dark" },
-                { label: "Hizli Link", value: workspacePanelQuickLinks.length, tone: quickLinkTone },
-              ].map((item) => (
-                <div key={item.label} className={`admin-page__summary-card admin-page__tone--${item.tone}`}>
-                  <div className="admin-page__summary-label">{item.label}</div>
-                  <div className="admin-page__summary-value">{item.value}</div>
-                </div>
-              ))}
-            </div>
-          </section>
+              </section>
+            )}
+          </div>
         );
       })()}
 
@@ -4275,7 +4681,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (
+      {activeTab === "platform_overview" && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
             eyebrow: "Yönetici Odağı",
@@ -4832,6 +5238,160 @@ export default function AdminPage() {
           </div>
 
         </section>
+      )}
+
+      {/* ── Platform Genel Bakış: Finansal Detay + Sistem Sağlığı + Grafikler ── */}
+      {activeTab === "platform_overview" && canViewPlatformGovernance && (
+        <div className="ph-page">
+          {/* LTV / CAC / LTV:CAC */}
+          <div className="ph-section">
+            <div className="ph-section__head">
+              <div>
+                <div className="ph-section__title">Finansal Detay</div>
+                <div className="ph-section__sub">Birim ekonomi ve müşteri yaşam döngüsü</div>
+              </div>
+            </div>
+            <div className="ph-ltv-grid">
+              <div className="ph-kpi-card ph-kpi-card--blue">
+                <div className="ph-kpi-card__label">LTV (ort)</div>
+                <div className="ph-kpi-card__value">₺89.400</div>
+                <div className="ph-kpi-card__delta">+%4.2</div>
+              </div>
+              <div className="ph-kpi-card ph-kpi-card--green">
+                <div className="ph-kpi-card__label">CAC</div>
+                <div className="ph-kpi-card__value">₺11.200</div>
+                <div className="ph-kpi-card__delta" style={{ color: "#15803d" }}>▼%3.1 (iyileşme)</div>
+              </div>
+              <div className="ph-kpi-card ph-kpi-card--green">
+                <div className="ph-kpi-card__label">LTV:CAC</div>
+                <div className="ph-kpi-card__value">7.98×</div>
+                <div className="ph-kpi-card__sub">Hedef ≥ 3×</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sistem Sağlığı */}
+          <div className="ph-section">
+            <div className="ph-section__head">
+              <div>
+                <div className="ph-section__title">Sistem Sağlığı</div>
+                <div className="ph-section__sub">Anlık platform telemetrisi · 30 sn güncellenir</div>
+              </div>
+              <button type="button" className="ph-lnk">Status sayfası →</button>
+            </div>
+            <div className="ph-syshealth-grid">
+              {PH_SYSTEM_HEALTH.metrics.map((m) => (
+                <div key={m.code} className={`ph-syshealth-card ph-syshealth-card--${m.status}`}>
+                  <div className="ph-syshealth-card__label">{m.label}</div>
+                  <div className="ph-syshealth-card__value">
+                    <span className={`ph-syshealth-dot ph-syshealth-dot--${m.status}`} />
+                    {m.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="ph-syshealth-domains-head">ÇOKLU DOMAIN</div>
+            <div className="ph-syshealth-domains">
+              {PH_SYSTEM_HEALTH.domains.map((d) => (
+                <div key={d.host} className="ph-syshealth-domain">
+                  <div className="ph-syshealth-domain__host">{d.host}</div>
+                  <div className="ph-syshealth-domain__role">
+                    <span className="ph-syshealth-domain__dot" />{d.role}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* MRR Detayı + Plan Dağılımı — 1:1 */}
+          <div className="ph-split-1-1">
+            <div className="ph-section">
+              <div className="ph-section__head">
+                <div>
+                  <div className="ph-section__title">MRR Detayı · 12 ay</div>
+                </div>
+                <div className="ph-legend">
+                  <span className="ph-legend-dot" style={{ background: "#2563eb" }} />MRR
+                </div>
+              </div>
+              <div className="ph-mrr-chart">
+                <svg viewBox="0 0 480 120" className="ph-mrr-svg" preserveAspectRatio="none">
+                  {PH_MRR_SERIES.map((d, i) => {
+                    const maxMrr = 1284500;
+                    const barH = Math.round((d.mrr / maxMrr) * 100);
+                    const x = 2 + i * 40;
+                    return (
+                      <rect key={d.m} x={x} y={110 - barH} width={34} height={barH} rx={3}
+                        fill="#2563eb" opacity={i === PH_MRR_SERIES.length - 1 ? 1 : 0.5} />
+                    );
+                  })}
+                </svg>
+                <div className="ph-mrr-labels">
+                  {PH_MRR_SERIES.map((d) => <span key={d.m}>{d.m.slice(5)}</span>)}
+                </div>
+              </div>
+            </div>
+
+            <div className="ph-section">
+              <div className="ph-section__head">
+                <div>
+                  <div className="ph-section__title">Plan Dağılımı</div>
+                </div>
+              </div>
+              <div className="ph-plan-dist">
+                {PH_PLAN_DISTRIBUTION.map((p) => {
+                  const maxPct = Math.max(...PH_PLAN_DISTRIBUTION.map((x) => x.percent));
+                  return (
+                    <div key={p.code} className="ph-plan-row">
+                      <div className="ph-plan-row__label">
+                        <span className="ph-plan-row__dot" style={{ background: p.color }} />
+                        {p.label}
+                      </div>
+                      <div className="ph-plan-row__bar-wrap">
+                        <div className="ph-plan-row__bar" style={{ width: `${(p.percent / maxPct) * 100}%`, background: p.color }} />
+                      </div>
+                      <div className="ph-plan-row__meta">
+                        <b>{p.count}</b> <span>(%{p.percent})</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Aylık Net Büyüme Bileşenleri */}
+          <div className="ph-section">
+            <div className="ph-section__head">
+              <div>
+                <div className="ph-section__title">Aylık Net Büyüme Bileşenleri</div>
+                <div className="ph-section__sub">Yeni vs. churn — son 6 ay</div>
+              </div>
+            </div>
+            <div className="ph-bars-grid">
+              {(() => {
+                const maxVal = Math.max(...PH_NET_GROWTH_SERIES.map((d) => Math.max(d.newMrr, d.churn)));
+                return PH_NET_GROWTH_SERIES.map((d) => (
+                  <div key={d.m} className="ph-bars-col">
+                    <div className="ph-bars-stack">
+                      <div className="ph-bar ph-bar--new" style={{ height: `${(d.newMrr / maxVal) * 100}%` }}>
+                        <span>+{(d.newMrr / 1000).toFixed(0)}K</span>
+                      </div>
+                      <div className="ph-bar ph-bar--churn" style={{ height: `${(d.churn / maxVal) * 100}%` }}>
+                        <span>−{(d.churn / 1000).toFixed(0)}K</span>
+                      </div>
+                    </div>
+                    <div className="ph-bars-label">{d.m.slice(5)}</div>
+                  </div>
+                ));
+              })()}
+            </div>
+            <div className="ph-bars-legend">
+              <span><span className="ph-legend-dot" style={{ background: "#16a34a" }} />Yeni MRR</span>
+              <span><span className="ph-legend-dot" style={{ background: "#be123c" }} />Churn MRR</span>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeTab === "panel_home" && canViewPlatformGovernance && (() => {
@@ -5531,6 +6091,68 @@ export default function AdminPage() {
         </section>
       )}
 
+      {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
+        <>
+          <div className="disc-band">AI Lab Oturum Yönetimi</div>
+          <div className="kpi-grid">
+            <StatCard label="Açık Oturum" value={DISC_KPI.openSessions} delta={12} trend="up" accent="blue" />
+            <StatCard label="Aktif Zincir" value={DISC_KPI.activeChains} sub="Production zincirleri" />
+            <StatCard label="Replay (30g)" value={DISC_KPI.replayCount} delta={28} trend="up" accent="green" />
+            <StatCard label="Anomali" value={DISC_KPI.anomalies} sub="Son 24 saat" accent="warn" />
+            <StatCard label="Ort. Oturum Süresi" value={DISC_KPI.avgDuration} delta={2.1} trend="down" accent="green" />
+          </div>
+          <Section title="Aktif AI Lab Oturumları" sub={`${DISC_FOCUSES.length} açık oturum · CAD analizi + soru-cevap döngüsü`} padded={false}>
+            <DataTable
+              rows={DISC_FOCUSES as unknown as Record<string, unknown>[]}
+              columns={[
+                { key: "id", label: "Oturum", render: (r) => { const item = r as unknown as DiscFocusItem; return (<div><code className="disc-code">{item.id}</code><div className="cell-tenant__sub disc-mt">{item.file}</div></div>); }},
+                { key: "tenant", label: "Partner & Proje", render: (r) => { const item = r as unknown as DiscFocusItem; return (<div><b className="cell-tenant__name">{item.tenant}</b><div className="cell-tenant__sub">{item.project}</div></div>); }},
+                { key: "stage", label: "Aşama", render: (r) => { const item = r as unknown as DiscFocusItem; return <span className={`disc-stage disc-stage--${item.stage.replace(/\s+/g, "-")}`}>{item.stage}</span>; }},
+                { key: "layers", label: "Katman", align: "right", render: (r) => <b className="cell-num">{String((r as unknown as DiscFocusItem).layers)}</b> },
+                { key: "qa", label: "Soru/Cevap", align: "right", render: (r) => <span className="cell-num">{String((r as unknown as DiscFocusItem).qa)}</span> },
+                { key: "owner", label: "Sorumlu", render: (r) => { const item = r as unknown as DiscFocusItem; return item.owner === "—" ? <span className="cell-muted">Atanmadı</span> : <b>{item.owner}</b>; }},
+                { key: "age", label: "Yaş", render: (r) => <span className="cell-muted">{String((r as unknown as DiscFocusItem).age)}</span> },
+                { key: "priority", label: "Öncelik", render: (r) => { const item = r as unknown as DiscFocusItem; return <span className={`disc-prio disc-prio--${item.priority}`}>{item.priority === "critical" ? "KRİTİK" : item.priority === "high" ? "YÜKSEK" : "NORMAL"}</span>; }},
+              ]}
+            />
+          </Section>
+          <div className="split-1-1">
+            <Section title="Replay Zincirleri" sub="CAD analizi + AI üretim zincirleri">
+              <div className="disc-chains">
+                {DISC_CHAINS.map((c) => (
+                  <div key={c.name} className="disc-chain">
+                    <div className="disc-chain__head">
+                      <div><code className="disc-code">{c.name}</code><div className="disc-chain__desc">{c.desc}</div></div>
+                      <span className={`disc-chain__success disc-chain__success--${c.success >= 90 ? "high" : c.success >= 80 ? "mid" : "low"}`}>{c.success}%</span>
+                    </div>
+                    <div className="disc-chain__bar"><div className="disc-chain__fill" style={{ width: c.success + "%", background: c.success >= 90 ? "#16a34a" : c.success >= 80 ? "#b45309" : "#be123c" }}></div></div>
+                    <div className="disc-chain__meta"><span><b>{c.stages}</b> aşama</span><span><b>{c.duration}</b> ort. süre</span><span>Son: <b>{c.lastRun}</b></span></div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+            <Section title="Operasyon Telemetrisi" sub="Son operatör + sistem aksiyonları">
+              <div className="disc-tel-wrap">
+                <table className="disc-tel">
+                  <thead><tr><th>Zaman</th><th>Aktör</th><th>Kaynak</th><th>Aksiyon</th><th>Detay</th></tr></thead>
+                  <tbody>
+                    {DISC_TELEMETRY.map((e, idx) => (
+                      <tr key={idx}>
+                        <td className="cell-muted disc-tel__mono">{e.time}</td>
+                        <td><b>{e.actor}</b></td>
+                        <td><span className="tier-pill">{e.source}</span></td>
+                        <td><span className="pay-pill pay-pending">{e.action}</span></td>
+                        <td className="cell-muted">{e.detail}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </div>
+        </>
+      )}
+
       {activeTab === "platform_operations" && canViewPlatformGovernance && (
         <PlatformOperationsTab
           activePlatformOpsFocusSummary={activePlatformOpsFocusSummary}
@@ -5638,74 +6260,7 @@ export default function AdminPage() {
       )}
 
       {activeTab === "packages" && canViewPackagesTab && (
-        <PackagesTab
-          activePackageFocusSummary={activePackageFocusSummary}
-          renderAdminFocusBanner={renderAdminFocusBanner}
-          navigateAdminTab={navigateAdminTab}
-          jumpToPackageFocusTarget={jumpToPackageFocusTarget}
-          subscriptionCatalog={subscriptionCatalog}
-          strategicAddonCatalog={strategicAddonCatalog}
-          packageUsageSummary={packageUsageSummary}
-          packagePlanSummary={packagePlanSummary}
-          visiblePackageUsageRows={visiblePackageUsageRows}
-          packageUsageRowRefs={packageUsageRowRefs}
-          packagePlanRefs={packagePlanRefs}
-          packagePlanFilter={packagePlanFilter}
-          setPackagePlanFilter={setPackagePlanFilter}
-          packageRiskFilter={packageRiskFilter}
-          setPackageRiskFilter={setPackageRiskFilter}
-          commercialRequests={commercialRequests}
-          filteredCommercialRequests={filteredCommercialRequests}
-          commercialRequestSummary={commercialRequestSummary}
-          commercialRequestStatusFilter={commercialRequestStatusFilter}
-          setCommercialRequestStatusFilter={setCommercialRequestStatusFilter}
-          commercialRequestOwnerFilter={commercialRequestOwnerFilter}
-          setCommercialRequestOwnerFilter={setCommercialRequestOwnerFilter}
-          commercialRequestOwnerOptions={commercialRequestOwnerOptions}
-          commercialRequestUpdatingId={commercialRequestUpdatingId}
-          handleAssignCommercialRequest={handleAssignCommercialRequest}
-          handleCommercialRequestStatusUpdate={handleCommercialRequestStatusUpdate}
-          subscriptionAddons={subscriptionAddons}
-          filteredSubscriptionAddons={filteredSubscriptionAddons}
-          subscriptionAddonStatusFilter={subscriptionAddonStatusFilter}
-          setSubscriptionAddonStatusFilter={setSubscriptionAddonStatusFilter}
-          subscriptionAddonTenantFilter={subscriptionAddonTenantFilter}
-          setSubscriptionAddonTenantFilter={setSubscriptionAddonTenantFilter}
-          subscriptionAddonTenantOptions={subscriptionAddonTenantOptions}
-          subscriptionAddonExpiryDrafts={subscriptionAddonExpiryDrafts}
-          setSubscriptionAddonExpiryDrafts={setSubscriptionAddonExpiryDrafts}
-          subscriptionAddonUpdatingId={subscriptionAddonUpdatingId}
-          handleSubscriptionAddonLifecycle={handleSubscriptionAddonLifecycle}
-          commercialRequestWebhookSettings={commercialRequestWebhookSettings}
-          commercialRequestWebhookDraft={commercialRequestWebhookDraft}
-          setCommercialRequestWebhookDraft={setCommercialRequestWebhookDraft}
-          commercialRequestWebhookSaving={commercialRequestWebhookSaving}
-          handleSaveCommercialRequestWebhookSettings={handleSaveCommercialRequestWebhookSettings}
-          handleClearCommercialRequestWebhookSecret={handleClearCommercialRequestWebhookSecret}
-          visibleCommercialRequestWebhookDeliveries={visibleCommercialRequestWebhookDeliveries}
-          commercialRequestWebhookDeliveryFilter={commercialRequestWebhookDeliveryFilter}
-          setCommercialRequestWebhookDeliveryFilter={setCommercialRequestWebhookDeliveryFilter}
-          selectedCommercialRequestWebhookDeliveryId={selectedCommercialRequestWebhookDeliveryId}
-          setSelectedCommercialRequestWebhookDeliveryId={setSelectedCommercialRequestWebhookDeliveryId}
-          selectedCommercialRequestWebhookDelivery={selectedCommercialRequestWebhookDelivery}
-          commercialRequestWebhookRetryingId={commercialRequestWebhookRetryingId}
-          handleRetryCommercialRequestWebhookDelivery={handleRetryCommercialRequestWebhookDelivery}
-          billingOverview={billingOverview}
-          billingSummary={billingSummary}
-          visibleBillingSubscriptions={visibleBillingSubscriptions}
-          billingSubscriptionFilter={billingSubscriptionFilter}
-          setBillingSubscriptionFilter={setBillingSubscriptionFilter}
-          visibleBillingInvoices={visibleBillingInvoices}
-          billingInvoiceFilter={billingInvoiceFilter}
-          setBillingInvoiceFilter={setBillingInvoiceFilter}
-          getBillingInvoiceStatusMeta={getBillingInvoiceStatusMeta}
-          visibleBillingWebhooks={visibleBillingWebhooks}
-          billingWebhookFilter={billingWebhookFilter}
-          setBillingWebhookFilter={setBillingWebhookFilter}
-          billingWebhookRetryingEventId={billingWebhookRetryingEventId}
-          handleRetryBillingWebhookEvent={handleRetryBillingWebhookEvent}
-          user={user}
-        />
+        <PackagesTab />
       )}
 
       {error && <div className="admin-page__error-banner">{error}</div>}
@@ -5877,16 +6432,28 @@ export default function AdminPage() {
         />
       )}
 
+      {/* Navigasyon Yönetimi Tab */}
+      {activeTab === "nav_management" && isSuperAdminUser(user) && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <NavManagerTab />
+        </Suspense>
+      )}
+
       {/* Settings Tab */}
       {activeTab === "settings" && <SettingsTab />}
 
-      {activeTab === "panel_designer" && (isSuperAdminUser(user) || canUseSelfPanelDesigner) && (
+      {/* panel_designer: super admin → PanelDesignerTab; self-customizers → WorkspacePanelDesignerTab */}
+      {activeTab === "panel_designer" && isSuperAdminUser(user) && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <PanelDesignerTab />
+        </Suspense>
+      )}
+      {activeTab === "panel_designer" && !isSuperAdminUser(user) && canUseSelfPanelDesigner && (
         <div className="atc-page--header">
           <PageHeader eyebrow="Platform" title="Panel Tasarımcısı" sub="Rol bazlı panel şablonlarını, sekme görünürlüğünü ve renk temalarını düzenleyin" />
         </div>
       )}
-
-      {activeTab === "panel_designer" && (isSuperAdminUser(user) || canUseSelfPanelDesigner) && (
+      {activeTab === "panel_designer" && !isSuperAdminUser(user) && canUseSelfPanelDesigner && (
         <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
           <WorkspacePanelDesignerTab
             key={JSON.stringify(mergedWorkspacePanelConfig)}
@@ -5894,7 +6461,7 @@ export default function AdminPage() {
             sourceConfig={workspacePanelConfig || undefined}
             currentUser={user}
             personnel={personnel}
-            mode={isSuperAdminUser(user) ? "full" : "self"}
+            mode="self"
             lockedProfile={activeWorkspacePanelProfile}
             saving={workspacePanelSaving}
             onSave={handleSaveWorkspacePanels}
@@ -5961,6 +6528,249 @@ export default function AdminPage() {
           </Suspense>
         )}
 
+        {/* Channel Partners Admin Tab */}
+        {activeTab === "channel_partners" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <ChannelPartnersAdminTab />
+          </Suspense>
+        )}
+
+        {/* AI Lab Admin Tab */}
+        {activeTab === "ai_lab" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <AiLabAdminTab />
+          </Suspense>
+        )}
+
+        {/* Yetenek Ekosistemi Tab */}
+        {activeTab === "talent_ecosystem" && (() => {
+          const teMoney = (n: number) => "₺" + Number(n || 0).toLocaleString("tr-TR");
+          const teInitials = (name: string) => name.split(" ").map((p) => p[0]).join("").slice(0, 2);
+          const teKycPending = teTalents.filter((t) => t.kyc === "pending").length;
+          const tePendingPay = tePayouts.filter((p) => p.status !== "paid").reduce((s, p) => s + p.amount, 0);
+          const teLeaders = [...TE_LEADERS].sort((a, b) => b.rep - a.rep);
+          const teMaxSkill = Math.max(...TE_SKILLS.map((s) => s.n));
+          function teSetKyc(id: number, status: string) {
+            setTeTalents((prev) => prev.map((t) => t.id === id ? { ...t, kyc: status } : t));
+          }
+          function teAdvancePayout(id: string) {
+            setTePayouts((prev) => prev.map((p) => p.id !== id ? p : { ...p, status: p.status === "pending" ? "approved" : "paid" }));
+          }
+          return (
+            <div className="ph-page">
+              <PageHeader
+                eyebrow="Kariyer & Yetenek · Ekosistem"
+                title="Yetenek Ekosistemi"
+                sub="Bağımsız satınalma uzmanları ağı, katkı ekonomisi ve itibar/ödül sistemi. Stratejik Partnerlerin görev ve kaynak bulduğu, uzmanların katkıyla kazandığı platform ekosistemi."
+              />
+
+              {/* KPI strip — reuse ph-kpi-grid */}
+              <div className="ph-kpi-grid">
+                <div className="ph-kpi-card ph-kpi-card--blue">
+                  <div className="ph-kpi-card__label">Yetenek Profili</div>
+                  <div className="ph-kpi-card__value">124</div>
+                  <div className="ph-kpi-card__sub">kayıtlı uzman · +12 / ay</div>
+                </div>
+                <div className="ph-kpi-card ph-kpi-card--green">
+                  <div className="ph-kpi-card__label">KYC Onaylı</div>
+                  <div className="ph-kpi-card__value">96</div>
+                  <div className="ph-kpi-card__sub">%77 doğrulanmış</div>
+                </div>
+                <div className="ph-kpi-card ph-kpi-card--violet">
+                  <div className="ph-kpi-card__label">Aktif Katkıcı</div>
+                  <div className="ph-kpi-card__value">58</div>
+                  <div className="ph-kpi-card__sub">son 30 günde görev aldı</div>
+                </div>
+                <div className="ph-kpi-card ph-kpi-card--gold">
+                  <div className="ph-kpi-card__label">Katkı Ekonomisi</div>
+                  <div className="ph-kpi-card__value">₺186K</div>
+                  <div className="ph-kpi-card__sub">dağıtılan ödül · 12 ay</div>
+                </div>
+                <div className="ph-kpi-card">
+                  <div className="ph-kpi-card__label">Ortalama İtibar</div>
+                  <div className="ph-kpi-card__value">512</div>
+                  <div className="ph-kpi-card__sub">1000 üzerinden</div>
+                </div>
+              </div>
+
+              {/* 3 Pillars */}
+              <div className="te-pillars">
+                {TE_PILLARS.map((p) => (
+                  <div key={p.k} className="te-pillar" style={{ "--tc": p.color } as React.CSSProperties}>
+                    <b>{p.k}</b>
+                    <span>{p.d}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* İtibar Seviyeleri + Beceri Kapsamı */}
+              <div className="ph-split-1-1">
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <span className="ph-section__title">İtibar Seviyeleri</span>
+                    <span className="ph-section__sub">görev başarımına göre kademe ve ayrıcalıklar</span>
+                  </div>
+                  <div className="te-tiers">
+                    {TE_TIERS.map((t) => (
+                      <div key={t.name} className="te-tier" style={{ "--tc": t.color } as React.CSSProperties}>
+                        <div className="te-tier__top">
+                          <span className="te-tier__dot" />
+                          <b>{t.name}</b>
+                          <em>{t.count} uzman</em>
+                        </div>
+                        <div className="te-tier__min">İtibar ≥ {t.min}</div>
+                        <div className="te-tier__perk">{t.perk}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <span className="ph-section__title">Beceri & Kategori Kapsamı</span>
+                    <span className="ph-section__sub">havuzdaki uzmanlık dağılımı</span>
+                  </div>
+                  <div className="te-skills">
+                    {TE_SKILLS.map((s) => (
+                      <div key={s.k} className="te-skill">
+                        <div className="te-skill__hd"><span>{s.k}</span><b>{s.n}</b></div>
+                        <div className="te-skill__bar">
+                          <i style={{ width: `${Math.round(s.n / teMaxSkill * 100)}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Leaderboard */}
+              <div className="ph-section">
+                <div className="ph-section__head">
+                  <span className="ph-section__title">En İyi Katkıcılar</span>
+                  <span className="ph-section__sub">itibar ve katkı bazlı sıralama</span>
+                </div>
+                <div className="te-board">
+                  {teLeaders.map((l, i) => (
+                    <div key={l.name} className="te-leader">
+                      <span className={`te-rank${i < 3 ? " te-rank--top" : ""}`}>{i + 1}</span>
+                      <span className="te-av">{teInitials(l.name)}</span>
+                      <div className="te-leader__meta">
+                        <b>{l.name}</b>
+                        <span>{l.tasks} görev tamamlandı</span>
+                      </div>
+                      <span className="te-tier-badge" style={{ color: TE_TIER_COLORS[l.tier], background: TE_TIER_BG[l.tier] }}>{l.tier}</span>
+                      <div className="te-leader__num"><b>{l.rep}</b><span>itibar</span></div>
+                      <div className="te-leader__num"><b>{teMoney(l.earned)}</b><span>kazanç</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* KYC Kuyruğu + Görevler | Ödeme Kuyruğu */}
+              <div className="te-split">
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <span className="ph-section__title">Yetenek & KYC Onay Kuyruğu</span>
+                      <span className="ph-section__sub">{teKycPending} uzman doğrulama bekliyor</span>
+                    </div>
+                    <div className="te-table-wrap">
+                      <table className="te-table">
+                        <thead>
+                          <tr>
+                            <th>Uzman</th><th>Müsaitlik</th><th>İtibar</th><th>Kazanç</th><th>KYC</th><th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teTalents.map((t) => (
+                            <tr key={t.id}>
+                              <td>
+                                <div className="te-tname">
+                                  <span className="te-av te-av--sm">{teInitials(t.name)}</span>
+                                  <div>
+                                    <b>{t.name}</b>
+                                    <span className="te-muted">{t.exp} yıl · {t.skills.join(", ")}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="te-muted">{TE_AVAIL_LABEL[t.avail] ?? t.avail}</td>
+                              <td className="te-mono">{t.rep}</td>
+                              <td className="te-mono">{teMoney(t.earned)}</td>
+                              <td>
+                                <span className={`te-badge te-badge--${t.kyc === "approved" ? "ok" : t.kyc === "rejected" ? "err" : "wait"}`}>
+                                  {t.kyc === "approved" ? "Onaylı" : t.kyc === "rejected" ? "Red" : "Bekliyor"}
+                                </span>
+                              </td>
+                              <td>
+                                {t.kyc === "pending" && (
+                                  <span className="te-actrow">
+                                    <button type="button" className="te-act te-act--ok" onClick={() => teSetKyc(t.id, "approved")}>Onayla</button>
+                                    <button type="button" className="te-act te-act--danger" onClick={() => teSetKyc(t.id, "rejected")}>Red</button>
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <span className="ph-section__title">Katkı Görevleri</span>
+                      <span className="ph-section__sub">platform mikro görevleri</span>
+                    </div>
+                    <div className="te-tasks">
+                      {TE_TASKS_MOCK.map((t) => (
+                        <div key={t.id} className="te-task">
+                          <div className="te-task__l">
+                            <b>{t.title}</b>
+                            <span className="te-muted">{t.type} · {t.subs} katkı</span>
+                          </div>
+                          <div className="te-task__r">
+                            <span className="te-reward">{teMoney(t.reward)}</span>
+                            <span className="te-badge te-badge--ok">Aktif</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ödeme kuyruğu */}
+                <div className="te-payout-panel">
+                  <div className="te-payout-panel__hd">
+                    Ödül & Ödeme Kuyruğu
+                    <span className="te-payout-panel__count">{tePayouts.filter((p) => p.status !== "paid").length}</span>
+                  </div>
+                  <div className="te-payout-list">
+                    {tePayouts.map((p) => (
+                      <div key={p.id} className="te-payout">
+                        <div className="te-payout__top">
+                          <b>{p.name}</b>
+                          <span className={`te-badge te-badge--${p.status === "paid" ? "ok" : p.status === "approved" ? "info" : "wait"}`}>
+                            {p.status === "paid" ? "Ödendi" : p.status === "approved" ? "Onaylı" : "Bekliyor"}
+                          </span>
+                        </div>
+                        <div className="te-payout__mid">
+                          <span className="te-mono">{teMoney(p.amount)}</span>
+                          <span className="te-muted">{p.method}</span>
+                        </div>
+                        {p.status !== "paid" && (
+                          <button type="button" className="te-act te-act--ok te-act--full" onClick={() => teAdvancePayout(p.id)}>
+                            {p.status === "pending" ? "Onayla" : "Ödemeyi tamamla"}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <div className="te-paysum">Bekleyen toplam <b>{teMoney(tePendingPay)}</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Kariyer Yönetimi Tab */}
         {activeTab === "kariyer_yonetimi" && (
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
@@ -5998,6 +6808,7 @@ export default function AdminPage() {
         activeKey={activeTab}
         onNavigate={(key) => navigateAdminTab(key as AdminTabKey)}
         user={user}
+        tabKeys={isSuperAdminUser(user) ? undefined : tabConfigs.map((t) => t.key)}
       >
         {_adminNode}
       </AdminShell>

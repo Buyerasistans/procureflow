@@ -1,4 +1,3 @@
-// FILE: web/src/components/SettingsTab.tsx
 import React, { useState, useEffect } from "react";
 import { useSettings } from "../hooks/useSettings";
 import { AdvancedSettingsTab } from "./AdvancedSettingsTab";
@@ -10,109 +9,276 @@ import { getMyTenantPremiumPurchaseContext, type TenantPremiumPurchaseContext } 
 import { useAuth } from "../hooks/useAuth";
 import { canManageTenantIdentitySettings, getUserScopeType, isTenantOwnerUser } from "../auth/permissions";
 import { PageHeader } from "../pages/admin/AdminTabContent";
+import "./SettingsTab.css";
 
-type TabType = "basic" | "advanced" | "demo" | "price_rules" | "premium";
+type SettingsGroupCode =
+  | "basic" | "price_rules" | "email" | "email_accounts"
+  | "logging" | "backup" | "notifications" | "brand" | "channel_brand"
+  | "premium" | "demo";
+
+interface SettingsGroup {
+  code: SettingsGroupCode;
+  label: string;
+  icon: string;
+  desc: string;
+}
+
+const SETTINGS_GROUPS: SettingsGroup[] = [
+  { code: "basic",          label: "Temel Ayarlar",           icon: "⚙",  desc: "Uygulama adı, bakım modu, KDV oranları" },
+  { code: "price_rules",    label: "Teklif Fiyat Kuralları",  icon: "₺",  desc: "Markup/iskonto limitleri, tolerans, ihlal bloğu" },
+  { code: "email",          label: "E-posta (SMTP/POP/IMAP)", icon: "✉",  desc: "Posta sunucu, gönderen, domain modu" },
+  { code: "email_accounts", label: "Sistem Posta Kutuları",   icon: "📥", desc: "Çoklu sistem e-posta hesabı yönetimi" },
+  { code: "logging",        label: "Loglama",                 icon: "📋", desc: "Log seviyesi, format, dosya/konsol/JSON" },
+  { code: "backup",         label: "Yedekleme",               icon: "🗄", desc: "Sıklık, hedef, otomatik/şifreli/sıkıştırma" },
+  { code: "notifications",  label: "Bildirimler",             icon: "🔔", desc: "E-posta/push/SMS, dijest saati" },
+  { code: "brand",          label: "Marka & Kimlik",          icon: "🎨", desc: "Partner logo, renk, görünen ad" },
+  { code: "channel_brand",  label: "Kanal Markalama",         icon: "🚀", desc: "İş ortağı portalı görünüm + mailbox" },
+  { code: "premium",        label: "Premium Özellikler",      icon: "⭐", desc: "Partner başına feature aktivasyonu" },
+  { code: "demo",           label: "Demo Verileri",           icon: "📊", desc: "Örnek veri yükle / temizle" },
+];
+
+type StaticFieldType = "text" | "number" | "select" | "toggle" | "readonly" | "color" | "file" | "secret" | "action" | "mailbox";
+
+interface StaticField {
+  key: string;
+  label: string;
+  type: StaticFieldType;
+  value?: unknown;
+  hint?: string;
+  options?: string[];
+  accept?: string;
+  role?: string;
+  status?: string;
+  proto?: string;
+  danger?: boolean;
+  actionHint?: string;
+}
+
+// TODO(data): wire up when backend endpoints are ready
+const STATIC_FIELDS: Partial<Record<SettingsGroupCode, StaticField[]>> = {
+  email_accounts: [
+    { key: "ea1", label: "destek@buyerasistans.com.tr",  type: "mailbox", role: "Destek · gelen kutusu",    proto: "IMAP + SMTP", status: "active" },
+    { key: "ea2", label: "fatura@buyerasistans.com.tr",  type: "mailbox", role: "Finans · giden",           proto: "SMTP",        status: "active" },
+    { key: "ea3", label: "noreply@buyerasistans.com.tr", type: "mailbox", role: "Sistem · transactional",  proto: "SMTP",        status: "active" },
+    { key: "ea4", label: "kanal@buyerasistans.com.tr",   type: "mailbox", role: "Kanal · gelen/giden",      proto: "POP3 + SMTP", status: "warn"   },
+  ],
+  logging: [
+    { key: "log_level",              label: "Log seviyesi",        type: "select", value: "INFO",                   options: ["DEBUG","INFO","WARNING","ERROR","CRITICAL"] },
+    { key: "log_format",             label: "Log formatı",         type: "select", value: "JSON",                   options: ["JSON","TEXT","LOGFMT"] },
+    { key: "log_file",               label: "Log dosya yolu",      type: "text",   value: "/var/log/buyerasistans/app.log" },
+    { key: "enable_console_logging", label: "Konsol logu",         type: "toggle", value: true },
+    { key: "enable_file_logging",    label: "Dosya logu",          type: "toggle", value: true },
+    { key: "enable_json_logging",    label: "JSON logu",           type: "toggle", value: true, hint: "Structured logging — log toplama için" },
+  ],
+  backup: [
+    { key: "backup_frequency",        label: "Yedekleme sıklığı",   type: "select", value: "daily",                  options: ["hourly","daily","weekly"] },
+    { key: "backup_time",             label: "Yedekleme saati",      type: "text",   value: "06:00",                  hint: "HH:MM · sunucu saati" },
+    { key: "backup_location",         label: "Yedek hedefi",         type: "select", value: "AWS S3 (eu-central-1)",  options: ["Yerel disk","AWS S3 (eu-central-1)","GCP Cloud Storage","Azure Blob"] },
+    { key: "enable_automatic_backup", label: "Otomatik yedekleme",   type: "toggle", value: true },
+    { key: "compress_backups",        label: "Yedekleri sıkıştır",   type: "toggle", value: true,  hint: "gzip · disk tasarrufu" },
+    { key: "encrypt_backups",         label: "Yedekleri şifrele",    type: "toggle", value: true,  hint: "AES-256 · KVKK uyumu" },
+  ],
+  notifications: [
+    { key: "notify_email",  label: "E-posta bildirimleri",  type: "toggle", value: true },
+    { key: "notify_push",   label: "Push bildirimleri",     type: "toggle", value: true },
+    { key: "notify_sms",    label: "SMS bildirimleri",      type: "toggle", value: false, hint: "Kritik olaylar için" },
+    { key: "notify_digest", label: "Günlük özet (digest)",  type: "toggle", value: true },
+    { key: "digest_time",   label: "Dijest gönderim saati", type: "text",   value: "08:30", hint: "HH:MM" },
+    { key: "sms_provider",  label: "SMS sağlayıcı",         type: "select", value: "NetGSM", options: ["NetGSM","İletimerkezi","Twilio"] },
+  ],
+  brand: [
+    { key: "logo_dark",     label: "Koyu zemin logosu", type: "file",     value: "buyer-logo-koyu.svg", accept: ".svg, .png" },
+    { key: "logo_light",    label: "Açık zemin logosu", type: "file",     value: "buyer-logo.svg",      accept: ".svg, .png" },
+    { key: "favicon",       label: "Favicon",            type: "file",     value: "favicon.svg",         accept: ".svg, .ico" },
+    { key: "display_name",  label: "Görünen ad",         type: "text",     value: "Buyer Asistans" },
+    { key: "brand_primary", label: "Ana renk",           type: "color",    value: "#112a25" },
+    { key: "brand_accent",  label: "Vurgu renk",         type: "color",    value: "#D4AF37" },
+    { key: "identity_note", label: "Yetki notu",         type: "readonly", value: "Sadece tenant_owner / super_admin düzenleyebilir (tenant_identity yetkisi)" },
+  ],
+  channel_brand: [
+    { key: "ch_enabled",   label: "Kanal markalama aktif", type: "toggle", value: true },
+    { key: "ch_logo",      label: "Kanal portal logosu",   type: "file",   value: "kanal-logo.svg", accept: ".svg, .png" },
+    { key: "ch_primary",   label: "Kanal ana renk",        type: "color",  value: "#f59e0b" },
+    { key: "ch_mailbox",   label: "Kanal mailbox aktif",   type: "toggle", value: true, hint: "Kanal hesap sahibi e-posta yönetimi açık" },
+    { key: "ch_from_name", label: "Kanal gönderen ad",     type: "text",   value: "Buyer Asistans · İş Ortağı" },
+  ],
+};
+
+function StaticFieldRow({ field }: { field: StaticField }) {
+  const [localValue, setLocalValue] = useState(field.value);
+
+  if (field.type === "mailbox") {
+    return (
+      <div className="st-row st-row--integration">
+        <div className="st-row__l">
+          <b>{field.label}</b>
+          <span>{field.role}</span>
+        </div>
+        <div className="st-row__c">
+          <span className="st-domain-ssl">{field.proto}</span>
+        </div>
+        <div className="st-row__r">
+          <span className={`st-status st-status--${field.status ?? "inactive"}`}>
+            {field.status === "active" ? "● Aktif" : field.status === "warn" ? "▲ Doğrula" : "× Pasif"}
+          </span>
+          <button type="button" className="st-row__act">Yönet →</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="st-row">
+      <div className="st-row__label">
+        <label>{field.label}</label>
+        {field.hint ? <span>{field.hint}</span> : null}
+      </div>
+      <div className="st-row__input">
+        {field.type === "text" && (
+          <input type="text" className="st-input" aria-label={field.label} value={String(localValue ?? "")}
+            onChange={(e) => setLocalValue(e.target.value)} />
+        )}
+        {field.type === "number" && (
+          <input type="number" className="st-input st-input--sm" aria-label={field.label} value={Number(localValue ?? 0)}
+            onChange={(e) => setLocalValue(Number(e.target.value))} />
+        )}
+        {field.type === "select" && (
+          <select className="st-select" aria-label={field.label} value={String(localValue ?? "")}
+            onChange={(e) => setLocalValue(e.target.value)}>
+            {(field.options ?? []).map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        )}
+        {field.type === "toggle" && (
+          <label className="st-toggle">
+            <input type="checkbox" aria-label={field.label} checked={!!localValue}
+              onChange={(e) => setLocalValue(e.target.checked)} />
+            <span className="st-toggle__track"><span className="st-toggle__thumb" /></span>
+            <span className="st-toggle__label">{localValue ? "Açık" : "Kapalı"}</span>
+          </label>
+        )}
+        {field.type === "readonly" && <div className="st-readonly">{String(localValue ?? "")}</div>}
+        {field.type === "color" && (
+          <div className="st-color">
+            <input type="color" aria-label={`${field.label} renk`} value={String(localValue ?? "#000000")}
+              onChange={(e) => setLocalValue(e.target.value)} />
+            <input type="text" className="st-input st-input--sm" aria-label={`${field.label} hex`} value={String(localValue ?? "")}
+              onChange={(e) => setLocalValue(e.target.value)} />
+          </div>
+        )}
+        {field.type === "file" && (
+          <div className="st-file">
+            <code>{String(localValue ?? "")}</code>
+            <button type="button" className="st-row__act">Değiştir → {field.accept}</button>
+          </div>
+        )}
+        {field.type === "secret" && (
+          <div className="st-secret">
+            <code>{String(localValue ?? "")}</code>
+            <button type="button" className="st-row__act">Göster</button>
+            <button type="button" className="st-row__act">Yenile</button>
+          </div>
+        )}
+        {field.type === "action" && (
+          <>
+            <button type="button" className={`st-action-btn${field.danger ? " st-action-btn--danger" : ""}`}>
+              {String(localValue ?? "")}
+            </button>
+            {field.actionHint && <span className="st-action-hint">{field.actionHint}</span>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export const SettingsTab: React.FC = () => {
   const { user } = useAuth();
   const { settings, loading, error, updateSettings } = useSettings();
   const isChannelWorkspace = getUserScopeType(user) === "channel";
   const isTenantOwner = isTenantOwnerUser(user);
-  const [activeTab, setActiveTab] = useState<TabType>(isChannelWorkspace ? "advanced" : "basic");
   const canEditTenantIdentity = canManageTenantIdentitySettings(user);
-  
-  const [premiumContext, setPremiumContext] = useState<TenantPremiumPurchaseContext | null>(null);
-  
-  const [formData, setFormData] = useState({
-    app_name: "",
-    maintenance_mode: false,
-    vat_rates: [1, 10, 20] as number[],
+
+  const defaultGroup: SettingsGroupCode = isChannelWorkspace ? "email" : "basic";
+  const [activeGroup, setActiveGroup] = useState<SettingsGroupCode>(defaultGroup);
+  const [search, setSearch] = useState("");
+
+  // Nav style
+  const [navStyle, setNavStyleState] = useState<"sidebar" | "top">(() => {
+    try { return (localStorage.getItem("pf_nav_style") as "sidebar" | "top") || "sidebar"; } catch { return "sidebar"; }
   });
-  const [newVatRate, setNewVatRate] = useState<string>("");
-  
+  function handleNavStyleChange(style: "sidebar" | "top") {
+    try { localStorage.setItem("pf_nav_style", style); } catch { /* ignore */ }
+    setNavStyleState(style);
+    window.location.reload();
+  }
+
+  // Basic settings state
+  const [formData, setFormData] = useState({ app_name: "", maintenance_mode: false, vat_rates: [1, 10, 20] as number[] });
+  const [newVatRate, setNewVatRate] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Fiyat kuralları state
+  // Price rules state
   const [priceRules, setPriceRules] = useState<QuotePriceRules | null>(null);
   const [priceRulesLoading, setPriceRulesLoading] = useState(false);
+  const [priceRulesDirty, setPriceRulesDirty] = useState(false);
   const [priceRulesMsg, setPriceRulesMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [priceRulesSaving, setPriceRulesSaving] = useState(false);
 
-  // Settings yüklendiğinde form'u doldur
+  // Premium state
+  const [premiumContext, setPremiumContext] = useState<TenantPremiumPurchaseContext | null>(null);
+
   useEffect(() => {
     if (settings) {
       setFormData({
         app_name: settings.app_name || "",
         maintenance_mode: settings.maintenance_mode || false,
-        vat_rates: settings.vat_rates && settings.vat_rates.length > 0 ? settings.vat_rates : [1, 10, 20],
+        vat_rates: settings.vat_rates?.length ? settings.vat_rates : [1, 10, 20],
       });
     }
   }, [settings]);
 
-  // Premium context yükle (sadece tenant owner için)
   useEffect(() => {
     if (isTenantOwner && !premiumContext) {
       void getMyTenantPremiumPurchaseContext()
         .then((ctx) => setPremiumContext(ctx))
-        .catch(() => {/* ignore */});
+        .catch(() => { /* ignore */ });
     }
   }, [isTenantOwner, premiumContext]);
 
-  // Fiyat kuralları yükle
   useEffect(() => {
-    if (activeTab === "price_rules" && !priceRules && !priceRulesLoading) {
+    if (activeGroup === "price_rules" && !priceRules && !priceRulesLoading) {
       setPriceRulesLoading(true);
       getQuotePriceRules()
         .then((data) => setPriceRules(data))
         .catch(() => setPriceRulesMsg({ type: "error", text: "Fiyat kuralları yüklenemedi" }))
         .finally(() => setPriceRulesLoading(false));
     }
-  }, [activeTab, priceRules, priceRulesLoading]);
+  }, [activeGroup, priceRules, priceRulesLoading]);
 
-  useEffect(() => {
-    if (isChannelWorkspace && activeTab !== "advanced") {
-      setActiveTab("advanced");
-    }
-  }, [activeTab, isChannelWorkspace]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    if (!formData.app_name.trim()) {
-      setMessage({ type: "error", text: "Uygulama adı boş olamaz" });
-      return;
-    }
-
+    if (!formData.app_name.trim()) { setMessage({ type: "error", text: "Uygulama adı boş olamaz" }); return; }
     try {
       setSaving(true);
       setMessage(null);
-
       const payload: SettingsUpdatePayload = {
         app_name: formData.app_name,
         maintenance_mode: formData.maintenance_mode,
         vat_rates: formData.vat_rates,
       };
-
       await updateSettings(payload);
       setMessage({ type: "success", text: "Ayarlar başarıyla kaydedildi" });
+      setDirty(false);
     } catch (err) {
-      const errorText = err instanceof Error ? err.message : "Kaydetme hatası";
-      setMessage({ type: "error", text: errorText });
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Kaydetme hatası" });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSavePriceRules = async (e: React.FormEvent) => {
+  const handleSavePriceRules = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!priceRules) return;
     try {
@@ -126,6 +292,7 @@ export const SettingsTab: React.FC = () => {
       });
       setPriceRules(updated);
       setPriceRulesMsg({ type: "success", text: "Fiyat kuralları kaydedildi" });
+      setPriceRulesDirty(false);
     } catch {
       setPriceRulesMsg({ type: "error", text: "Fiyat kuralları kaydedilemedi" });
     } finally {
@@ -133,386 +300,309 @@ export const SettingsTab: React.FC = () => {
     }
   };
 
-  if (loading && !settings) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin">⏳</div>
-        <span className="ml-2">Ayarlar yükleniyor...</span>
-      </div>
-    );
+  function addVatRate() {
+    const parsed = Number(newVatRate);
+    if (!Number.isFinite(parsed) || parsed < 0 || formData.vat_rates.includes(parsed)) return;
+    setFormData((p) => ({ ...p, vat_rates: [...p.vat_rates, parsed].sort((a, b) => a - b) }));
+    setNewVatRate("");
+    setDirty(true);
   }
 
+  const group = SETTINGS_GROUPS.find((g) => g.code === activeGroup);
+  const staticFields = STATIC_FIELDS[activeGroup] ?? [];
+  const filteredStatic = search
+    ? staticFields.filter((f) => f.label.toLowerCase().includes(search.toLowerCase()))
+    : staticFields;
+  const isStaticGroup = activeGroup in STATIC_FIELDS;
+
+  if (loading && !settings) {
+    return <div className="st-loading">⏳ Ayarlar yükleniyor...</div>;
+  }
   if (error && !settings) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-        <strong>Hata:</strong> {error}
-      </div>
-    );
+    return <div className="st-error">Hata: {error}</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       <PageHeader
-        eyebrow="Sistem"
-        title={isChannelWorkspace ? "E-posta Ayarları" : "Sistem Ayarları"}
-        sub={isChannelWorkspace ? "Mail gönderim profilinizi ve sistem mailbox ayarlarınızı yönetin" : "Uygulamanın temel ve gelişmiş ayarlarını yönetin"}
+        eyebrow="Sistem · Genel Ayarlar"
+        title="Ayarlar"
+        sub="Platform geneli yapılandırma · 11 kategori · değişiklikler kaydedildiğinde anında geçerli olur."
       />
-      {!isChannelWorkspace && !canEditTenantIdentity && (
-        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Bu alanda tenant kimliği ve temel ayarlar salt okunur gösterilir. Değişiklik yapmak için tenant owner veya super admin hesabı gerekir.
-        </div>
-      )}
 
-      {/* Tab Navigation */}
-      <div className="flex gap-3 border-b-2 border-gray-200 pb-3 overflow-x-auto">
-        {!isChannelWorkspace && (
-          <button
-            onClick={() => setActiveTab("basic")}
-            className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-              activeTab === "basic"
-                ? "bg-blue-600 text-white"
-                : "bg-transparent text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            ⚙️ Temel Ayarlar
-          </button>
-        )}
-        <button
-          onClick={() => setActiveTab("advanced")}
-          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-            activeTab === "advanced"
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          {isChannelWorkspace ? "📧 E-posta Ayarlari" : "🔧 Gelişmiş Ayarlar"}
-        </button>
-        {!isChannelWorkspace && (
-          <>
-            <button
-              onClick={() => setActiveTab("demo")}
-              className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-                activeTab === "demo"
-                  ? "bg-green-600 text-white"
-                  : "bg-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              📥 Demo Verileri
-            </button>
-            <button
-              onClick={() => setActiveTab("price_rules")}
-              className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-                activeTab === "price_rules"
-                  ? "bg-blue-600 text-white"
-                  : "bg-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              💰 Teklif Fiyat Kuralları
-            </button>
-          </>
-        )}
-        {isTenantOwner && (
-          <button
-            onClick={() => setActiveTab("premium")}
-            className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap ${
-              activeTab === "premium"
-                ? "bg-purple-600 text-white"
-                : "bg-transparent text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            ⭐ Premium Özellikler
-          </button>
-        )}
-      </div>
+      <div className="st-layout">
+        <aside className="st-sidebar">
+          <div className="st-sidebar__search">
+            <span className="st-sidebar__search-icon">🔍</span>
+            <input
+              className="st-sidebar__search-input"
+              placeholder="Ayar ara..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="st-sidebar__list">
+            {SETTINGS_GROUPS.map((g) => (
+              <button
+                key={g.code}
+                type="button"
+                className={`st-nav${activeGroup === g.code ? " on" : ""}`}
+                onClick={() => { setActiveGroup(g.code); setSearch(""); }}
+              >
+                <span className="st-nav__icon">{g.icon}</span>
+                <div className="st-nav__body">
+                  <b>{g.label}</b>
+                  <span>{g.desc}</span>
+                </div>
+                <span className="st-nav__arrow">›</span>
+              </button>
+            ))}
+          </div>
+        </aside>
 
-      {/* Basic Settings Tab */}
-      {activeTab === "basic" && (
-        <>
-          {/* Messages */}
-          {message && (
-            <div
-              className={`p-4 rounded-lg border ${
-                message.type === "success"
-                  ? "bg-green-50 border-green-200 text-green-700"
-                  : "bg-red-50 border-red-200 text-red-700"
-              }`}
-            >
-              {message.type === "success" ? "✅" : "❌"} {message.text}
+        <section className="st-detail">
+          <div className="st-detail__head">
+            <span className="st-detail__icon">{group?.icon}</span>
+            <div>
+              <h2 className="st-detail__title">{group?.label}</h2>
+              <p className="st-detail__desc">{group?.desc}</p>
             </div>
+          </div>
+
+          {/* ── Temel Ayarlar ──────────────────────────────────── */}
+          {activeGroup === "basic" && (
+            <>
+              {!canEditTenantIdentity && (
+                <div className="st-warn-banner">
+                  Bu alanda temel ayarlar salt okunur gösterilir. Değişiklik için tenant owner veya super admin hesabı gerekir.
+                </div>
+              )}
+              {message && (
+                <div className={`st-message st-message--${message.type}`}>
+                  {message.type === "success" ? "✓" : "✕"} {message.text}
+                </div>
+              )}
+              <div className="st-fields">
+                <div className="st-row">
+                  <div className="st-row__label">
+                    <label>Navigasyon Stili</label>
+                    <span>Sol kenar çubuğu veya üst navigasyon. Değişiklik sayfayı yeniler.</span>
+                  </div>
+                  <div className="st-row__input">
+                    <div className="st-nav-style-group">
+                      <button className={`st-nav-style-btn${navStyle === "sidebar" ? " on" : ""}`}
+                        type="button" onClick={() => handleNavStyleChange("sidebar")}>
+                        ☰ Sol Sidebar
+                      </button>
+                      <button className={`st-nav-style-btn${navStyle === "top" ? " on" : ""}`}
+                        type="button" onClick={() => handleNavStyleChange("top")}>
+                        ▬ Üst Navigasyon
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <form onSubmit={(e) => void handleSave(e)} className="st-fields">
+                <div className="st-row">
+                  <div className="st-row__label">
+                    <label htmlFor="st_app_name">Uygulama adı</label>
+                    <span>Örn: ProcureFlow, Buyer Asistans Pro</span>
+                  </div>
+                  <div className="st-row__input">
+                    <input id="st_app_name" type="text" className="st-input"
+                      value={formData.app_name} disabled={saving || !canEditTenantIdentity}
+                      onChange={(e) => { setFormData((p) => ({ ...p, app_name: e.target.value })); setDirty(true); }} />
+                  </div>
+                </div>
+                <div className="st-row">
+                  <div className="st-row__label">
+                    <label htmlFor="st_maint">Bakım modu</label>
+                    <span>Aktifken sadece admin kullanıcılar sisteme erişir</span>
+                  </div>
+                  <div className="st-row__input">
+                    <label className="st-toggle">
+                      <input id="st_maint" type="checkbox"
+                        checked={formData.maintenance_mode} disabled={saving || !canEditTenantIdentity}
+                        onChange={(e) => { setFormData((p) => ({ ...p, maintenance_mode: e.target.checked })); setDirty(true); }} />
+                      <span className="st-toggle__track"><span className="st-toggle__thumb" /></span>
+                      <span className="st-toggle__label">{formData.maintenance_mode ? "Açık" : "Kapalı"}</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="st-row">
+                  <div className="st-row__label">
+                    <label>KDV oranları (%)</label>
+                    <span>Tekliflerde seçilebilir oranlar — en az 1 tane</span>
+                  </div>
+                  <div className="st-row__input">
+                    <div className="st-taglist">
+                      <div className="st-taglist__tags">
+                        {formData.vat_rates.map((rate) => (
+                          <span key={rate} className="st-tag">
+                            %{rate}
+                            <button type="button"
+                              disabled={formData.vat_rates.length <= 1 || !canEditTenantIdentity}
+                              onClick={() => { setFormData((p) => ({ ...p, vat_rates: p.vat_rates.filter((r) => r !== rate) })); setDirty(true); }}>
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="st-taglist__add">
+                        <input type="number" className="st-input st-input--sm" placeholder="Örn: 8"
+                          value={newVatRate} disabled={!canEditTenantIdentity}
+                          onChange={(e) => setNewVatRate(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addVatRate(); } }} />
+                        <button type="button" className="st-row__act" disabled={!canEditTenantIdentity}
+                          onClick={addVatRate}>
+                          + Ekle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {settings && (
+                  <div className="st-row">
+                    <div className="st-row__label"><label>Son güncelleme</label></div>
+                    <div className="st-row__input">
+                      <div className="st-readonly">
+                        {settings.updated_at ? new Date(settings.updated_at).toLocaleString("tr-TR") : "—"}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="st-form-actions">
+                  <button type="button" className="st-btn st-btn--ghost"
+                    disabled={saving || !canEditTenantIdentity}
+                    onClick={() => {
+                      if (settings) {
+                        setFormData({ app_name: settings.app_name, maintenance_mode: settings.maintenance_mode, vat_rates: settings.vat_rates?.length ? settings.vat_rates : [1, 10, 20] });
+                        setDirty(false);
+                      }
+                    }}>
+                    Sıfırla
+                  </button>
+                  <button type="submit" className="st-btn st-btn--primary"
+                    disabled={saving || !dirty || !canEditTenantIdentity}>
+                    {saving ? "Kaydediliyor..." : dirty ? "● Kaydet" : "✓ Kaydedildi"}
+                  </button>
+                </div>
+              </form>
+            </>
           )}
 
-          {/* Settings Form */}
-          <form onSubmit={handleSave} className="bg-white rounded-lg shadow p-6 space-y-6">
-            {/* App Name */}
-            <div>
-              <label htmlFor="app_name" className="block text-sm font-medium text-gray-700">
-                Uygulama Adı
-              </label>
-              <input
-                type="text"
-                name="app_name"
-                id="app_name"
-                value={formData.app_name}
-                onChange={handleInputChange}
-                disabled={saving || !canEditTenantIdentity}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                placeholder="ProcureFlow"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Uygulamanın adı (örn: ProcureFlow, ProcureFlow Pro)
-              </p>
-            </div>
-
-            {/* Maintenance Mode */}
-            <div className="border-t pt-6">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="maintenance_mode"
-                  id="maintenance_mode"
-                  checked={formData.maintenance_mode}
-                  onChange={handleInputChange}
-                  disabled={saving || !canEditTenantIdentity}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer disabled:opacity-60"
-                />
-                <label htmlFor="maintenance_mode" className="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">
-                  Maintenance Modu
-                </label>
-              </div>
-              <p className="mt-2 text-sm text-gray-600">
-                {formData.maintenance_mode ? (
-                  <span className="text-orange-600">
-                    ⚠️ Maintenance modu aktif. Sadece admin kullanıcılar sisteme erişebilir.
-                  </span>
-                ) : (
-                  <span>
-                    Maintenance modu kapalı. Tüm kullanıcılar sisteme erişebilir.
-                  </span>
-                )}
-              </p>
-            </div>
-
-            {/* Info Section */}
-            {settings && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                <ul className="space-y-1">
-                  <li><strong>Son Güncelleme:</strong> {settings.updated_at ? new Date(settings.updated_at).toLocaleString("tr-TR") : "—"}</li>
-                  {settings.updated_by_id && (
-                    <li><strong>Güncelleyen:</strong> Kullanıcı #{settings.updated_by_id}</li>
+          {/* ── Teklif Fiyat Kuralları ──────────────────────────── */}
+          {activeGroup === "price_rules" && (
+            <>
+              {priceRulesMsg && (
+                <div className={`st-message st-message--${priceRulesMsg.type}`}>
+                  {priceRulesMsg.type === "success" ? "✓" : "✕"} {priceRulesMsg.text}
+                </div>
+              )}
+              {priceRulesLoading && <div className="st-loading-inline">⏳ Yükleniyor...</div>}
+              {priceRules && !priceRulesLoading && (
+                <form onSubmit={(e) => void handleSavePriceRules(e)} className="st-fields">
+                  <div className="st-row">
+                    <div className="st-row__label">
+                      <label>Maksimum markup (%)</label>
+                      <span>Teklif fiyatı liste fiyatının en fazla bu kadar üstünde olabilir</span>
+                    </div>
+                    <div className="st-row__input">
+                      <input type="number" className="st-input st-input--sm" aria-label="Maksimum markup (%)" min={0} max={1000} step={0.1}
+                        value={priceRules.max_markup_percent}
+                        onChange={(e) => { setPriceRules({ ...priceRules, max_markup_percent: parseFloat(e.target.value) || 0 }); setPriceRulesDirty(true); }} />
+                    </div>
+                  </div>
+                  <div className="st-row">
+                    <div className="st-row__label">
+                      <label>Maksimum iskonto (%)</label>
+                      <span>Teklif fiyatı en fazla bu kadar indirilebilir</span>
+                    </div>
+                    <div className="st-row__input">
+                      <input type="number" className="st-input st-input--sm" aria-label="Maksimum iskonto (%)" min={0} max={100} step={0.1}
+                        value={priceRules.max_discount_percent}
+                        onChange={(e) => { setPriceRules({ ...priceRules, max_discount_percent: parseFloat(e.target.value) || 0 }); setPriceRulesDirty(true); }} />
+                    </div>
+                  </div>
+                  <div className="st-row">
+                    <div className="st-row__label">
+                      <label>Tolerans tutarı (₺)</label>
+                      <span>Bu tutarın altındaki sapmalar göz ardı edilir</span>
+                    </div>
+                    <div className="st-row__input">
+                      <input type="number" className="st-input st-input--sm" aria-label="Tolerans tutarı (₺)" min={0} step={1}
+                        value={priceRules.tolerance_amount}
+                        onChange={(e) => { setPriceRules({ ...priceRules, tolerance_amount: parseFloat(e.target.value) || 0 }); setPriceRulesDirty(true); }} />
+                    </div>
+                  </div>
+                  <div className="st-row">
+                    <div className="st-row__label">
+                      <label>İhlalde teklifi blokla</label>
+                      <span>Kapalıysa sadece uyarı verir, teklif geçer</span>
+                    </div>
+                    <div className="st-row__input">
+                      <label className="st-toggle">
+                        <input type="checkbox" checked={priceRules.block_on_violation}
+                          onChange={(e) => { setPriceRules({ ...priceRules, block_on_violation: e.target.checked }); setPriceRulesDirty(true); }} />
+                        <span className="st-toggle__track"><span className="st-toggle__thumb" /></span>
+                        <span className="st-toggle__label">{priceRules.block_on_violation ? "Açık" : "Kapalı"}</span>
+                      </label>
+                    </div>
+                  </div>
+                  {priceRules.updated_at && (
+                    <div className="st-row">
+                      <div className="st-row__label"><label>Son güncelleme</label></div>
+                      <div className="st-row__input">
+                        <div className="st-readonly">{new Date(priceRules.updated_at).toLocaleString("tr-TR")}</div>
+                      </div>
+                    </div>
                   )}
-                </ul>
-              </div>
-            )}
-
-            {/* VAT Rates */}
-            <div className="border-t pt-6">
-              <div className="block text-sm font-medium text-gray-700 mb-2">KDV Oranları</div>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {formData.vat_rates.map((rate) => (
-                  <div key={rate} className="inline-flex items-center gap-2 bg-gray-100 border border-gray-300 rounded px-3 py-1 text-sm">
-                    <span>%{rate}</span>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, vat_rates: prev.vat_rates.filter((r) => r !== rate) }))}
-                      className="text-red-600 font-bold"
-                      disabled={formData.vat_rates.length <= 1 || !canEditTenantIdentity}
-                      title="KDV oranını sil"
-                    >
-                      ×
+                  <div className="st-form-actions">
+                    <button type="submit" className="st-btn st-btn--primary"
+                      disabled={priceRulesSaving || !priceRulesDirty}>
+                      {priceRulesSaving ? "Kaydediliyor..." : priceRulesDirty ? "● Kaydet" : "✓ Kaydedildi"}
                     </button>
                   </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={newVatRate}
-                  onChange={(e) => setNewVatRate(e.target.value)}
-                  disabled={!canEditTenantIdentity}
-                  className="px-3 py-2 border border-gray-300 rounded-md w-40 disabled:bg-gray-100"
-                  placeholder="Örn: 8"
-                />
-                <button
-                  type="button"
-                  disabled={!canEditTenantIdentity}
-                  onClick={() => {
-                    const parsed = Number(newVatRate);
-                    if (!Number.isFinite(parsed) || parsed < 0) return;
-                    setFormData((prev) => {
-                      if (prev.vat_rates.includes(parsed)) return prev;
-                      return { ...prev, vat_rates: [...prev.vat_rates, parsed].sort((a, b) => a - b) };
-                    });
-                    setNewVatRate("");
-                  }}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  KDV Ekle
-                </button>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Teklif kalemlerinde kullanılacak KDV oranlarını buradan yönetebilirsiniz.
-              </p>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3 pt-4 border-t">
-              <button
-                type="submit"
-                disabled={saving || loading || !canEditTenantIdentity}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
-              </button>
-              <button
-                type="button"
-                disabled={saving || loading || !canEditTenantIdentity}
-                onClick={() => {
-                  if (settings) {
-                    setFormData({
-                      app_name: settings.app_name,
-                      maintenance_mode: settings.maintenance_mode,
-                      vat_rates: settings.vat_rates && settings.vat_rates.length > 0 ? settings.vat_rates : [1, 10, 20],
-                    });
-                  }
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                Sıfırla
-              </button>
-            </div>
-          </form>
-        </>
-      )}
-
-      {/* Advanced Settings Tab */}
-      {activeTab === "advanced" && <AdvancedSettingsTab />}
-
-      {/* Demo Data Tab */}
-      {!isChannelWorkspace && activeTab === "demo" && <DemoDataTab />}
-
-      {/* Price Rules Tab */}
-      {!isChannelWorkspace && activeTab === "price_rules" && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Teklif Fiyat Kontrol Kuralları</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Tedarikçilerin teklif fiyatları için geçerli olan kural eşiklerini tanımlayın. Baz fiyat olarak projedeki birim fiyat kullanılır.
-            </p>
-          </div>
-          {priceRulesMsg && (
-            <div className={`p-3 rounded-lg border text-sm ${priceRulesMsg.type === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700"}`}>
-              {priceRulesMsg.type === "success" ? "✅" : "❌"} {priceRulesMsg.text}
-            </div>
-          )}
-          {priceRulesLoading && <div className="text-sm text-gray-500">⏳ Yükleniyor...</div>}
-          {priceRules && !priceRulesLoading && (
-            <form onSubmit={(e) => void handleSavePriceRules(e)} className="bg-white rounded-lg shadow p-6 space-y-5">
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Maksimum Artış (%)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={1000}
-                    step={0.1}
-                    value={priceRules.max_markup_percent}
-                    onChange={(e) => setPriceRules({ ...priceRules, max_markup_percent: parseFloat(e.target.value) || 0 })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    aria-label="Maksimum artış yüzdesi"
-                    title="Maksimum artış yüzdesi"
-                    placeholder="Örn: 25"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Baz fiyatın en fazla bu kadar üzerinde teklif verilebilir.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Maksimum İndirim (%)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                    value={priceRules.max_discount_percent}
-                    onChange={(e) => setPriceRules({ ...priceRules, max_discount_percent: parseFloat(e.target.value) || 0 })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    aria-label="Maksimum indirim yüzdesi"
-                    title="Maksimum indirim yüzdesi"
-                    placeholder="Örn: 10"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Baz fiyatın en fazla bu kadar altında teklif verilebilir.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Tolerans Tutarı (TL)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={priceRules.tolerance_amount}
-                    onChange={(e) => setPriceRules({ ...priceRules, tolerance_amount: parseFloat(e.target.value) || 0 })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    aria-label="Tolerans tutarı"
-                    title="Tolerans tutarı"
-                    placeholder="Örn: 1000"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Yüzde sınırına ek olarak sabit para birimi toleransı.</p>
-                </div>
-                <div className="flex items-start gap-3 pt-6">
-                  <input
-                    type="checkbox"
-                    id="block_on_violation"
-                    checked={priceRules.block_on_violation}
-                    onChange={(e) => setPriceRules({ ...priceRules, block_on_violation: e.target.checked })}
-                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                  />
-                  <div>
-                    <label htmlFor="block_on_violation" className="text-sm font-medium text-gray-700 cursor-pointer">
-                      İhlalde Engelle
-                    </label>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Aktifse kural dışı fiyatlı teklifler kayıt edilemez. Pasifse sadece uyarı gösterilir.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {priceRules.updated_at && (
-                <p className="text-xs text-gray-400">Son güncelleme: {new Date(priceRules.updated_at).toLocaleString("tr-TR")}</p>
+                </form>
               )}
-              <div className="pt-4 border-t">
-                <button
-                  type="submit"
-                  disabled={priceRulesSaving}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
-                >
-                  {priceRulesSaving ? "Kaydediliyor..." : "Kuralları Kaydet"}
-                </button>
-              </div>
-            </form>
+            </>
           )}
-        </div>
-      )}
 
-      {/* Premium Features Tab */}
-      {isTenantOwner && activeTab === "premium" && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Premium Özellikler</h3>
-            {premiumContext && <p className="text-sm text-gray-600 mt-1">{premiumContext.tenant_name}</p>}
-          </div>
-          {premiumContext && <PremiumFeaturePurchasePanel tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]} buyerName="" buyerEmail="" />}
-        </div>
-      )}
+          {/* ── E-posta (SMTP) — mevcut AdvancedSettingsTab ─────── */}
+          {activeGroup === "email" && <div className="st-embedded"><AdvancedSettingsTab /></div>}
 
-      {/* Premium Features always visible for tenant owner */}
-      {isTenantOwner && premiumContext && activeTab !== "premium" && (
-        <div className="space-y-4 mt-6 border-t pt-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Premium Özellikler</h3>
-            <p className="text-sm text-gray-600 mt-1">{premiumContext.tenant_name}</p>
-          </div>
-          <PremiumFeaturePurchasePanel tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]} buyerName="" buyerEmail="" />
-        </div>
-      )}
+          {/* ── Demo Verileri ───────────────────────────────────── */}
+          {activeGroup === "demo" && <div className="st-embedded"><DemoDataTab /></div>}
+
+          {/* ── Premium Özellikler ──────────────────────────────── */}
+          {activeGroup === "premium" && (
+            <div className="st-fields">
+              {premiumContext ? (
+                <PremiumFeaturePurchasePanel
+                  tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]}
+                  buyerName=""
+                  buyerEmail=""
+                />
+              ) : (
+                <div className="st-readonly">
+                  {isTenantOwner ? "Premium bağlam yükleniyor..." : "Bu kullanıcı için premium görünümü mevcut değil."}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Statik gruplar (email_accounts, logging, backup, notifications, brand, channel_brand) */}
+          {isStaticGroup && (
+            <div className="st-fields">
+              {filteredStatic.length === 0 ? (
+                <div className="st-empty">Aramayla eşleşen ayar yok.</div>
+              ) : (
+                filteredStatic.map((f) => <StaticFieldRow key={f.key} field={f} />)
+              )}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

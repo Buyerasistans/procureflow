@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import "./AdvancedSettingsTab.css";
 import {
   getEmailSettings,
   getEmailProfiles,
@@ -110,6 +111,31 @@ const DEFAULT_CHANNEL_EMAIL_PREFERENCES: ChannelEmailPreferences = {
   branding_primary_color: "#2563eb",
   sender_alias: "",
 };
+
+interface EmToggleProps {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}
+const EmToggle: React.FC<EmToggleProps> = ({ label, hint, checked, onChange, disabled }) => (
+  <div className={`em-toggle${disabled ? " em-toggle--disabled" : ""}`}>
+    <div className="em-toggle__txt">
+      <b>{label}</b>
+      {hint ? <span>{hint}</span> : null}
+    </div>
+    <button
+      type="button"
+      aria-label={label}
+      className={`em-switch${checked ? " on" : ""}`}
+      onClick={() => !disabled && onChange(!checked)}
+      disabled={disabled}
+    >
+      <span className="em-switch__thumb" />
+    </button>
+  </div>
+);
 
 export const AdvancedSettingsTab: React.FC = () => {
   const { user } = useAuth();
@@ -811,355 +837,280 @@ export const AdvancedSettingsTab: React.FC = () => {
     }
   };
 
-  const tabStyle = (tab: TabType): React.CSSProperties => ({
-    padding: "8px 16px",
-    border: "none",
-    background: activeTab === tab ? "#3b82f6" : "transparent",
-    color: activeTab === tab ? "white" : "#666",
-    cursor: "pointer",
-    fontWeight: activeTab === tab ? "bold" : "normal",
-    borderRadius: 4,
-  });
-
   const shouldShowEmailCustomization = isSuperAdmin || readOnly || isEmailCustomizationOpen;
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="em-wrap">
       {message && (
-        <div
-          style={{
-            padding: 12,
-            borderRadius: 8,
-            backgroundColor: message.type === "success" ? "#d1fae5" : "#fee2e2",
-            color: message.type === "success" ? "#065f46" : "#991b1b",
-            border: `1px solid ${message.type === "success" ? "#6ee7b7" : "#fca5a5"}`,
-          }}
-        >
-          {message.type === "success" ? "✅" : "❌"} {message.text}
+        <div className={`em-banner em-banner--${message.type}`}>
+          {message.type === "success" ? "✅" : "�?�"} {message.text}
         </div>
       )}
 
       {readOnly && (
-        <div
-          style={{
-            padding: 12,
-            borderRadius: 8,
-            backgroundColor: "#fee2e2",
-            color: "#991b1b",
-            border: "1px solid #fca5a5",
-          }}
-        >
-          Bu panel bu profil icin salt okunur calisiyor; sadece goruntuleme yapabilirsiniz.
+        <div className="em-note em-note--err">
+          Bu panel bu profil için salt okunur çalışıyor; sadece görüntüleme yapabilirsiniz.
         </div>
       )}
 
       {isChannelScope && !readOnly && (
-        <div
-          style={{
-            padding: 12,
-            borderRadius: 8,
-            backgroundColor: "#eff6ff",
-            color: "#1e3a8a",
-            border: "1px solid #bfdbfe",
-          }}
-        >
+        <div className="em-note em-note--blue">
           Kanal hesap sahibi panelinde e-posta ayarları ve mailbox yönetimi açıktır.
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8 }}>
-        <button style={tabStyle("email")} onClick={() => setActiveTab("email")}>📧 Email</button>
+      <div className="em-tabs">
+        <button className={`em-tab${activeTab === "email" ? " on" : ""}`} onClick={() => setActiveTab("email")}>?��� Email</button>
         {canAccessSettingsSurface && (
           <>
-            <button style={tabStyle("logging")} onClick={() => setActiveTab("logging")}>📊 Logging</button>
-            <button style={tabStyle("backup")} onClick={() => setActiveTab("backup")}>💾 Yedekleme</button>
-            <button style={tabStyle("notifications")} onClick={() => setActiveTab("notifications")}>🔔 Bildirimler</button>
+            <button className={`em-tab${activeTab === "logging" ? " on" : ""}`} onClick={() => setActiveTab("logging")}>?��� Logging</button>
+            <button className={`em-tab${activeTab === "backup" ? " on" : ""}`} onClick={() => setActiveTab("backup")}>?��� Yedekleme</button>
+            <button className={`em-tab${activeTab === "notifications" ? " on" : ""}`} onClick={() => setActiveTab("notifications")}>?��� Bildirimler</button>
           </>
         )}
         {canManageApiKeys && (
-          <button style={tabStyle("api-keys")} onClick={() => setActiveTab("api-keys")}>🔑 API Anahtarları</button>
+          <button className={`em-tab${activeTab === "api-keys" ? " on" : ""}`} onClick={() => setActiveTab("api-keys")}>?��� API Anahtarları</button>
         )}
       </div>
 
       {activeTab === "email" && (
-        <div style={{ backgroundColor: "#fff", padding: 20, borderRadius: 12, border: "1px solid #e5e7eb" }}>
-          <h3>📧 SMTP / POP / IMAP Ayarları</h3>
-          {!isSuperAdmin && (
-            <div style={{ marginTop: 12, marginBottom: 12, padding: 12, borderRadius: 8, border: "1px solid #bfdbfe", background: "#eff6ff" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "#1e3a8a" }}>
-                Varsayılan Kullanım Bilgisi
+        <>
+          {/* Profile selector */}
+          <div className="em-psel-wrap">
+            <div className="em-psel-head">
+              <div>
+                <b>{canManageProfiles ? "Profil Seçimi" : "Kullanılan Profil"}</b>
+                <span>
+                  {canManageProfiles
+                    ? "Süper admin varsayılan sistem SMTP profilini ve admin profillerini ayrı ayrı düzenleyebilir."
+                    : "Admin sadece kendi SMTP profilini ve kendi e-posta hesaplarını görür."}
+                </span>
               </div>
-              <div style={{ marginTop: 6, color: "#1e40af", fontSize: 14 }}>
-                Standart akışta sistem, buyerasistans.com.tr varsayılan ayarlarını kullanır. Özel sağlayıcı kullanmak için ayar ekranını açabilirsiniz.
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsEmailCustomizationOpen((prev) => !prev)}
-                style={{
-                  marginTop: 10,
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: "1px solid #93c5fd",
-                  background: isEmailCustomizationOpen ? "#dbeafe" : "#2563eb",
-                  color: isEmailCustomizationOpen ? "#1e3a8a" : "#fff",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                }}
-              >
-                {isEmailCustomizationOpen ? "Özelleştirme Ekranını Kapat" : "SMTP / POP / IMAP Ayarlarını Özelleştir"}
-              </button>
+              <span className="em-profiles__count">{emailProfiles.length} profil</span>
             </div>
-          )}
-          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
-          <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: "#f8fafc", border: "1px solid #e5e7eb" }}>
-            <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>
-              {canManageProfiles ? "Profil Seçimi" : "Kullanılan Profil"}
-            </div>
-            {canManageProfiles ? (
-              <select
-                aria-label="Profil Seçimi"
-                value={selectedEmailProfileOwnerId === null ? "default" : String(selectedEmailProfileOwnerId ?? "default")}
-                onChange={(e) => setSelectedEmailProfileOwnerId(e.target.value === "default" ? null : Number(e.target.value))}
-                style={{ marginTop: 8, width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              >
-                {emailProfiles.map((profile) => (
-                  <option
-                    key={profile.owner_user_id === null ? "default" : String(profile.owner_user_id)}
-                    value={profile.owner_user_id === null ? "default" : String(profile.owner_user_id)}
-                  >
-                    {profile.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div style={{ marginTop: 8, color: "#0f172a", fontWeight: 700 }}>Kendi SMTP profiliniz</div>
-            )}
-            <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>
-              {canManageProfiles
-                ? "Süper admin varsayılan sistem SMTP profilini ve admin profillerini ayrı ayrı düzenleyebilir."
-                : "Admin sadece kendi SMTP profilini ve kendi e-posta hesaplarını görür."}
+            <div className="em-psel-body">
+              {canManageProfiles ? (
+                <select
+                  className="em-input"
+                  aria-label="Profil Seçimi"
+                  value={selectedEmailProfileOwnerId === null ? "default" : String(selectedEmailProfileOwnerId ?? "default")}
+                  onChange={(e) => setSelectedEmailProfileOwnerId(e.target.value === "default" ? null : Number(e.target.value))}
+                >
+                  {emailProfiles.map((profile) => (
+                    <option
+                      key={profile.owner_user_id === null ? "default" : String(profile.owner_user_id)}
+                      value={profile.owner_user_id === null ? "default" : String(profile.owner_user_id)}
+                    >
+                      {profile.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div style={{ fontWeight: 700, color: "var(--pf-slate-900)", fontSize: 13 }}>Kendi SMTP profiliniz</div>
+              )}
             </div>
           </div>
-          {emailSettings && (
-            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-              Mevcut ayarlar yüklendi.
+
+          {!isSuperAdmin && (
+            <div className="em-note em-note--blue">
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
+                  Varsayılan Kullanım Bilgisi
+                </div>
+                <div>Standart akışta sistem, buyerasistans.com.tr varsayılan ayarlarını kullanır. Özel sağlayıcı kullanmak için ayar ekranını açabilirsiniz.</div>
+                <button
+                  type="button"
+                  onClick={() => setIsEmailCustomizationOpen((prev) => !prev)}
+                  className={isEmailCustomizationOpen ? "em-btn--ghost" : "em-btn--primary"}
+                  style={{ marginTop: 10 }}
+                >
+                  {isEmailCustomizationOpen ? "Özelleştirme Ekranını Kapat" : "SMTP / POP / IMAP Ayarlarını Özelleştir"}
+                </button>
+              </div>
             </div>
           )}
+
+          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
 
           {!isSuperAdmin && !isEmailCustomizationOpen && (
-            <div style={{ marginTop: 10, color: "#64748b", fontSize: 13 }}>
-              Aktif Email Profili: Standart profil kullanılıyor. Özelleştirmek için yukarıdaki butonu kullanın.
-            </div>
+            <p className="em-muted">Aktif Email Profili: Standart profil kullanılıyor. Özelleştirmek için yukarıdaki butonu kullanın.</p>
           )}
 
-          {shouldShowEmailCustomization ? (
+          {shouldShowEmailCustomization && (
             <>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>SMTP Host</label>
-              <input
-                type="text"
-                placeholder="smtp.gmail.com"
-                value={emailForm.smtp_host ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, smtp_host: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
+          <div className="em-grid">
 
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>SMTP Port</label>
-              <input
-                type="number"
-                placeholder="587"
-                value={emailForm.smtp_port ?? 587}
-                onChange={(e) =>
-                  setEmailForm({
-                    ...emailForm,
-                    smtp_port: Number.isNaN(Number(e.target.value)) ? 587 : Number(e.target.value),
-                  })
-                }
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
+            {/* SMTP */}
+            <section className="em-card">
+              <header className="em-card__head">
+                <span className="em-card__ico">📤</span>
+                <div className="em-card__ttl">
+                  <b>Giden Sunucu (SMTP)</b>
+                  <span>Sistem e-postalarının gönderildiği sunucu</span>
+                </div>
+                <div className="em-card__right">
+                  <button type="button" className={`em-test${loading ? " loading" : ""}`} onClick={handleEmailTest} disabled={loading}>
+                    {loading ? "Gönderiliyor…" : "Test e-postası gönder"}
+                  </button>
+                </div>
+              </header>
+              <div className="em-card__body">
+                <div className="em-row2">
+                  <label className="em-field">
+                    <span className="em-field__label">SMTP Host</span>
+                    <input className="em-input em-input--mono" type="text" placeholder="smtp.alanadi.com"
+                      value={emailForm.smtp_host ?? ""}
+                      onChange={(e) => setEmailForm({ ...emailForm, smtp_host: e.target.value })} />
+                  </label>
+                  <label className="em-field em-field--half">
+                    <span className="em-field__label">Port</span>
+                    <input className="em-input em-input--mono" type="number"
+                      value={emailForm.smtp_port ?? 587}
+                      onChange={(e) => setEmailForm({ ...emailForm, smtp_port: Number.isNaN(Number(e.target.value)) ? 587 : Number(e.target.value) })} />
+                  </label>
+                </div>
+                <label className="em-field">
+                  <span className="em-field__label">SMTP Kullanıcı Adı</span>
+                  <input className="em-input" type="text" placeholder="noreply@firma.com"
+                    value={emailForm.smtp_username ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, smtp_username: e.target.value })} />
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">SMTP �?ifre</span>
+                  <input className="em-input em-input--mono" type="password" placeholder="••••••••"
+                    value={emailForm.smtp_password ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, smtp_password: e.target.value })} />
+                </label>
+                <EmToggle label="TLS Kullan"
+                  checked={Boolean((emailForm as Record<string, unknown>).use_tls)}
+                  onChange={(v) => setEmailForm({ ...emailForm, use_tls: v } as EmailSettingsData)} />
+                <EmToggle label="SSL Kullan"
+                  checked={Boolean((emailForm as Record<string, unknown>).use_ssl)}
+                  onChange={(v) => setEmailForm({ ...emailForm, use_ssl: v } as EmailSettingsData)} />
+              </div>
+            </section>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>SMTP Username</label>
-              <input
-                type="text"
-                placeholder="noreply@firma.com"
-                value={emailForm.smtp_username ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, smtp_username: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
+            {/* Sender Identity */}
+            <section className="em-card">
+              <header className="em-card__head">
+                <span className="em-card__ico">✉️</span>
+                <div className="em-card__ttl">
+                  <b>Gönderici Kimliği</b>
+                  <span>From adı, e-posta ve reply-to adresi</span>
+                </div>
+              </header>
+              <div className="em-card__body">
+                <label className="em-field">
+                  <span className="em-field__label">From E-posta</span>
+                  <input className="em-input" type="email" placeholder="noreply@firma.com"
+                    value={emailForm.from_email ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, from_email: e.target.value })} />
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">From Adı</span>
+                  <input className="em-input" type="text" placeholder="ProcureFlow"
+                    value={emailForm.from_name ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, from_name: e.target.value })} />
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">Reply-To</span>
+                  <input className="em-input" type="email" placeholder="destek@ornek.com"
+                    value={emailForm.reply_to_email ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, reply_to_email: e.target.value })} />
+                </label>
+                <EmToggle label="Domain modunu aktif et" hint="Sistem link ve maillerini canlı domain üzerinden üretir"
+                  checked={Boolean((emailForm as Record<string, unknown>).use_custom_app_url)}
+                  onChange={(v) => setEmailForm({ ...emailForm, use_custom_app_url: v } as EmailSettingsData)} />
+              </div>
+            </section>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>SMTP Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={emailForm.smtp_password ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, smtp_password: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
+            {/* Domain & App */}
+            <section className="em-card">
+              <header className="em-card__head">
+                <span className="em-card__ico">🌐</span>
+                <div className="em-card__ttl">
+                  <b>Domain &amp; Uygulama</b>
+                  <span>Geliştirme URL ve canlı domain ayarları</span>
+                </div>
+              </header>
+              <div className="em-card__body">
+                <label className="em-field">
+                  <span className="em-field__label">Uygulama URL (Geliştirme)</span>
+                  <input className="em-input em-input--mono" type="text" placeholder="http://localhost:5175"
+                    value={emailForm.app_url ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, app_url: e.target.value })} />
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">Canlı Domain</span>
+                  <input className="em-input em-input--mono" type="text" placeholder="ornek.com"
+                    value={emailForm.mail_domain ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, mail_domain: e.target.value })} />
+                </label>
+                <div className="em-note em-note--amber">
+                  Domain modu aktifken sistem e-posta ve uygulama linklerini canlı domain üzerinden üretir. Pasifken geliştirme URL kullanılmaya devam eder.
+                </div>
+              </div>
+            </section>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>From Email</label>
-              <input
-                type="email"
-                placeholder="noreply@firma.com"
-                value={emailForm.from_email ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, from_email: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
+            {/* Health */}
+            <section className="em-card">
+              <header className="em-card__head">
+                <span className="em-card__ico">📈</span>
+                <div className="em-card__ttl">
+                  <b>E-posta Sağlığı (7 Gün)</b>
+                  <span>Gönderim istatistikleri{emailSettings ? " · yüklendi" : ""}</span>
+                </div>
+              </header>
+              <div className="em-card__body">
+                {emailHealthLoading ? (
+                  <p className="em-muted">Yükleniyor…</p>
+                ) : (
+                  <div className="em-health">
+                    <div className="em-stat"><b>{emailHealth?.success_rate_7d ?? 0}%</b><span>Başarı</span></div>
+                    <div className="em-stat"><b>{emailHealth?.bounce_rate_7d ?? 0}%</b><span>Bounce</span></div>
+                    <div className="em-stat"><b>{emailHealth?.spam_rate_7d ?? 0}%</b><span>Spam</span></div>
+                    <div className="em-stat"><b>{emailHealth?.outbound_total_7d ?? 0}</b><span>Toplam</span></div>
+                  </div>
+                )}
+              </div>
+            </section>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>From Name</label>
-              <input
-                type="text"
-                placeholder="ProcureFlow"
-                value={emailForm.from_name ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, from_name: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Geliştirme Uygulama URL</label>
-              <input
-                type="text"
-                placeholder="http://localhost:5175"
-                value={emailForm.app_url ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, app_url: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Canlı Domain</label>
-              <input
-                type="text"
-                placeholder="ornek.com"
-                value={emailForm.mail_domain ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, mail_domain: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Reply-To</label>
-              <input
-                type="email"
-                placeholder="destek@ornek.com"
-                value={emailForm.reply_to_email ?? ""}
-                onChange={(e) => setEmailForm({ ...emailForm, reply_to_email: e.target.value })}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 16, marginTop: 12 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={Boolean((emailForm as Record<string, unknown>).use_tls)}
-                onChange={(e) => setEmailForm({ ...emailForm, use_tls: e.target.checked } as EmailSettingsData)}
-              />
-              TLS kullan
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={Boolean((emailForm as Record<string, unknown>).use_ssl)}
-                onChange={(e) => setEmailForm({ ...emailForm, use_ssl: e.target.checked } as EmailSettingsData)}
-              />
-              SSL kullan
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={Boolean((emailForm as Record<string, unknown>).use_custom_app_url)}
-                onChange={(e) => setEmailForm({ ...emailForm, use_custom_app_url: e.target.checked } as EmailSettingsData)}
-              />
-              Domain modunu aktif et
-            </label>
           </div>
 
           {isSuperAdmin && (
-            <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: "#eff6ff", border: "1px solid #bfdbfe" }}>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 700, color: "#1e3a8a" }}>
-                <input
-                  type="checkbox"
+            <section className="em-card">
+              <header className="em-card__head">
+                <span className="em-card__ico">🏢</span>
+                <div className="em-card__ttl">
+                  <b>Firma Mail Görünürlüğü</b>
+                  <span>Admin/Owner profillerinin mailbox erişim kapsamı</span>
+                </div>
+              </header>
+              <div className="em-card__body">
+                <EmToggle
+                  label="Dashboard mail butonu aktif"
+                  hint="Stratejik partner, tedarikçi ve iş ortağı dashboard mail butonlarını etkiler; super admin paneli etkilenmez."
                   checked={emailForm.dashboard_mail_button_enabled ?? true}
-                  onChange={(e) =>
-                    setEmailForm({ ...emailForm, dashboard_mail_button_enabled: e.target.checked } as EmailSettingsData)
-                  }
+                  onChange={(v) => setEmailForm({ ...emailForm, dashboard_mail_button_enabled: v } as EmailSettingsData)}
                 />
-                {(emailForm.dashboard_mail_button_enabled ?? true)
-                  ? "Dashboard mail butonu aktif"
-                  : "Dashboard mail butonu pasif"}
-              </label>
-              <div style={{ marginTop: 8, fontSize: 12, color: "#1e40af" }}>
-                Bu tik yalnızca stratejik partner, tedarikçi ve iş ortağı dashboard mail butonlarını etkiler; super admin paneli etkilenmez.
-              </div>
-
-              <div style={{ marginTop: 14, padding: 10, borderRadius: 8, background: "#ffffff", border: "1px solid #dbeafe" }}>
-                <div style={{ fontWeight: 700, color: "#1e3a8a", marginBottom: 6 }}>
-                  Firma Bazli Mail Gorunurluk (Admin / Owner)
+                <div className="em-note em-note--blue">
+                  Tik açıksa ilgili firmadaki admin/owner profiller kendi firma kapsamındaki ekip mailboxlarını görebilir. Tik kapalıysa yalnızca kendi mailbox hesaplarını görürler.
                 </div>
-                <div style={{ fontSize: 12, color: "#334155", marginBottom: 10 }}>
-                  Tik aciksa ilgili firmadaki admin/owner profiller kendi firma kapsamindaki ekip mailboxlarini gorebilir.
-                  Tik kapaliysa yalnizca kendi mailbox hesaplarini gorurler.
-                </div>
-
                 {companyMailVisibilityRows.length === 0 ? (
-                  <div style={{ fontSize: 12, color: "#64748b" }}>Firma listesi bulunamadi.</div>
+                  <p className="em-muted">Firma listesi bulunamadı.</p>
                 ) : (
-                  <div style={{ display: "grid", gap: 8, maxHeight: 280, overflowY: "auto", paddingRight: 4 }}>
+                  <div className="em-vis-list">
                     {companyMailVisibilityRows.map((row) => (
-                      <label
-                        key={row.company_id}
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "auto 1fr auto",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "8px 10px",
-                          border: "1px solid #dbeafe",
-                          borderRadius: 8,
-                          background: row.enabled ? "#f0fdf4" : "#f8fafc",
-                          opacity: row.is_active ? 1 : 0.6,
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={row.enabled}
+                      <label key={row.company_id} className={`em-vis-row${row.enabled ? " em-vis-row--active" : ""}${!row.is_active ? " em-vis-row--inactive" : ""}`}>
+                        <input type="checkbox" checked={row.enabled}
                           disabled={togglingCompanyId === row.company_id || !row.is_active}
-                          onChange={() => void handleToggleCompanyMailVisibility(row)}
-                        />
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>
-                            {row.company_name}
-                            {row.is_primary ? " (Ana Firma)" : ""}
-                          </div>
-                          <div style={{ fontSize: 12, color: "#475569" }}>{row.tenant_name}</div>
+                          onChange={() => void handleToggleCompanyMailVisibility(row)} />
+                        <div className="em-vis-row__info">
+                          <b>{row.company_name}{row.is_primary ? " (Ana Firma)" : ""}</b>
+                          <span>{row.tenant_name}</span>
                         </div>
-                        <span
-                          style={{
-                            padding: "3px 8px",
-                            borderRadius: 999,
-                            border: row.enabled ? "1px solid #86efac" : "1px solid #cbd5e1",
-                            background: row.enabled ? "#dcfce7" : "#e2e8f0",
-                            color: row.enabled ? "#166534" : "#475569",
-                            fontSize: 11,
-                            fontWeight: 700,
-                          }}
-                        >
+                        <span className={`em-status-pill${row.enabled ? " em-status-pill--active" : " em-status-pill--inactive"}`}>
                           {row.enabled ? "Aktif" : "Pasif"}
                         </span>
                       </label>
@@ -1167,845 +1118,606 @@ export const AdvancedSettingsTab: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           )}
 
-          <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: "#fffbeb", color: "#92400e", border: "1px solid #fcd34d" }}>
-            Domain modu aktifken sistem e-posta ve uygulama linklerini canlı domain üzerinden üretir. Pasifken geliştirme URL'si kullanılmaya devam eder.
-          </div>
-
-          <div style={{ marginTop: 18, padding: 16, border: "1px solid #e5e7eb", borderRadius: 10, background: "#f8fafc" }}>
-            <h4 style={{ margin: "0 0 12px" }}>Global Mail İmzası</h4>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label htmlFor="signature_name" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>İsim</label>
-                <input
-                  id="signature_name"
-                  type="text"
-                  value={emailForm.signature_name ?? ""}
-                  onChange={(e) => setEmailForm({ ...emailForm, signature_name: e.target.value })}
-                  style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-                />
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">✍️</span>
+              <div className="em-card__ttl">
+                <b>Global Mail İmzası</b>
+                <span>Tüm giden maillere eklenen imza</span>
               </div>
-              <div>
-                <label htmlFor="signature_title" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Unvan</label>
-                <input
-                  id="signature_title"
-                  type="text"
-                  value={emailForm.signature_title ?? ""}
-                  onChange={(e) => setEmailForm({ ...emailForm, signature_title: e.target.value })}
-                  style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-                />
+            </header>
+            <div className="em-card__body">
+              <div className="em-row2">
+                <label className="em-field">
+                  <span className="em-field__label">İsim</span>
+                  <input id="signature_name" className="em-input" type="text"
+                    value={emailForm.signature_name ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, signature_name: e.target.value })} />
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">Unvan</span>
+                  <input id="signature_title" className="em-input" type="text"
+                    value={emailForm.signature_title ?? ""}
+                    onChange={(e) => setEmailForm({ ...emailForm, signature_title: e.target.value })} />
+                </label>
               </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label htmlFor="signature_note" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>Not / İmza Metni</label>
-                <textarea
-                  id="signature_note"
-                  rows={3}
+              <label className="em-field">
+                <span className="em-field__label">Not / İmza Metni</span>
+                <textarea id="signature_note" className="em-input em-input--ta" rows={3}
                   value={emailForm.signature_note ?? ""}
-                  onChange={(e) => setEmailForm({ ...emailForm, signature_note: e.target.value })}
-                  style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4, resize: "vertical" }}
-                />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label htmlFor="signature_image" style={{ display: "block", marginBottom: 4, fontWeight: 600 }}>İmza Görseli / Logo</label>
-                <input id="signature_image" type="file" accept="image/*" onChange={(e) => void handleSignatureImageUpload(e.target.files?.[0] || null)} />
-                {emailForm.signature_image_url && (
-                  <div style={{ marginTop: 10 }}>
-                    <img src={emailForm.signature_image_url} alt="mail-imza" style={{ maxWidth: 240, maxHeight: 120, objectFit: "contain", borderRadius: 8, border: "1px solid #dbe3ee", background: "white" }} />
-                  </div>
-                )}
-              </div>
+                  onChange={(e) => setEmailForm({ ...emailForm, signature_note: e.target.value })} />
+              </label>
+              <label className="em-field">
+                <span className="em-field__label">İmza Görseli / Logo</span>
+                <input id="signature_image" type="file" accept="image/*"
+                  onChange={(e) => void handleSignatureImageUpload(e.target.files?.[0] || null)} />
+              </label>
+              {emailForm.signature_image_url && (
+                <img src={emailForm.signature_image_url} alt="mail-imza"
+                  style={{ maxWidth: 240, maxHeight: 120, objectFit: "contain", borderRadius: 8, border: "1px solid var(--pf-border-color)", background: "white" }} />
+              )}
             </div>
-          </div>
+          </section>
 
           {isChannelScope && !readOnly && (
-            <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>1) E-posta Şablonları</h4>
-                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                  {channelPrefs.templates.map((tpl) => (
-                    <button
-                      key={tpl.key}
-                      type="button"
-                      onClick={() => setActiveTemplateKey(tpl.key)}
-                      style={{
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        border: "1px solid #bfdbfe",
-                        background: activeTemplateKey === tpl.key ? "#dbeafe" : "#fff",
-                        color: "#1e3a8a",
-                        cursor: "pointer",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {tpl.label}
-                    </button>
-                  ))}
+            <section className="em-card">
+              <header className="em-card__head">
+                <span className="em-card__ico">📡</span>
+                <div className="em-card__ttl">
+                  <b>Kanal E-posta Tercihleri</b>
+                  <span>Şablonlar, imza kütüphanesi ve gönderim limitleri</span>
                 </div>
-                {channelPrefs.templates
-                  .filter((tpl) => tpl.key === activeTemplateKey)
-                  .map((tpl) => (
-                    <div key={tpl.key} style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                      <input
-                        aria-label={`${tpl.label} Başlığı`}
-                        value={tpl.subject}
-                        onChange={(e) => updateTemplateField(tpl.key, "subject", e.target.value)}
-                        style={{ width: "100%", padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }}
-                      />
-                      <textarea
-                        aria-label={`${tpl.label} İçeriği`}
-                        rows={4}
-                        value={tpl.body}
-                        onChange={(e) => updateTemplateField(tpl.key, "body", e.target.value)}
-                        style={{ width: "100%", padding: 8, border: "1px solid #cbd5e1", borderRadius: 6, resize: "vertical" }}
-                      />
-                    </div>
-                  ))}
-              </div>
+              </header>
+              <div className="em-card__body">
 
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>2) İmza Kütüphanesi</h4>
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                  <input
-                    value={newPresetName}
-                    onChange={(e) => setNewPresetName(e.target.value)}
-                    placeholder="Preset adı"
-                    style={{ flex: 1, padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const name = newPresetName.trim();
-                      if (!name) return;
-                      setChannelPrefs((prev) => ({
-                        ...prev,
-                        signature_library: [
-                          ...prev.signature_library,
-                          {
-                            id: `${Date.now()}`,
-                            name,
-                            signature_name: emailForm.signature_name || "",
-                            signature_title: emailForm.signature_title || "",
-                            signature_note: emailForm.signature_note || "",
-                          },
-                        ],
-                      }));
-                      setNewPresetName("");
-                    }}
-                    style={{ padding: "8px 10px", borderRadius: 6, border: "1px solid #2563eb", background: "#2563eb", color: "#fff", cursor: "pointer" }}
-                  >
-                    Ekle
-                  </button>
-                </div>
-                <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
-                  {channelPrefs.signature_library.map((preset) => (
-                    <div key={preset.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #dbeafe", borderRadius: 6, background: "#fff", padding: "8px 10px" }}>
-                      <div>
-                        <div style={{ fontWeight: 700, color: "#0f172a" }}>{preset.name}</div>
-                        <div style={{ fontSize: 12, color: "#64748b" }}>{preset.signature_name} · {preset.signature_title}</div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                          type="button"
-                          onClick={() => setEmailForm((prev) => ({ ...prev, signature_name: preset.signature_name, signature_title: preset.signature_title, signature_note: preset.signature_note }))}
-                          style={{ border: "1px solid #93c5fd", background: "#dbeafe", color: "#1e3a8a", borderRadius: 6, padding: "6px 8px", cursor: "pointer" }}
-                        >
-                          Uygula
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setChannelPrefs((prev) => ({ ...prev, signature_library: prev.signature_library.filter((item) => item.id !== preset.id) }))}
-                          style={{ border: "1px solid #fecaca", background: "#fee2e2", color: "#991b1b", borderRadius: 6, padding: "6px 8px", cursor: "pointer" }}
-                        >
-                          Sil
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>3) Gönderim Limiti ve Kota</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
-                  <input aria-label="Saatlik Gönderim Hızı" type="number" min={1} value={channelPrefs.send_rate_per_hour} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_rate_per_hour: Number(e.target.value || 1) }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <input aria-label="Günlük Gönderim Kotası" type="number" min={1} value={channelPrefs.send_quota_per_day} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_quota_per_day: Number(e.target.value || 1) }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                </div>
-              </div>
-
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>4) E-posta Sağlık Göstergesi (7 Gün)</h4>
-                {emailHealthLoading ? (
-                  <div style={{ marginTop: 8, color: "#64748b" }}>Yukleniyor...</div>
-                ) : (
-                  <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(4, minmax(120px, 1fr))", gap: 8 }}>
-                    <div style={{ border: "1px solid #d1fae5", borderRadius: 6, background: "#fff", padding: 8 }}><strong>{emailHealth?.success_rate_7d ?? 0}%</strong><div style={{ fontSize: 12 }}>Basari</div></div>
-                    <div style={{ border: "1px solid #fee2e2", borderRadius: 6, background: "#fff", padding: 8 }}><strong>{emailHealth?.bounce_rate_7d ?? 0}%</strong><div style={{ fontSize: 12 }}>Bounce</div></div>
-                    <div style={{ border: "1px solid #ffedd5", borderRadius: 6, background: "#fff", padding: 8 }}><strong>{emailHealth?.spam_rate_7d ?? 0}%</strong><div style={{ fontSize: 12 }}>Spam</div></div>
-                    <div style={{ border: "1px solid #dbeafe", borderRadius: 6, background: "#fff", padding: 8 }}><strong>{emailHealth?.outbound_total_7d ?? 0}</strong><div style={{ fontSize: 12 }}>Toplam</div></div>
+                <div className="em-chan-card">
+                  <h4>1) E-posta Şablonları</h4>
+                  <div className="em-presets">
+                    {channelPrefs.templates.map((tpl) => (
+                      <button key={tpl.key} type="button"
+                        className={`em-chip${activeTemplateKey === tpl.key ? " on" : ""}`}
+                        onClick={() => setActiveTemplateKey(tpl.key)}>
+                        {tpl.label}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
-
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>5) Doğrulanmış Domain Beyaz Liste</h4>
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                  <input value={newAllowedDomain} onChange={(e) => setNewAllowedDomain(e.target.value)} placeholder="ornek.com" style={{ flex: 1, padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <button type="button" onClick={() => {
-                    const normalized = normalizeDomain(newAllowedDomain);
-                    if (!normalized) return;
-                    setChannelPrefs((prev) => prev.allowed_from_domains.includes(normalized) ? prev : { ...prev, allowed_from_domains: [...prev.allowed_from_domains, normalized] });
-                    setNewAllowedDomain("");
-                  }} style={{ border: "1px solid #2563eb", background: "#2563eb", color: "#fff", borderRadius: 6, padding: "8px 10px", cursor: "pointer" }}>Ekle</button>
-                </div>
-                <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {channelPrefs.allowed_from_domains.map((domain) => (
-                    <span key={domain} style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid #bfdbfe", borderRadius: 999, padding: "4px 8px", background: "#eff6ff" }}>
-                      {domain}
-                      <button type="button" onClick={() => setChannelPrefs((prev) => ({ ...prev, allowed_from_domains: prev.allowed_from_domains.filter((item) => item !== domain) }))} style={{ border: "none", background: "transparent", color: "#1e40af", cursor: "pointer" }}>×</button>
-                    </span>
+                  {channelPrefs.templates.filter((tpl) => tpl.key === activeTemplateKey).map((tpl) => (
+                    <div key={tpl.key} style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                      <input aria-label={`${tpl.label} Başlığı`} className="em-input" value={tpl.subject}
+                        onChange={(e) => updateTemplateField(tpl.key, "subject", e.target.value)} />
+                      <textarea aria-label={`${tpl.label} İçeriği`} className="em-input em-input--ta" rows={4}
+                        value={tpl.body} onChange={(e) => updateTemplateField(tpl.key, "body", e.target.value)} />
+                    </div>
                   ))}
                 </div>
-              </div>
 
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>6) Mailbox Fallback Politikası</h4>
-                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                  <select aria-label="Mailbox Fallback Politikası" value={channelPrefs.fallback_policy} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, fallback_policy: e.target.value as ChannelEmailPreferences["fallback_policy"] }))} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }}>
+                <div className="em-chan-card">
+                  <h4>2) İmza Kütüphanesi</h4>
+                  <div className="em-row2">
+                    <label className="em-field">
+                      <input className="em-input" value={newPresetName}
+                        onChange={(e) => setNewPresetName(e.target.value)} placeholder="Preset adı" />
+                    </label>
+                    <button type="button" className="em-btn--primary"
+                      onClick={() => {
+                        const name = newPresetName.trim();
+                        if (!name) return;
+                        setChannelPrefs((prev) => ({
+                          ...prev,
+                          signature_library: [
+                            ...prev.signature_library,
+                            { id: `${Date.now()}`, name, signature_name: emailForm.signature_name || "", signature_title: emailForm.signature_title || "", signature_note: emailForm.signature_note || "" },
+                          ],
+                        }));
+                        setNewPresetName("");
+                      }}>
+                      Ekle
+                    </button>
+                  </div>
+                  <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                    {channelPrefs.signature_library.map((preset) => (
+                      <div key={preset.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid var(--pf-border-color)", borderRadius: 6, background: "var(--pf-surface)", padding: "8px 10px" }}>
+                        <div>
+                          <div style={{ fontWeight: 700, color: "var(--pf-slate-900)" }}>{preset.name}</div>
+                          <div style={{ fontSize: 12, color: "var(--pf-slate-500)" }}>{preset.signature_name} · {preset.signature_title}</div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button type="button" className="em-mini em-mini--accent"
+                            onClick={() => setEmailForm((prev) => ({ ...prev, signature_name: preset.signature_name, signature_title: preset.signature_title, signature_note: preset.signature_note }))}>
+                            Uygula
+                          </button>
+                          <button type="button" className="em-mini em-mini--danger"
+                            onClick={() => setChannelPrefs((prev) => ({ ...prev, signature_library: prev.signature_library.filter((item) => item.id !== preset.id) }))}>
+                            Sil
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="em-chan-card">
+                  <h4>3) Gönderim Limiti ve Kota</h4>
+                  <div className="em-row2" style={{ marginTop: 8 }}>
+                    <label className="em-field">
+                      <span className="em-field__label">Saatlik Hız</span>
+                      <input aria-label="Saatlik Gönderim Hızı" className="em-input" type="number" min={1}
+                        value={channelPrefs.send_rate_per_hour}
+                        onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_rate_per_hour: Number(e.target.value || 1) }))} />
+                    </label>
+                    <label className="em-field">
+                      <span className="em-field__label">Günlük Kota</span>
+                      <input aria-label="Günlük Gönderim Kotası" className="em-input" type="number" min={1}
+                        value={channelPrefs.send_quota_per_day}
+                        onChange={(e) => setChannelPrefs((prev) => ({ ...prev, send_quota_per_day: Number(e.target.value || 1) }))} />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="em-chan-card">
+                  <h4>4) E-posta Sağlık Göstergesi (7 Gün)</h4>
+                  {emailHealthLoading ? (
+                    <p className="em-muted">Yükleniyor…</p>
+                  ) : (
+                    <div className="em-health" style={{ marginTop: 8 }}>
+                      <div className="em-stat"><b>{emailHealth?.success_rate_7d ?? 0}%</b><span>Başarı</span></div>
+                      <div className="em-stat"><b>{emailHealth?.bounce_rate_7d ?? 0}%</b><span>Bounce</span></div>
+                      <div className="em-stat"><b>{emailHealth?.spam_rate_7d ?? 0}%</b><span>Spam</span></div>
+                      <div className="em-stat"><b>{emailHealth?.outbound_total_7d ?? 0}</b><span>Toplam</span></div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="em-chan-card">
+                  <h4>5) Doğrulanmış Domain Beyaz Liste</h4>
+                  <div className="em-row2" style={{ marginTop: 8 }}>
+                    <label className="em-field">
+                      <input className="em-input" value={newAllowedDomain}
+                        onChange={(e) => setNewAllowedDomain(e.target.value)} placeholder="ornek.com" />
+                    </label>
+                    <button type="button" className="em-btn--primary" onClick={() => {
+                      const normalized = normalizeDomain(newAllowedDomain);
+                      if (!normalized) return;
+                      setChannelPrefs((prev) => prev.allowed_from_domains.includes(normalized) ? prev : { ...prev, allowed_from_domains: [...prev.allowed_from_domains, normalized] });
+                      setNewAllowedDomain("");
+                    }}>Ekle</button>
+                  </div>
+                  <div className="em-chan-tags" style={{ marginTop: 8 }}>
+                    {channelPrefs.allowed_from_domains.map((domain) => (
+                      <span key={domain} className="em-chan-tag">
+                        {domain}
+                        <button type="button" onClick={() => setChannelPrefs((prev) => ({ ...prev, allowed_from_domains: prev.allowed_from_domains.filter((item) => item !== domain) }))}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="em-chan-card">
+                  <h4>6) Mailbox Fallback Politikası</h4>
+                  <select aria-label="Mailbox Fallback Politikası" className="em-input" style={{ marginTop: 8 }}
+                    value={channelPrefs.fallback_policy}
+                    onChange={(e) => setChannelPrefs((prev) => ({ ...prev, fallback_policy: e.target.value as ChannelEmailPreferences["fallback_policy"] }))}>
                     <option value="platform_default">Platform varsayılanına dön</option>
                     <option value="secondary_mailbox">İkinci mailbox kullan</option>
                     <option value="queue_only">Sadece kuyruğa al</option>
                   </select>
                   {channelPrefs.fallback_policy === "secondary_mailbox" && (
-                    <input aria-label="Yedek Mailbox E-posta Adresi" type="email" value={channelPrefs.secondary_fallback_email} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, secondary_fallback_email: e.target.value }))} placeholder="yedek-mailbox@ornek.com" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
+                    <input aria-label="Yedek Mailbox E-posta Adresi" type="email" className="em-input"
+                      style={{ marginTop: 8 }}
+                      value={channelPrefs.secondary_fallback_email}
+                      onChange={(e) => setChannelPrefs((prev) => ({ ...prev, secondary_fallback_email: e.target.value }))}
+                      placeholder="yedek-mailbox@ornek.com" />
                   )}
                 </div>
-              </div>
 
-              <div style={{ padding: 12, borderRadius: 10, border: "1px solid #dbeafe", background: "#f8fbff" }}>
-                <h4 style={{ margin: 0, color: "#1e3a8a" }}>7) Kanal Markalama Ayarları</h4>
-                <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  <input aria-label="Gönderici Adı Takma Adı" value={channelPrefs.sender_alias} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, sender_alias: e.target.value }))} placeholder="Gönderici adı" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <input aria-label="Marka Logosu URL" value={channelPrefs.branding_logo_url} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_logo_url: e.target.value }))} placeholder="Logo URL" style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 6 }} />
-                  <input aria-label="Birincil Marka Rengi" type="color" value={channelPrefs.branding_primary_color} onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_primary_color: e.target.value }))} style={{ width: "100%", height: 38, border: "1px solid #cbd5e1", borderRadius: 6, background: "#fff" }} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-            <button onClick={handleEmailSave} disabled={loading}>
-              {loading ? "Kaydediliyor..." : "Kaydet"}
-            </button>
-            <button onClick={handleEmailTest} disabled={loading}>
-              {loading ? "Gönderiliyor..." : "Test Gönder"}
-            </button>
-          </div>
-
-          <hr style={{ margin: "20px 0" }} />
-
-          <h4>Sistem Mail Hesapları</h4>
-          <div style={{ color: "#64748b", fontSize: 13, marginBottom: 8 }}>
-            Özel SMTP / POP3 / IMAP tanımı yoksa platformun oluşturduğu iş maili varsayılan kullanılır. Özel ayar tanımlandığında varsayılan kanal otomatik olarak bu profile geçer.
-          </div>
-          {!isSuperAdmin && (
-            <div style={{ marginBottom: 8, color: "#64748b", fontSize: 12 }}>
-              Bu panelde yalnızca size bağlı mailbox hesaplarını görür ve yönetirsiniz.
-            </div>
-          )}
-          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 8 }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" }}>Mail</th>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" }}>Şifre</th>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" }}>Açıklama</th>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" }}>İmza</th>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" }}>İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {systemEmails.map((email: SystemEmail) => (
-                <tr key={email.id}>
-                  <td style={{ padding: 8, borderBottom: "1px solid #f3f4f6" }}>{email.email}</td>
-                  <td style={{ padding: 8, borderBottom: "1px solid #f3f4f6" }}>
-                    {editingEmailId === email.id ? (
-                      <div style={{ display: "grid", gap: 4 }}>
-                        <input
-                          type="password"
-                          value={editingPassword}
-                          onChange={(e) => setEditingPassword(e.target.value)}
-                          placeholder="SMTP şifresi (boş bırakılırsa değişmez)"
-                          style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }}
-                        />
-                        <input
-                          type="password"
-                          value={editingImapPassword}
-                          onChange={(e) => setEditingImapPassword(e.target.value)}
-                          placeholder="IMAP şifresi / App Password (boş bırakılırsa değişmez)"
-                          style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }}
-                        />
-                      </div>
-                    ) : (
-                      "********"
-                    )}
-                  </td>
-                  <td style={{ padding: 8, borderBottom: "1px solid #f3f4f6", minWidth: 220 }}>
-                    {editingEmailId === email.id ? (
-                      <div style={{ display: "grid", gap: 6 }}>
-                        <input value={editingSignatureName} onChange={(e) => setEditingSignatureName(e.target.value)} placeholder="İmza adı" style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }} />
-                        <input value={editingSignatureTitle} onChange={(e) => setEditingSignatureTitle(e.target.value)} placeholder="İmza unvanı" style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }} />
-                        <textarea value={editingSignatureNote} onChange={(e) => setEditingSignatureNote(e.target.value)} placeholder="İmza notu" rows={2} style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4, resize: "vertical" }} />
-                      </div>
-                    ) : (
-                      <div style={{ color: "#475569", fontSize: 13 }}>
-                        <div>{email.signature_name || "-"}</div>
-                        <div>{email.signature_title || ""}</div>
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: 8, borderBottom: "1px solid #f3f4f6" }}>
-                    {editingEmailId === email.id ? (
-                      <input
-                        value={editingDescription}
-                        onChange={(e) => setEditingDescription(e.target.value)}
-                        style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }}
-                      />
-                    ) : (
-                      email.description ?? "—"
-                    )}
-                  </td>
-                  <td style={{ padding: 8, borderBottom: "1px solid #f3f4f6" }}>
-                    {editingEmailId === email.id ? (
-                      <>
-                        <button onClick={() => handleSystemEmailUpdate(email.id)} style={{ marginRight: 8 }}>
-                          Kaydet
-                        </button>
-                        <button onClick={() => setEditingEmailId(null)}>Vazgeç</button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={() => handleSystemEmailProvision(email.id)} style={{ marginRight: 8 }} disabled={loading || provisioningEmailId === email.id}>
-                          {provisioningEmailId === email.id ? "Aciliyor..." : "Hostingte Ac"}
-                        </button>
-                        <button onClick={() => handleSystemEmailEdit(email)} style={{ marginRight: 8 }}>
-                          Düzenle
-                        </button>
-                        <button onClick={() => handleSystemEmailDelete(email.id)}>Sil</button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-
-              <tr>
-                <td style={{ padding: 8 }}>
-                  <input
-                    type="email"
-                    value={newSystemEmail.email}
-                    onChange={(e) => setNewSystemEmail({ ...newSystemEmail, email: e.target.value })}
-                    placeholder="Yeni mail"
-                    style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }}
-                  />
-                </td>
-                <td style={{ padding: 8 }}>
-                  <input
-                    type="password"
-                    value={newSystemEmail.password}
-                    onChange={(e) => setNewSystemEmail({ ...newSystemEmail, password: e.target.value })}
-                    placeholder="Şifre (opsiyonel)"
-                    style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }}
-                  />
-                </td>
-                <td style={{ padding: 8 }}>
-                  <input
-                    value={newSystemEmail.description ?? ""}
-                    onChange={(e) => setNewSystemEmail({ ...newSystemEmail, description: e.target.value })}
-                    placeholder="Açıklama"
-                    style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }}
-                  />
-                </td>
-                <td style={{ padding: 8 }}>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    <input value={newSystemEmail.signature_name ?? ""} onChange={(e) => setNewSystemEmail({ ...newSystemEmail, signature_name: e.target.value })} placeholder="İmza adı" style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }} />
-                    <input value={newSystemEmail.signature_title ?? ""} onChange={(e) => setNewSystemEmail({ ...newSystemEmail, signature_title: e.target.value })} placeholder="İmza unvanı" style={{ width: "100%", padding: 6, border: "1px solid #ddd", borderRadius: 4 }} />
+                <div className="em-chan-card">
+                  <h4>7) Kanal Markalama</h4>
+                  <div className="em-row2" style={{ marginTop: 8 }}>
+                    <label className="em-field">
+                      <span className="em-field__label">Gönderici Alias</span>
+                      <input aria-label="Gönderici Adı Takma Adı" className="em-input" value={channelPrefs.sender_alias}
+                        onChange={(e) => setChannelPrefs((prev) => ({ ...prev, sender_alias: e.target.value }))} placeholder="Gönderici adı" />
+                    </label>
+                    <label className="em-field">
+                      <span className="em-field__label">Logo URL</span>
+                      <input aria-label="Marka Logosu URL" className="em-input" value={channelPrefs.branding_logo_url}
+                        onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_logo_url: e.target.value }))} placeholder="Logo URL" />
+                    </label>
+                    <label className="em-field em-field--half">
+                      <span className="em-field__label">Renk</span>
+                      <input aria-label="Birincil Marka Rengi" type="color" style={{ width: "100%", height: 36 }}
+                        value={channelPrefs.branding_primary_color}
+                        onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_primary_color: e.target.value }))} />
+                    </label>
                   </div>
-                </td>
-                <td style={{ padding: 8 }}>
-                  <button onClick={handleSystemEmailCreate} disabled={loading}>
-                    Ekle
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+
+              </div>
+            </section>
+          )}
+
+          <div className="em-savebar">
+            <span className="em-savebar__state">{loading ? "Kaydediliyor…" : "✓ Email ayarları"}</span>
+            <div className="em-savebar__btns">
+              <button type="button" className="em-btn--primary" onClick={handleEmailSave} disabled={loading}>
+                {loading ? "Kaydediliyor…" : "Kaydet"}
+              </button>
+            </div>
+          </div>
+
+          <hr className="em-hr" />
+
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">📬</span>
+              <div className="em-card__ttl">
+                <b>Sistem Mail Hesapları</b>
+                <span>Özel SMTP/POP3/IMAP hesabı yoksa platform varsayılanı kullanılır</span>
+              </div>
+            </header>
+            <div className="em-card__body">
+              {!isSuperAdmin && (
+                <div className="em-note em-note--blue">Bu panelde yalnızca size bağlı mailbox hesaplarını görür ve yönetirsiniz.</div>
+              )}
+              <div className="em-mb-list">
+                {systemEmails.map((email: SystemEmail) => (
+                  <div key={email.id} className="em-mb">
+                    <div className="em-mb__row">
+                      <div className="em-mb__main">
+                        <div className="em-mb__top">
+                          <span className="em-mb__email">{email.email}</span>
+                        </div>
+                        <div className="em-mb__desc">
+                          {[email.signature_name, email.signature_title, email.description].filter(Boolean).join(" · ") || "—"}
+                        </div>
+                      </div>
+                      <div className="em-mb__acts">
+                        {editingEmailId === email.id ? (
+                          <>
+                            <button type="button" className="em-mini" onClick={() => handleSystemEmailUpdate(email.id)}>Kaydet</button>
+                            <button type="button" className="em-mini" onClick={() => setEditingEmailId(null)}>Vazgeç</button>
+                          </>
+                        ) : (
+                          <>
+                            <button type="button" className="em-mini" onClick={() => handleSystemEmailProvision(email.id)} disabled={loading || provisioningEmailId === email.id}>
+                              {provisioningEmailId === email.id ? "Açılıyor…" : "Hostingde Aç"}
+                            </button>
+                            <button type="button" className="em-mini" onClick={() => handleSystemEmailEdit(email)}>Düzenle</button>
+                            <button type="button" className="em-mini em-mini--danger" onClick={() => handleSystemEmailDelete(email.id)}>Sil</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {editingEmailId === email.id && (
+                      <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+                        <input type="password" className="em-input em-input--mono" value={editingPassword}
+                          onChange={(e) => setEditingPassword(e.target.value)}
+                          placeholder="SMTP şifresi (boş bırakılırsa değişmez)" />
+                        <input type="password" className="em-input em-input--mono" value={editingImapPassword}
+                          onChange={(e) => setEditingImapPassword(e.target.value)}
+                          placeholder="IMAP şifresi / App Password (boş bırakılırsa değişmez)" />
+                        <div className="em-row2">
+                          <label className="em-field">
+                            <span className="em-field__label">İmza Adı</span>
+                            <input className="em-input" value={editingSignatureName}
+                              onChange={(e) => setEditingSignatureName(e.target.value)} placeholder="İmza adı" />
+                          </label>
+                          <label className="em-field">
+                            <span className="em-field__label">İmza Unvanı</span>
+                            <input className="em-input" value={editingSignatureTitle}
+                              onChange={(e) => setEditingSignatureTitle(e.target.value)} placeholder="İmza unvanı" />
+                          </label>
+                        </div>
+                        <textarea className="em-input em-input--ta" value={editingSignatureNote} rows={2}
+                          onChange={(e) => setEditingSignatureNote(e.target.value)} placeholder="İmza notu" />
+                        <input className="em-input" value={editingDescription}
+                          onChange={(e) => setEditingDescription(e.target.value)} placeholder="Açıklama" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+                <div className="em-row2">
+                  <label className="em-field">
+                    <span className="em-field__label">Yeni Mail</span>
+                    <input type="email" className="em-input" value={newSystemEmail.email}
+                      onChange={(e) => setNewSystemEmail({ ...newSystemEmail, email: e.target.value })}
+                      placeholder="yeni@ornek.com" />
+                  </label>
+                  <label className="em-field">
+                    <span className="em-field__label">�?ifre (opsiyonel)</span>
+                    <input type="password" className="em-input em-input--mono" value={newSystemEmail.password}
+                      onChange={(e) => setNewSystemEmail({ ...newSystemEmail, password: e.target.value })}
+                      placeholder="••••••••" />
+                  </label>
+                </div>
+                <div className="em-row2">
+                  <label className="em-field">
+                    <span className="em-field__label">İmza Adı</span>
+                    <input className="em-input" value={newSystemEmail.signature_name ?? ""}
+                      onChange={(e) => setNewSystemEmail({ ...newSystemEmail, signature_name: e.target.value })}
+                      placeholder="İmza adı" />
+                  </label>
+                  <label className="em-field">
+                    <span className="em-field__label">İmza Unvanı</span>
+                    <input className="em-input" value={newSystemEmail.signature_title ?? ""}
+                      onChange={(e) => setNewSystemEmail({ ...newSystemEmail, signature_title: e.target.value })}
+                      placeholder="İmza unvanı" />
+                  </label>
+                  <label className="em-field">
+                    <span className="em-field__label">Açıklama</span>
+                    <input className="em-input" value={newSystemEmail.description ?? ""}
+                      onChange={(e) => setNewSystemEmail({ ...newSystemEmail, description: e.target.value })}
+                      placeholder="Açıklama" />
+                  </label>
+                </div>
+                <button type="button" className="em-btn--primary" onClick={handleSystemEmailCreate} disabled={loading} style={{ alignSelf: "start" }}>
+                  {loading ? "Ekleniyor…" : "Ekle"}
+                </button>
+              </div>
+            </div>
+          </section>
           </>
-          ) : null}
+          )}
           </fieldset>
-        </div>
+        </>
       )}
 
       {canAccessSettingsSurface && activeTab === "logging" && (
-        <div
-          style={{
-            backgroundColor: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            border: "1px solid #e5e7eb",
-          }}
-        >
-          <h3>📊 Logging Ayarları</h3>
-          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
-          {loggingSettings && (
-            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
-              Logging ayarları yüklendi.
-            </div>
-          )}
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-            <div>
-              <label htmlFor="log_level" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Seviyesi</label>
-              <select
-                id="log_level"
-                value={String((loggingForm as Record<string, unknown>).log_level ?? "INFO")}
-                onChange={(e) => setLoggingForm({ ...loggingForm, log_level: e.target.value } as LoggingSettingsData)}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              >
-                <option value="DEBUG">DEBUG</option>
-                <option value="INFO">INFO</option>
-                <option value="WARNING">WARNING</option>
-                <option value="ERROR">ERROR</option>
-                <option value="CRITICAL">CRITICAL</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="log_format" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Formatı</label>
-              <input
-                id="log_format"
-                type="text"
-                value={String((loggingForm as Record<string, unknown>).log_format ?? "")}
-                onChange={(e) => setLoggingForm({ ...loggingForm, log_format: e.target.value } as LoggingSettingsData)}
-                placeholder="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="log_file" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Log Dosyası</label>
-              <input
-                id="log_file"
-                type="text"
-                value={String((loggingForm as Record<string, unknown>).log_file ?? "")}
-                onChange={(e) => setLoggingForm({ ...loggingForm, log_file: e.target.value } as LoggingSettingsData)}
-                placeholder="/var/log/app.log"
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="max_file_size_mb" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
-                Maksimum Dosya Boyutu (MB)
+        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">📊</span>
+              <div className="em-card__ttl">
+                <b>Logging Ayarları</b>
+                <span>Log seviyesi, format ve rotasyon</span>
+              </div>
+            </header>
+            <div className="em-card__body">
+              <div className="em-row2">
+                <label className="em-field">
+                  <span className="em-field__label">Log Seviyesi</span>
+                  <select id="log_level" className="em-input"
+                    value={String((loggingForm as Record<string, unknown>).log_level ?? "INFO")}
+                    onChange={(e) => setLoggingForm({ ...loggingForm, log_level: e.target.value } as LoggingSettingsData)}>
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">Log Formatı</span>
+                  <input id="log_format" className="em-input em-input--mono" type="text"
+                    value={String((loggingForm as Record<string, unknown>).log_format ?? "")}
+                    onChange={(e) => setLoggingForm({ ...loggingForm, log_format: e.target.value } as LoggingSettingsData)}
+                    placeholder="%(asctime)s - %(name)s - %(levelname)s - %(message)s" />
+                </label>
+              </div>
+              <label className="em-field">
+                <span className="em-field__label">Log Dosyası</span>
+                <input id="log_file" className="em-input em-input--mono" type="text"
+                  value={String((loggingForm as Record<string, unknown>).log_file ?? "")}
+                  onChange={(e) => setLoggingForm({ ...loggingForm, log_file: e.target.value } as LoggingSettingsData)}
+                  placeholder="/var/log/app.log" />
               </label>
-              <input
-                id="max_file_size_mb"
-                type="number"
-                value={Number((loggingForm as Record<string, unknown>).max_file_size_mb ?? 10)}
-                onChange={(e) =>
-                  setLoggingForm({
-                    ...loggingForm,
-                    max_file_size_mb: Number.isNaN(Number(e.target.value)) ? 10 : Number(e.target.value),
-                  } as LoggingSettingsData)
-                }
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="backup_count" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Dosya Rotasyon Sayısı</label>
-              <input
-                id="backup_count"
-                type="number"
-                value={Number((loggingForm as Record<string, unknown>).backup_count ?? 5)}
-                onChange={(e) =>
-                  setLoggingForm({
-                    ...loggingForm,
-                    backup_count: Number.isNaN(Number(e.target.value)) ? 5 : Number(e.target.value),
-                  } as LoggingSettingsData)
-                }
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-            <label>
-              <input
-                type="checkbox"
+              <div className="em-row2">
+                <label className="em-field">
+                  <span className="em-field__label">Maks. Dosya Boyutu (MB)</span>
+                  <input id="max_file_size_mb" className="em-input" type="number"
+                    value={Number((loggingForm as Record<string, unknown>).max_file_size_mb ?? 10)}
+                    onChange={(e) => setLoggingForm({ ...loggingForm, max_file_size_mb: Number.isNaN(Number(e.target.value)) ? 10 : Number(e.target.value) } as LoggingSettingsData)} />
+                </label>
+                <label className="em-field">
+                  <span className="em-field__label">Rotasyon Sayısı</span>
+                  <input id="backup_count" className="em-input" type="number"
+                    value={Number((loggingForm as Record<string, unknown>).backup_count ?? 5)}
+                    onChange={(e) => setLoggingForm({ ...loggingForm, backup_count: Number.isNaN(Number(e.target.value)) ? 5 : Number(e.target.value) } as LoggingSettingsData)} />
+                </label>
+              </div>
+              <EmToggle label="Console Logging"
                 checked={Boolean((loggingForm as Record<string, unknown>).enable_console_logging)}
-                onChange={(e) =>
-                  setLoggingForm({ ...loggingForm, enable_console_logging: e.target.checked } as LoggingSettingsData)
-                }
-              />
-              Console Logging Etkin
-            </label>
-
-            <label>
-              <input
-                type="checkbox"
+                onChange={(v) => setLoggingForm({ ...loggingForm, enable_console_logging: v } as LoggingSettingsData)} />
+              <EmToggle label="File Logging"
                 checked={Boolean((loggingForm as Record<string, unknown>).enable_file_logging)}
-                onChange={(e) =>
-                  setLoggingForm({ ...loggingForm, enable_file_logging: e.target.checked } as LoggingSettingsData)
-                }
-              />
-              File Logging Etkin
-            </label>
-
-            <label>
-              <input
-                type="checkbox"
+                onChange={(v) => setLoggingForm({ ...loggingForm, enable_file_logging: v } as LoggingSettingsData)} />
+              <EmToggle label="JSON Formatında Logla"
                 checked={Boolean((loggingForm as Record<string, unknown>).enable_json_logging)}
-                onChange={(e) =>
-                  setLoggingForm({ ...loggingForm, enable_json_logging: e.target.checked } as LoggingSettingsData)
-                }
-              />
-              JSON Formatında Logla
-            </label>
+                onChange={(v) => setLoggingForm({ ...loggingForm, enable_json_logging: v } as LoggingSettingsData)} />
+            </div>
+          </section>
+          <div className="em-savebar">
+            <span className="em-savebar__state">{loading ? "Kaydediliyor…" : "✓ Logging ayarları"}</span>
+            <div className="em-savebar__btns">
+              <button type="button" className="em-btn--primary" onClick={handleLoggingSave} disabled={loading}>
+                {loading ? "Kaydediliyor…" : "Kaydet"}
+              </button>
+            </div>
           </div>
-
-          <button
-            onClick={handleLoggingSave}
-            disabled={loading}
-            style={{
-              marginTop: 16,
-              padding: "8px 16px",
-              backgroundColor: "#3b82f6",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? "Kaydediliyor..." : "Kaydet"}
-          </button>
-          </fieldset>
-        </div>
+        </fieldset>
       )}
 
       {canAccessSettingsSurface && activeTab === "backup" && (
-        <div
-          style={{
-            backgroundColor: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            border: "1px solid #e5e7eb",
-          }}
-        >
-          <h3>💾 Yedekleme Ayarları</h3>
-          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
-          {backupSettings && (
-            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
-              Yedekleme ayarları yüklendi.
-            </div>
-          )}
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-            <div>
-              <label htmlFor="backup_frequency" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Sıklığı</label>
-              <select
-                id="backup_frequency"
-                value={String((backupForm as Record<string, unknown>).backup_frequency ?? "daily")}
-                onChange={(e) =>
-                  setBackupForm({ ...backupForm, backup_frequency: e.target.value } as BackupSettingsData)
-                }
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              >
-                <option value="hourly">Saatlik</option>
-                <option value="every_2_hours">2 Saatte Bir</option>
-                <option value="daily">Günlük</option>
-                <option value="weekly">Haftalık</option>
-                <option value="monthly">Aylık</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="backup_time" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Saati</label>
-              <input
-                id="backup_time"
-                type="time"
-                value={String((backupForm as Record<string, unknown>).backup_time ?? "02:00")}
-                onChange={(e) => setBackupForm({ ...backupForm, backup_time: e.target.value } as BackupSettingsData)}
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="backup_location" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Yedekleme Konumu</label>
-              <input
-                id="backup_location"
-                type="text"
-                value={String((backupForm as Record<string, unknown>).backup_location ?? "")}
-                onChange={(e) =>
-                  setBackupForm({ ...backupForm, backup_location: e.target.value } as BackupSettingsData)
-                }
-                placeholder="/backups"
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="keep_last_n_backups" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Son N Yedeklemeyi Sakla</label>
-              <input
-                id="keep_last_n_backups"
-                type="number"
-                value={Number((backupForm as Record<string, unknown>).keep_last_n_backups ?? 5)}
-                onChange={(e) =>
-                  setBackupForm({
-                    ...backupForm,
-                    keep_last_n_backups: Number.isNaN(Number(e.target.value)) ? 5 : Number(e.target.value),
-                  } as BackupSettingsData)
-                }
-                style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-            <label>
-              <input
-                type="checkbox"
+        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">💾</span>
+              <div className="em-card__ttl">
+                <b>Yedekleme Ayarları</b>
+                <span>Otomatik yedekleme, sıklık ve saklama politikası</span>
+              </div>
+            </header>
+            <div className="em-card__body">
+              <div className="em-row2">
+                <label className="em-field">
+                  <span className="em-field__label">Yedekleme Sıklığı</span>
+                  <select id="backup_frequency" className="em-input"
+                    value={String((backupForm as Record<string, unknown>).backup_frequency ?? "daily")}
+                    onChange={(e) => setBackupForm({ ...backupForm, backup_frequency: e.target.value } as BackupSettingsData)}>
+                    <option value="hourly">Saatlik</option>
+                    <option value="every_2_hours">2 Saatte Bir</option>
+                    <option value="daily">Günlük</option>
+                    <option value="weekly">Haftalık</option>
+                    <option value="monthly">Aylık</option>
+                  </select>
+                </label>
+                <label className="em-field em-field--half">
+                  <span className="em-field__label">Saat</span>
+                  <input id="backup_time" className="em-input" type="time"
+                    value={String((backupForm as Record<string, unknown>).backup_time ?? "02:00")}
+                    onChange={(e) => setBackupForm({ ...backupForm, backup_time: e.target.value } as BackupSettingsData)} />
+                </label>
+              </div>
+              <label className="em-field">
+                <span className="em-field__label">Yedekleme Konumu</span>
+                <input id="backup_location" className="em-input em-input--mono" type="text"
+                  value={String((backupForm as Record<string, unknown>).backup_location ?? "")}
+                  onChange={(e) => setBackupForm({ ...backupForm, backup_location: e.target.value } as BackupSettingsData)}
+                  placeholder="/backups" />
+              </label>
+              <label className="em-field">
+                <span className="em-field__label">Son N Yedeklemeyi Sakla</span>
+                <input id="keep_last_n_backups" className="em-input" type="number"
+                  value={Number((backupForm as Record<string, unknown>).keep_last_n_backups ?? 5)}
+                  onChange={(e) => setBackupForm({ ...backupForm, keep_last_n_backups: Number.isNaN(Number(e.target.value)) ? 5 : Number(e.target.value) } as BackupSettingsData)} />
+              </label>
+              <EmToggle label="Otomatik Yedekleme"
                 checked={Boolean((backupForm as Record<string, unknown>).enable_automatic_backup)}
-                onChange={(e) =>
-                  setBackupForm({ ...backupForm, enable_automatic_backup: e.target.checked } as BackupSettingsData)
-                }
-              />
-              Otomatik Yedeklemeyi Etkinleştir
-            </label>
-            <label>
-              <input
-                type="checkbox"
+                onChange={(v) => setBackupForm({ ...backupForm, enable_automatic_backup: v } as BackupSettingsData)} />
+              <EmToggle label="Yedeklemeleri Sıkıştır"
                 checked={Boolean((backupForm as Record<string, unknown>).compress_backups)}
-                onChange={(e) =>
-                  setBackupForm({ ...backupForm, compress_backups: e.target.checked } as BackupSettingsData)
-                }
-              />
-              Yedeklemeleri Sıkıştır
-            </label>
-            <label>
-              <input
-                type="checkbox"
+                onChange={(v) => setBackupForm({ ...backupForm, compress_backups: v } as BackupSettingsData)} />
+              <EmToggle label="Yedeklemeleri �?ifrele"
                 checked={Boolean((backupForm as Record<string, unknown>).encrypt_backups)}
-                onChange={(e) =>
-                  setBackupForm({ ...backupForm, encrypt_backups: e.target.checked } as BackupSettingsData)
-                }
-              />
-              Yedeklemeleri Şifrele
-            </label>
+                onChange={(v) => setBackupForm({ ...backupForm, encrypt_backups: v } as BackupSettingsData)} />
+            </div>
+          </section>
+          <div className="em-savebar">
+            <span className="em-savebar__state">{loading ? "Kaydediliyor…" : "✓ Yedekleme ayarları"}</span>
+            <div className="em-savebar__btns">
+              <button type="button" className="em-btn--ghost" onClick={handleBackupTrigger} disabled={loading}>
+                {loading ? "Başlatılıyor…" : "�?imdi Yedekle"}
+              </button>
+              <button type="button" className="em-btn--primary" onClick={handleBackupSave} disabled={loading}>
+                {loading ? "Kaydediliyor…" : "Kaydet"}
+              </button>
+            </div>
           </div>
-
-          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-            <button
-              onClick={handleBackupSave}
-              disabled={loading}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: 4,
-                cursor: "pointer",
-                opacity: loading ? 0.6 : 1,
-              }}
-            >
-              {loading ? "Kaydediliyor..." : "Kaydet"}
-            </button>
-            <button
-              onClick={handleBackupTrigger}
-              disabled={loading}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#10b981",
-                color: "white",
-                border: "none",
-                borderRadius: 4,
-                cursor: "pointer",
-                opacity: loading ? 0.6 : 1,
-              }}
-            >
-              {loading ? "Başlatılıyor..." : "Şimdi Yedekle"}
-            </button>
-          </div>
-          </fieldset>
-        </div>
+        </fieldset>
       )}
 
       {canAccessSettingsSurface && activeTab === "notifications" && (
-        <div
-          style={{
-            backgroundColor: "#fff",
-            padding: 20,
-            borderRadius: 8,
-            border: "1px solid #e5e7eb",
-          }}
-        >
-          <h3>🔔 Bildirim Ayarları</h3>
-          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
-          {notificationSettings && (
-            <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
-              Bildirim ayarları yüklendi.
-            </div>
-          )}
-
-          <div style={{ marginTop: 16 }}>
-            <h4>Teklif Bildirimleri</h4>
-            <label style={{ display: "block", marginBottom: 8 }}>
-              <input
-                type="checkbox"
+        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">🔔</span>
+              <div className="em-card__ttl">
+                <b>Teklif Bildirimleri</b>
+                <span>Teklif olaylarında bildirim gönder</span>
+              </div>
+            </header>
+            <div className="em-card__body">
+              <EmToggle label="Teklif Oluşturulduğunda Bildir"
                 checked={Boolean((notificationForm as Record<string, unknown>).notify_on_quote_created)}
-                onChange={(e) =>
-                  setNotificationForm({
-                    ...notificationForm,
-                    notify_on_quote_created: e.target.checked,
-                  } as NotificationSettingsData)
-                }
-              />
-              Teklif Oluşturulduğunda Bildir
-            </label>
-            <label style={{ display: "block", marginBottom: 8 }}>
-              <input
-                type="checkbox"
+                onChange={(v) => setNotificationForm({ ...notificationForm, notify_on_quote_created: v } as NotificationSettingsData)} />
+              <EmToggle label="Teklif Yanıtı Alındığında Bildir"
                 checked={Boolean((notificationForm as Record<string, unknown>).notify_on_quote_response)}
-                onChange={(e) =>
-                  setNotificationForm({
-                    ...notificationForm,
-                    notify_on_quote_response: e.target.checked,
-                  } as NotificationSettingsData)
-                }
-              />
-              Teklif Yanıtı Alındığında Bildir
-            </label>
-            <label style={{ display: "block", marginBottom: 8 }}>
-              <input
-                type="checkbox"
+                onChange={(v) => setNotificationForm({ ...notificationForm, notify_on_quote_response: v } as NotificationSettingsData)} />
+              <EmToggle label="Teklif Onaylandığında Bildir"
                 checked={Boolean((notificationForm as Record<string, unknown>).notify_on_quote_approved)}
-                onChange={(e) =>
-                  setNotificationForm({
-                    ...notificationForm,
-                    notify_on_quote_approved: e.target.checked,
-                  } as NotificationSettingsData)
-                }
-              />
-              Teklif Onaylandığında Bildir
-            </label>
-          </div>
-
-          <div style={{ marginTop: 16 }}>
-            <h4>Sistem Bildirimleri</h4>
-            <label style={{ display: "block", marginBottom: 8 }}>
-              <input
-                type="checkbox"
+                onChange={(v) => setNotificationForm({ ...notificationForm, notify_on_quote_approved: v } as NotificationSettingsData)} />
+            </div>
+          </section>
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">⚙️</span>
+              <div className="em-card__ttl">
+                <b>Sistem Bildirimleri</b>
+                <span>Sistem hataları ve günlük özet</span>
+              </div>
+            </header>
+            <div className="em-card__body">
+              <EmToggle label="Sistem Hataları Hakkında Bildir"
                 checked={Boolean((notificationForm as Record<string, unknown>).notify_on_system_errors)}
-                onChange={(e) =>
-                  setNotificationForm({
-                    ...notificationForm,
-                    notify_on_system_errors: e.target.checked,
-                  } as NotificationSettingsData)
-                }
-              />
-              Sistem Hataları Hakkında Bildir
-            </label>
-            <label style={{ display: "block", marginBottom: 8 }}>
-              <input
-                type="checkbox"
+                onChange={(v) => setNotificationForm({ ...notificationForm, notify_on_system_errors: v } as NotificationSettingsData)} />
+              <EmToggle label="Günlük Özet Etkinleştir"
                 checked={Boolean((notificationForm as Record<string, unknown>).enable_daily_digest)}
-                onChange={(e) =>
-                  setNotificationForm({
-                    ...notificationForm,
-                    enable_daily_digest: e.target.checked,
-                  } as NotificationSettingsData)
-                }
-              />
-              Günlük Özet Etkinleştir
-            </label>
-          </div>
-
-          <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-            <div>
-              <label htmlFor="digest_time" style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>Özet Saati</label>
-              <input
-                id="digest_time"
-                type="time"
-                value={String((notificationForm as Record<string, unknown>).digest_time ?? "09:00")}
-                onChange={(e) =>
-                  setNotificationForm({ ...notificationForm, digest_time: e.target.value } as NotificationSettingsData)
-                }
-                style={{ padding: 8, border: "1px solid #ddd", borderRadius: 4 }}
-              />
+                onChange={(v) => setNotificationForm({ ...notificationForm, enable_daily_digest: v } as NotificationSettingsData)} />
+              <label className="em-field" style={{ marginTop: 4 }}>
+                <span className="em-field__label">Özet Saati</span>
+                <input id="digest_time" className="em-input" type="time" style={{ width: "auto" }}
+                  value={String((notificationForm as Record<string, unknown>).digest_time ?? "09:00")}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, digest_time: e.target.value } as NotificationSettingsData)} />
+              </label>
+            </div>
+          </section>
+          <div className="em-savebar">
+            <span className="em-savebar__state">{loading ? "Kaydediliyor…" : "✓ Bildirim ayarları"}</span>
+            <div className="em-savebar__btns">
+              <button type="button" className="em-btn--primary" onClick={handleNotificationSave} disabled={loading}>
+                {loading ? "Kaydediliyor…" : "Kaydet"}
+              </button>
             </div>
           </div>
-
-          <button
-            onClick={handleNotificationSave}
-            disabled={loading}
-            style={{
-              marginTop: 16,
-              padding: "8px 16px",
-              backgroundColor: "#3b82f6",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? "Kaydediliyor..." : "Kaydet"}
-          </button>
-          </fieldset>
-        </div>
+        </fieldset>
       )}
 
       {canManageApiKeys && activeTab === "api-keys" && (
-        <div style={{ backgroundColor: "#fff", padding: 20, borderRadius: 8, border: "1px solid #e5e7eb" }}>
-          <h3>🔑 API Anahtarları</h3>
-          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-            <input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} placeholder="Anahtar adı" />
-            <button onClick={handleCreateAPIKey} disabled={loading}>
-              {loading ? "Oluşturuluyor..." : "Yeni Anahtar"}
-            </button>
-          </div>
-
-          {apiKeys.length === 0 ? (
-            <p>Henüz API anahtarı yok</p>
-          ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>Ad</th>
-                  <th style={{ textAlign: "left" }}>Anahtar</th>
-                  <th style={{ textAlign: "left" }}>Durum</th>
-                  <th style={{ textAlign: "left" }}>İşlem</th>
-                </tr>
-              </thead>
-              <tbody>
-                {apiKeys.map((key: APIKeyData) => (
-                  <tr key={key.id}>
-                    <td>{key.name}</td>
-                    <td>{key.key}</td>
-                    <td>{key.is_active ? "Aktif" : "Pasif"}</td>
-                    <td>
-                      <button onClick={() => handleRevokeAPIKey(key.id)} disabled={loading}>
-                        İptal Et
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          </fieldset>
-        </div>
+        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+          <section className="em-card">
+            <header className="em-card__head">
+              <span className="em-card__ico">🔑</span>
+              <div className="em-card__ttl">
+                <b>API Anahtarları</b>
+                <span>Harici entegrasyon için erişim anahtarları</span>
+              </div>
+            </header>
+            <div className="em-card__body">
+              <div className="em-row2">
+                <label className="em-field">
+                  <span className="em-field__label">Anahtar Adı</span>
+                  <input className="em-input" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} placeholder="Anahtar adı" />
+                </label>
+                <button type="button" className="em-btn--primary" onClick={handleCreateAPIKey} disabled={loading} style={{ alignSelf: "end" }}>
+                  {loading ? "Oluşturuluyor…" : "Yeni Anahtar"}
+                </button>
+              </div>
+              {apiKeys.length === 0 ? (
+                <p className="em-muted">Henüz API anahtarı yok.</p>
+              ) : (
+                <table className="em-table">
+                  <thead>
+                    <tr>
+                      <th>Ad</th>
+                      <th>Anahtar</th>
+                      <th>Durum</th>
+                      <th>İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apiKeys.map((key: APIKeyData) => (
+                      <tr key={key.id}>
+                        <td>{key.name}</td>
+                        <td><code>{key.key}</code></td>
+                        <td>{key.is_active ? "Aktif" : "Pasif"}</td>
+                        <td>
+                          <button type="button" className="em-mini em-mini--danger" onClick={() => handleRevokeAPIKey(key.id)} disabled={loading}>
+                            İptal Et
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
+        </fieldset>
       )}
     </div>
   );

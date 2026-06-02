@@ -1,18 +1,14 @@
 /**
- * SupportTicketAdminTab — Platform personelinin tüm destek taleplerini yönettiği admin sekmesi.
- * Özellikler:
- *   - Durum / kategori / öncelik filtresi
- *   - Satır bazlı hızlı güncelleme (durum, atama, çözüm notu)
- *   - SLA aşım uyarısı
+ * SupportTicketAdminTab — İki bölmeli destek talebi yönetim paneli.
+ * Sol: filtrelenebilir liste (master) · Sağ: seçili talep detayı + güncelleme
  */
-import { useCallback, useEffect, useState } from "react";
-import { PageHeader, StatCard } from "../../pages/admin/AdminTabContent";
+import { useEffect, useState } from "react";
+import { PageHeader, Section, StatCard } from "../../pages/admin/AdminTabContent";
 import {
   adminListSupportTickets,
   adminUpdateSupportTicket,
   getPersonnel,
   type SupportTicket,
-  type TicketAdminUpdatePayload,
 } from "../../services/admin.service";
 import "./SupportTicketAdminTab.css";
 
@@ -22,6 +18,14 @@ const STATUS_LABELS: Record<string, string> = {
   waiting_response: "Yanıt Bekleniyor",
   resolved: "Çözüldü",
   closed: "Kapatıldı",
+};
+
+const STATUS_CLS: Record<string, string> = {
+  open: "wait",
+  in_progress: "info",
+  waiting_response: "warn",
+  resolved: "ok",
+  closed: "off",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -39,231 +43,58 @@ const CATEGORY_LABELS: Record<string, string> = {
   account: "Hesap & Yetki",
 };
 
-const ALL_STATUSES = Object.keys(STATUS_LABELS);
-const ALL_PRIORITIES = Object.keys(PRIORITY_LABELS);
-const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+const SOURCE_LABELS: Record<string, string> = {
+  tenant_portal: "Tenant Portalı",
+  panel: "Panel",
+  email: "E-posta",
+  phone: "Telefon",
+};
 
-function isSlaBreached(ticket: SupportTicket): boolean {
-  if (!ticket.sla_due_at) return false;
-  return new Date(ticket.sla_due_at) < new Date() && !["resolved", "closed"].includes(ticket.status);
+const TENANT_COLORS = [
+  "#1d4ed8", "#be123c", "#7c3aed", "#047857",
+  "#b45309", "#0891b2", "#c2410c", "#0f766e",
+];
+
+const STATUS_SEGS: [string, string][] = [
+  ["all", "Tümü"],
+  ["open", "Açık"],
+  ["in_progress", "İşlemde"],
+  ["waiting_response", "Bekliyor"],
+  ["resolved", "Çözüldü"],
+  ["closed", "Kapandı"],
+];
+
+function tColor(ticket: SupportTicket): string {
+  return TENANT_COLORS[ticket.tenant_id % TENANT_COLORS.length];
 }
 
-function formatDate(iso: string | null | undefined): string {
+function slaText(ticket: SupportTicket): string {
+  if (!ticket.sla_due_at) return "—";
+  if (["resolved", "closed"].includes(ticket.status)) return "tamam";
+  const diff = new Date(ticket.sla_due_at).getTime() - Date.now();
+  if (diff < 0) return "gecikti";
+  const h = Math.round(diff / 3_600_000);
+  if (h < 24) return `${h} sa kaldı`;
+  return `${Math.round(diff / 86_400_000)} gün kaldı`;
+}
+
+function slaCls(ticket: SupportTicket): string {
+  const t = slaText(ticket);
+  if (t === "gecikti") return "red";
+  if (t.includes("kaldı")) return "amber";
+  return "slate";
+}
+
+function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("tr-TR", { dateStyle: "short", timeStyle: "short" });
 }
 
-interface InlineUpdateFormProps {
-  ticket: SupportTicket;
-  platformUserOptions: { id: number; full_name: string }[];
-  onSaved: (updated: SupportTicket) => void;
-  onCancel: () => void;
-}
-
-function InlineUpdateForm({ ticket, platformUserOptions, onSaved, onCancel }: InlineUpdateFormProps) {
-  const [status, setStatus] = useState(ticket.status);
-  const [priority, setPriority] = useState(ticket.priority);
-  const [assignedTo, setAssignedTo] = useState<number | "">(ticket.assigned_to_user_id ?? "");
-  const [resolutionNote, setResolutionNote] = useState(ticket.resolution_note ?? "");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSave() {
-    setSaving(true);
-    setError(null);
-    const payload: TicketAdminUpdatePayload = {};
-    if (status !== ticket.status) payload.status = status;
-    if (priority !== ticket.priority) payload.priority = priority;
-    if (assignedTo !== (ticket.assigned_to_user_id ?? "")) {
-      payload.assigned_to_user_id = assignedTo === "" ? null : assignedTo;
-    }
-    if (resolutionNote !== (ticket.resolution_note ?? "")) payload.resolution_note = resolutionNote;
-
-    try {
-      const updated = await adminUpdateSupportTicket(ticket.id, payload);
-      onSaved(updated);
-    } catch {
-      setError("Kayıt başarısız. Lütfen tekrar deneyin.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
+function isBreached(ticket: SupportTicket): boolean {
+  if (!ticket.sla_due_at) return false;
   return (
-    <div className="support-ticket-admin-tab__inline-form">
-      <label className="support-ticket-admin-tab__inline-form-label">
-        <span className="support-ticket-admin-tab__inline-form-label-text">Durum</span>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          title="Destek talebi durum seçimi"
-          aria-label="Destek talebi durum seçimi"
-          className="support-ticket-admin-tab__inline-form-select"
-        >
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {STATUS_LABELS[s]}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="support-ticket-admin-tab__inline-form-label">
-        <span className="support-ticket-admin-tab__inline-form-label-text">Öncelik</span>
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          title="Destek talebi öncelik seçimi"
-          aria-label="Destek talebi öncelik seçimi"
-          className="support-ticket-admin-tab__inline-form-select"
-        >
-          {ALL_PRIORITIES.map((p) => (
-            <option key={p} value={p}>
-              {PRIORITY_LABELS[p]}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="support-ticket-admin-tab__inline-form-label support-ticket-admin-tab__inline-form-label--full">
-        <span className="support-ticket-admin-tab__inline-form-label-text">Atanan Kişi</span>
-        <select
-          value={assignedTo}
-          onChange={(e) => setAssignedTo(e.target.value === "" ? "" : Number(e.target.value))}
-          title="Destek talebi atanan kişi seçimi"
-          aria-label="Destek talebi atanan kişi seçimi"
-          className="support-ticket-admin-tab__inline-form-select"
-        >
-          <option value="">— Atanmamış —</option>
-          {platformUserOptions.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.full_name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="support-ticket-admin-tab__inline-form-label support-ticket-admin-tab__inline-form-label--full">
-        <span className="support-ticket-admin-tab__inline-form-label-text">Çözüm Notu</span>
-        <textarea
-          value={resolutionNote}
-          onChange={(e) => setResolutionNote(e.target.value)}
-          rows={2}
-          placeholder="Müşteriye görünecek çözüm notu..."
-          className="support-ticket-admin-tab__inline-form-textarea"
-        />
-      </label>
-
-      {error && (
-        <div className="support-ticket-admin-tab__inline-form-error">{error}</div>
-      )}
-
-      <div className="support-ticket-admin-tab__inline-form-actions">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={saving}
-          className="support-ticket-admin-tab__button support-ticket-admin-tab__button--secondary"
-        >
-          İptal
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          disabled={saving}
-          className="support-ticket-admin-tab__button support-ticket-admin-tab__button--primary"
-        >
-          {saving ? "Kaydediliyor..." : "Kaydet"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-interface TicketRowProps {
-  ticket: SupportTicket;
-  isExpanded: boolean;
-  platformUserOptions: { id: number; full_name: string }[];
-  onToggle: () => void;
-  onUpdated: (updated: SupportTicket) => void;
-}
-
-function TicketRow({ ticket, isExpanded, platformUserOptions, onToggle, onUpdated }: TicketRowProps) {
-  const breached = isSlaBreached(ticket);
-
-  return (
-    <div
-      className={`support-ticket-admin-tab__ticket-row ${
-        breached ? "support-ticket-admin-tab__ticket-row--breached" : ""
-      }`}
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        className="support-ticket-admin-tab__ticket-header"
-      >
-        <div>
-          <div className="support-ticket-admin-tab__ticket-main-title">
-            #{ticket.id} — {ticket.subject}
-          </div>
-          <div className="support-ticket-admin-tab__ticket-main-meta">
-            {ticket.tenant_name ?? "—"} · {ticket.created_by_name ?? "—"} · {formatDate(ticket.created_at)}
-          </div>
-        </div>
-
-        <span className="support-ticket-admin-tab__ticket-category">
-          {CATEGORY_LABELS[ticket.category] ?? ticket.category}
-        </span>
-
-        <span
-          className={`support-ticket-admin-tab__ticket-priority support-ticket-admin-tab__ticket-priority--${ticket.priority}`}
-        >
-          {PRIORITY_LABELS[ticket.priority] ?? ticket.priority}
-        </span>
-
-        <span
-          className={`support-ticket-admin-tab__ticket-status support-ticket-admin-tab__ticket-status--${ticket.status}`}
-        >
-          {STATUS_LABELS[ticket.status] ?? ticket.status}
-        </span>
-
-        <span
-          className={`support-ticket-admin-tab__ticket-sla ${
-            breached
-              ? "support-ticket-admin-tab__ticket-sla--breached"
-              : "support-ticket-admin-tab__ticket-sla--ok"
-          }`}
-        >
-          {breached ? "⚠ SLA" : "SLA: " + formatDate(ticket.sla_due_at)}
-        </span>
-      </button>
-
-      {isExpanded && (
-        <div className="support-ticket-admin-tab__ticket-details">
-          {ticket.description && (
-            <div className="support-ticket-admin-tab__ticket-description">
-              {ticket.description}
-            </div>
-          )}
-          {ticket.resolution_note && (
-            <div className="support-ticket-admin-tab__ticket-resolution">
-              <strong>Çözüm Notu:</strong> {ticket.resolution_note}
-            </div>
-          )}
-          <div className="support-ticket-admin-tab__ticket-assignee">
-            Atanan: <strong>{ticket.assigned_to_name ?? "Atanmamış"}</strong> · Kaynak: {ticket.source} · Güncellenme: {formatDate(ticket.updated_at)}
-          </div>
-          <InlineUpdateForm
-            ticket={ticket}
-            platformUserOptions={platformUserOptions}
-            onSaved={(updated) => {
-              onUpdated(updated);
-            }}
-            onCancel={onToggle}
-          />
-        </div>
-      )}
-    </div>
+    new Date(ticket.sla_due_at) < new Date() &&
+    !["resolved", "closed"].includes(ticket.status)
   );
 }
 
@@ -271,34 +102,24 @@ export function SupportTicketAdminTab() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("");
-
+  const [selId, setSelId] = useState<number | null>(null);
+  const [flt, setFlt] = useState("all");
+  const [q, setQ] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
   const [platformUsers, setPlatformUsers] = useState<{ id: number; full_name: string }[]>([]);
 
-  const loadTickets = useCallback(async () => {
+  useEffect(() => {
     setLoading(true);
     setError(null);
-    try {
-      const params: Record<string, string | number> = {};
-      if (statusFilter) params.status = statusFilter;
-      if (categoryFilter) params.category = categoryFilter;
-      if (priorityFilter) params.priority = priorityFilter;
-      const data = await adminListSupportTickets(params);
-      setTickets(data);
-    } catch {
-      setError("Destek talepleri yüklenemedi.");
-    } finally {
-      setLoading(false);
-    }
-  }, [statusFilter, categoryFilter, priorityFilter]);
-
-  useEffect(() => {
-    void loadTickets();
-  }, [loadTickets]);
+    adminListSupportTickets()
+      .then((data) => {
+        setTickets(data);
+        if (data.length > 0) setSelId(data[0].id);
+      })
+      .catch(() => setError("Destek talepleri yüklenemedi."))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     getPersonnel({ scope: "portal" })
@@ -309,19 +130,48 @@ export function SupportTicketAdminTab() {
             .map((u) => ({ id: u.id, full_name: u.full_name })),
         ),
       )
-      .catch(() => {
-        /* sessiz hata */
-      });
+      .catch(() => undefined);
   }, []);
 
-  function handleUpdated(updated: SupportTicket) {
+  const ql = q.trim().toLowerCase();
+  const list = tickets.filter((t) => {
+    if (flt !== "all" && t.status !== flt) return false;
+    if (ql && !`${t.subject} ${t.tenant_name ?? ""} #${t.id}`.toLowerCase().includes(ql)) return false;
+    return true;
+  });
+
+  const sel = tickets.find((t) => t.id === selId) ?? list[0] ?? null;
+
+  function patchTicket(updated: SupportTicket) {
     setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-    setExpandedId(null);
+  }
+
+  async function applyStatus(id: number, status: string) {
+    setSaving(true);
+    try {
+      const payload: { status: string; resolution_note?: string } = { status };
+      if (status === "resolved" && note.trim()) payload.resolution_note = note.trim();
+      const updated = await adminUpdateSupportTicket(id, payload);
+      patchTicket(updated);
+      if (status === "resolved") setNote("");
+    } catch { /* sessiz */ }
+    finally { setSaving(false); }
+  }
+
+  async function applyAssignee(id: number, userId: string) {
+    setSaving(true);
+    try {
+      const updated = await adminUpdateSupportTicket(id, {
+        assigned_to_user_id: userId === "" ? null : Number(userId),
+      });
+      patchTicket(updated);
+    } catch { /* sessiz */ }
+    finally { setSaving(false); }
   }
 
   const openCount = tickets.filter((t) => t.status === "open").length;
-  const inProgressCount = tickets.filter((t) => t.status === "in_progress").length;
-  const breachedCount = tickets.filter(isSlaBreached).length;
+  const inProcCount = tickets.filter((t) => t.status === "in_progress").length;
+  const breachedCount = tickets.filter(isBreached).length;
   const urgentCount = tickets.filter(
     (t) => t.priority === "urgent" && !["resolved", "closed"].includes(t.status),
   ).length;
@@ -329,142 +179,245 @@ export function SupportTicketAdminTab() {
   return (
     <div className="support-ticket-admin-tab">
       <PageHeader
-        eyebrow="Sistem"
+        eyebrow="Sistem · Destek"
         title="Destek Talepleri"
-        sub="Tenant kullanıcılarının platform personeline ilettiği destek talepleri"
+        sub="Stratejik partner destek talepleri — kategori, öncelik, SLA, atama ve çözüm yönetimi."
       />
+
       <div className="kpi-grid kpi-grid--4">
-        <StatCard label="Açık" value={openCount} accent="blue" sub="Yanıt bekleyen talepler" />
-        <StatCard label="İşlemde" value={inProgressCount} accent="warn" sub="Aktif müdahale" />
-        <StatCard label="SLA Aşımı" value={breachedCount} accent="red" sub="Süre aşıldı" />
-        <StatCard label="Acil" value={urgentCount} accent="violet" sub="Yüksek öncelikli" />
+        <StatCard label="Açık talep" value={openCount} accent="warn" />
+        <StatCard label="İşlemde" value={inProcCount} sub="aktif müdahale" accent="blue" />
+        <StatCard label="SLA riski" value={breachedCount} sub="geciken/yaklaşan" accent="violet" />
+        <StatCard label="Acil" value={urgentCount} accent="red" />
       </div>
 
-      <div className="support-ticket-admin-tab__summary-row">
-        {[
-          {
-            label: "Açık",
-            value: openCount,
-            colorClass: "support-ticket-admin-tab__summary-value--open",
-          },
-          {
-            label: "İşlemde",
-            value: inProgressCount,
-            colorClass: "support-ticket-admin-tab__summary-value--in-progress",
-          },
-          {
-            label: "Acil",
-            value: urgentCount,
-            colorClass: "support-ticket-admin-tab__summary-value--urgent",
-          },
-          {
-            label: "SLA Aşımı",
-            value: breachedCount,
-            colorClass: "support-ticket-admin-tab__summary-value--breached",
-          },
-          {
-            label: "Toplam",
-            value: tickets.length,
-            colorClass: "support-ticket-admin-tab__summary-value--total",
-          },
-        ].map((m) => (
-          <div key={m.label} className="support-ticket-admin-tab__summary-card">
-            <div className={`support-ticket-admin-tab__summary-value ${m.colorClass}`}>{m.value}</div>
-            <div className="support-ticket-admin-tab__summary-label">{m.label}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="support-ticket-admin-tab__filters">
-        <label>
-          <span className="support-ticket-admin-tab__summary-label">Durum</span>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            title="Destek talebi durum filtresi"
-            aria-label="Destek talebi durum filtresi"
-            className="support-ticket-admin-tab__filter-select"
-          >
-            <option value="">Tüm Durumlar</option>
-            {ALL_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABELS[s]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          <span className="support-ticket-admin-tab__summary-label">Kategori</span>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            title="Destek talebi kategori filtresi"
-            aria-label="Destek talebi kategori filtresi"
-            className="support-ticket-admin-tab__filter-select"
-          >
-            <option value="">Tüm Kategoriler</option>
-            {ALL_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABELS[c]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          <span className="support-ticket-admin-tab__summary-label">Öncelik</span>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            title="Destek talebi öncelik filtresi"
-            aria-label="Destek talebi öncelik filtresi"
-            className="support-ticket-admin-tab__filter-select"
-          >
-            <option value="">Tüm Öncelikler</option>
-            {ALL_PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {PRIORITY_LABELS[p]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button
-          type="button"
-          onClick={() => void loadTickets()}
-          className="support-ticket-admin-tab__refresh-button"
-        >
-          ↻ Yenile
-        </button>
-
-        <span className="support-ticket-admin-tab__record-count">{tickets.length} kayıt</span>
-      </div>
-
-      {error && <div className="support-ticket-admin-tab__error">{error}</div>}
-
-      {loading && <div className="support-ticket-admin-tab__loading">Yükleniyor...</div>}
-
-      {!loading && tickets.length === 0 && !error && (
-        <div className="support-ticket-admin-tab__empty-state">
-          Bu filtreyle eşleşen destek talebi bulunamadı.
+      <div className="spt-toolbar">
+        <div className="spt-search">
+          <span className="spt-search__icon">⌕</span>
+          <input
+            className="spt-search__input"
+            placeholder="Konu, partner veya #ID ara…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
-      )}
-
-      {!loading && (
-        <div className="support-ticket-admin-tab__ticket-list">
-          {tickets.map((ticket) => (
-            <TicketRow
-              key={ticket.id}
-              ticket={ticket}
-              isExpanded={expandedId === ticket.id}
-              platformUserOptions={platformUsers}
-              onToggle={() => setExpandedId(expandedId === ticket.id ? null : ticket.id)}
-              onUpdated={handleUpdated}
-            />
+        <div className="spt-segs">
+          {STATUS_SEGS.map(([v, l]) => (
+            <button
+              key={v}
+              type="button"
+              className={"spt-seg__btn" + (flt === v ? " on" : "")}
+              onClick={() => setFlt(v)}
+            >
+              {l}
+            </button>
           ))}
         </div>
-      )}
+      </div>
+
+      {error && <div className="spt-error">{error}</div>}
+
+      <div className="spt-split">
+        {/* ── List pane ── */}
+        <aside className="spt-pool">
+          <div className="spt-pool__hd">
+            Talepler <span>{list.length}</span>
+          </div>
+          <div className="spt-pool__list">
+            {loading ? (
+              <div className="spt-state">Yükleniyor…</div>
+            ) : list.length === 0 ? (
+              <div className="spt-state">Bu filtreyle talep bulunamadı.</div>
+            ) : (
+              list.map((t) => {
+                const color = tColor(t);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={"spt-row" + (t.id === sel?.id ? " on" : "")}
+                    onClick={() => { setSelId(t.id); setNote(""); }}
+                  >
+                    <span className="spt-row__bar" style={{ background: color }} />
+                    <span
+                      className={"spt-prio spt-prio--" + t.priority}
+                      title={PRIORITY_LABELS[t.priority] ?? t.priority}
+                    />
+                    <span className="spt-row__meta">
+                      <b>
+                        {t.subject}{" "}
+                        <span className={"spt-badge spt-badge--" + (STATUS_CLS[t.status] ?? "off")}>
+                          {STATUS_LABELS[t.status] ?? t.status}
+                        </span>
+                      </b>
+                      <span>
+                        <span
+                          className="spt-tpill"
+                          style={{ background: color + "1f", color }}
+                        >
+                          {t.tenant_name ?? "—"}
+                        </span>
+                        {" "}#{t.id} · {CATEGORY_LABELS[t.category] ?? t.category}
+                      </span>
+                    </span>
+                    <span className={"spt-sla spt-sla--" + slaCls(t)}>{slaText(t)}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </aside>
+
+        {/* ── Detail pane ── */}
+        <div className="spt-detail">
+          {!sel ? (
+            <div className="spt-state spt-state--pad">Listeden bir talep seçin.</div>
+          ) : (
+            <>
+              <div className="spt-detail__hd">
+                <h3 className="spt-detail__title">
+                  {sel.subject}{" "}
+                  <span className={"spt-badge spt-badge--" + (STATUS_CLS[sel.status] ?? "off")}>
+                    {STATUS_LABELS[sel.status] ?? sel.status}
+                  </span>{" "}
+                  <span className={"spt-prio-lbl spt-prio-lbl--" + sel.priority}>
+                    {PRIORITY_LABELS[sel.priority] ?? sel.priority} öncelik
+                  </span>
+                </h3>
+                <div className="spt-detail__meta">
+                  <span
+                    className="spt-tpill spt-tpill--lg"
+                    style={{ background: tColor(sel) + "1f", color: tColor(sel) }}
+                  >
+                    {sel.tenant_name ?? "—"}
+                  </span>
+                  <span className="spt-sep">·</span>
+                  <span>Açan: <b>{sel.created_by_name ?? "—"}</b></span>
+                  <span className="spt-sep">·</span>
+                  <span>{fmtDate(sel.created_at)}</span>
+                  <span className="spt-sep">·</span>
+                  <code className="spt-code">#{sel.id}</code>
+                </div>
+              </div>
+
+              <div className="split-1-1">
+                <Section
+                  title="Talep detayı"
+                  sub={(CATEGORY_LABELS[sel.category] ?? sel.category) + " · " + (SOURCE_LABELS[sel.source] ?? sel.source)}
+                >
+                  {sel.description && (
+                    <p className="spt-desc">{sel.description}</p>
+                  )}
+                  <div className="spt-facts">
+                    <div className="spt-fact">
+                      <span>Kategori</span>
+                      <b>{CATEGORY_LABELS[sel.category] ?? sel.category}</b>
+                    </div>
+                    <div className="spt-fact">
+                      <span>Kaynak</span>
+                      <b>{SOURCE_LABELS[sel.source] ?? sel.source}</b>
+                    </div>
+                    <div className="spt-fact">
+                      <span>SLA</span>
+                      <b className={"spt-sla spt-sla--" + slaCls(sel)}>{slaText(sel)}</b>
+                    </div>
+                    <div className="spt-fact">
+                      <span>Oluşturma</span>
+                      <b>{fmtDate(sel.created_at)}</b>
+                    </div>
+                    <div className="spt-fact">
+                      <span>Güncelleme</span>
+                      <b>{fmtDate(sel.updated_at)}</b>
+                    </div>
+                    <div className="spt-fact">
+                      <span>Partner görünürlüğü</span>
+                      <b>{sel.is_visible_to_tenant ? "Görünür" : "Gizli"}</b>
+                    </div>
+                  </div>
+                </Section>
+
+                <Section title="Atama & Durum" sub="destek ekibi">
+                  <label className="spt-field">
+                    <span className="spt-field__lbl">Atanan temsilci</span>
+                    <select
+                      className="spt-input"
+                      value={sel.assigned_to_user_id ?? ""}
+                      onChange={(e) => { void applyAssignee(sel.id, e.target.value); }}
+                      disabled={saving}
+                    >
+                      <option value="">— Atanmamış —</option>
+                      {platformUsers.map((u) => (
+                        <option key={u.id} value={u.id}>{u.full_name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="spt-field">
+                    <span className="spt-field__lbl">Durum</span>
+                    <div className="spt-dseg">
+                      {(["open", "in_progress", "waiting_response", "resolved", "closed"] as const).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          className={sel.status === s ? "on" : ""}
+                          onClick={() => { void applyStatus(sel.id, s); }}
+                          disabled={saving}
+                        >
+                          {STATUS_LABELS[s]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {sel.assigned_to_name && (
+                    <div className="spt-field">
+                      <span className="spt-field__lbl">Atanan kişi</span>
+                      <span className="spt-asgn">{sel.assigned_to_name}</span>
+                    </div>
+                  )}
+                </Section>
+              </div>
+
+              <Section title="Çözüm" sub="resolution_note">
+                {sel.resolution_note && (
+                  <div className="spt-resolution">{sel.resolution_note}</div>
+                )}
+                {!["resolved", "closed"].includes(sel.status) ? (
+                  <>
+                    <textarea
+                      className="spt-input spt-input--ta"
+                      rows={3}
+                      placeholder="Çözüm notu yazın…"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                    />
+                    <div className="spt-btns">
+                      <button
+                        type="button"
+                        className="spt-btn spt-btn--primary"
+                        onClick={() => { void applyStatus(sel.id, "resolved"); }}
+                        disabled={saving}
+                      >
+                        ✓ Çözüldü olarak işaretle
+                      </button>
+                      <button
+                        type="button"
+                        className="spt-btn spt-btn--ghost"
+                        onClick={() => { void applyStatus(sel.id, "waiting_response"); }}
+                        disabled={saving}
+                      >
+                        Yanıt bekliyor
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="spt-muted">
+                    Bu talep {(STATUS_LABELS[sel.status] ?? sel.status).toLowerCase()} durumda.
+                  </p>
+                )}
+              </Section>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

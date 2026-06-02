@@ -127,6 +127,8 @@
   color: #64748b;
   margin-top: 6px;
 }
+.stat-card__delta--up   { color: #15803d; }
+.stat-card__delta--down { color: #be123c; }
 
 /* ── Section (kart bloğu) ── */
 .sec {
@@ -198,6 +200,7 @@
   color: #64748b;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
+  width: var(--dt-col-w, auto);
 }
 
 .dt tbody tr {
@@ -277,7 +280,11 @@
   height: 100%;
   border-radius: 999px;
   transition: width 0.3s;
+  width: var(--ub-fill, 0%);
 }
+.usage-bar__fill--ok     { background: #2563eb; }
+.usage-bar__fill--warn   { background: #b45309; }
+.usage-bar__fill--danger { background: #be123c; }
 
 /* ── Durum pill (genel) ── */
 .status-pill {

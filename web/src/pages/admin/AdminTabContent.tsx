@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import "./adminTabContent.css";
 
 /* ── PageHeader ── */
@@ -38,8 +38,8 @@ type StatCardProps = {
 };
 
 export function StatCard({ label, value, delta, trend, unit, currency, accent = "default", sub }: StatCardProps) {
-  const trendColor = trend === "up" ? "#15803d" : trend === "down" ? "#be123c" : "#64748b";
   const trendIco = trend === "up" ? "▲" : trend === "down" ? "▼" : "·";
+  const trendMod = trend === "up" ? " stat-card__delta--up" : trend === "down" ? " stat-card__delta--down" : "";
   return (
     <div className={`stat-card stat-card--${accent}`}>
       <div className="stat-card__label">{label}</div>
@@ -49,7 +49,7 @@ export function StatCard({ label, value, delta, trend, unit, currency, accent = 
         {unit && <span className="stat-card__unit">{unit}</span>}
       </div>
       {delta !== undefined ? (
-        <div className="stat-card__delta" style={{ color: trendColor }}>
+        <div className={"stat-card__delta" + trendMod}>
           {trendIco} {Math.abs(delta)}% · son 30 gün
         </div>
       ) : sub ? (
@@ -135,7 +135,7 @@ export function DataTable<T extends Record<string, unknown>>({
             {columns.map((c) => (
               <th
                 key={c.key}
-                style={c.width ? { width: c.width } : undefined}
+                style={c.width ? { "--dt-col-w": c.width } as CSSProperties : undefined}
                 className={c.align === "right" ? "dt-right" : ""}
               >
                 {c.label}
@@ -181,12 +181,12 @@ type UsageBarProps = {
 
 export function UsageBar({ value, max = 100, label }: UsageBarProps) {
   const pct = Math.min(100, Math.round((value / max) * 100));
-  const color = pct >= 90 ? "#be123c" : pct >= 70 ? "#b45309" : "#2563eb";
+  const fillMod = pct >= 90 ? "usage-bar__fill--danger" : pct >= 70 ? "usage-bar__fill--warn" : "usage-bar__fill--ok";
   return (
     <div className="usage-bar">
       {label && <div className="usage-bar__num">{label}</div>}
       <div className="usage-bar__track">
-        <div className="usage-bar__fill" style={{ width: `${pct}%`, background: color }} />
+        <div className={"usage-bar__fill " + fillMod} style={{ "--ub-fill": pct + "%" } as CSSProperties} />
       </div>
       <div className="usage-bar__num">{pct}%</div>
     </div>

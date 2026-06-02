@@ -1,4 +1,4 @@
-import { BarChart3, Blocks, Building, Building2, Compass, FlaskConical, FolderKanban, Globe2, Handshake, KeyRound, LayoutPanelTop, LifeBuoy, Mail, Megaphone, Package, Settings2, Shield, Wrench } from "lucide-react";
+import { BarChart3, Blocks, Brain, Building, Building2, Compass, FlaskConical, FolderKanban, Globe2, Handshake, KeyRound, LayoutPanelTop, LifeBuoy, Mail, Megaphone, Package, Settings2, Shield, Users, Wrench } from "lucide-react";
 import "./adminPageMeta.css";
 
 export type AdminTabKey =
@@ -28,7 +28,11 @@ export type AdminTabKey =
   | "reports"
   | "mail"
   | "settings"
-  | "supplier_profile";
+  | "supplier_profile"
+  | "channel_partners"
+  | "ai_lab"
+  | "talent_ecosystem"
+  | "nav_management";
 
 export type TabConfig = {
   key: AdminTabKey;
@@ -92,6 +96,10 @@ function renderTabIcon(icon: string, active = false) {
       return <Megaphone {...commonProps} />;
     case "DST":
       return <LifeBuoy {...commonProps} />;
+    case "KNL":
+      return <Users {...commonProps} />;
+    case "AIC":
+      return <Brain {...commonProps} />;
     default:
       return <Globe2 {...commonProps} />;
   }

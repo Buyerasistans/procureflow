@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AuthUser } from "../../context/auth-types";
 import { getUserScopeType, isPlatformStaffUser, isSuperAdminUser } from "../../auth/permissions";
 import { PageHeader, StatCard } from "../../pages/admin/AdminTabContent";
@@ -31,6 +31,7 @@ import {
   type Tenant,
 } from "../../services/admin.service";
 import { buildTenantScopeMap, resolveCompanyScope, type EntityScope } from "../../utils/scopeResolver";
+import "./RoleDepartmentGovernanceTab.css";
 
 type GovernanceScope = "platform" | "partner" | "supplier" | "channel" | "career";
 type MergeEntity = "role" | "department";
@@ -96,13 +97,6 @@ function governanceToEntityScope(scope: GovernanceScope): EntityScope {
 
 function toRoleKey(value: string | null | undefined): string {
   return normalizeText(String(value || "").replace(/_/g, " "));
-}
-
-function scopeColor(scope: GovernanceScope): string {
-  if (scope === "platform") return "#0f172a";
-  if (scope === "partner") return "#0369a1";
-  if (scope === "supplier") return "#0f766e";
-  return "#92400e";
 }
 
 function matchTenantByName(tenants: Tenant[], rawName: string | null | undefined): Tenant | null {
@@ -862,18 +856,18 @@ export function RoleDepartmentGovernanceTab({
     const groups = preview?.groups || [];
 
     return (
-      <section style={{ border: "1px solid #e2e8f0", borderRadius: 14, background: "#ffffff", padding: 14, display: "grid", gap: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <section className="rdg-merge-section">
+        <div className="rdg-merge-section__head">
           <div>
-            <div style={{ fontWeight: 900, color: "#0f172a" }}>{title}</div>
-            <div style={{ color: "#64748b", fontSize: 12 }}>{groups.length} grup bulundu</div>
+            <div className="rdg-merge-section__title">{title}</div>
+            <div className="rdg-merge-section__sub">{groups.length} grup bulundu</div>
           </div>
           {lastMergeResult[entity]?.rollback_token ? (
             <button
               type="button"
               onClick={() => { void handleRollback(entity); }}
               disabled={Boolean(busy)}
-              style={{ borderRadius: 8, border: "1px solid #f59e0b", background: "#fffbeb", color: "#92400e", padding: "8px 12px", fontWeight: 800, cursor: "pointer" }}
+              className="rdg-btn rdg-btn--warn"
             >
               Son Birlesmeyi Geri Al
             </button>
@@ -881,29 +875,30 @@ export function RoleDepartmentGovernanceTab({
         </div>
 
         {groups.length === 0 ? (
-          <div style={{ borderRadius: 10, background: "#f8fafc", border: "1px dashed #cbd5e1", padding: 10, color: "#64748b", fontSize: 13 }}>
+          <div className="rdg-merge-empty">
             Bu bölümde birleştirme gerektiren duplicate kayıt yok.
           </div>
         ) : (
-          <div style={{ display: "grid", gap: 8 }}>
+          <div className="rdg-merge-groups">
             {groups.map((group) => {
               const mergeKey = `${entity}:${group.normalized_name}`;
               const selectedTarget = mergeTargetByGroup[mergeKey] || group.items[0]?.id;
               return (
-                <div key={mergeKey} style={{ borderRadius: 10, border: "1px solid #e2e8f0", padding: 10, display: "grid", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <div style={{ fontWeight: 800, color: "#1e293b" }}>{group.normalized_name}</div>
-                    <div style={{ color: "#64748b", fontSize: 12 }}>Atama etkisi: {group.impacted_assignment_count}</div>
+                <div key={mergeKey} className="rdg-merge-group">
+                  <div className="rdg-merge-group__head">
+                    <div className="rdg-merge-group__name">{group.normalized_name}</div>
+                    <div className="rdg-merge-group__info">Atama etkisi: {group.impacted_assignment_count}</div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 1fr) auto", gap: 8 }}>
+                  <div className="rdg-merge-group__row">
                     <select
+                      aria-label="Birleştirme hedefini seç"
                       value={selectedTarget || ""}
                       onChange={(event) => {
                         const next = Number(event.target.value);
                         setMergeTargetByGroup((prev) => ({ ...prev, [mergeKey]: next }));
                       }}
-                      style={{ borderRadius: 8, border: "1px solid #cbd5e1", padding: 8 }}
+                      className="rdg-select"
                     >
                       {group.items.map((item) => (
                         <option key={item.id} value={item.id}>{item.name} (id: {item.id})</option>
@@ -915,7 +910,7 @@ export function RoleDepartmentGovernanceTab({
                       onClick={() => {
                         void handleMergeGroup(entity, group.normalized_name, group.items.map((item) => item.id));
                       }}
-                      style={{ borderRadius: 8, border: "none", background: "#0f172a", color: "white", padding: "8px 12px", fontWeight: 800, cursor: "pointer" }}
+                      className="rdg-btn rdg-btn--dark"
                     >
                       Grupları Birleştir
                     </button>
@@ -929,10 +924,8 @@ export function RoleDepartmentGovernanceTab({
     );
   }
 
-  const sectionColor = scopeColor(activeScope);
-
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div className="rdg-tab">
       <PageHeader
         eyebrow="Yönetişim"
         title="Roller & Yetkiler"
@@ -942,22 +935,15 @@ export function RoleDepartmentGovernanceTab({
         <StatCard label="Toplam Rol" value={roles.length} accent="blue" sub="Katalogdaki rol tanımları" />
         <StatCard label="Toplam Departman" value={departments.length} accent="teal" sub="Katalogdaki departman tanımları" />
       </div>
-      <section style={{ borderRadius: 16, border: `1px solid ${sectionColor}33`, background: "#f8fafc", padding: 14, display: "grid", gap: 10 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+
+      <section className={`rdg-scope-section rdg-scope-section--${activeScope}`}>
+        <div className="rdg-scope-tabs">
           {visibleScopes.map((scope) => (
             <button
               key={scope}
               type="button"
               onClick={() => setActiveScope(scope)}
-              style={{
-                borderRadius: 999,
-                border: activeScope === scope ? `2px solid ${scopeColor(scope)}` : "1px solid #d1d5db",
-                background: activeScope === scope ? "#ffffff" : "#f8fafc",
-                color: activeScope === scope ? scopeColor(scope) : "#475569",
-                padding: "8px 12px",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
+              className={`rdg-scope-btn${activeScope === scope ? ` rdg-scope-btn--active rdg-scope-btn--active-${scope}` : ""}`}
             >
               {SCOPE_TITLES[scope]}
             </button>
@@ -965,14 +951,14 @@ export function RoleDepartmentGovernanceTab({
         </div>
 
         {!canViewAllScopes ? (
-          <div style={{ borderRadius: 12, background: "#ffffff", border: "1px solid #dbeafe", padding: 12, color: "#334155", fontSize: 13 }}>
+          <div className="rdg-scope-info">
             Bu kullanıcı yalnızca kendi kapsamındaki organizasyon, rol, departman ve alt açılımları görebilir.
           </div>
         ) : null}
 
         {canManage ? (
-          <div style={{ borderRadius: 12, background: "#f0fdfa", border: "1px solid #99f6e4", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <div style={{ color: "#0f766e", fontSize: 13 }}>
+          <div className="rdg-catalog-bar">
+            <div className="rdg-catalog-bar__text">
               {activeScope === "supplier"
                 ? "v3 tedarikçi rol kataloğu: İK Yöneticisi, İK Uzmanı dahil 12 rol. (Eski roller silinir.)"
                 : activeScope === "platform"
@@ -987,7 +973,7 @@ export function RoleDepartmentGovernanceTab({
               type="button"
               onClick={() => { void handleSeedCatalogs(); }}
               disabled={seedingCatalog}
-              style={{ borderRadius: 8, border: "none", background: "#0f766e", color: "#ffffff", padding: "8px 14px", fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", opacity: seedingCatalog ? 0.6 : 1 }}
+              className="rdg-catalog-btn"
             >
               {seedingCatalog ? "Yükleniyor…" : "Kataloğu Sıfırla ve Yükle"}
             </button>
@@ -996,17 +982,15 @@ export function RoleDepartmentGovernanceTab({
       </section>
 
       {error ? (
-        <div style={{ borderRadius: 12, background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", padding: 12 }}>
-          {error}
-        </div>
+        <div className="rdg-error">{error}</div>
       ) : null}
 
-      <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <section className="rdg-cols">
 
-        <div style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#ffffff", padding: 14, display: "grid", gap: 10 }}>
-          <div style={{ fontWeight: 900, color: "#0f172a" }}>Roller</div>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ color: "#64748b", fontSize: 12 }}>
+        <div className="rdg-panel">
+          <div className="rdg-panel__title">Roller</div>
+          <div className="rdg-panel__head">
+            <div className="rdg-panel__sub">
               {activeScope === "platform"
                 ? "Platform rol yapısı"
                 : `${SCOPE_TITLES[activeScope]} kataloğu`}
@@ -1015,99 +999,103 @@ export function RoleDepartmentGovernanceTab({
               type="button"
               onClick={openCreateRoleModal}
               disabled={!canManage || Boolean(busy) || loading}
-              style={{ borderRadius: 8, border: "none", background: "#2563eb", color: "white", padding: "8px 12px", fontWeight: 800, cursor: "pointer" }}
+              className="rdg-btn rdg-btn--add"
             >
               Yeni Rol Ekle
             </button>
           </div>
 
-          <div style={{ display: "grid", gap: 8, maxHeight: 320, overflowY: "auto" }}>
+          <div className="rdg-list">
             {roleTree.map((row) => {
               const parentRole = roles.find((candidate) => candidate.id === row.parent_id);
               return (
-              <div key={row.id} style={{ borderRadius: 10, border: "1px solid #e2e8f0", padding: 10, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginLeft: `${Math.min(Math.max(row.hierarchy_level - 1, 0) * 14, 56)}px`, background: row.childCount > 0 ? "#f8fafc" : "#ffffff" }}>
-                <div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <div style={{ fontWeight: 800, color: "#0f172a" }}>{row.name}</div>
-                    <span style={{ borderRadius: 999, background: `${sectionColor}14`, color: sectionColor, padding: "3px 8px", fontSize: 11, fontWeight: 800 }}>
-                      L{row.hierarchy_level}
-                    </span>
+                <div
+                  key={row.id}
+                  className={`rdg-row${row.childCount > 0 ? " rdg-row--has-children" : ""} rdg-indent-${Math.min(Math.max(row.hierarchy_level - 1, 0), 4)}`}
+                >
+                  <div className="rdg-row__left">
+                    <div className="rdg-row__head">
+                      <div className="rdg-row__name">{row.name}</div>
+                      <span className={`rdg-level-badge rdg-level-badge--${activeScope}`}>
+                        L{row.hierarchy_level}
+                      </span>
+                    </div>
+                    <div className="rdg-row__meta">
+                      id: {row.id} • üst rol: {parentRole?.name || "Kök"} • alt rol: {row.childCount}
+                    </div>
                   </div>
-                  <div style={{ color: "#64748b", fontSize: 12 }}>
-                    id: {row.id} • üst rol: {parentRole?.name || "Kök"} • alt rol: {row.childCount}
-                  </div>
+                  {canManage ? (
+                    <div className="rdg-row__actions">
+                      <button type="button" onClick={() => { void handleEditRole(row); }} disabled={Boolean(busy)} className="rdg-btn rdg-btn--edit">Düzenle</button>
+                      <button type="button" onClick={() => { void handleDeleteRole(row); }} disabled={Boolean(busy)} className="rdg-btn rdg-btn--del">Sil</button>
+                    </div>
+                  ) : null}
                 </div>
-                {canManage ? (
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button type="button" onClick={() => { void handleEditRole(row); }} disabled={Boolean(busy)} style={{ borderRadius: 8, border: "1px solid #93c5fd", background: "#eff6ff", color: "#1d4ed8", padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>Düzenle</button>
-                    <button type="button" onClick={() => { void handleDeleteRole(row); }} disabled={Boolean(busy)} style={{ borderRadius: 8, border: "1px solid #fca5a5", background: "#fef2f2", color: "#b91c1c", padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>Sil</button>
-                  </div>
-                ) : null}
-              </div>
-            );})}
-            {roles.length === 0 ? <div style={{ color: "#64748b", fontSize: 13 }}>Rol kaydı yok.</div> : null}
+              );
+            })}
+            {roles.length === 0 ? <div className="rdg-empty-text">Rol kaydı yok.</div> : null}
           </div>
 
           {isSuperAdmin ? renderMergeSection("role", roleMergePreview) : null}
         </div>
 
-        <div style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#ffffff", padding: 14, display: "grid", gap: 10 }}>
-          <div style={{ fontWeight: 900, color: "#0f172a" }}>Departmanlar</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+        <div className="rdg-panel">
+          <div className="rdg-panel__title">Departmanlar</div>
+          <div className="rdg-input-row">
             <input
               value={departmentNameInput}
               onChange={(event) => setDepartmentNameInput(event.target.value)}
               placeholder="Yeni departman adı"
               disabled={!canManage || loading}
-              style={{ borderRadius: 8, border: "1px solid #cbd5e1", padding: 8 }}
+              className="rdg-input"
             />
             <button
               type="button"
               onClick={() => { void handleCreateDepartment(); }}
               disabled={!canManage || !departmentNameInput.trim() || Boolean(busy)}
-              style={{ borderRadius: 8, border: "none", background: "#059669", color: "white", padding: "8px 12px", fontWeight: 800, cursor: "pointer" }}
+              className="rdg-btn rdg-btn--save"
             >
               Ekle
             </button>
           </div>
 
-          <div style={{ display: "grid", gap: 8, maxHeight: 320, overflowY: "auto" }}>
+          <div className="rdg-list">
             {departmentsWithSubItems.map((row) => (
-              <div key={row.id} style={{ borderRadius: 10, border: "1px solid #e2e8f0", padding: 10, display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 800, color: "#0f172a" }}>{row.name}</div>
-                  <div style={{ color: "#64748b", fontSize: 12 }}>id: {row.id} • alt açılım: {row.sub_items?.length || 0}</div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+              <div key={row.id} className="rdg-row">
+                <div className="rdg-row__left">
+                  <div className="rdg-row__name">{row.name}</div>
+                  <div className="rdg-row__meta">id: {row.id} • alt açılım: {row.sub_items?.length || 0}</div>
+                  <div className="rdg-row__tags">
                     {(row.sub_items || []).map((item) => (
-                      <span key={item.id} style={{ borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", padding: "4px 8px", fontSize: 11, fontWeight: 700 }}>
+                      <span key={item.id} className="rdg-tag rdg-tag--blue">
                         {item.name}
                       </span>
                     ))}
-                    {!(row.sub_items || []).length ? <span style={{ color: "#94a3b8", fontSize: 12 }}>Alt açılım tanımlı değil</span> : null}
+                    {!(row.sub_items || []).length ? <span className="rdg-empty-inline">Alt açılım tanımlı değil</span> : null}
                   </div>
                 </div>
                 {canManage ? (
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button type="button" onClick={() => { void handleEditDepartment(row); }} disabled={Boolean(busy)} style={{ borderRadius: 8, border: "1px solid #93c5fd", background: "#eff6ff", color: "#1d4ed8", padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>Düzenle</button>
-                    <button type="button" onClick={() => { void handleDeleteDepartment(row); }} disabled={Boolean(busy)} style={{ borderRadius: 8, border: "1px solid #fca5a5", background: "#fef2f2", color: "#b91c1c", padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}>Sil</button>
+                  <div className="rdg-row__actions">
+                    <button type="button" onClick={() => { void handleEditDepartment(row); }} disabled={Boolean(busy)} className="rdg-btn rdg-btn--edit">Düzenle</button>
+                    <button type="button" onClick={() => { void handleDeleteDepartment(row); }} disabled={Boolean(busy)} className="rdg-btn rdg-btn--del">Sil</button>
                   </div>
                 ) : null}
               </div>
             ))}
-            {departments.length === 0 ? <div style={{ color: "#64748b", fontSize: 13 }}>Departman kaydı yok.</div> : null}
+            {departments.length === 0 ? <div className="rdg-empty-text">Departman kaydı yok.</div> : null}
           </div>
 
           {isSuperAdmin ? renderMergeSection("department", departmentMergePreview) : null}
         </div>
       </section>
 
-      <section style={{ borderRadius: 16, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 14, display: "grid", gap: 10 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ fontWeight: 700, color: "#334155", fontSize: 14 }}>Firma Atama Görünümü</div>
-          <div style={{ color: "#94a3b8", fontSize: 12 }}>— firma seçerek o firmadaki personel-rol dağılımını görüntüleyin</div>
+      <section className="rdg-assign-section">
+        <div className="rdg-assign-section__head">
+          <div className="rdg-assign-section__title">Firma Atama Görünümü</div>
+          <div className="rdg-assign-section__hint">— firma seçerek o firmadaki personel-rol dağılımını görüntüleyin</div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: 10, alignItems: "center" }}>
-          <div style={{ color: "#334155", fontWeight: 700 }}>Firma</div>
+        <div className="rdg-assign-row">
+          <div className="rdg-assign-label">Firma</div>
           <select
             aria-label="Firma seç"
             value={activeCompanyId ?? ""}
@@ -1120,7 +1108,7 @@ export function RoleDepartmentGovernanceTab({
                 setTenantSelection((prev) => ({ ...prev, [activeScope]: selected.tenant_id as number }));
               }
             }}
-            style={{ borderRadius: 10, border: "1px solid #cbd5e1", background: "#ffffff", padding: "10px 12px" }}
+            className="rdg-select"
           >
             {scopeCompanies.length === 0 ? <option value="">— seçilebilir firma yok —</option> : null}
             {scopeCompanies.map((company) => (
@@ -1131,7 +1119,7 @@ export function RoleDepartmentGovernanceTab({
             type="button"
             onClick={() => setSummaryModalOpen(true)}
             disabled={!selectedCompany}
-            style={{ borderRadius: 10, border: "1px solid #2563eb", background: "#eff6ff", color: "#1d4ed8", padding: "10px 12px", fontWeight: 800, cursor: "pointer", opacity: selectedCompany ? 1 : 0.6 }}
+            className="rdg-btn rdg-btn--outline"
           >
             Firma Özeti
           </button>
@@ -1139,54 +1127,56 @@ export function RoleDepartmentGovernanceTab({
       </section>
 
       {summaryModalOpen ? (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.45)", display: "grid", placeItems: "center", padding: 20, zIndex: 990 }}>
-          <div style={{ width: "min(980px, 100%)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden", borderRadius: 20, background: "#ffffff", border: "1px solid #dbeafe", boxShadow: "0 24px 60px rgba(15, 23, 42, 0.18)", display: "grid", gridTemplateRows: "auto 1fr", gap: 0 }}>
-            {/* sticky header — always visible even when scrolled */}
-            <div style={{ position: "sticky", top: 0, zIndex: 2, background: "#ffffff", borderRadius: "20px 20px 0 0", borderBottom: "1px solid #e2e8f0", padding: "16px 20px", display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
-              <div style={{ minWidth: 0, overflow: "hidden", flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "#2563eb" }}>Firma Özeti</div>
-                <div style={{ marginTop: 4, fontSize: 22, fontWeight: 900, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedCompany?.name || "Seçili Firma"}</div>
-                <div style={{ marginTop: 4, color: "#475569", fontSize: 13 }}>Rol hiyerarşisi, bağlı personel ve departman dağılımı. Atamayı düzenle veya sil.</div>
+        <div className="rdg-overlay">
+          <div className="rdg-modal">
+            <div className="rdg-modal__header rdg-modal__header--sticky">
+              <div className="rdg-modal__header-text">
+                <div className="rdg-modal__eyebrow">Firma Özeti</div>
+                <div className="rdg-modal__title">{selectedCompany?.name || "Seçili Firma"}</div>
+                <div className="rdg-modal__sub">Rol hiyerarşisi, bağlı personel ve departman dağılımı. Atamayı düzenle veya sil.</div>
               </div>
               <button
                 type="button"
                 onClick={() => { setSummaryModalOpen(false); setEditingPersonKey(null); setEditingNewRoleId(null); }}
-                style={{ flexShrink: 0, borderRadius: 999, border: "1px solid #cbd5e1", background: "#f1f5f9", color: "#334155", padding: "8px 16px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+                className="rdg-btn--close"
               >
                 ✕ Kapat
               </button>
             </div>
 
-            <div style={{ padding: "16px 20px 20px", display: "grid", gap: 10 }}>
+            <div className="rdg-modal__body">
               {companySummaryRows.map((row) => (
-                <div key={row.role.id} style={{ borderRadius: 14, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 12, marginLeft: `${Math.min(Math.max(row.role.hierarchy_level - 1, 0) * 12, 48)}px`, display: "grid", gap: 8 }}>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <div style={{ fontWeight: 900, color: "#0f172a" }}>{row.role.name}</div>
-                    <span style={{ borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", padding: "3px 8px", fontSize: 11, fontWeight: 800 }}>L{row.role.hierarchy_level}</span>
-                    <span style={{ color: "#64748b", fontSize: 12 }}>{row.people.length} personel</span>
+                <div
+                  key={row.role.id}
+                  className={`rdg-summary-group rdg-summary-indent-${Math.min(Math.max(row.role.hierarchy_level - 1, 0), 4)}`}
+                >
+                  <div className="rdg-summary-group__head">
+                    <div className="rdg-summary-group__role">{row.role.name}</div>
+                    <span className="rdg-level-badge rdg-level-badge--blue">L{row.role.hierarchy_level}</span>
+                    <span className="rdg-summary-group__count">{row.people.length} personel</span>
                   </div>
-                  <div style={{ display: "grid", gap: 6 }}>
+                  <div className="rdg-person-list">
                     {row.people.map((person) => {
                       const personKey = `${person.userId}-${row.role.id}`;
                       const isEditing = editingPersonKey === personKey;
                       const firstAssignmentId = person.assignmentIds[0];
                       const hasRealAssignment = typeof firstAssignmentId === "number";
                       return (
-                        <div key={personKey} style={{ borderRadius: 10, border: `1px solid ${isEditing ? "#93c5fd" : "#dbeafe"}`, background: isEditing ? "#eff6ff" : "#ffffff", padding: 10, display: "grid", gap: 6 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "start", flexWrap: "wrap" }}>
-                            <div style={{ minWidth: 0, overflow: "hidden", flex: 1 }}>
-                              <div style={{ fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{person.fullName}</div>
-                              <div style={{ color: "#64748b", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{person.email}</div>
+                        <div key={personKey} className={`rdg-person-card${isEditing ? " rdg-person-card--editing" : ""}`}>
+                          <div className="rdg-person-card__head">
+                            <div className="rdg-person-info">
+                              <div className="rdg-person-info__name">{person.fullName}</div>
+                              <div className="rdg-person-info__email">{person.email}</div>
                             </div>
                             {canManage && hasRealAssignment ? (
-                              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                              <div className="rdg-person-card__actions">
                                 {!isEditing ? (
                                   <>
                                     <button
                                       type="button"
                                       disabled={Boolean(busy)}
                                       onClick={() => { setEditingPersonKey(personKey); setEditingNewRoleId(row.role.id); }}
-                                      style={{ borderRadius: 8, border: "1px solid #93c5fd", background: "#eff6ff", color: "#1d4ed8", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                                      className="rdg-btn rdg-btn--edit rdg-btn--sm"
                                     >
                                       Düzenle
                                     </button>
@@ -1194,7 +1184,7 @@ export function RoleDepartmentGovernanceTab({
                                       type="button"
                                       disabled={Boolean(busy)}
                                       onClick={() => { void handleRemoveAssignment(person.userId, firstAssignmentId); }}
-                                      style={{ borderRadius: 8, border: "1px solid #fca5a5", background: "#fef2f2", color: "#b91c1c", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                                      className="rdg-btn rdg-btn--del rdg-btn--sm"
                                     >
                                       Sil
                                     </button>
@@ -1205,14 +1195,14 @@ export function RoleDepartmentGovernanceTab({
                                       type="button"
                                       disabled={Boolean(busy) || editingNewRoleId === row.role.id}
                                       onClick={() => { if (editingNewRoleId !== null) void handleReassignPerson(person.userId, firstAssignmentId, editingNewRoleId); }}
-                                      style={{ borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer", opacity: editingNewRoleId === row.role.id ? 0.5 : 1 }}
+                                      className="rdg-btn rdg-btn--save-primary rdg-btn--sm"
                                     >
                                       Kaydet
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => { setEditingPersonKey(null); setEditingNewRoleId(null); }}
-                                      style={{ borderRadius: 8, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#334155", padding: "5px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                                      className="rdg-btn rdg-btn--cancel rdg-btn--sm"
                                     >
                                       İptal
                                     </button>
@@ -1222,13 +1212,13 @@ export function RoleDepartmentGovernanceTab({
                             ) : null}
                           </div>
                           {isEditing ? (
-                            <div style={{ display: "grid", gap: 6 }}>
-                              <div style={{ fontSize: 12, color: "#334155", fontWeight: 600 }}>Yeni rol seç:</div>
+                            <div className="rdg-reassign">
+                              <div className="rdg-reassign__label">Yeni rol seç:</div>
                               <select
                                 aria-label="Yeni rol seç"
                                 value={editingNewRoleId ?? ""}
                                 onChange={(e) => setEditingNewRoleId(Number(e.target.value))}
-                                style={{ borderRadius: 8, border: "1px solid #93c5fd", padding: "8px 10px", fontSize: 13 }}
+                                className="rdg-select"
                               >
                                 {roles.map((r) => (
                                   <option key={r.id} value={r.id}>{r.name} (L{r.hierarchy_level})</option>
@@ -1236,9 +1226,9 @@ export function RoleDepartmentGovernanceTab({
                               </select>
                             </div>
                           ) : null}
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          <div className="rdg-person-card__tags">
                             {person.departments.map((departmentName) => (
-                              <span key={`${person.userId}-${departmentName}`} style={{ borderRadius: 999, background: "#ecfeff", color: "#0f766e", padding: "3px 8px", fontSize: 11, fontWeight: 700 }}>
+                              <span key={`${person.userId}-${departmentName}`} className="rdg-tag rdg-tag--teal">
                                 {departmentName}
                               </span>
                             ))}
@@ -1250,7 +1240,7 @@ export function RoleDepartmentGovernanceTab({
                 </div>
               ))}
               {companySummaryRows.length === 0 ? (
-                <div style={{ borderRadius: 12, border: "1px dashed #cbd5e1", background: "#f8fafc", color: "#64748b", fontSize: 13, padding: 12 }}>
+                <div className="rdg-modal-empty">
                   Seçili firmada rol-personel eşleşmesi bulunamadı.
                 </div>
               ) : null}
@@ -1260,46 +1250,46 @@ export function RoleDepartmentGovernanceTab({
       ) : null}
 
       {roleModalOpen ? (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.45)", display: "grid", placeItems: "center", padding: 20, zIndex: 1000 }}>
-          <div style={{ width: "min(960px, 100%)", maxHeight: "90vh", overflowY: "auto", borderRadius: 20, background: "#ffffff", border: "1px solid #dbeafe", boxShadow: "0 24px 60px rgba(15, 23, 42, 0.18)", padding: 20, display: "grid", gap: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "#2563eb" }}>Rol Editoru</div>
-                <div style={{ marginTop: 4, fontSize: 24, fontWeight: 900, color: "#0f172a" }}>{editingRoleId ? "Rol Düzenle" : "Yeni Rol Ekle"}</div>
-                <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>Rol adı, hiyerarşi konumu ve yetki setini tek pencerede düzenleyin.</div>
+        <div className="rdg-overlay rdg-overlay--top">
+          <div className="rdg-modal rdg-modal--role">
+            <div className="rdg-modal__header">
+              <div className="rdg-modal__header-text">
+                <div className="rdg-modal__eyebrow">Rol Editoru</div>
+                <div className="rdg-modal__title rdg-modal__title--lg">{editingRoleId ? "Rol Düzenle" : "Yeni Rol Ekle"}</div>
+                <div className="rdg-modal__sub">Rol adı, hiyerarşi konumu ve yetki setini tek pencerede düzenleyin.</div>
               </div>
-              <button type="button" onClick={closeRoleModal} style={{ borderRadius: 999, border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>
+              <button type="button" onClick={closeRoleModal} className="rdg-btn--close">
                 Kapat
               </button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16 }}>
-              <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ display: "grid", gap: 6 }}>
-                  <label htmlFor="governance-role-name" style={{ color: "#334155", fontWeight: 700 }}>Rol Adi</label>
+            <div className="rdg-modal__cols">
+              <div className="rdg-modal__form-col">
+                <div className="rdg-field">
+                  <label htmlFor="governance-role-name" className="rdg-label">Rol Adi</label>
                   <input
                     id="governance-role-name"
                     value={roleEditor.name}
                     onChange={(event) => setRoleEditor((prev) => ({ ...prev, name: event.target.value }))}
                     placeholder="Or: Satin Alma Grup Lideri"
-                    style={{ borderRadius: 10, border: "1px solid #cbd5e1", padding: "10px 12px" }}
+                    className="rdg-input"
                   />
                 </div>
 
-                <div style={{ display: "grid", gap: 6 }}>
-                  <label htmlFor="governance-role-description" style={{ color: "#334155", fontWeight: 700 }}>Rol Açıklaması</label>
+                <div className="rdg-field">
+                  <label htmlFor="governance-role-description" className="rdg-label">Rol Açıklaması</label>
                   <textarea
                     id="governance-role-description"
                     value={roleEditor.description}
                     onChange={(event) => setRoleEditor((prev) => ({ ...prev, description: event.target.value }))}
                     placeholder="Bu rol hangi operasyonu yönetir?"
                     rows={3}
-                    style={{ borderRadius: 10, border: "1px solid #cbd5e1", padding: "10px 12px", resize: "vertical" }}
+                    className="rdg-textarea"
                   />
                 </div>
 
-                <div style={{ display: "grid", gap: 6 }}>
-                  <label htmlFor="governance-role-parent" style={{ color: "#334155", fontWeight: 700 }}>Hiyerarsi Konumu</label>
+                <div className="rdg-field">
+                  <label htmlFor="governance-role-parent" className="rdg-label">Hiyerarsi Konumu</label>
                   <select
                     id="governance-role-parent"
                     value={roleEditor.parent_id || ""}
@@ -1307,7 +1297,7 @@ export function RoleDepartmentGovernanceTab({
                       ...prev,
                       parent_id: event.target.value ? Number(event.target.value) : undefined,
                     }))}
-                    style={{ borderRadius: 10, border: "1px solid #cbd5e1", padding: "10px 12px" }}
+                    className="rdg-select"
                   >
                     <option value="">Kök rol</option>
                     {roleParentOptions.map((role) => (
@@ -1316,40 +1306,45 @@ export function RoleDepartmentGovernanceTab({
                       </option>
                     ))}
                   </select>
-                  <div style={{ borderRadius: 12, border: "1px solid #dbeafe", background: "#f8fbff", padding: "10px 12px", color: "#1e3a8a", fontSize: 13, fontWeight: 700 }}>
+                  <div className="rdg-hierarchy-info">
                     Bu seçimle rol seviyesi: L{computedHierarchyLevel}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: "grid", gap: 10 }}>
-                <div>
-                  <div style={{ color: "#334155", fontWeight: 700 }}>Yetkiler</div>
-                  <div style={{ color: "#64748b", fontSize: 12 }}>Role atanacak izinleri seçin.</div>
+              <div className="rdg-modal__perm-col">
+                <div className="rdg-modal__perm-head">
+                  <div className="rdg-modal__perm-title">Yetkiler</div>
+                  <div className="rdg-modal__perm-sub">Role atanacak izinleri seçin.</div>
                 </div>
-                <div style={{ display: "grid", gap: 8, maxHeight: 380, overflowY: "auto", borderRadius: 14, border: "1px solid #e2e8f0", background: "#f8fafc", padding: 10 }}>
+                <div className="rdg-perm-list">
                   {permissions.map((permission) => {
                     const checked = selectedPermissionIds.includes(permission.id);
                     return (
-                      <label key={permission.id} style={{ display: "flex", gap: 10, alignItems: "start", borderRadius: 10, border: checked ? "1px solid #93c5fd" : "1px solid #e2e8f0", background: checked ? "#eff6ff" : "#ffffff", padding: 10, cursor: "pointer" }}>
-                        <input type="checkbox" checked={checked} onChange={() => handlePermissionToggle(permission.id)} style={{ marginTop: 2 }} />
-                        <div style={{ display: "grid", gap: 2 }}>
-                          <div style={{ fontWeight: 700, color: "#0f172a", fontSize: 13 }}>{permission.description || permission.name}</div>
-                          {permission.tooltip || permission.name ? <div style={{ color: "#64748b", fontSize: 11 }}>{permission.tooltip || permission.name}</div> : null}
+                      <label key={permission.id} className={`rdg-perm-item${checked ? " rdg-perm-item--checked" : ""}`}>
+                        <input type="checkbox" checked={checked} onChange={() => handlePermissionToggle(permission.id)} />
+                        <div className="rdg-perm-item__body">
+                          <div className="rdg-perm-item__title">{permission.description || permission.name}</div>
+                          {permission.tooltip || permission.name ? <div className="rdg-perm-item__sub">{permission.tooltip || permission.name}</div> : null}
                         </div>
                       </label>
                     );
                   })}
-                  {permissions.length === 0 ? <div style={{ color: "#64748b", fontSize: 13 }}>Yetki listesi yükleniyor veya bulunamadı.</div> : null}
+                  {permissions.length === 0 ? <div className="rdg-perm-empty">Yetki listesi yükleniyor veya bulunamadı.</div> : null}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button type="button" onClick={closeRoleModal} style={{ borderRadius: 10, border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", padding: "10px 14px", fontWeight: 700, cursor: "pointer" }}>
+            <div className="rdg-modal__footer">
+              <button type="button" onClick={closeRoleModal} className="rdg-btn rdg-btn--cancel">
                 İptal
               </button>
-              <button type="button" onClick={() => { void handleSaveRole(); }} disabled={!roleEditor.name.trim() || Boolean(busy)} style={{ borderRadius: 10, border: "none", background: "#2563eb", color: "#ffffff", padding: "10px 14px", fontWeight: 800, cursor: "pointer", opacity: !roleEditor.name.trim() || Boolean(busy) ? 0.6 : 1 }}>
+              <button
+                type="button"
+                onClick={() => { void handleSaveRole(); }}
+                disabled={!roleEditor.name.trim() || Boolean(busy)}
+                className="rdg-btn rdg-btn--save-primary"
+              >
                 {editingRoleId ? "Rolü Güncelle" : "Rolü Kaydet"}
               </button>
             </div>
@@ -1359,5 +1354,3 @@ export function RoleDepartmentGovernanceTab({
     </div>
   );
 }
-
-

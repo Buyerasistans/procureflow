@@ -175,9 +175,9 @@ export default function StrategicPartnerGovernance(props: Props) {
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={"sk" + i} className="spg-skelrow">
                   <td className="spg-check"><span className="spg-skel spg-skel--check" /></td>
-                  <td><div className="spg-cell"><span className="spg-skel spg-skel--avatar" /><div className="spg-grow"><span className="spg-skel spg-skel--line" style={{ width: 50 + (i * 7) % 30 + "%" }} /><span className="spg-skel spg-skel--line spg-skel--sm" style={{ width: "38%" }} /></div></div></td>
+                  <td><div className="spg-cell"><span className="spg-skel spg-skel--avatar" /><div className="spg-grow"><span className={`spg-skel spg-skel--line spg-skel--w${[50,57,64,71,78,55][i]??60}`} /><span className="spg-skel spg-skel--line spg-skel--sm spg-skel--w38" /></div></div></td>
                   <td><span className="spg-skel spg-skel--pill" /></td><td><span className="spg-skel spg-skel--pill" /></td><td><span className="spg-skel spg-skel--pill" /></td>
-                  <td className="spg-right"><span className="spg-skel spg-skel--num" /></td><td className="spg-right"><span className="spg-skel spg-skel--num" /></td><td><span className="spg-skel spg-skel--line" style={{ width: "80%" }} /></td><td />
+                  <td className="spg-right"><span className="spg-skel spg-skel--num" /></td><td className="spg-right"><span className="spg-skel spg-skel--num" /></td><td><span className="spg-skel spg-skel--line spg-skel--w80" /></td><td />
                 </tr>
               ))
             ) : filtered.length === 0 ? (
@@ -244,7 +244,7 @@ function PartnerRows({ p, open, selected, originMeta, onToggle, onSelect, onOpen
         <td className="spg-check"><input type="checkbox" checked={selected} onChange={onSelect} aria-label={p.name + " seç"} /></td>
         <td>
           <button className="spg-rowbtn" onClick={onOpenDetail}>
-            <span className="spg-avatar" style={{ background: p.color }}>{p.code}</span>
+            <span className="spg-avatar" style={{ "--spg-color": p.color } as React.CSSProperties}>{p.code}</span>
             <span className="spg-grow">
               <span className="spg-name">{p.name}<span className="spg-tag spg-tag--main">ANA FİRMA</span>{p.dualRole && <span className={"spg-dual spg-dual--" + p.dualRole}>{p.dualRole === "active" ? "Çift rol" : "Çift rol · bekliyor"}</span>}</span>
               <span className="spg-sub">{p.sector} · {p.city}{p.subs.length > 0 && <span className="spg-subcount">{p.subs.length} alt firma</span>}</span>
@@ -273,7 +273,7 @@ function PartnerRows({ p, open, selected, originMeta, onToggle, onSelect, onOpen
       {open && p.subs.map((s) => (
         <tr key={s.id} className="spg-subrow">
           <td className="spg-check" />
-          <td><div className="spg-cell"><span className="spg-tree">└</span><span className="spg-avatar spg-avatar--sm" style={{ background: s.color }}>{s.code}</span><span className="spg-grow"><span className="spg-name spg-name--sm">{s.name}<span className="spg-tag spg-tag--alt">alt firma</span></span><span className="spg-sub">{s.sector} · {s.city}</span></span></div></td>
+          <td><div className="spg-cell"><span className="spg-tree">└</span><span className="spg-avatar spg-avatar--sm" style={{ "--spg-color": s.color } as React.CSSProperties}>{s.code}</span><span className="spg-grow"><span className="spg-name spg-name--sm">{s.name}<span className="spg-tag spg-tag--alt">alt firma</span></span><span className="spg-sub">{s.sector} · {s.city}</span></span></div></td>
           <td><span className="spg-inherit">↑ {p.name.split(" ")[0]}</span></td>
           <td><span className="spg-inherit">ana plana dahil</span></td>
           <td><span className={"spg-status " + (STATUS_META[s.status]?.cls ?? "")}>{STATUS_META[s.status]?.label ?? s.status}</span></td>
@@ -288,11 +288,11 @@ function PartnerRows({ p, open, selected, originMeta, onToggle, onSelect, onOpen
 }
 
 function HealthBar({ value }: { value: number }) {
-  const color = value >= 75 ? "#15803d" : value >= 50 ? "#b45309" : "#be123c";
+  const tier = value >= 75 ? "good" : value >= 50 ? "warn" : "bad";
   return (
     <div className="spg-health">
-      <div className="spg-health__track"><div className="spg-health__fill" style={{ width: value + "%", background: color }} /></div>
-      <span className="spg-health__n" style={{ color }}>{value}</span>
+      <div className="spg-health__track"><div className={"spg-health__fill spg-health__fill--" + tier} style={{ "--spg-fill-w": value + "%" } as React.CSSProperties} /></div>
+      <span className={"spg-health__n spg-health__n--" + tier}>{value}</span>
     </div>
   );
 }
@@ -315,7 +315,7 @@ function PartnerDrawer({ row, planOptions, loadDetail, onClose, onChangePlan, on
     <div className="spg-drawer" onClick={onClose}>
       <aside className="spg-drawer__panel" onClick={(e) => e.stopPropagation()}>
         <div className="spg-drawer__head">
-          <span className="spg-avatar spg-avatar--lg" style={{ background: row.color }}>{row.code}</span>
+          <span className="spg-avatar spg-avatar--lg" style={{ "--spg-color": row.color } as React.CSSProperties}>{row.code}</span>
           <div className="spg-grow"><div className="spg-name">{row.name}<span className="spg-tag spg-tag--main">ANA FİRMA</span></div><div className="spg-sub">{row.sector} · {row.city}</div></div>
           <button className="spg-x" onClick={onClose} aria-label="Kapat">×</button>
         </div>
@@ -350,7 +350,7 @@ function PartnerDrawer({ row, planOptions, loadDetail, onClose, onChangePlan, on
             {busy && !data ? <div className="spg-dempty">Yükleniyor…</div>
               : (data?.team?.length ?? 0) === 0 ? <div className="spg-dempty">Kayıtlı ekip üyesi yok.</div>
               : <div className="spg-teamlist">{data!.team.map((m, i) => (
-                  <div key={i} className="spg-teamrow"><span className="spg-teamav" style={{ background: row.color }}>{ini(m.name)}</span><div className="spg-grow"><b>{m.name}</b><span>{m.role}</span></div><a className="spg-teammail" href={"mailto:" + m.email} title={m.email}>✉</a></div>
+                  <div key={i} className="spg-teamrow"><span className="spg-teamav" style={{ "--spg-color": row.color } as React.CSSProperties}>{ini(m.name)}</span><div className="spg-grow"><b>{m.name}</b><span>{m.role}</span></div><a className="spg-teammail" href={"mailto:" + m.email} title={m.email}>✉</a></div>
                 ))}</div>}
             <button className="spg-dlink" onClick={() => onCrossLink("personnel", row.id)}>Ekip Üyeleri'nde gör →</button>
           </Section>
@@ -367,7 +367,7 @@ function PartnerDrawer({ row, planOptions, loadDetail, onClose, onChangePlan, on
           <Section title={"Alt firmalar (" + row.subs.length + ")"}>
             {row.subs.length === 0 ? <div className="spg-dempty">Alt firma yok.</div>
               : <div className="spg-famlist">{row.subs.map((s) => (
-                  <button key={s.id} className="spg-famcard" onClick={() => onCrossLink("companies", row.id)}><span className="spg-avatar spg-avatar--sm" style={{ background: s.color }}>{s.code}</span><span className="spg-grow"><b>{s.name}</b><span>{s.sector} · {s.city} · {s.users} kullanıcı</span></span><span>›</span></button>
+                  <button key={s.id} className="spg-famcard" onClick={() => onCrossLink("companies", row.id)}><span className="spg-avatar spg-avatar--sm" style={{ "--spg-color": s.color } as React.CSSProperties}>{s.code}</span><span className="spg-grow"><b>{s.name}</b><span>{s.sector} · {s.city} · {s.users} kullanıcı</span></span><span>›</span></button>
                 ))}</div>}
           </Section>
         </div>

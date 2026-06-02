@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Bell,
@@ -6,6 +7,8 @@ import {
   Building,
   Building2,
   CheckSquare,
+  ChevronDown,
+  ChevronRight,
   FileBarChart,
   FlaskConical,
   FolderOpen,
@@ -26,19 +29,71 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  Link2,
 } from "lucide-react";
 import type { AuthUser } from "../../context/auth-types";
+import { isSuperAdminUser, getUserDisplayRoleLabel } from "../../auth/permissions";
 import { ADMIN_NAV_GROUPS, navLabelForKey } from "./adminNav";
+import type { AdminNavItem } from "./adminNav";
 import PublicBrandLogo from "../../components/PublicBrandLogo";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { getMailCenterAccounts } from "../../services/mail-center.service";
+import { useAuth } from "../../hooks/useAuth";
+import { notify } from "../../lib/notify";
+import MailCenterPopup from "../../components/MailCenterPopup";
 import "./adminShell.css";
 
+// ─── Nav-config types (mirrors NavManagerTab) ────────────────
+type NmVis = "show" | "lock" | "hide";
+type NmPlacement = "top" | "side" | "both" | "hidden";
+type NmCfg = {
+  layoutMode: "single" | "top" | "dual";
+  menuStyle: "expanded" | "dropdown";
+  order: string[];
+  items: Record<string, { placement: NmPlacement; enabled: boolean; roles: Record<string, NmVis> }>;
+};
+
+// ─── Mock notifications (TODO: replace with API) ─────────────
+const SHELL_NOTIFS_INIT = [
+  { id: 1, icon: "studio",  color: "#b45309", title: "9 kurulum kuyruğunda",  desc: "Onboarding tamamlanmamış partnerler", time: "5 dk",  read: false },
+  { id: 2, icon: "partner", color: "#1d4ed8", title: "Yeni üyelik başvurusu", desc: "Stratejik partner 001 onay bekliyor",  time: "22 dk", read: false },
+  { id: 3, icon: "help",    color: "#be123c", title: "2 destek SLA riski",    desc: "Yanıt süresi aşılmak üzere",          time: "1 sa",  read: false },
+  { id: 4, icon: "wallet",  color: "#047857", title: "18 komisyon ödemesi",   desc: "Onay bekleyen hak edişler",           time: "3 sa",  read: true  },
+];
+
+function readNavCfg(): NmCfg | null {
+  try {
+    const s = localStorage.getItem("pf_nav_config");
+    if (s) { const p = JSON.parse(s) as NmCfg; if (p?.items && p?.order) return p; }
+  } catch { /* ignore */ }
+  return null;
+}
+
+function resolveNavRole(user: AuthUser | null, superAdmin: boolean): string {
+  if (superAdmin) return "super_admin";
+  const scope = String(user?.scope_type || "").toLowerCase();
+  const biz   = String(user?.business_role || user?.role || "").toLowerCase();
+  if (scope === "platform") {
+    if (biz.includes("support") || biz.includes("destek")) return "platform_support";
+    if (biz.includes("finans") || biz.includes("finance")) return "finance_officer";
+    return "platform_operator";
+  }
+  if (scope === "supplier") return "supplier_user";
+  if (scope === "channel")  return "channel_agent";
+  if (biz.includes("admin")) return "tenant_admin";
+  return "tenant_member";
+}
+
+// ─── Props ────────────────────────────────────────────────────
 type AdminShellProps = {
   activeKey: string;
   onNavigate: (key: string) => void;
   user: AuthUser | null;
   children: ReactNode;
+  tabKeys?: string[];
 };
 
+// ─── Icon renderer ────────────────────────────────────────────
 function NavIcon({ name }: { name: string }) {
   const props = { size: 16, strokeWidth: 2.2 } as const;
   switch (name) {
@@ -56,6 +111,7 @@ function NavIcon({ name }: { name: string }) {
     case "price":     return <Tag {...props} />;
     case "megaphone": return <Megaphone {...props} />;
     case "wallet":    return <Wallet {...props} />;
+    case "link":      return <Link2 {...props} />;
     case "building":  return <Building {...props} />;
     case "shield":    return <Shield {...props} />;
     case "grid":      return <LayoutGrid {...props} />;
@@ -89,111 +145,412 @@ function userInitials(user: AuthUser | null): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-export default function AdminShell({ activeKey, onNavigate, user, children }: AdminShellProps) {
+// ─── Component ───────────────────────────────────────────────
+export default function AdminShell({ activeKey, onNavigate, user, children, tabKeys }: AdminShellProps) {
   const activeLabel = navLabelForKey(activeKey);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  // ── Mail state ──
+  const [mailUnreadCount, setMailUnreadCount] = useState(0);
+  const [mailAccounts, setMailAccounts] = useState<Array<{ id: number; email: string; unread_count: number }>>([]);
+  const [mailMenuOpen, setMailMenuOpen] = useState(false);
+  const [mailPopupOpen, setMailPopupOpen] = useState(false);
+  const [mailPopupAccountId, setMailPopupAccountId] = useState<number | null>(null);
+
+  // ── Topbar dropdowns ──
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifs, setNotifs] = useState(SHELL_NOTIFS_INIT);
+  const notifUnread = notifs.filter((n) => !n.read).length;
+
+  // ── Nav config (from NavManagerTab localStorage) ──
+  const [navCfg, setNavCfg] = useState<NmCfg | null>(readNavCfg);
+  // Groups open in accordion mode — all open by default
+  const [openGroups, setOpenGroups] = useState<Set<string>>(
+    () => new Set(ADMIN_NAV_GROUPS.map((g) => g.label))
+  );
+
+  const isSuperAdmin = isSuperAdminUser(user);
+  const roleLabel    = getUserDisplayRoleLabel(user) || (isSuperAdmin ? "Platform Süper Admin" : "Admin");
+  const navRole      = resolveNavRole(user, isSuperAdmin);
+  const layoutMode   = navCfg?.layoutMode ?? "single";
+  const menuStyle    = navCfg?.menuStyle  ?? "expanded";
+
+  // ── Listen for nav config saves ──
+  useEffect(() => {
+    function onCfgChange() { setNavCfg(readNavCfg()); }
+    window.addEventListener("navcfgchange", onCfgChange);
+    return () => window.removeEventListener("navcfgchange", onCfgChange);
+  }, []);
+
+  // ── Mail polling ──
+  useEffect(() => {
+    let mounted = true;
+    const loadMail = async () => {
+      try {
+        const accounts = await getMailCenterAccounts();
+        if (mounted) {
+          setMailAccounts(accounts.map((a) => ({ id: a.id, email: a.email, unread_count: a.unread_count || 0 })));
+          setMailUnreadCount(accounts.reduce((sum, a) => sum + (a.unread_count || 0), 0));
+        }
+      } catch { /* ignore */ }
+    };
+    loadMail();
+    const interval = setInterval(loadMail, 45_000);
+    return () => { mounted = false; clearInterval(interval); };
+  }, []);
+
+  // ── Handlers ──
+  function handleLogout() {
+    if (!confirm("Çıkış yapmak istediğinize emin misiniz?")) return;
+    logout();
+    notify.info("Çıkış yapıldı.");
+    navigate("/login", { replace: true });
+    setMenuOpen(false);
+  }
+  function handleProfileClick()  { navigate("/profile"); setMenuOpen(false); }
+  function handleSettingsClick() { onNavigate("settings"); setMenuOpen(false); }
+  function openMail(accountId?: number) {
+    setMailPopupAccountId(accountId ?? mailAccounts[0]?.id ?? null);
+    setMailPopupOpen(true);
+    setMailMenuOpen(false);
+  }
+  const toggleGroup = useCallback((label: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label); else next.add(label);
+      return next;
+    });
+  }, []);
+
+  // ── Sidebar visible groups ──
+  const visibleGroups = useMemo(() => {
+    if (!navCfg) {
+      return tabKeys
+        ? ADMIN_NAV_GROUPS
+            .map((g) => ({ ...g, items: g.items.filter((i) => tabKeys.includes(i.key)) }))
+            .filter((g) => g.items.length > 0)
+        : ADMIN_NAV_GROUPS;
+    }
+    return ADMIN_NAV_GROUPS.map((group) => {
+      let items = group.items.filter((item) => {
+        const ci = navCfg.items[item.key];
+        if (!ci || !ci.enabled || ci.placement === "hidden") return false;
+        if (ci.roles[navRole] === "hide") return false;
+        if (layoutMode === "top")  return false;
+        if (layoutMode === "dual") return ci.placement === "side" || ci.placement === "both";
+        return true;
+      });
+      if (tabKeys) items = items.filter((i) => tabKeys.includes(i.key));
+      items = [...items].sort((a, b) => {
+        const ai = navCfg.order.indexOf(a.key);
+        const bi = navCfg.order.indexOf(b.key);
+        if (ai === -1 && bi === -1) return 0;
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
+      return { ...group, items };
+    }).filter((g) => g.items.length > 0);
+  }, [navCfg, tabKeys, navRole, layoutMode]);
+
+  // ── Top-nav groups (dual / top modes) ──
+  const topGroups = useMemo<Array<{ label: string; items: (AdminNavItem & { locked: boolean })[] }>>(() => {
+    if (!navCfg || layoutMode === "single") return [];
+    const meta: Record<string, AdminNavItem & { group: string }> = {};
+    ADMIN_NAV_GROUPS.forEach((g) => g.items.forEach((i) => { meta[i.key] = { ...i, group: g.label }; }));
+    const visKeys = navCfg.order.filter((k) => {
+      const ci = navCfg.items[k];
+      if (!ci?.enabled || ci.placement === "hidden") return false;
+      if (ci.roles[navRole] === "hide") return false;
+      if (layoutMode === "top")  return true;
+      return ci.placement === "top" || ci.placement === "both";
+    });
+    const groups: Array<{ label: string; items: (AdminNavItem & { locked: boolean })[] }> = [];
+    const seen: Record<string, (typeof groups)[number]> = {};
+    visKeys.forEach((k) => {
+      const m = meta[k]; if (!m) return;
+      if (tabKeys && !tabKeys.includes(k)) return;
+      if (!seen[m.group]) { seen[m.group] = { label: m.group, items: [] }; groups.push(seen[m.group]); }
+      seen[m.group].items.push({ ...m, locked: navCfg.items[k].roles[navRole] === "lock" });
+    });
+    return groups;
+  }, [navCfg, tabKeys, navRole, layoutMode]);
+
+  // ─── RENDER ──────────────────────────────────────────────────
+  const showTopNav  = layoutMode !== "single" && topGroups.length > 0;
+  const showSidebar = layoutMode !== "top";
 
   return (
-    <div className="as-shell">
-      {/* ── SIDEBAR ── */}
-      <aside className="as-sidebar">
-        <div className="as-brand">
-          <div className="as-brand-row">
-            <PublicBrandLogo height={26} maxWidth={130} invert />
-            <span className="as-brand-tag">SÜPER ADMİN</span>
-          </div>
-          <div className="as-tenant">
-            <div className="as-tenant-avatar">BA</div>
-            <div>
-              <div className="as-tenant-name">Buyer Asistans</div>
-              <div className="as-tenant-role">Platform Süper Admin</div>
-            </div>
-          </div>
-        </div>
+    <>
+    <div className={`as-wrap${layoutMode !== "single" ? ` as-wrap--${layoutMode}` : ""}`}>
 
-        <nav aria-label="Yönetim menüsü">
-          {ADMIN_NAV_GROUPS.map((group) => (
-            <div key={group.label} className="as-nav-group">
-              <h4>{group.label}</h4>
-              {group.items.map((item) => {
-                const isActive = item.key === activeKey;
-                return (
+      {/* ── TOP NAV (dual / top modes) ── */}
+      {showTopNav && (
+        <nav className="as-topnav" aria-label="Üst navigasyon">
+          <div className="as-topnav__brand">BA</div>
+          {topGroups.map((g) => (
+            <div key={g.label} className="as-topnav__group">
+              <button type="button" className="as-topnav__group-hd">
+                {g.label} <ChevronDown size={11} />
+              </button>
+              <div className="as-topnav__dropdown">
+                {g.items.map((item) => (
                   <button
                     key={item.key}
                     type="button"
-                    className={`as-nav-item${isActive ? " as-nav-item--active" : ""}`}
-                    onClick={() => onNavigate(item.key)}
-                    aria-current={isActive ? "page" : undefined}
+                    className={`as-topnav__item${item.key === activeKey ? " as-topnav__item--active" : ""}${item.locked ? " as-topnav__item--locked" : ""}`}
+                    onClick={() => !item.locked && onNavigate(item.key)}
+                    disabled={item.locked}
                     title={item.label}
                   >
-                    <span className="as-nav-ico">
-                      <NavIcon name={item.icon} />
-                    </span>
-                    <span className="as-nav-label">{item.label}</span>
-                    {item.badge && (
-                      <span className="as-nav-pill">{item.badge}</span>
-                    )}
-                    {item.alert && !item.badge && (
-                      <span className="as-nav-pill as-nav-pill--alert">!</span>
-                    )}
-                    {item.count != null && (
-                      <span className="as-nav-pill as-nav-pill--muted">{item.count}</span>
-                    )}
+                    <span className="as-topnav__ico"><NavIcon name={item.icon} /></span>
+                    <span>{item.label}</span>
+                    {item.locked && <span className="as-topnav__lock">🔒</span>}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
           ))}
         </nav>
+      )}
 
-        <div className="as-sidebar-footer">
-          <span>buyerasistans.com.tr</span>
-          <span className="as-health-dot">● Sağlıklı</span>
-        </div>
-      </aside>
+      {/* ── SHELL ── */}
+      <div className={`as-shell${layoutMode === "top" ? " as-shell--nav-top" : ""}`}>
 
-      {/* ── MAIN ── */}
-      <div className="as-main">
-        <header className="as-topbar">
-          <nav className="as-crumbs" aria-label="Konum">
-            <span>Yönetim</span>
-            <span className="as-crumb-sep" aria-hidden="true">›</span>
-            <b>{activeLabel}</b>
-          </nav>
-
-          <div className="as-search">
-            <Search size={14} aria-hidden="true" />
-            <input
-              type="search"
-              placeholder="Ara..."
-              aria-label="Panel içi arama"
-            />
-            <kbd aria-hidden="true">⌘K</kbd>
-          </div>
-
-          <div className="as-top-actions">
-            <span className="as-lang-pill" aria-label="Dil: Türkçe">🇹🇷 TR</span>
-            <button type="button" className="as-icon-btn" aria-label="Bildirimler">
-              <Bell size={16} />
-            </button>
-            <button type="button" className="as-icon-btn" aria-label="Mesajlar">
-              <Mail size={16} />
-            </button>
-            <div className="as-user-chip" aria-label={`Kullanıcı: ${user?.full_name ?? user?.email ?? "Süper Admin"}`}>
-              <div className="as-user-av" aria-hidden="true">
-                {userInitials(user)}
-              </div>
-              <div className="as-user-meta">
-                <b>{user?.full_name ?? "Süper Admin"}</b>
-                <span>{user?.email ?? ""}</span>
+        {/* ── SIDEBAR ── */}
+        {showSidebar && (
+        <aside className="as-sidebar">
+          <div className="as-brand">
+            <div className="as-brand-row">
+              <PublicBrandLogo height={26} maxWidth={130} invert />
+              {isSuperAdmin && <span className="as-brand-tag">SÜPER ADMİN</span>}
+            </div>
+            <div className="as-tenant">
+              <div className="as-tenant-avatar">{userInitials(user)}</div>
+              <div>
+                <div className="as-tenant-name">{user?.organization_name || user?.platform_name || "Buyer Asistans"}</div>
+                <div className="as-tenant-role">{roleLabel}</div>
               </div>
             </div>
           </div>
-        </header>
 
-        <div className="as-page">
-          {children}
+          <nav aria-label="Yönetim menüsü">
+            {visibleGroups.map((group) => {
+              const isOpen   = menuStyle !== "dropdown" || openGroups.has(group.label);
+              const isAccord = menuStyle === "dropdown";
+              return (
+                <div key={group.label} className={`as-nav-group${isAccord && !isOpen ? " as-nav-group--closed" : ""}`}>
+                  {isAccord ? (
+                    <button
+                      type="button"
+                      className="as-nav-group__hd"
+                      onClick={() => toggleGroup(group.label)}
+                    >
+                      <span>{group.label}</span>
+                      <span className="as-nav-group__chev">
+                        {isOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                      </span>
+                    </button>
+                  ) : (
+                    <h4>{group.label}</h4>
+                  )}
+
+                  {isOpen && group.items.map((item) => {
+                    const isActive = item.key === activeKey;
+                    const locked   = navCfg?.items[item.key]?.roles[navRole] === "lock";
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className={`as-nav-item${isActive ? " as-nav-item--active" : ""}${locked ? " as-nav-item--locked" : ""}`}
+                        onClick={() => !locked && onNavigate(item.key)}
+                        aria-current={isActive ? "page" : undefined}
+                        title={locked ? `${item.label} (kilitli)` : item.label}
+                        disabled={locked}
+                      >
+                        <span className="as-nav-ico"><NavIcon name={item.icon} /></span>
+                        <span className="as-nav-label">{item.label}</span>
+                        {locked && <span className="as-nav-pill as-nav-pill--muted">🔒</span>}
+                        {!locked && item.badge && <span className="as-nav-pill">{item.badge}</span>}
+                        {!locked && item.alert && !item.badge && <span className="as-nav-pill as-nav-pill--alert">!</span>}
+                        {!locked && item.count != null && <span className="as-nav-pill as-nav-pill--muted">{item.count}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="as-sidebar-footer">
+            <span>buyerasistans.com.tr</span>
+            <span className="as-health-dot">● Sağlıklı</span>
+          </div>
+        </aside>
+        )}
+
+        {/* ── MAIN ── */}
+        <div className="as-main">
+          <header className="as-topbar">
+            <nav className="as-crumbs" aria-label="Konum">
+              <span>Yönetim</span>
+              <span className="as-crumb-sep" aria-hidden="true">›</span>
+              <b>{activeLabel}</b>
+            </nav>
+
+            <div className="as-search">
+              <Search size={14} aria-hidden="true" />
+              <input
+                type="search"
+                placeholder="Ara..."
+                aria-label="Panel içi arama"
+              />
+              <kbd aria-hidden="true">⌘K</kbd>
+            </div>
+
+            <div className="as-top-actions">
+              <LanguageSwitcher compact />
+
+              <div className="as-action-group">
+                <button
+                  type="button"
+                  className={`as-icon-btn${notifUnread > 0 ? " as-icon-btn--unread" : ""}`}
+                  aria-label={`Bildirimler${notifUnread > 0 ? `, ${notifUnread} okunmamış` : ""}`}
+                  onClick={() => setNotifOpen((c) => !c)}
+                >
+                  <Bell size={16} />
+                  {notifUnread > 0 && <span className="as-notif-dot" />}
+                </button>
+                {notifOpen && (
+                  <div className="as-notif-popover">
+                    <div className="as-notif-popover__hd">
+                      <b>Bildirimler</b>
+                      {notifUnread > 0 && (
+                        <button
+                          type="button"
+                          className="as-notif-popover__mark"
+                          onClick={() => setNotifs((n) => n.map((x) => ({ ...x, read: true })))}
+                        >
+                          Tümünü okundu işaretle
+                        </button>
+                      )}
+                    </div>
+                    <div className="as-notif-list">
+                      {notifs.map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          className={`as-notif-item${n.read ? "" : " as-notif-item--unread"}`}
+                          onClick={() => setNotifs((arr) => arr.map((x) => x.id === n.id ? { ...x, read: true } : x))}
+                        >
+                          <span className="as-notif-item__ico" style={{ "--nc": n.color } as React.CSSProperties}>
+                            <NavIcon name={n.icon} />
+                          </span>
+                          <div className="as-notif-item__body">
+                            <b>{n.title}</b>
+                            <span>{n.desc}</span>
+                          </div>
+                          <span className="as-notif-item__time">{n.time}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="as-action-group">
+                <button
+                  type="button"
+                  onClick={() => openMail()}
+                  className={`as-mail-btn${mailUnreadCount > 0 ? " as-mail-btn--unread" : ""}`}
+                  aria-label={`Mesajlar${mailUnreadCount > 0 ? `, ${mailUnreadCount} okunmamış` : ""}`}
+                >
+                  <Mail size={15} />
+                  <span className="as-mail-btn-label">Mail</span>
+                  {mailUnreadCount > 0 && <span className="as-mail-badge">{mailUnreadCount}</span>}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMailMenuOpen((c) => !c)}
+                  aria-label="Mail hesaplarını seç"
+                  className={`as-icon-btn as-mail-chevron${mailUnreadCount > 0 ? " as-icon-btn--unread" : ""}`}
+                >
+                  <ChevronDown size={14} />
+                </button>
+                {mailMenuOpen && (
+                  <div className="as-mail-popover">
+                    {mailAccounts.length === 0 ? (
+                      <div className="as-mail-popover-empty">Açılabilir mailbox bulunamadı.</div>
+                    ) : (
+                      mailAccounts.map((account) => (
+                        <button
+                          key={account.id}
+                          type="button"
+                          onClick={() => openMail(account.id)}
+                          className="as-mail-option"
+                        >
+                          <span className="as-mail-option-email">{account.email}</span>
+                          <span className={`as-mail-option-count${account.unread_count > 0 ? " as-mail-option-count--unread" : ""}`}>
+                            {account.unread_count}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="as-action-group">
+                <button
+                  type="button"
+                  className="as-user-chip"
+                  onClick={() => setMenuOpen((c) => !c)}
+                  aria-label={`Kullanıcı: ${user?.full_name ?? user?.email ?? "Süper Admin"}`}
+                >
+                  <div className="as-user-av" aria-hidden="true">{userInitials(user)}</div>
+                  <div className="as-user-meta">
+                    <b>{user?.full_name ?? "Süper Admin"}</b>
+                    <span>{user?.email ?? ""}</span>
+                  </div>
+                </button>
+                {menuOpen && (
+                  <div className="as-user-popover">
+                    <div className="as-user-popover__head">
+                      <div className="as-user-av as-user-av--lg" aria-hidden="true">{userInitials(user)}</div>
+                      <div>
+                        <b>{user?.full_name ?? "Süper Admin"}</b>
+                        <span>{user?.email ?? ""}</span>
+                        <em>{roleLabel}</em>
+                      </div>
+                    </div>
+                    <button type="button" onClick={handleProfileClick} className="as-user-popover-btn">
+                      👤 Profilim
+                    </button>
+                    <button type="button" onClick={handleSettingsClick} className="as-user-popover-btn">
+                      ⚙️ Hesap Ayarları
+                    </button>
+                    <div className="as-user-popover__sep" />
+                    <button type="button" onClick={handleLogout} className="as-user-popover-btn as-user-popover-btn--logout">
+                      🚪 Çıkış Yap
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <div className="as-page">
+            {children}
+          </div>
         </div>
       </div>
     </div>
+    {menuOpen     && <div onClick={() => setMenuOpen(false)}     className="as-overlay" />}
+    {mailMenuOpen && <div onClick={() => setMailMenuOpen(false)} className="as-overlay" />}
+    {notifOpen    && <div onClick={() => setNotifOpen(false)}    className="as-overlay" />}
+    <MailCenterPopup isOpen={mailPopupOpen} initialAccountId={mailPopupAccountId} onClose={() => setMailPopupOpen(false)} />
+    </>
   );
 }

@@ -26,23 +26,27 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "AI & Keşif",
     items: [
-      { key: "discovery_lab_operations", label: "AI Keşif Lab", icon: "lab", badge: "Beta" },
+      { key: "ai_lab", label: "AI Keşif Lab", icon: "lab", badge: "Beta" },
+      // TODO(data): count'ı backend'den al
+      { key: "discovery_lab_operations", label: "Discovery Lab Operasyonları", icon: "studio", count: 9 },
     ],
   },
   {
     label: "Operasyon",
     items: [
-      { key: "platform_operations", label: "Platform Operasyonları", icon: "cog" },
-      { key: "onboarding_studio", label: "Kurulum Stüdyosu", icon: "studio", alert: true },
-      { key: "tenant_governance", label: "Stratejik Partner Yönetimi", icon: "partner" },
-      { key: "platform_suppliers", label: "Platform Tedarikçi Havuzu", icon: "supplier" },
+      // TODO(data): count'ları backend'den al
+      { key: "platform_operations", label: "Platform Operasyonları", icon: "cog", count: 12 },
+      { key: "onboarding_studio", label: "Kurulum Stüdyosu", icon: "studio", count: 7, alert: true },
+      { key: "tenant_governance", label: "Stratejik Partner Yönetimi", icon: "partner", count: 42 },
+      { key: "platform_suppliers", label: "Platform Tedarikçi Havuzu", icon: "supplier", count: 318 },
       { key: "deployment", label: "Yayınlama", icon: "rocket" },
     ],
   },
   {
-    label: "Kariyer & Yetenek",
+    label: "Kariyer",
     items: [
       { key: "kariyer_yonetimi", label: "Kariyer ve İş Piyasası", icon: "briefcase" },
+      { key: "talent_ecosystem", label: "Yetenek Ekosistemi", icon: "users" },
     ],
   },
   {
@@ -51,11 +55,13 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { key: "packages", label: "Paket ve Kullanım", icon: "package" },
       { key: "public_pricing", label: "Genel Fiyatlandırma", icon: "price" },
       { key: "campaigns", label: "Kampanyalar & Landing", icon: "megaphone" },
-      { key: "commission_admin", label: "Komisyon Yönetimi", icon: "wallet" },
+      // TODO(data): count'ları backend'den al
+      { key: "channel_partners", label: "İş Ortakları (Kanal)", icon: "link", count: 3 },
+      { key: "commission_admin", label: "Komisyon Yönetimi", icon: "wallet", count: 18 },
     ],
   },
   {
-    label: "Yönetişim",
+    label: "Yönetim",
     items: [
       { key: "companies", label: "Firmalar", icon: "building" },
       { key: "roles", label: "Roller & Yetkiler", icon: "shield" },
@@ -69,7 +75,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Sistem",
     items: [
       { key: "reports", label: "Raporlar", icon: "report" },
-      { key: "support_tickets", label: "Destek Talepleri", icon: "help" },
+      // TODO(data): count'ı backend'den al
+      { key: "support_tickets", label: "Destek Talepleri", icon: "help", count: 3 },
+      { key: "nav_management", label: "Navigasyon Yönetimi", icon: "sliders" },
       { key: "panel_designer", label: "Panel Tasarımı", icon: "palette" },
       { key: "settings", label: "Ayarlar", icon: "sliders" },
     ],
