@@ -10,6 +10,7 @@ import { isPlatformStaffUser } from "../auth/permissions";
 import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
 import "../styles/modal.css";
+import "./ProjectDetailPage.css";
 import type { Project, ProjectFile } from "../types/project";
 import type { Quote } from "../types/quote";
 import type { Company } from "../services/admin.service";
@@ -74,7 +75,6 @@ export default function ProjectDetailPage() {
   const [editData, setEditData] = useState<Partial<Project>>({});
   const [fileActionError, setFileActionError] = useState<string | null>(null);
 
-  // Proje ve dosyaları yükle
   const loadProjectData = useCallback(async () => {
     try {
       setLoading(true);
@@ -141,7 +141,6 @@ export default function ProjectDetailPage() {
         });
         setSupplierOffersBySupplierId(offersMap);
 
-        // Eğer Franchise ise teklifleri yükle
         if (found.project_type === "franchise") {
           const approvedQuotes = projectQuotes.filter(
             (q: Quote) => q.project_id === projectId && q.status === "APPROVED"
@@ -232,8 +231,8 @@ export default function ProjectDetailPage() {
     }
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: "32px" }}>Yükleniyor...</div>;
-  if (!project) return <div style={{ textAlign: "center", padding: "32px", color: "red" }}>Proje bulunamadı</div>;
+  if (loading) return <div className="pdp-centered">Yükleniyor...</div>;
+  if (!project) return <div className="pdp-centered pdp-centered--error">Proje bulunamadı</div>;
 
   const isImage = (file: ProjectFile) =>
     ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(file.file_type);
@@ -255,12 +254,7 @@ export default function ProjectDetailPage() {
         <img
           src={`/api/v1/files/${file.id}/thumbnail`}
           alt={file.original_filename}
-          style={{
-            width: "60px",
-            height: "60px",
-            objectFit: "cover",
-            borderRadius: "4px",
-          }}
+          className="pdp-thumb-img"
           onError={(e) => {
             e.currentTarget.style.display = "none";
           }}
@@ -268,18 +262,7 @@ export default function ProjectDetailPage() {
       );
     }
     return (
-      <div
-        style={{
-          width: "60px",
-          height: "60px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "4px",
-          fontSize: "32px",
-        }}
-      >
+      <div className="pdp-file-icon">
         {getFileIcon(file)}
       </div>
     );
@@ -322,13 +305,11 @@ export default function ProjectDetailPage() {
       });
 
       if (!response.ok) {
-        // Eğer hatarsa indir
         handleDownload(file);
         return;
       }
     } catch (error) {
       console.error("Dosya açma hatası:", error);
-      // Fallback: indir
       handleDownload(file);
     }
   };
@@ -338,120 +319,77 @@ export default function ProjectDetailPage() {
   };
 
   return (
-    <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
+    <div className="pdp-page">
       {fileActionError ? (
-        <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 12, border: "1px solid #fecaca", background: "#fff5f5", color: "#991b1b", fontWeight: 600, display: "grid", gap: 10 }}>
+        <div className="pdp-file-error">
           <div>{fileActionError}</div>
           {hasSubscriptionUpgradeGuidance(fileActionError) ? (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <a href={getSubscriptionUpgradeHref(fileActionError)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+            <div className="pdp-cta-row">
+              <a href={getSubscriptionUpgradeHref(fileActionError)} className="pdp-cta-link">
                 {SUBSCRIPTION_UPGRADE_CTA_LABEL}
               </a>
-              <a href={getSubscriptionAddonHref(fileActionError)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+              <a href={getSubscriptionAddonHref(fileActionError)} className="pdp-cta-link pdp-cta-link--dark">
                 {SUBSCRIPTION_ADDON_CTA_LABEL}
               </a>
             </div>
           ) : null}
         </div>
       ) : null}
+
       {/* Header - Back Button */}
       <button
+        type="button"
         onClick={() => navigate("/admin?tab=projects")}
-        style={{
-          marginBottom: "20px",
-          padding: "8px 16px",
-          backgroundColor: "#f0f0f0",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "bold",
-        }}
+        className="pdp-back-btn"
       >
         ← Geri Dön
       </button>
 
       {/* Proje Header Card */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "24px",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
-          marginBottom: "24px",
-        }}
-      >
+      <div className="pdp-card pdp-card--mb">
         {readOnly && (
-          <div style={{ marginBottom: "16px", padding: "12px", borderRadius: "12px", background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa" }}>
+          <div className="pdp-readonly-banner">
             Bu proje sayfasi platform personeli icin salt okunur durumdadir.
           </div>
         )}
-        {/* Title - Firma Adı */}
-        <h1 style={{ fontSize: "28px", fontWeight: "bold", margin: "0 0 16px 0", color: "#333" }}>
+
+        <h1 className="pdp-company-title">
           {getCompanyName(project.company_id)}
         </h1>
 
         {/* Info Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "16px",
-            marginBottom: "16px",
-          }}
-        >
-          {/* Proje Adı */}
+        <div className="pdp-info-grid">
           <div>
-            <p style={{ fontSize: "12px", color: "#999", fontWeight: "bold", margin: "0 0 4px 0", textTransform: "uppercase" }}>
-              Proje Adı
-            </p>
-            <p style={{ fontSize: "14px", fontWeight: "600", color: "#333", margin: "0" }}>
-              {project.name}
-            </p>
+            <p className="pdp-info-label">Proje Adı</p>
+            <p className="pdp-info-value">{project.name}</p>
           </div>
 
-          {/* Proje Tipi */}
           <div>
-            <p style={{ fontSize: "12px", color: "#999", fontWeight: "bold", margin: "0 0 4px 0", textTransform: "uppercase" }}>
-              Tür
-            </p>
-            <span
-              style={{
-                display: "inline-block",
-                fontSize: "12px",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                backgroundColor: project.project_type === "franchise" ? "#f3e5f5" : "#e3f2fd",
-                color: project.project_type === "franchise" ? "#7b1fa2" : "#1976d2",
-                fontWeight: "bold",
-              }}
-            >
+            <p className="pdp-info-label">Tür</p>
+            <span className={project.project_type === "franchise" ? "pdp-type-badge pdp-type-badge--franchise" : "pdp-type-badge pdp-type-badge--merkez"}>
               {project.project_type === "franchise" ? "🍕 Franchise" : "🏢 Merkez"}
             </span>
           </div>
 
-          {/* Kod */}
           <div>
-            <p style={{ fontSize: "12px", color: "#999", fontWeight: "bold", margin: "0 0 4px 0", textTransform: "uppercase" }}>
-              Kod
-            </p>
-            <p style={{ fontSize: "14px", fontWeight: "600", color: "#333", margin: "0" }}>
-              {project.code}
-            </p>
+            <p className="pdp-info-label">Kod</p>
+            <p className="pdp-info-value">{project.code}</p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: "flex", gap: "10px", borderTop: "1px solid #e0e0e0", paddingTop: "16px" }}>
+        <div className="pdp-action-row">
           {!readOnly && (
             <>
               <button
+                type="button"
                 onClick={() => setShowEditModal(true)}
                 className="ms-btn ms-btn--primary ms-btn--auto-flex"
               >
                 ✏️ Düzenle
               </button>
               <button
+                type="button"
                 onClick={handleDelete}
                 className="ms-btn ms-btn--danger ms-btn--auto-flex"
               >
@@ -460,40 +398,22 @@ export default function ProjectDetailPage() {
             </>
           )}
           <button
+            type="button"
             onClick={() => {
               const companyName = getCompanyName(project.company_id);
               const message = `🏢 ${companyName}\n📌 ${project.name}\n👤 ${project.manager_name || "Belirtilmemiş"}\n ${project.manager_phone || "Tel yok"}\n📮 ${project.address || "Adres belirtilmemiş"}`;
               const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
               window.open(url, "_blank");
             }}
-            style={{
-              padding: "10px 16px",
-              backgroundColor: "#25D366",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              fontSize: "14px",
-              flex: "0 1 auto",
-            }}
+            className="pdp-btn-whatsapp"
           >
             💬 WhatsApp Paylaş
           </button>
           {!readOnly && (
             <button
+              type="button"
               onClick={() => setShowSuppliersModal(true)}
-              style={{
-                padding: "10px 16px",
-                backgroundColor: "#8b5cf6",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "bold",
-                fontSize: "14px",
-                flex: "0 1 auto",
-              }}
+              className="pdp-btn-suppliers"
             >
               📧 Projeye Tedarikçi Ekle
             </button>
@@ -502,77 +422,46 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Satın Alma Sorumluları */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "16px",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
-          marginBottom: "24px",
-        }}
-      >
-        <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-          👥 Satın Alma Sorumluları
-        </h3>
+      <div className="pdp-card pdp-card--mb">
+        <h3 className="pdp-section-h3">👥 Satın Alma Sorumluları</h3>
         {project.created_by_id ? (
-          <div style={{ marginBottom: "12px", fontSize: "12px", color: "#64748b" }}>
+          <div className="pdp-creator-note">
             Projeyi olusturan kullanici sistem tarafinda otomatik eklenir ve "Proje olusturan" etiketi ile gosterilir.
           </div>
         ) : null}
 
         {project.personnel && project.personnel.length > 0 ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          <div className="pdp-pill-row">
             {project.personnel.map((member) => (
-              <div
-                key={member.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "6px 10px",
-                  borderRadius: "999px",
-                  backgroundColor: "#eef2ff",
-                  color: "#3730a3",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                }}
-              >
+              <div key={member.id} className="pdp-pill">
                 <span>{member.full_name}</span>
                 {member.role ? (
-                  <span style={{ padding: "2px 8px", borderRadius: "999px", backgroundColor: "#ede9fe", color: "#6d28d9", fontSize: "11px", fontWeight: 700 }}>
-                    {member.role}
-                  </span>
+                  <span className="pdp-pill-role">{member.role}</span>
                 ) : null}
                 {project.created_by_id === member.id ? (
-                  <span style={{ padding: "2px 8px", borderRadius: "999px", backgroundColor: "#dbeafe", color: "#1d4ed8", fontSize: "11px", fontWeight: 700 }}>
-                    Proje olusturan
-                  </span>
+                  <span className="pdp-pill-creator">Proje olusturan</span>
                 ) : null}
-                {!readOnly && <button
-                  onClick={() => handleRemoveResponsible(member.id)}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    color: "#b91c1c",
-                    cursor: "pointer",
-                    fontWeight: 700,
-                  }}
-                  title="Projeden çıkar"
-                >
-                  ×
-                </button>}
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveResponsible(member.id)}
+                    className="pdp-pill-remove"
+                    title="Projeden çıkar"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
+          <p className="pdp-empty-text">
             Bu projeye henüz satın alma sorumlusu atanmadı.
           </p>
         )}
 
-        {/* Personnel assignment select for tenant admin */}
         {!readOnly && (
-          <div style={{ marginTop: "12px" }}>
+          <div className="pdp-assign-wrap">
             <select
               aria-label="Sorumlu ekle"
               onChange={async (e) => {
@@ -604,116 +493,61 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Proje Bilgileri - Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "16px",
-          marginBottom: "24px",
-        }}
-      >
+      <div className="pdp-two-col-grid">
         {/* Card 1: Genel Bilgiler */}
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "16px",
-            borderRadius: "8px",
-            border: "1px solid #e0e0e0",
-          }}
-        >
-          <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-            📊 Genel Bilgiler
-          </h3>
+        <div className="pdp-card">
+          <h3 className="pdp-section-h3">📊 Genel Bilgiler</h3>
           {project.budget && (
-            <p style={{ marginBottom: "8px", fontSize: "13px" }}>
+            <p className="pdp-info-p">
               <strong>Bütçe:</strong> {new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(project.budget)}
             </p>
           )}
           {project.description && (
-            <p style={{ marginBottom: "8px", fontSize: "13px" }}>
+            <p className="pdp-info-p">
               <strong>Açıklama:</strong> {project.description}
             </p>
           )}
-          <p style={{ marginBottom: "0", fontSize: "13px" }}>
+          <p className="pdp-info-p pdp-info-p--last">
             <strong>Aktif:</strong> {project.is_active ? "✅ Evet" : "❌ Hayır"}
           </p>
         </div>
 
-        {/* Card 2: Yetkilisi Bilgileri */}
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "16px",
-            borderRadius: "8px",
-            border: "1px solid #e0e0e0",
-          }}
-        >
-          <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-            👤 Yetkili Bilgileri
-          </h3>
+        {/* Card 2: Yetkili Bilgileri */}
+        <div className="pdp-card">
+          <h3 className="pdp-section-h3">👤 Yetkili Bilgileri</h3>
           {(project.manager_name || project.manager_phone) ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div className="pdp-manager-info">
               {project.manager_name && (
-                <p style={{ marginBottom: "0", fontSize: "13px" }}>
+                <p className="pdp-info-p">
                   <strong>Adı Soyadı:</strong> {project.manager_name}
                 </p>
               )}
               {project.manager_phone && (
-                <p style={{ marginBottom: "0", fontSize: "13px", display: "flex", gap: "8px", alignItems: "center" }}>
+                <p className="pdp-phone-p">
                   <strong>Telefon:</strong> {project.manager_phone}
-                  <a
-                    href={`tel:${project.manager_phone}`}
-                    style={{
-                      padding: "4px 12px",
-                      backgroundColor: "#4caf50",
-                      color: "white",
-                      borderRadius: "4px",
-                      textDecoration: "none",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <a href={`tel:${project.manager_phone}`} className="pdp-ara-link">
                     📞 Ara
                   </a>
                 </p>
               )}
             </div>
           ) : (
-            <p style={{ fontSize: "13px", color: "#999" }}>Yetkili bilgisi kayıtlı değil</p>
+            <p className="pdp-no-info">Yetkili bilgisi kayıtlı değil</p>
           )}
         </div>
       </div>
 
       {/* Adres */}
       {project.address && (
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "16px",
-            borderRadius: "8px",
-            border: "1px solid #e0e0e0",
-            marginBottom: "24px",
-          }}
-        >
-          <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-            📍 Adres
-          </h3>
-          <p style={{ marginBottom: "12px", fontSize: "13px" }}>{project.address}</p>
+        <div className="pdp-card pdp-card--mb">
+          <h3 className="pdp-section-h3">📍 Adres</h3>
+          <p className="pdp-info-p">{project.address}</p>
           {project.latitude && project.longitude && (
-            <div
-              style={{
-                width: "100%",
-                height: "300px",
-                borderRadius: "8px",
-                overflow: "hidden",
-                border: "1px solid #ddd",
-              }}
-            >
+            <div className="pdp-map-wrapper">
               <iframe
                 width="100%"
                 height="100%"
-                style={{ border: 0 }}
+                className="pdp-map-iframe"
                 loading="lazy"
                 allowFullScreen
                 src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBaXW3jHmQX3Q6K5Z9Y0L2M0N1O2P3Q4R&q=${encodeURIComponent(project.address)}`}
@@ -721,35 +555,35 @@ export default function ProjectDetailPage() {
             </div>
           )}
 
-          <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #e5e7eb" }}>
-            <h4 style={{ margin: "0 0 8px 0", fontSize: "13px", color: "#374151" }}>Projeye Eklenen Tedarikçiler</h4>
+          <div className="pdp-suppliers-sub">
+            <h4 className="pdp-suppliers-h4">Projeye Eklenen Tedarikçiler</h4>
             {projectSuppliers.length === 0 ? (
-              <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>Henüz tedarikçi eklenmemiş.</p>
+              <p className="pdp-empty-text pdp-empty-text--no-margin">Henüz tedarikçi eklenmemiş.</p>
             ) : (
-              <div style={{ display: "grid", gap: "10px" }}>
+              <div className="pdp-suppliers-grid">
                 {projectSuppliers.map((ps) => (
-                  <div key={ps.id} style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px", background: ps.is_active ? "#f8fffb" : "#f9fafb" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
-                      <span style={{ fontSize: "13px", fontWeight: 700, color: "#111827" }}>{ps.supplier_name}</span>
-                      <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "999px", background: ps.is_active ? "#dcfce7" : "#e5e7eb", color: "#065f46" }}>
+                  <div key={ps.id} className={`pdp-supplier-card${ps.is_active ? " pdp-supplier-card--active" : ""}`}>
+                    <div className="pdp-supplier-header-row">
+                      <span className="pdp-supplier-name">{ps.supplier_name}</span>
+                      <span className={ps.is_active ? "pdp-status-badge pdp-status-badge--active" : "pdp-status-badge"}>
                         {ps.is_active ? "Aktif" : "Pasif"}
                       </span>
                     </div>
 
-                    <div style={{ marginTop: "8px", display: "grid", gap: "6px" }}>
+                    <div className="pdp-offers-grid">
                       {(supplierOffersBySupplierId[ps.supplier_id] || []).length === 0 ? (
-                        <span style={{ fontSize: "12px", color: "#6b7280" }}>Henüz gelen teklif yok.</span>
+                        <span className="pdp-empty-text">Henüz gelen teklif yok.</span>
                       ) : (
                         (supplierOffersBySupplierId[ps.supplier_id] || []).map((offer) => (
-                          <div key={`${ps.supplier_id}-${offer.quoteId}-${offer.supplierQuoteId}`} style={{ border: "1px solid #e5e7eb", borderRadius: "6px", padding: "8px", background: "#fff" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: "12px", fontWeight: 700, color: "#1f2937" }}>{offer.quoteTitle}</div>
-                                <div style={{ fontSize: "12px", color: "#475569", marginTop: "2px" }}>
+                          <div key={`${ps.supplier_id}-${offer.quoteId}-${offer.supplierQuoteId}`} className="pdp-offer-card">
+                            <div className="pdp-offer-header-row">
+                              <div className="pdp-offer-content">
+                                <div className="pdp-offer-title">{offer.quoteTitle}</div>
+                                <div className="pdp-offer-amount">
                                   {offer.revisionNumber > 0 && offer.initialAmount > 0 ? (
                                     <>
-                                      <span style={{ color: "#6b7280" }}>İlk Teklif: </span>
-                                      <span style={{ textDecoration: "line-through", color: "#9ca3af" }}>
+                                      <span className="pdp-offer-amount__label">İlk Teklif: </span>
+                                      <span className="pdp-offer-amount__strikethrough">
                                         {formatMoney(offer.initialAmount, offer.currency)}
                                       </span>
                                     </>
@@ -761,38 +595,18 @@ export default function ProjectDetailPage() {
                                   )}
                                 </div>
                                 {offer.revisionNumber > 0 && offer.initialAmount > 0 && (
-                                  <div style={{ marginTop: "4px" }}>
-                                    <div style={{ fontSize: "12px", color: "#1f2937", fontWeight: 600 }}>
+                                  <div className="pdp-offer-revision">
+                                    <div className="pdp-offer-revision__label">
                                       Revize Teklif {offer.revisionNumber}: {formatMoney(Number(offer.totalAmount || 0), offer.currency)}
                                     </div>
                                     {offer.totalAmount < offer.initialAmount && (
-                                      <div style={{
-                                        fontSize: "11px",
-                                        fontWeight: 700,
-                                        color: "#dc2626",
-                                        background: "#fef2f2",
-                                        border: "1px solid #fecaca",
-                                        borderRadius: "4px",
-                                        padding: "3px 7px",
-                                        marginTop: "3px",
-                                        display: "inline-block",
-                                      }}>
+                                      <div className="pdp-discount-badge">
                                         ▼ İndirim: {formatMoney((offer.initialAmount - offer.totalAmount), offer.currency)}
                                         {" "}(%{((offer.initialAmount - offer.totalAmount) / offer.initialAmount * 100).toFixed(1)})
                                       </div>
                                     )}
                                     {offer.totalAmount > offer.initialAmount && (
-                                      <div style={{
-                                        fontSize: "11px",
-                                        fontWeight: 700,
-                                        color: "#b45309",
-                                        background: "#fffbeb",
-                                        border: "1px solid #fde68a",
-                                        borderRadius: "4px",
-                                        padding: "3px 7px",
-                                        marginTop: "3px",
-                                        display: "inline-block",
-                                      }}>
+                                      <div className="pdp-increase-badge">
                                         ▲ Artış: {formatMoney((offer.totalAmount - offer.initialAmount), offer.currency)}
                                         {" "}(%{((offer.totalAmount - offer.initialAmount) / offer.initialAmount * 100).toFixed(1)})
                                       </div>
@@ -800,25 +614,25 @@ export default function ProjectDetailPage() {
                                   </div>
                                 )}
                               </div>
-                              <span style={{ fontSize: "11px", background: "#f3f4f6", borderRadius: "999px", padding: "2px 8px", color: "#374151", whiteSpace: "nowrap" }}>
-                                {offer.status}
-                              </span>
+                              <span className="pdp-offer-status">{offer.status}</span>
                             </div>
-                            <div style={{ marginTop: "6px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                              <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                            <div className="pdp-offer-footer">
+                              <span className="pdp-offer-date">
                                 {offer.submittedAt ? new Date(offer.submittedAt).toLocaleString("tr-TR") : "Tarih bilgisi yok"}
                               </span>
-                              <div style={{ display: "flex", gap: "6px" }}>
+                              <div className="pdp-offer-actions">
                                 <button
+                                  type="button"
                                   onClick={() => navigate(`/quotes/${offer.quoteId}?supplierQuoteId=${offer.supplierQuoteId}`)}
-                                  style={{ padding: "5px 9px", borderRadius: "4px", border: "none", background: "#2563eb", color: "#fff", fontSize: "11px", cursor: "pointer" }}
+                                  className="pdp-btn-view"
                                 >
                                   Göster
                                 </button>
                                 {!readOnly && (
                                   <button
+                                    type="button"
                                     onClick={() => navigate(`/quotes/${offer.quoteId}?supplierQuoteId=${offer.supplierQuoteId}&action=revize`)}
-                                    style={{ padding: "5px 9px", borderRadius: "4px", border: "none", background: "#f59e0b", color: "#fff", fontSize: "11px", cursor: "pointer" }}
+                                    className="pdp-btn-revize"
                                   >
                                     Revize
                                   </button>
@@ -838,137 +652,70 @@ export default function ProjectDetailPage() {
       )}
 
       {/* Dosyalar */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "16px",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
-          marginBottom: "24px",
-        }}
-      >
-        <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-          📁 Proje Dosyaları
-        </h3>
+      <div className="pdp-card pdp-card--mb">
+        <h3 className="pdp-section-h3">📁 Proje Dosyaları</h3>
 
-        {!readOnly && <label
-          style={{
-            display: "block",
-            marginBottom: "16px",
-            padding: "16px",
-            border: "2px dashed #2196F3",
-            borderRadius: "8px",
-            textAlign: "center",
-            cursor: "pointer",
-            backgroundColor: "#f5f9ff",
-          }}
-        >
-          <input type="file" onChange={handleFileUpload} disabled={uploading} style={{ display: "none" }} />
-          {uploading ? (
-            <p style={{ margin: "0", fontWeight: "bold" }}>⏳ Yükleniyor...</p>
-          ) : (
-            <>
-              <p style={{ margin: "0 0 4px 0", fontWeight: "bold", color: "#2196F3" }}>📤 Dosya Yükle</p>
-              <p style={{ margin: "0", fontSize: "12px", color: "#666" }}>
-                Zip (500MB), Rar (500MB), JPEG, PNG, GIF, PDF, Excel, Word vb. desteklenir
-              </p>
-            </>
-          )}
-        </label>}
+        {!readOnly && (
+          <label className="pdp-upload-label">
+            <input type="file" onChange={handleFileUpload} disabled={uploading} className="pdp-file-input-hidden" />
+            {uploading ? (
+              <p className="pdp-uploading-p">⏳ Yükleniyor...</p>
+            ) : (
+              <>
+                <p className="pdp-upload-title">📤 Dosya Yükle</p>
+                <p className="pdp-upload-hint">
+                  Zip (500MB), Rar (500MB), JPEG, PNG, GIF, PDF, Excel, Word vb. desteklenir
+                </p>
+              </>
+            )}
+          </label>
+        )}
 
         {files.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div className="pdp-files-list">
             {files.map((file) => (
-              <div
-                key={file.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "70px 1fr auto",
-                  gap: "12px",
-                  alignItems: "center",
-                  padding: "12px",
-                  backgroundColor: "#f9f9f9",
-                  borderRadius: "4px",
-                  border: "1px solid #e0e0e0",
-                }}
-              >
+              <div key={file.id} className="pdp-file-row">
                 {getThumbnail(file)}
-                <div style={{ flex: "1" }}>
-                  <p style={{ margin: "0 0 4px 0", fontWeight: "bold", fontSize: "13px" }}>
-                    {file.original_filename}
-                  </p>
-                  <p style={{ margin: "0", fontSize: "12px", color: "#666" }}>
-                    {(file.file_size / 1024).toFixed(2)} KB
-                  </p>
+                <div className="pdp-file-info">
+                  <p className="pdp-file-name">{file.original_filename}</p>
+                  <p className="pdp-file-size">{(file.file_size / 1024).toFixed(2)} KB</p>
                 </div>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div className="pdp-file-actions">
                   <button
+                    type="button"
                     onClick={() => handleOpenFile(file)}
-                    style={{
-                      padding: "6px 12px",
-                      backgroundColor: "#2196F3",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                    }}
+                    className="pdp-btn-open"
                   >
                     👁️ Aç
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDownload(file)}
-                    style={{
-                      padding: "6px 12px",
-                      backgroundColor: "#4caf50",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                    }}
+                    className="pdp-btn-download"
                   >
                     ⬇️ İndir
                   </button>
-                  {!readOnly && <button
-                    onClick={() => handleDeleteFile(file.id)}
-                    style={{
-                      padding: "6px 12px",
-                      backgroundColor: "#f44336",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    🗑️ Sil
-                  </button>}
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFile(file.id)}
+                      className="pdp-btn-file-del"
+                    >
+                      🗑️ Sil
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ margin: "0", fontSize: "13px", color: "#999" }}>Henüz dosya yüklenilmedi</p>
+          <p className="pdp-empty-text">Henüz dosya yüklenilmedi</p>
         )}
 
         <button
+          type="button"
           onClick={() => navigate(`/admin/project-files/${projectId}`)}
-          style={{
-            marginTop: "16px",
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#ff9800",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
+          className="pdp-btn-all-files"
         >
           📂 Tüm Dosyaları Göster
         </button>
@@ -976,70 +723,34 @@ export default function ProjectDetailPage() {
 
       {/* Onaylanan Teklifler */}
       {project.project_type === "franchise" && (
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "16px",
-            borderRadius: "8px",
-            border: "1px solid #e0e0e0",
-          }}
-        >
+        <div className="pdp-card">
           <button
+            type="button"
             onClick={() => setShowQuotes(!showQuotes)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#f3e5f5",
-              border: "1px solid #ce93d8",
-              borderRadius: "4px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
+            className="pdp-toggle-btn"
           >
             <span>💰 Onaylanan Teklifler ({quotes.length})</span>
             <span>{showQuotes ? "▼" : "▶"}</span>
           </button>
 
           {showQuotes && (
-            <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e0e0e0" }}>
+            <div className="pdp-quotes-body">
               {quotes.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className="pdp-quotes-list">
                   {quotes.map((quote: Quote) => (
-                    <div
-                      key={quote.id}
-                      style={{
-                        padding: "12px",
-                        backgroundColor: "#fafafa",
-                        borderRadius: "4px",
-                        borderLeft: "4px solid #ce93d8",
-                      }}
-                    >
-                      <p style={{ margin: "0 0 4px 0", fontWeight: "bold", fontSize: "13px" }}>
-                        {quote.title}
-                      </p>
-                      <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#666" }}>
+                    <div key={quote.id} className="pdp-quote-card">
+                      <p className="pdp-quote-title">{quote.title}</p>
+                      <p className="pdp-quote-amount">
                         Miktar:{" "}
                         {new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(
                           Number(quote.amount || 0)
                         )}
                       </p>
-                      <p style={{ margin: "0", fontSize: "12px", color: "#999" }}>
-                        {quote.description}
-                      </p>
+                      <p className="pdp-quote-desc">{quote.description}</p>
                     </div>
                   ))}
 
-                  <div
-                    style={{
-                      paddingTop: "12px",
-                      borderTop: "2px solid #ddd",
-                      fontWeight: "bold",
-                      fontSize: "14px",
-                    }}
-                  >
+                  <div className="pdp-quotes-total">
                     Toplam Maliyet:{" "}
                     {new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(
                       Number(quotes.reduce((sum: number, q: Quote) => sum + (q.amount || 0), 0))
@@ -1047,9 +758,7 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
               ) : (
-                <p style={{ margin: "0", fontSize: "13px", color: "#999" }}>
-                  Onaylanan teklif bulunmuyor
-                </p>
+                <p className="pdp-empty-text">Onaylanan teklif bulunmuyor</p>
               )}
             </div>
           )}
@@ -1058,7 +767,7 @@ export default function ProjectDetailPage() {
 
       {/* Quote Tab */}
       {project && user && (
-        <div style={{ marginTop: "20px" }}>
+        <div className="pdp-quote-tab-wrap">
           <QuoteTab
             projectId={projectId}
             apiUrl={import.meta.env.VITE_API_URL || "http://localhost:8000"}
@@ -1074,7 +783,6 @@ export default function ProjectDetailPage() {
           projectId={projectId}
           onClose={() => setShowSuppliersModal(false)}
           onSuccess={() => {
-            // Optionally reload project data
             loadProjectData();
           }}
         />
@@ -1086,7 +794,7 @@ export default function ProjectDetailPage() {
           <div className="ms-container">
             <div className="ms-header">
               <h2 className="ms-title">✏️ Proje Düzenle</h2>
-              <button onClick={() => setShowEditModal(false)} className="ms-close-btn">
+              <button type="button" onClick={() => setShowEditModal(false)} className="ms-close-btn">
                 ✕
               </button>
             </div>
