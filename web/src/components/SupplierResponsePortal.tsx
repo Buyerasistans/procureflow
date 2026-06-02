@@ -1,194 +1,6 @@
 // web/src/components/SupplierResponsePortal.tsx
 import { Fragment, useState, useEffect, useCallback, type ChangeEvent } from "react";
-import styled from "styled-components";
-
-const Container = styled.div`
-  padding: 20px;
-`;
-
-const Header = styled.div`
-  margin-bottom: 20px;
-
-  h2 {
-    margin: 0;
-    color: #1f2937;
-  }
-
-  p {
-    color: #6b7280;
-    margin: 5px 0 0 0;
-  }
-`;
-
-const Card = styled.div`
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  overflow: hidden;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  min-width: 1040px;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-variant-numeric: tabular-nums;
-
-  th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-    vertical-align: top;
-    word-break: normal;
-  }
-
-  th {
-    background-color: #f3f4f6;
-    font-weight: 600;
-  }
-
-  tr:hover {
-    background-color: #f9fafb;
-  }
-`;
-
-const TableScroll = styled.div`
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 4px;
-`;
-
-const Button = styled.button<{ variant?: "primary" | "success" | "secondary" }>`
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  background-color: ${(props) => {
-    switch (props.variant) {
-      case "success":
-        return "#10b981";
-      case "secondary":
-        return "#6b7280";
-      default:
-        return "#3b82f6";
-    }
-  }};
-  color: white;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-  }
-`;
-
-const StatusBadge = styled.span<{ status: string }>`
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  background-color: ${(props) => {
-    switch (props.status) {
-      case "tasarı":
-        return "#f3f4f6";
-      case "gönderilen":
-        return "#fef3c7";
-      case "revize_edildi":
-        return "#ffedd5";
-      case "yanıtlandı":
-        return "#d1fae5";
-      case "reddedildi":
-      case "kapatildi":
-      case "kapatıldı":
-      case "kapatildi_yuksek_fiyat":
-      case "kapatıldı_yüksek_fiyat":
-        return "#fee2e2";
-      default:
-        return "#f3f4f6";
-    }
-  }};
-  color: ${(props) => {
-    switch (props.status) {
-      case "tasarı":
-        return "#374151";
-      case "gönderilen":
-        return "#92400e";
-      case "revize_edildi":
-        return "#9a3412";
-      case "yanıtlandı":
-        return "#065f46";
-      case "reddedildi":
-      case "kapatildi":
-      case "kapatıldı":
-      case "kapatildi_yuksek_fiyat":
-      case "kapatıldı_yüksek_fiyat":
-        return "#991b1b";
-      default:
-        return "#374151";
-    }
-  }};
-`;
-
-const Form = styled.form`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin: 15px 0;
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Label = styled.label`
-  margin-bottom: 5px;
-  font-weight: 600;
-  font-size: 13px;
-`;
-
-const Input = styled.input`
-  padding: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  background-color: #fee2e2;
-  color: #991b1b;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-`;
-
-const SuccessMessage = styled.div`
-  background-color: #d1fae5;
-  color: #065f46;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 40px;
-  color: #9ca3af;
-`;
+import "./SupplierResponsePortal.css";
 
 interface QuoteItem {
   id: number;
@@ -245,6 +57,21 @@ interface SupplierResponsePortalProps {
   apiUrl: string;
   authToken: string;
   supplierUserId?: number;
+}
+
+function statusBadgeClass(status: string): string {
+  const s = String(status || "").toLowerCase();
+  if (s === "gönderilen") return "srp-badge srp-badge--gonderilen";
+  if (s === "revize_edildi") return "srp-badge srp-badge--revize";
+  if (s === "yanıtlandı") return "srp-badge srp-badge--yanitlandi";
+  if (
+    s === "reddedildi" ||
+    s === "kapatildi" ||
+    s === "kapatıldı" ||
+    s === "kapatildi_yuksek_fiyat" ||
+    s === "kapatıldı_yüksek_fiyat"
+  ) return "srp-badge srp-badge--closed";
+  return "srp-badge";
 }
 
 export function SupplierResponsePortal({
@@ -488,7 +315,7 @@ export function SupplierResponsePortal({
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch(`${apiUrl}/api/v1/supplier-quotes/me`, {
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -678,87 +505,60 @@ export function SupplierResponsePortal({
   }
 
   if (loading) {
-    return <Container>Yükleniyor...</Container>;
+    return <div className="srp-container">Yükleniyor...</div>;
   }
 
   return (
-    <Container>
-      <Header>
+    <div className="srp-container">
+      <div className="srp-header">
         <h2>📬 Teklif Yanıtları</h2>
         <p>Gönderilen tekliflere fiyat girerek yanıt verin</p>
-      </Header>
+      </div>
 
-      {error && <ErrorMessage>❌ {error}</ErrorMessage>}
-      {success && <SuccessMessage>{success}</SuccessMessage>}
+      {error && <div className="srp-error">❌ {error}</div>}
+      {success && <div className="srp-success">{success}</div>}
 
       {activeTab === "pending" && pendingQuotes.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 16 }}>
+        <div className="srp-stats-grid">
           {[
-            { label: "Platform Ağına Açık", value: pendingQuotes.filter((quote) => quote.platform_network_listing_enabled).length, bg: "#ecfdf5", color: "#166534" },
-            { label: "Premium Rozetli", value: pendingQuotes.filter((quote) => quote.premium_listing_enabled).length, bg: "#fff7ed", color: "#b45309" },
-            { label: "Sadece Ozel Havuz", value: pendingQuotes.filter((quote) => !quote.platform_network_listing_enabled).length, bg: "#eff6ff", color: "#1d4ed8" },
-            { label: "Yanit Verdikleriniz", value: submittedQuotes.length, bg: "#f5f3ff", color: "#6d28d9" },
+            { label: "Platform Ağına Açık", value: pendingQuotes.filter((quote) => quote.platform_network_listing_enabled).length, colorKey: "green" },
+            { label: "Premium Rozetli", value: pendingQuotes.filter((quote) => quote.premium_listing_enabled).length, colorKey: "orange" },
+            { label: "Sadece Ozel Havuz", value: pendingQuotes.filter((quote) => !quote.platform_network_listing_enabled).length, colorKey: "blue" },
+            { label: "Yanit Verdikleriniz", value: submittedQuotes.length, colorKey: "purple" },
           ].map((card) => (
-            <div key={card.label} style={{ borderRadius: 12, border: "1px solid #e5e7eb", background: card.bg, padding: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.1, color: card.color }}>{card.label}</div>
-              <div style={{ marginTop: 8, fontSize: 24, fontWeight: 900, color: card.color }}>{card.value}</div>
+            <div key={card.label} className={`srp-stat-card srp-stat-card--${card.colorKey}`}>
+              <div className="srp-stat-card__label">{card.label}</div>
+              <div className="srp-stat-card__value">{card.value}</div>
             </div>
           ))}
         </div>
       ) : null}
 
-      {/* Tab navigasyonu */}
-      <div style={{ display: "flex", gap: "0", marginBottom: "16px", borderBottom: "2px solid #e5e7eb" }}>
+      <div className="srp-tabs">
         {([
-          { key: "pending", label: "Bekleyen", count: pendingQuotes.length, activeColor: "#f59e0b", activeBg: "#fffbeb" },
-          { key: "submitted", label: "Gönderilen", count: submittedQuotes.length, activeColor: "#059669", activeBg: "#f0fdf4" },
-          { key: "closed", label: "Kapanmış", count: closedQuotes.length, activeColor: "#dc2626", activeBg: "#fef2f2" },
+          { key: "pending", label: "Bekleyen", count: pendingQuotes.length },
+          { key: "submitted", label: "Gönderilen", count: submittedQuotes.length },
+          { key: "closed", label: "Kapanmış", count: closedQuotes.length },
         ] as const).map((tab) => (
           <button
             key={tab.key}
+            type="button"
+            className={`srp-tab srp-tab--${tab.key}${activeTab === tab.key ? " srp-tab--active" : ""}`}
             onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: "10px 18px",
-              border: "none",
-              borderBottom: activeTab === tab.key ? `3px solid ${tab.activeColor}` : "3px solid transparent",
-              background: activeTab === tab.key ? tab.activeBg : "transparent",
-              cursor: "pointer",
-              fontWeight: activeTab === tab.key ? 700 : 500,
-              fontSize: "14px",
-              color: activeTab === tab.key ? tab.activeColor : "#6b7280",
-              transition: "all 0.15s",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
           >
             {tab.label}
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minWidth: "20px",
-              height: "20px",
-              borderRadius: "999px",
-              padding: "0 6px",
-              fontSize: "11px",
-              fontWeight: 700,
-              background: activeTab === tab.key ? tab.activeColor : "#e5e7eb",
-              color: activeTab === tab.key ? "#fff" : "#6b7280",
-            }}>
-              {tab.count}
-            </span>
+            <span className="srp-tab__count">{tab.count}</span>
           </button>
         ))}
       </div>
 
       {quotes.length === 0 ? (
-        <EmptyState>
+        <div className="srp-empty">
           <p>Henüz teklif alınmamış veya tüm tekliflere yanıt verilmiş</p>
-        </EmptyState>
+        </div>
       ) : activeTab === "pending" ? (
         pendingQuotes.length === 0 ? (
-          <EmptyState><p>Bekleyen teklif yok.</p></EmptyState>
+          <div className="srp-empty"><p>Bekleyen teklif yok.</p></div>
         ) :
         pendingQuotes
           .map((quote) => {
@@ -836,107 +636,75 @@ export function SupplierResponsePortal({
             const premiumCodes = quote.active_premium_feature_codes || [];
 
             return (
-              <Card key={quote.id}>
-                <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+              <div key={quote.id} className="srp-card">
+                <div className="srp-quote-meta">
+                  <div className="srp-quote-title-row">
                     <div>
-                      <div style={{ fontWeight: 800, color: "#111827", fontSize: 16 }}>{quote.quote_title}</div>
-                      <div style={{ marginTop: 4, color: "#6b7280", fontSize: 13 }}>{quote.published_by_tenant_name || "Firma belirtilmedi"}</div>
+                      <div className="srp-quote-title__text">{quote.quote_title}</div>
+                      <div className="srp-quote-title__tenant">{quote.published_by_tenant_name || "Firma belirtilmedi"}</div>
                     </div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 800, fontSize: 11 }}>{quote.listing_scope_label || "Listeleme yok"}</span>
-                      <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#f8fafc", color: "#475569", fontWeight: 800, fontSize: 11 }}>{quote.package_plan_name || quote.package_plan_code || "Plan yok"}</span>
-                      {premiumCodes.length > 0 ? <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#fff7ed", color: "#b45309", fontWeight: 800, fontSize: 11 }}>Premium: {premiumCodes.join(", ")}</span> : null}
+                    <div className="srp-quote-badges">
+                      <span className="srp-badge-scope">{quote.listing_scope_label || "Listeleme yok"}</span>
+                      <span className="srp-badge-plan">{quote.package_plan_name || quote.package_plan_code || "Plan yok"}</span>
+                      {premiumCodes.length > 0 ? <span className="srp-badge-premium">Premium: {premiumCodes.join(", ")}</span> : null}
                     </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8 }}>
-                    <div style={{ borderRadius: 10, border: "1px solid #e5e7eb", background: "#f8fafc", padding: "10px 12px" }}>
-                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase" }}>Davet</div>
-                      <div style={{ marginTop: 6, fontWeight: 900, color: "#0f172a", fontSize: 20 }}>{quote.invited_supplier_count || 0}</div>
+                  <div className="srp-info-grid">
+                    <div className="srp-info-tile">
+                      <div className="srp-info-tile__label">Davet</div>
+                      <div className="srp-info-tile__value">{quote.invited_supplier_count || 0}</div>
                     </div>
-                    <div style={{ borderRadius: 10, border: "1px solid #e5e7eb", background: "#f8fafc", padding: "10px 12px" }}>
-                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase" }}>Platform</div>
-                      <div style={{ marginTop: 6, fontWeight: 900, color: "#0f172a", fontSize: 20 }}>{quote.platform_network_supplier_count || 0}</div>
+                    <div className="srp-info-tile">
+                      <div className="srp-info-tile__label">Platform</div>
+                      <div className="srp-info-tile__value">{quote.platform_network_supplier_count || 0}</div>
                     </div>
-                    <div style={{ borderRadius: 10, border: "1px solid #e5e7eb", background: "#f8fafc", padding: "10px 12px" }}>
-                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800, textTransform: "uppercase" }}>Ozel Havuz</div>
-                      <div style={{ marginTop: 6, fontWeight: 900, color: "#0f172a", fontSize: 20 }}>{quote.private_supplier_count || 0}</div>
+                    <div className="srp-info-tile">
+                      <div className="srp-info-tile__label">Ozel Havuz</div>
+                      <div className="srp-info-tile__value">{quote.private_supplier_count || 0}</div>
                     </div>
-                    <div style={{ borderRadius: 10, border: "1px solid #e5e7eb", background: quote.platform_network_listing_enabled ? "#ecfdf5" : "#fff7ed", padding: "10px 12px" }}>
-                      <div style={{ fontSize: 11, color: quote.platform_network_listing_enabled ? "#166534" : "#9a3412", fontWeight: 800, textTransform: "uppercase" }}>Paket Yetkisi</div>
-                      <div style={{ marginTop: 6, fontWeight: 900, color: quote.platform_network_listing_enabled ? "#166534" : "#9a3412", fontSize: 14 }}>{quote.platform_network_listing_enabled ? "Platform gorunurlugu acik" : "Private kapsam"}</div>
+                    <div className={`srp-info-tile ${quote.platform_network_listing_enabled ? "srp-info-tile--open" : "srp-info-tile--private"}`}>
+                      <div className="srp-info-tile__label">Paket Yetkisi</div>
+                      <div className="srp-info-tile__value srp-info-tile__value--sm">
+                        {quote.platform_network_listing_enabled ? "Platform gorunurlugu acik" : "Private kapsam"}
+                      </div>
                     </div>
                   </div>
                   {quote.entitlement_summary ? (
-                    <div style={{ borderRadius: 10, border: `1px solid ${quote.platform_network_listing_enabled ? "#bbf7d0" : "#fed7aa"}`, background: quote.platform_network_listing_enabled ? "#f0fdf4" : "#fff7ed", padding: "10px 12px", color: quote.platform_network_listing_enabled ? "#166534" : "#9a3412", fontSize: 12, lineHeight: 1.7 }}>
+                    <div className={`srp-entitlement ${quote.platform_network_listing_enabled ? "srp-entitlement--open" : "srp-entitlement--private"}`}>
                       {quote.entitlement_summary}
                     </div>
                   ) : null}
                 </div>
+
                 <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    padding: "8px 0",
-                  }}
-                  onClick={() =>
-                    setExpanded(expanded === quote.id ? null : quote.id)
-                  }
+                  className="srp-expand-toggle"
+                  onClick={() => setExpanded(expanded === quote.id ? null : quote.id)}
                 >
                   <div>
-                    <h3 style={{ margin: "0 0 5px 0" }}>
-                      {quote.quote_title}
-                    </h3>
-                    <p style={{ margin: "0", fontSize: "13px", color: "#6b7280" }}>
+                    <h3>{quote.quote_title}</h3>
+                    <p>
                       {quote.items.length} kalem • Son Tarih:{" "}
                       {new Date(quote.created_at).toLocaleDateString("tr-TR")}
                     </p>
                   </div>
-                  <StatusBadge status={quote.status}>
-                    {quote.status}
-                  </StatusBadge>
+                  <span className={statusBadgeClass(quote.status)}>{quote.status}</span>
                 </div>
 
                 {expanded === quote.id && data && (
                   <>
                     {isRevisionRequested && (
-                      <div
-                        style={{
-                          marginTop: "10px",
-                          marginBottom: "8px",
-                          padding: "10px 12px",
-                          borderRadius: "6px",
-                          background: "#fff7ed",
-                          border: "1px solid #fdba74",
-                          fontSize: "12px",
-                          color: "#9a3412",
-                        }}
-                      >
+                      <div className="srp-revision-notice">
                         Revize istendi. Eski fiyatlar sabit gösterilir, her kaleme yeni revize fiyat girilir.
                       </div>
                     )}
                     {revisionChain.length > 0 && (
-                      <div
-                        style={{
-                          marginBottom: "10px",
-                          padding: "10px 12px",
-                          borderRadius: "6px",
-                          background: "#eff6ff",
-                          border: "1px solid #bfdbfe",
-                          fontSize: "12px",
-                          color: "#1e3a8a",
-                          overflow: "hidden",
-                          boxSizing: "border-box",
-                        }}
-                      >
+                      <div className="srp-revision-chain">
                         {revisionChain.map((rev) => {
                           const label = Number(rev.revision_number || 0) === 0 ? "İlk Teklif" : `${rev.revision_number}. Revize`;
                           return (
-                            <div key={`history-${quote.id}-${rev.id}`} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: "8px", alignItems: "center", width: "100%", minWidth: 0 }}>
-                              <span style={{ fontWeight: 700, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
-                              <span style={{ whiteSpace: "nowrap", fontSize: "11px", paddingLeft: "8px", maxWidth: "100%" }}>
+                            <div key={`history-${quote.id}-${rev.id}`} className="srp-revision-chain__row">
+                              <span className="srp-revision-chain__label">{label}</span>
+                              <span className="srp-revision-chain__amount">
                                 {formatMoney(Number(rev.final_amount || 0), normalizeCurrency(rev.currency))}
                               </span>
                             </div>
@@ -944,17 +712,17 @@ export function SupplierResponsePortal({
                         })}
                       </div>
                     )}
-                    <TableScroll style={{ marginTop: "15px" }}>
-                    <Table>
+                    <div className="srp-table-scroll srp-table-scroll--mt">
+                    <table className="srp-table">
                       <thead>
                         <tr>
-                          <th style={{ width: "31%" }}>Kalem</th>
-                          <th style={{ width: "6%" }}>Ünite</th>
-                          <th style={{ width: "6%" }}>Miktar</th>
-                          <th style={{ width: "19%" }}>Birim Fiyat</th>
-                          <th style={{ width: "14%" }}>Birim Toplam Fiyat</th>
-                          <th style={{ width: "11%" }}>KDV Tutar</th>
-                          <th style={{ width: "13%" }}>KDV Dahil Toplam</th>
+                          <th>Kalem</th>
+                          <th>Ünite</th>
+                          <th>Miktar</th>
+                          <th>Birim Fiyat</th>
+                          <th>Birim Toplam Fiyat</th>
+                          <th>KDV Tutar</th>
+                          <th>KDV Dahil Toplam</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -996,84 +764,49 @@ export function SupplierResponsePortal({
                           // Başlık satırı
                           if (isHeader) {
                             return (
-                              <tr
-                                key={idx}
-                                style={{
-                                  background: "#fef3c7",
-                                  borderBottom: "2px solid #eab308",
-                                  fontWeight: 700,
-                                }}
-                              >
-                                <td
-                                  colSpan={3}
-                                  style={{
-                                    padding: "10px 12px",
-                                    color: "#92400e",
-                                    fontSize: "13px",
-                                    letterSpacing: "0.03em",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      background: "#f59e0b",
-                                      color: "#fff",
-                                      borderRadius: "999px",
-                                      padding: "2px 8px",
-                                      fontSize: "11px",
-                                      marginRight: "8px",
-                                      fontWeight: 700,
-                                    }}
-                                  >
-                                    Grup
-                                  </span>
+                              <tr key={idx} className="srp-group-row">
+                                <td colSpan={3} className="srp-group-cell">
+                                  <span className="srp-group-badge">Grup</span>
                                   <button
                                     type="button"
+                                    className="srp-group-toggle"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       toggleGroupCollapse(quote.id, currentGroupKey);
-                                    }}
-                                    style={{
-                                      marginRight: "8px",
-                                      border: "none",
-                                      background: "transparent",
-                                      color: "#92400e",
-                                      cursor: "pointer",
-                                      fontWeight: 800,
-                                      padding: 0,
                                     }}
                                     title={isGroupCollapsed(quote.id, currentGroupKey) ? "Grubu Aç" : "Grubu Kapat"}
                                   >
                                     {isGroupCollapsed(quote.id, currentGroupKey) ? "▶" : "▼"}
                                   </button>
                                   {lineNumber && (
-                                    <span style={{ marginRight: "8px", fontWeight: 800 }}>{lineNumber}</span>
+                                    <span className="srp-group-linenr">{lineNumber}</span>
                                   )}
                                   {quoteItem.description}
                                 </td>
-                                <td style={{ padding: "10px 12px", fontWeight: 700, whiteSpace: "nowrap", textAlign: "left" }}>
-                                  <span style={{ fontSize: "11px", color: "#92400e", fontWeight: 700 }}>Grup Toplamı</span>
+                                <td className="srp-group-total-cell">
+                                  <span className="srp-group-total-label">Grup Toplamı</span>
                                 </td>
-                                <td style={{ padding: "10px 10px", fontWeight: 700, whiteSpace: "nowrap", textAlign: "right", fontSize: "13px" }}>
-                                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
+                                <td className="srp-group-amount-cell">
+                                  <div className="srp-group-amount">
                                     {isRevisionRequested && (
-                                      <span style={{ fontSize: "10px", color: "#6b7280", fontWeight: 500 }}>
+                                      <span className="srp-old-price-sm">
                                         İlk Teklif: {formatMoney(headerOldNet, "TRY")}
                                       </span>
                                     )}
                                     <span>{formatMoney(headerNet, "TRY")}</span>
                                   </div>
                                 </td>
-                                <td style={{ padding: "10px 10px", fontWeight: 700, whiteSpace: "nowrap", textAlign: "right", fontSize: "13px" }}>
+                                <td className="srp-group-amount-cell">
                                   {isRevisionRequested && (
-                                    <div style={{ fontSize: "10px", color: "#6b7280", fontWeight: 500 }}>
+                                    <div className="srp-old-price-sm">
                                       İlk Teklif: {formatMoney(headerOldVat, "TRY")}
                                     </div>
                                   )}
                                   {formatMoney(headerVat, "TRY")}
                                 </td>
-                                <td style={{ padding: "10px 10px", fontWeight: 700, whiteSpace: "nowrap", textAlign: "right", fontSize: "13px" }}>
+                                <td className="srp-group-amount-cell">
                                   {isRevisionRequested && (
-                                    <div style={{ fontSize: "10px", color: "#6b7280", fontWeight: 500 }}>
+                                    <div className="srp-old-price-sm">
                                       İlk Teklif: {formatMoney(headerOldGross, "TRY")}
                                     </div>
                                   )}
@@ -1106,37 +839,33 @@ export function SupplierResponsePortal({
                             .join(" • ");
                           return (
                             <Fragment key={idx}>
-                              <tr style={{ background: "#fff" }}>
-                              <td style={{ verticalAlign: "top", paddingBottom: quoteItem.item_detail || quoteItem.item_image_url ? "2px" : undefined }}>
-                                <div style={{ fontWeight: 600 }}>
+                              <tr className="srp-item-row">
+                              <td className={(quoteItem.item_detail || quoteItem.item_image_url) ? "srp-td--pb2" : ""}>
+                                <div className="srp-item-desc">
                                   {lineNumber && (
-                                    <span style={{ marginRight: "8px", color: "#64748b", fontWeight: 700 }}>{lineNumber}</span>
+                                    <span className="srp-item-linenr">{lineNumber}</span>
                                   )}
                                   {quoteItem.description}
                                 </div>
                                 {itemHistory && (
-                                  <div style={{ marginTop: "4px", fontSize: "11px", color: "#64748b", lineHeight: 1.4 }}>
+                                  <div className="srp-item-history">
                                     {itemHistory}
                                   </div>
                                 )}
                               </td>
-                              <td style={{ whiteSpace: "nowrap", textAlign: "center" }}>{quoteItem.unit}</td>
-                              <td style={{ whiteSpace: "nowrap", textAlign: "center" }}>
+                              <td className="srp-cell-center">{quoteItem.unit}</td>
+                              <td className="srp-cell-center">
                                 {quoteItem.quantity.toLocaleString("tr-TR")}
                               </td>
                               <td>
                                 {isRevisionRequested && (
-                                  <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px" }}>
+                                  <div className="srp-old-price srp-old-price--mb4">
                                     İlk Teklif: {formatMoney(Number(quoteItem.supplier_unit_price || 0), normalizeCurrency(quote.currency))}
                                   </div>
                                 )}
-                                <div style={{
-                                  position: "relative",
-                                  border: "1px solid #d1d5db",
-                                  borderRadius: "6px",
-                                  background: "#fff",
-                                }}>
-                                  <Input
+                                <div className="srp-price-wrapper">
+                                  <input
+                                    className="srp-price-input"
                                     type="number"
                                     step="0.01"
                                     value={item.unit_price === 0 && focusedPriceInput === `${quote.id}-${formIdx}` ? "" : item.unit_price}
@@ -1167,58 +896,28 @@ export function SupplierResponsePortal({
                                         },
                                       }));
                                     }}
-                                    style={{
-                                      width: "100%",
-                                      minWidth: "84px",
-                                      border: "none",
-                                      padding: "8px 48px 8px 8px",
-                                    }}
+                                    aria-label="Birim fiyat"
                                   />
                                   <button
                                     type="button"
+                                    className="srp-price-currency-btn"
                                     onClick={() =>
                                       setCurrencyPickerOpenFor((prev) =>
                                         prev === `${quote.id}-${formIdx}` ? null : `${quote.id}-${formIdx}`
                                       )
                                     }
-                                    style={{
-                                      position: "absolute",
-                                      right: "4px",
-                                      top: "50%",
-                                      transform: "translateY(-50%)",
-                                      width: "40px",
-                                      padding: "6px 4px",
-                                      border: "none",
-                                      borderLeft: "1px solid #e5e7eb",
-                                      borderRadius: "4px",
-                                      background: "#f8fafc",
-                                      cursor: "pointer",
-                                      fontWeight: 700,
-                                      color: "#334155",
-                                    }}
+                                    title="Para birimi seç"
                                   >
                                     {currencySymbol(itemCurrency)} ▾
                                   </button>
 
                                   {currencyPickerOpenFor === `${quote.id}-${formIdx}` && (
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        right: "4px",
-                                        top: "calc(100% + 4px)",
-                                        background: "#fff",
-                                        border: "1px solid #d1d5db",
-                                        borderRadius: "6px",
-                                        boxShadow: "0 6px 14px rgba(15, 23, 42, 0.12)",
-                                        zIndex: 30,
-                                        minWidth: "42px",
-                                        overflow: "hidden",
-                                      }}
-                                    >
+                                    <div className="srp-currency-dropdown">
                                       {(["TRY", "USD", "EUR"] as const).map((ccy) => (
                                         <button
                                           key={`${quote.id}-${formIdx}-${ccy}`}
                                           type="button"
+                                          className={`srp-currency-opt${ccy === itemCurrency ? " srp-currency-opt--active" : ""}`}
                                           onClick={() => {
                                             const nextCurrency = normalizeCurrency(ccy);
                                             const newItems = [...data.items];
@@ -1236,17 +935,6 @@ export function SupplierResponsePortal({
                                             }));
                                             setCurrencyPickerOpenFor(null);
                                           }}
-                                          style={{
-                                            display: "block",
-                                            width: "100%",
-                                            border: "none",
-                                            background: ccy === itemCurrency ? "#eff6ff" : "#fff",
-                                            color: ccy === itemCurrency ? "#1e40af" : "#334155",
-                                            textAlign: "left",
-                                            padding: "8px 8px",
-                                            cursor: "pointer",
-                                            fontWeight: ccy === itemCurrency ? 700 : 500,
-                                          }}
                                         >
                                           {ccy === "TRY" ? "₺" : ccy === "USD" ? "$" : "€"}
                                         </button>
@@ -1254,8 +942,9 @@ export function SupplierResponsePortal({
                                     </div>
                                   )}
                                 </div>
-                                <div style={{ marginTop: "8px" }}>
-                                  <Input
+                                <div className="srp-note-wrap">
+                                  <input
+                                    className="srp-note-input"
                                     type="text"
                                     value={item.notes}
                                     placeholder="Not ekleyin..."
@@ -1270,71 +959,71 @@ export function SupplierResponsePortal({
                                         },
                                       }));
                                     }}
-                                    style={{ width: "100%", fontSize: "12px" }}
+                                    aria-label="Kalem notu"
                                   />
                                 </div>
                               </td>
-                              <td style={{ whiteSpace: "nowrap", textAlign: "right", fontSize: "13px" }}>
+                              <td className="srp-cell-right">
                                 {isRevisionRequested && (
-                                  <div style={{ fontSize: "10px", color: "#6b7280", marginBottom: "2px" }}>
+                                  <div className="srp-old-price srp-old-price--mb2">
                                     İlk Teklif: {formatMoney(Number(quoteItem.supplier_total_price || 0), normalizeCurrency(quote.currency))}
                                   </div>
                                 )}
-                                <div style={{ fontWeight: 700 }}>
+                                <div className="srp-fw">
                                   {formatMoney(item.total_price, itemCurrency)}
                                   {itemCurrency !== "TRY" && (
-                                    <div style={{ fontSize: "11px", color: "#92400e" }}>
+                                    <div className="srp-fx-hint">
                                       TL: {formatMoney(convertAmount(item.total_price, itemCurrency, "TRY"), "TRY")}
                                     </div>
                                   )}
                                 </div>
                               </td>
-                              <td style={{ whiteSpace: "nowrap", textAlign: "right", fontSize: "13px" }}>
+                              <td className="srp-cell-right">
                                 {isRevisionRequested && (
-                                  <div style={{ fontSize: "10px", color: "#6b7280", marginBottom: "2px" }}>
+                                  <div className="srp-old-price srp-old-price--mb2">
                                     İlk Teklif: {formatMoney((Number(quoteItem.supplier_total_price || 0) * vatRate) / 100, normalizeCurrency(quote.currency))}
                                   </div>
                                 )}
-                                <div style={{ fontWeight: 700 }}>
+                                <div className="srp-fw">
                                   {formatMoney(vatAmount, itemCurrency)}
                                 </div>
                                 {itemCurrency !== "TRY" && (
-                                  <div style={{ fontSize: "11px", color: "#92400e" }}>
+                                  <div className="srp-fx-hint">
                                     TL: {formatMoney(vatTry, "TRY")}
                                   </div>
                                 )}
                               </td>
-                              <td style={{ whiteSpace: "nowrap", textAlign: "right", fontSize: "13px" }}>
+                              <td className="srp-cell-right">
                                 {isRevisionRequested && (
-                                  <div style={{ fontSize: "10px", color: "#6b7280", marginBottom: "2px" }}>
+                                  <div className="srp-old-price srp-old-price--mb2">
                                     İlk Teklif: {formatMoney(Number(quoteItem.supplier_total_price || 0) + (Number(quoteItem.supplier_total_price || 0) * vatRate) / 100, normalizeCurrency(quote.currency))}
                                   </div>
                                 )}
-                                <div style={{ fontWeight: 700 }}>
+                                <div className="srp-fw">
                                   {formatMoney(grossTotal, itemCurrency)}
                                 </div>
                                 {itemCurrency !== "TRY" && (
-                                  <div style={{ fontSize: "11px", color: "#92400e" }}>
+                                  <div className="srp-fx-hint">
                                     TL: {formatMoney(grossTry, "TRY")}
                                   </div>
                                 )}
                               </td>
                             </tr>
                             {(quoteItem.item_detail || quoteItem.item_image_url) && (
-                              <tr style={{ background: "#fafafa" }}>
-                                <td colSpan={7} style={{ paddingTop: "2px", paddingBottom: "10px", paddingLeft: "12px" }}>
-                                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+                              <tr className="srp-item-detail-row">
+                                <td colSpan={7} className="srp-item-detail-cell">
+                                  <div className="srp-item-detail-inner">
                                     {quoteItem.item_image_url && (
                                       <a href={quoteItem.item_image_url} target="_blank" rel="noopener noreferrer" title="Görseli yeni sekmede aç">
                                         <img
                                           src={quoteItem.item_image_url}
                                           alt="Kalem görseli"
-                                          style={{ width: "160px", height: "110px", objectFit: "cover", borderRadius: "6px", border: "1px solid #e5e7eb", flexShrink: 0 }}
+                                          className="srp-item-img"
                                         />
                                       </a>
                                     )}
                                     {quoteItem.item_detail && (
-                                      <span style={{ fontSize: "12px", color: "#6b7280", whiteSpace: "pre-wrap", lineHeight: "1.5" }}>
+                                      <span className="srp-item-text">
                                         {quoteItem.item_detail}
                                       </span>
                                     )}
@@ -1346,32 +1035,35 @@ export function SupplierResponsePortal({
                           );
                         })}
                       </tbody>
-                    </Table>
-                    </TableScroll>
+                    </table>
+                    </div>
 
-                    <Form>
-                      <FormGroup style={{ gridColumn: "1 / -1" }}>
-                        <Label>Toplam Tutar ({normalizeCurrency(data.currency)})</Label>
-                        <Input
+                    <form className="srp-form">
+                      <div className="srp-form-group srp-form-group--full">
+                        <label className="srp-label">Toplam Tutar ({normalizeCurrency(data.currency)})</label>
+                        <input
+                          className="srp-input"
                           type="text"
                           value={formatMoney(data.total_amount, normalizeCurrency(data.currency))}
                           readOnly
+                          aria-label="Toplam tutar"
                         />
-                        <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
+                        <div className="srp-hint">
                           {formatMoney(data.total_amount, normalizeCurrency(data.currency))}
                           {normalizeCurrency(data.currency) !== "TRY" && (
-                            <span style={{ marginLeft: "8px", color: "#92400e", fontWeight: 600 }}>
+                            <span className="srp-hint--orange">
                               (TL karşılığı: {toTryAmount(data.total_amount, normalizeCurrency(data.currency)) !== null
                                 ? formatMoney(Number(toTryAmount(data.total_amount, normalizeCurrency(data.currency))), "TRY")
                                 : "kur bekleniyor"})
                             </span>
                           )}
                         </div>
-                      </FormGroup>
+                      </div>
 
-                      <FormGroup>
-                        <Label>İndirim %</Label>
-                        <Input
+                      <div className="srp-form-group">
+                        <label className="srp-label">İndirim %</label>
+                        <input
+                          className="srp-input"
                           type="number"
                           step="0.01"
                           min="0"
@@ -1390,48 +1082,49 @@ export function SupplierResponsePortal({
                               },
                             }));
                           }}
+                          aria-label="İndirim yüzdesi"
                         />
-                      </FormGroup>
+                      </div>
 
-                      <FormGroup>
-                        <Label>İndirim Tutar ({normalizeCurrency(data.currency)})</Label>
-                        <Input
+                      <div className="srp-form-group">
+                        <label className="srp-label">İndirim Tutar ({normalizeCurrency(data.currency)})</label>
+                        <input
+                          className="srp-input"
                           type="text"
                           value={formatMoney(data.discount_amount, normalizeCurrency(data.currency))}
                           readOnly
+                          aria-label="İndirim tutarı"
                         />
-                        <div style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
+                        <div className="srp-hint">
                           {formatMoney(data.discount_amount, normalizeCurrency(data.currency))}
                         </div>
-                      </FormGroup>
+                      </div>
 
-                      <FormGroup>
-                        <Label>Final Tutar ({normalizeCurrency(data.currency)})</Label>
-                        <Input
+                      <div className="srp-form-group">
+                        <label className="srp-label">Final Tutar ({normalizeCurrency(data.currency)})</label>
+                        <input
+                          className="srp-input srp-input--final"
                           type="text"
                           value={formatMoney(data.final_amount, normalizeCurrency(data.currency))}
                           readOnly
-                          style={{
-                            fontWeight: "bold",
-                            color: "#10b981",
-                            fontSize: "16px",
-                          }}
+                          aria-label="Final tutar"
                         />
-                        <div style={{ fontSize: "12px", color: "#047857", marginTop: "4px", fontWeight: 700 }}>
+                        <div className="srp-hint srp-hint--green">
                           {formatMoney(data.final_amount, normalizeCurrency(data.currency))}
                           {normalizeCurrency(data.currency) !== "TRY" && (
-                            <span style={{ marginLeft: "8px", color: "#92400e" }}>
+                            <span className="srp-hint--orange">
                               (TL karşılığı: {toTryAmount(data.final_amount, normalizeCurrency(data.currency)) !== null
                                 ? formatMoney(Number(toTryAmount(data.final_amount, normalizeCurrency(data.currency))), "TRY")
                                 : "kur bekleniyor"})
                             </span>
                           )}
                         </div>
-                      </FormGroup>
+                      </div>
 
-                      <FormGroup>
-                        <Label>Teslimat Süresi (Gün)</Label>
-                        <Input
+                      <div className="srp-form-group">
+                        <label className="srp-label">Teslimat Süresi (Gün)</label>
+                        <input
+                          className="srp-input"
                           type="number"
                           value={data.delivery_time}
                           onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -1443,12 +1136,14 @@ export function SupplierResponsePortal({
                               },
                             }))
                           }
+                          aria-label="Teslimat süresi"
                         />
-                      </FormGroup>
+                      </div>
 
-                      <FormGroup style={{ gridColumn: "1 / -1" }}>
-                        <Label>Ödeme Şartları</Label>
-                        <Input
+                      <div className="srp-form-group srp-form-group--full">
+                        <label className="srp-label">Ödeme Şartları</label>
+                        <input
+                          className="srp-input"
                           type="text"
                           placeholder="Örn: %50 peşin, %50 30 gün"
                           value={data.payment_terms}
@@ -1462,11 +1157,12 @@ export function SupplierResponsePortal({
                             }))
                           }
                         />
-                      </FormGroup>
+                      </div>
 
-                      <FormGroup style={{ gridColumn: "1 / -1" }}>
-                        <Label>Garanti</Label>
-                        <Input
+                      <div className="srp-form-group srp-form-group--full">
+                        <label className="srp-label">Garanti</label>
+                        <input
+                          className="srp-input"
                           type="text"
                           placeholder="Örn: 12 ay ürün garantisi"
                           value={data.warranty}
@@ -1480,32 +1176,21 @@ export function SupplierResponsePortal({
                             }))
                           }
                         />
-                      </FormGroup>
-                    </Form>
+                      </div>
+                    </form>
 
-                    <div
-                      style={{
-                        marginTop: "8px",
-                        marginBottom: "12px",
-                        padding: "10px 12px",
-                        borderRadius: "6px",
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
-                        fontSize: "12px",
-                        color: "#334155",
-                      }}
-                    >
-                      <div style={{ fontWeight: 700, marginBottom: "6px" }}>Döviz Özeti (Kalem Toplamları)</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "6px" }}>
+                    <div className="srp-fx-summary">
+                      <div className="srp-fx-summary__title">Döviz Özeti (Kalem Toplamları)</div>
+                      <div className="srp-fx-summary__grid">
                         <div>
                           USD Toplami: {formatMoney(formSummary.currencyBuckets.USD, "USD")}
-                          <span style={{ marginLeft: "6px", color: "#92400e" }}>
+                          <span className="srp-fx-ref">
                             (TL: {formatMoney(convertAmount(formSummary.currencyBuckets.USD, "USD", "TRY"), "TRY")})
                           </span>
                         </div>
                         <div>
                           EUR Toplami: {formatMoney(formSummary.currencyBuckets.EUR, "EUR")}
-                          <span style={{ marginLeft: "6px", color: "#92400e" }}>
+                          <span className="srp-fx-ref">
                             (TL: {formatMoney(convertAmount(formSummary.currencyBuckets.EUR, "EUR", "TRY"), "TRY")})
                           </span>
                         </div>
@@ -1513,72 +1198,64 @@ export function SupplierResponsePortal({
                           TL Toplami: {formatMoney(formSummary.currencyBuckets.TRY, "TRY")}
                         </div>
                       </div>
-                      <div style={{ marginTop: "6px", fontWeight: 700 }}>
+                      <div className="srp-fx-summary__total">
                         Toplam TL Karsiligi: {formatMoney(formSummary.totalTryEquivalent, "TRY")}
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "8px", marginTop: "15px" }}>
-                      <Button
-                        variant="secondary"
-                        onClick={() => handleSaveDraft(quote.id)}
+                    <div className="srp-btn-row">
+                      <button
+                        type="button"
+                        className="srp-btn srp-btn--secondary"
+                        onClick={() => { void handleSaveDraft(quote.id); }}
                         disabled={submitting !== null}
                       >
                         {submitting === quote.id ? "⏳" : "💾"} Taslak Kaydet
-                      </Button>
-                      <Button
-                        onClick={() => handleSubmit(quote.id)}
+                      </button>
+                      <button
+                        type="button"
+                        className="srp-btn"
+                        onClick={() => { void handleSubmit(quote.id); }}
                         disabled={submitting !== null}
                       >
                         {submitting === quote.id
                           ? "⏳ Gönderiliyor..."
                           : (isRevisionRequested ? "✅ Revize Teklifi Gönder" : "✅ Teklifi Gönder")}
-                      </Button>
+                      </button>
                     </div>
 
-                    <div
-                      style={{
-                        marginTop: "10px",
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        background: normalizeCurrency(data.currency) === "TRY" ? "#f1f5f9" : "#fffbeb",
-                        border: normalizeCurrency(data.currency) === "TRY" ? "1px solid #cbd5e1" : "1px solid #fcd34d",
-                        fontSize: "12px",
-                        color: normalizeCurrency(data.currency) === "TRY" ? "#334155" : "#92400e",
-                        fontWeight: 600,
-                      }}
-                    >
+                    <div className={`srp-currency-bar ${normalizeCurrency(data.currency) === "TRY" ? "srp-currency-bar--try" : "srp-currency-bar--foreign"}`}>
                       Teklif para birimi: {normalizeCurrency(data.currency)}
-                      <span style={{ marginLeft: "8px", fontWeight: 700 }}>
+                      <span className="srp-currency-bar__detail">
                         | Toplam: {formatMoney(data.total_amount, normalizeCurrency(data.currency))}
                         {" "}• Indirim: {formatMoney(data.discount_amount, normalizeCurrency(data.currency))}
                         {" "}• Final: {formatMoney(data.final_amount, normalizeCurrency(data.currency))}
                       </span>
                       {normalizeCurrency(data.currency) !== "TRY" && exchangeRates && (
-                        <span style={{ marginLeft: "8px", fontWeight: 700 }}>
+                        <span className="srp-currency-bar__detail">
                           (TCMB efektif satış: 1 USD = {exchangeRates.usd_try.toFixed(4)} TL, 1 EUR = {exchangeRates.eur_try.toFixed(4)} TL)
                         </span>
                       )}
                     </div>
                   </>
                 )}
-              </Card>
+              </div>
             );
           })
       ) : activeTab === "submitted" ? (
         submittedQuotes.length === 0 ? (
-          <EmptyState><p>Henüz gönderilmiş teklif yok.</p></EmptyState>
+          <div className="srp-empty"><p>Henüz gönderilmiş teklif yok.</p></div>
         ) : (
-          <div style={{ display: "grid", gap: "10px" }}>
+          <div className="srp-tab-grid">
             {submittedQuotes.map((q) => (
-              <Card key={`submitted-${q.id}`}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+              <div key={`submitted-${q.id}`} className="srp-card">
+                <div className="srp-quote-row">
                   <div>
-                    <div style={{ fontWeight: 700 }}>{q.quote_title}</div>
-                    <div style={{ marginTop: "4px", fontSize: "13px", color: "#475569" }}>
+                    <div className="srp-quote-title">{q.quote_title}</div>
+                    <div className="srp-quote-amount">
                       Gönderilen Tutar: {formatMoney(Number(q.final_amount || 0), normalizeCurrency(q.currency))}
                       {normalizeCurrency(q.currency) !== "TRY" && (
-                        <span style={{ marginLeft: "8px", color: "#92400e", fontWeight: 600 }}>
+                        <span className="srp-fx-amount-hint">
                           (TL: {toTryAmount(Number(q.final_amount || 0), normalizeCurrency(q.currency)) !== null
                             ? formatMoney(Number(toTryAmount(Number(q.final_amount || 0), normalizeCurrency(q.currency))), "TRY")
                             : "kur bekleniyor"})
@@ -1586,49 +1263,41 @@ export function SupplierResponsePortal({
                       )}
                     </div>
                     {q.submitted_at && (
-                      <div style={{ marginTop: "4px", fontSize: "12px", color: "#9ca3af" }}>
+                      <div className="srp-quote-date">
                         Gönderilme: {new Date(q.submitted_at).toLocaleString("tr-TR")}
                       </div>
                     )}
                   </div>
-                  <StatusBadge status={q.status}>{q.status}</StatusBadge>
+                  <span className={statusBadgeClass(q.status)}>{q.status}</span>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )
       ) : (
         closedQuotes.length === 0 ? (
-          <EmptyState><p>Kapanmış teklif yok.</p></EmptyState>
+          <div className="srp-empty"><p>Kapanmış teklif yok.</p></div>
         ) : (
-          <div style={{ display: "grid", gap: "10px" }}>
+          <div className="srp-tab-grid">
             {closedQuotes.map((q) => (
-              <Card key={`closed-${q.id}`}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700 }}>{q.quote_title}</div>
-                    <div style={{ marginTop: "4px", fontSize: "13px", color: "#475569" }}>
+              <div key={`closed-${q.id}`} className="srp-card">
+                <div className="srp-quote-row">
+                  <div className="srp-quote-flex1">
+                    <div className="srp-quote-title">{q.quote_title}</div>
+                    <div className="srp-quote-amount">
                       Son Teklifiniz: {formatMoney(Number(q.final_amount || 0), normalizeCurrency(q.currency))}
                     </div>
-                    <div style={{
-                      marginTop: "8px",
-                      fontSize: "12px",
-                      color: "#7c2d12",
-                      background: "#fef2f2",
-                      border: "1px solid #fecaca",
-                      borderRadius: "6px",
-                      padding: "8px 10px",
-                    }}>
+                    <div className="srp-closed-reason">
                       ℹ️ {getClosedReason(q)}
                     </div>
                   </div>
-                  <StatusBadge status={q.status}>{q.status}</StatusBadge>
+                  <span className={statusBadgeClass(q.status)}>{q.status}</span>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )
       )}
-    </Container>
+    </div>
   );
 }
