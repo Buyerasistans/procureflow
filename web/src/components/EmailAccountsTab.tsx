@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import "./EmailAccountsTab.css";
 
 interface EmailAccount {
   id?: number;
@@ -119,10 +120,10 @@ export const EmailAccountsTab: React.FC = () => {
   return (
     <div>
       <h2>Email Hesapları</h2>
-      {message && <div style={{ color: "green", marginBottom: 8 }}>{message}</div>}
-      <table style={{ width: "100%", marginBottom: 20, borderCollapse: "collapse" }}>
+      {message && <div className="eat-message">{message}</div>}
+      <table className="eat-table">
         <thead>
-          <tr style={{ background: "#f1f5f9" }}>
+          <tr className="eat-thead-row">
             <th>Email</th>
             <th>Açıklama</th>
             <th>Şifre</th>
@@ -131,14 +132,14 @@ export const EmailAccountsTab: React.FC = () => {
         </thead>
         <tbody>
           {accounts.map((acc, idx) => (
-            <tr key={acc.email} style={{ borderBottom: "1px solid #e5e7eb" }}>
-              <td style={{ fontWeight: "bold" }}>{acc.email}</td>
-              <td style={{ color: "#64748b", fontSize: 13 }}>{acc.description}</td>
+            <tr key={acc.email} className="eat-row">
+              <td className="eat-td--bold">{acc.email}</td>
+              <td className="eat-td--desc">{acc.description}</td>
               <td>
                 <input
                   type="password"
                   value={acc.password || ""}
-                  style={{ width: 140 }}
+                  className="eat-pwd-input"
                   onChange={e => {
                     const newAccounts = [...accounts];
                     newAccounts[idx].password = e.target.value;
@@ -148,22 +149,22 @@ export const EmailAccountsTab: React.FC = () => {
               </td>
               <td>
                 <button onClick={() => handleEdit(acc)}>Düzenle</button>
-                <button onClick={() => handleDelete(acc.id!)} style={{ marginLeft: 8 }}>Sil</button>
+                <button onClick={() => handleDelete(acc.id!)} className="eat-delete-btn">Sil</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div style={{ marginTop: 24, background: "#f9fafb", padding: 16, borderRadius: 8, border: "1px solid #e5e7eb" }}>
-        <h3 style={{ marginBottom: 12 }}>{editingId ? "Email Hesabı Düzenle" : "Yeni Email Hesabı Ekle"}</h3>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <input name="email" value={form.email} onChange={handleChange} placeholder="Email" style={{ width: 220 }} />
-          <input name="password" value={form.password} onChange={handleChange} placeholder="Şifre" type="password" style={{ width: 140 }} />
-          <input name="description" value={form.description} onChange={handleChange} placeholder="Açıklama (örn: Bildirim, Teklif, Destek...)" style={{ width: 220 }} />
+      <div className="eat-form-wrap">
+        <h3 className="eat-form-title">{editingId ? "Email Hesabı Düzenle" : "Yeni Email Hesabı Ekle"}</h3>
+        <div className="eat-form-row">
+          <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="eat-input--email" />
+          <input name="password" value={form.password} onChange={handleChange} placeholder="Şifre" type="password" className="eat-input--pwd" />
+          <input name="description" value={form.description} onChange={handleChange} placeholder="Açıklama (örn: Bildirim, Teklif, Destek...)" className="eat-input--desc" />
           <button onClick={handleSave}>{editingId ? "Güncelle" : "Ekle"}</button>
           {editingId && <button onClick={() => { setForm(defaultForm); setEditingId(null); }}>Vazgeç</button>}
         </div>
-        <div style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>
+        <div className="eat-form-hint">
           Eklenen email adresinin ne için kullanılacağını açıklama kısmına yazınız. Şifreyi değiştirmek için kutucuğu güncelleyip "Güncelle"ye basabilirsiniz.
         </div>
       </div>
