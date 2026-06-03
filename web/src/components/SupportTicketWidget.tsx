@@ -3,7 +3,9 @@
  * Floating veya embed modunda kullanılabilir.
  */
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { createSupportTicket, getMySupportTickets, type SupportTicket } from "../services/admin.service";
+import "./SupportTicketWidget.css";
 
 type Mode = "closed" | "form" | "list";
 
@@ -110,12 +112,12 @@ export default function SupportTicketWidget({
 
   if (successTicket) {
     return (
-      <div style={{ borderRadius: 16, border: "1px solid #bbf7d0", background: "#f0fdf4", padding: 20, display: "grid", gap: 12 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: "#15803d" }}>✅ Destek Talebiniz Alındı</div>
-        <div style={{ color: "#166534", fontSize: 14 }}>
+      <div className="stw-success">
+        <div className="stw-success__title">✅ Destek Talebiniz Alındı</div>
+        <div className="stw-success__body">
           Talep No: <strong>#{successTicket.id}</strong> — Konunuz: <strong>{successTicket.subject}</strong>
         </div>
-        <div style={{ color: "#166534", fontSize: 13 }}>
+        <div className="stw-success__sla">
           Platform ekibi en kısa sürede sizinle iletişime geçecek.
           SLA süreniz:{" "}
           <strong>
@@ -124,18 +126,18 @@ export default function SupportTicketWidget({
               : "—"}
           </strong>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="stw-success__actions">
           <button
             type="button"
             onClick={() => { setSuccessTicket(null); setMode(embed ? "form" : "closed"); }}
-            style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "#15803d", color: "white", fontWeight: 700, cursor: "pointer" }}
+            className="stw-success__ok-btn"
           >
             Tamam
           </button>
           <button
             type="button"
             onClick={() => { setSuccessTicket(null); void handleOpenList(); }}
-            style={{ padding: "8px 16px", borderRadius: 10, border: "1px solid #86efac", background: "white", color: "#166534", fontWeight: 700, cursor: "pointer" }}
+            className="stw-success__list-btn"
           >
             Tüm Taleplerim
           </button>
@@ -146,38 +148,41 @@ export default function SupportTicketWidget({
 
   if (mode === "list") {
     return (
-      <div style={{ display: "grid", gap: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>Destek Taleplerim</div>
+      <div className="stw-list">
+        <div className="stw-list__header">
+          <div className="stw-list__title">Destek Taleplerim</div>
           <button
             type="button"
             onClick={() => setMode(embed ? "form" : "closed")}
-            style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #e2e8f0", background: "white", color: "#334155", fontWeight: 700, cursor: "pointer" }}
+            className="stw-list__back-btn"
           >
             ← Geri
           </button>
         </div>
         {loadingList ? (
-          <div style={{ color: "#64748b", fontSize: 13 }}>Yükleniyor...</div>
+          <div className="stw-list__loading">Yükleniyor...</div>
         ) : myTickets.length === 0 ? (
-          <div style={{ color: "#64748b", fontSize: 13, padding: "12px 0" }}>Henüz destek talebiniz bulunmuyor.</div>
+          <div className="stw-list__empty">Henüz destek talebiniz bulunmuyor.</div>
         ) : (
-          <div style={{ display: "grid", gap: 8 }}>
+          <div className="stw-ticket-list">
             {myTickets.map((t) => (
-              <div key={t.id} style={{ borderRadius: 12, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "10px 14px", display: "grid", gap: 4 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                  <div style={{ fontWeight: 700, color: "#0f172a", fontSize: 13 }}>#{t.id} — {t.subject}</div>
-                  <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 999, background: "#e0f2fe", color: STATUS_COLORS[t.status] || "#0f172a", fontSize: 11, fontWeight: 800 }}>
+              <div key={t.id} className="stw-ticket-card">
+                <div className="stw-ticket-card__row">
+                  <div className="stw-ticket-card__subject">#{t.id} — {t.subject}</div>
+                  <span
+                    className="stw-status-badge"
+                    style={{ "--stw-status-color": STATUS_COLORS[t.status] || "#0f172a" } as CSSProperties}
+                  >
                     {STATUS_LABELS[t.status] || t.status}
                   </span>
                 </div>
-                <div style={{ color: "#64748b", fontSize: 12 }}>
+                <div className="stw-ticket-card__meta">
                   {CATEGORY_OPTIONS.find((c) => c.value === t.category)?.label || t.category} •{" "}
                   {new Date(t.created_at).toLocaleDateString("tr-TR")}
                   {t.assigned_to_name ? ` • Sorumlu: ${t.assigned_to_name}` : ""}
                 </div>
                 {t.resolution_note && (
-                  <div style={{ color: "#15803d", fontSize: 12, borderRadius: 8, background: "#f0fdf4", padding: "6px 8px", marginTop: 4 }}>
+                  <div className="stw-ticket-card__resolution">
                     Çözüm: {t.resolution_note}
                   </div>
                 )}
@@ -188,7 +193,7 @@ export default function SupportTicketWidget({
         <button
           type="button"
           onClick={() => { setMode(embed ? "form" : "closed"); setSuccessTicket(null); }}
-          style={{ justifySelf: "start", padding: "8px 16px", borderRadius: 10, border: "none", background: "#1d4ed8", color: "white", fontWeight: 700, cursor: "pointer" }}
+          className="stw-list__new-btn"
         >
           + Yeni Talep Oluştur
         </button>
@@ -198,54 +203,54 @@ export default function SupportTicketWidget({
 
   // Form modu
   return (
-    <div style={{ display: "grid", gap: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>Destek Talebi Oluştur</div>
+    <div className="stw-form">
+      <div className="stw-form__header">
+        <div className="stw-form__title">Destek Talebi Oluştur</div>
         <button
           type="button"
           onClick={() => void handleOpenList()}
-          style={{ padding: "5px 10px", borderRadius: 8, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+          className="stw-form__list-btn"
         >
           Taleplerim →
         </button>
       </div>
 
       {error && (
-        <div style={{ borderRadius: 8, background: "#fef2f2", border: "1px solid #fecaca", padding: "8px 12px", color: "#991b1b", fontSize: 13 }}>
+        <div className="stw-form__error">
           {error}
         </div>
       )}
 
-      <label style={{ display: "grid", gap: 4, fontSize: 13, fontWeight: 700, color: "#334155" }}>
+      <label className="stw-form__label">
         Konu *
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Sorununuzu kısaca özetleyin"
           maxLength={200}
-          style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#0f172a", background: "white", fontFamily: "inherit" }}
+          className="stw-form__input"
         />
       </label>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label style={{ display: "grid", gap: 4, fontSize: 13, fontWeight: 700, color: "#334155" }}>
+      <div className="stw-form__2col">
+        <label className="stw-form__label">
           Kategori
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#0f172a", background: "white" }}
+            className="stw-form__select"
           >
             {CATEGORY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </label>
-        <label style={{ display: "grid", gap: 4, fontSize: 13, fontWeight: 700, color: "#334155" }}>
+        <label className="stw-form__label">
           Öncelik
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#0f172a", background: "white" }}
+            className="stw-form__select"
           >
             {PRIORITY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -254,23 +259,23 @@ export default function SupportTicketWidget({
         </label>
       </div>
 
-      <label style={{ display: "grid", gap: 4, fontSize: 13, fontWeight: 700, color: "#334155" }}>
+      <label className="stw-form__label">
         Açıklama (isteğe bağlı)
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Sorununuzu daha ayrıntılı açıklayın..."
           rows={3}
-          style={{ resize: "vertical", padding: "8px 10px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#0f172a", background: "white", fontFamily: "inherit" }}
+          className="stw-form__textarea"
         />
       </label>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+      <div className="stw-form__actions">
         <button
           type="button"
           onClick={() => void handleSubmit()}
           disabled={saving}
-          style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: saving ? "#93c5fd" : "#1d4ed8", color: "white", fontWeight: 800, cursor: saving ? "not-allowed" : "pointer" }}
+          className={`stw-form__submit-btn${saving ? " stw-form__submit-btn--saving" : ""}`}
         >
           {saving ? "Gönderiliyor..." : "Talebi Gönder"}
         </button>
@@ -278,7 +283,7 @@ export default function SupportTicketWidget({
           <button
             type="button"
             onClick={() => setMode("closed")}
-            style={{ padding: "10px 16px", borderRadius: 12, border: "1px solid #dbe3ee", background: "white", color: "#334155", fontWeight: 700, cursor: "pointer" }}
+            className="stw-form__cancel-btn"
           >
             İptal
           </button>
