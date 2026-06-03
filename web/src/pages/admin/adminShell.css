@@ -425,6 +425,30 @@
   display: block;
 }
 
+/* ── PERMISSION BAR ── */
+.as-perm-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 16px;
+  background: #f5f3ff;
+  border-bottom: 1px solid #ede9fe;
+  flex-shrink: 0;
+}
+.as-perm-bar__btn {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.12s;
+}
+.as-perm-bar__btn:hover { background: #6d28d9; }
+
 /* ── PAGE CONTENT ── */
 .as-page {
   flex: 1 1 auto;

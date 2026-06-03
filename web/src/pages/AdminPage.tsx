@@ -4257,18 +4257,6 @@ export default function AdminPage() {
     <div className="admin-page">
       <ImpersonationBanner />
 
-      {isSuperAdminUser(user) && (
-        <div className="admin-page__role-matrix-bar">
-          <button
-            type="button"
-            className="admin-page__role-matrix-btn"
-            onClick={() => navigateAdminTab("roles")}
-          >
-            Rol & İzin Matrisi
-          </button>
-        </div>
-      )}
-
       {/* ScopeWorkspaceHome - panel_home en uste */}
       {activeTab === "panel_home" && (
         <section className="admin-page__section">

@@ -541,6 +541,16 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
             </div>
           </header>
 
+          <div className="as-perm-bar">
+            <button
+              type="button"
+              className="as-perm-bar__btn"
+              onClick={() => onNavigate("roles")}
+            >
+              Rol &amp; İzin Matrisi
+            </button>
+          </div>
+
           <div className="as-page">
             {children}
           </div>
