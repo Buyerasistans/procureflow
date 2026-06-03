@@ -4,6 +4,7 @@ import { getRoleLabel, getUserDisplayRoleLabel } from "../auth/permissions";
 import { activateInternalUserRequest, verifyInternalActivationToken } from "../services/auth.service";
 import { setAccessToken, setRefreshToken } from "../lib/token";
 import { getActivationRedirectPath } from "../config/register-redirect-policy";
+import "./InternalUserActivationPage.css";
 
 export default function InternalUserActivationPage() {
   const [searchParams] = useSearchParams();
@@ -95,7 +96,6 @@ export default function InternalUserActivationPage() {
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
       const statusCode = (err as { response?: { status?: number } })?.response?.status;
-      // 403 with "onay bekliyor" means activation succeeded but tenant awaits approval
       if (statusCode === 403 && detail && detail.includes("onayı bekliyor")) {
         setSuccess(detail);
       } else {
@@ -107,51 +107,65 @@ export default function InternalUserActivationPage() {
   }
 
   if (loading) {
-    return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>Aktivasyon bilgileri yükleniyor...</div>;
+    return <div className="iuap-loading">Aktivasyon bilgileri yükleniyor...</div>;
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "linear-gradient(135deg, #ecfeff 0%, #eff6ff 100%)", padding: 24 }}>
-      <div style={{ width: "min(560px, 100%)", background: "white", borderRadius: 28, padding: 30, boxShadow: "0 24px 60px rgba(15, 23, 42, 0.14)", border: "1px solid #dbeafe" }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: "#8a5b2b" }}>{profile?.platform_name || "Buyera Asistans"}</div>
-        <h1 style={{ margin: "8px 0 6px", fontSize: 30, color: "#0f172a" }}>Hesabınızı Aktifleştirin</h1>
-        <p style={{ margin: 0, color: "#475569" }}>Davet edilen personel hesabı için kendi şifrenizi belirleyin.</p>
+    <div className="iuap-root">
+      <div className="iuap-card">
+        <div className="iuap-platform-name">{profile?.platform_name || "Buyera Asistans"}</div>
+        <h1 className="iuap-h1">Hesabınızı Aktifleştirin</h1>
+        <p className="iuap-desc">Davet edilen personel hesabı için kendi şifrenizi belirleyin.</p>
 
         {profile && (
-          <div style={{ marginTop: 18, padding: 18, borderRadius: 20, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          <div className="iuap-profile">
+            <div className="iuap-profile-header">
               {profile.organization_logo_url ? (
-                <img src={profile.organization_logo_url} alt={profile.organization_name || "Firma logosu"} style={{ width: 52, height: 52, borderRadius: 18, objectFit: "cover" }} />
+                <img
+                  src={profile.organization_logo_url}
+                  alt={profile.organization_name || "Firma logosu"}
+                  className="iuap-logo-img"
+                />
               ) : (
-                <div style={{ width: 52, height: 52, borderRadius: 18, display: "grid", placeItems: "center", background: "#16302b", color: "white", fontWeight: 800 }}>
+                <div className="iuap-logo-placeholder">
                   {(profile.organization_name || "BA").slice(0, 2).toUpperCase()}
                 </div>
               )}
               <div>
-                <div style={{ fontWeight: 700, color: "#111827" }}>{profile.organization_name || profile.full_name}</div>
-                <div style={{ marginTop: 4, color: "#475569" }}>{profile.workspace_label || profile.platform_domain}</div>
+                <div className="iuap-org-name">{profile.organization_name || profile.full_name}</div>
+                <div className="iuap-workspace">{profile.workspace_label || profile.platform_domain}</div>
               </div>
             </div>
-            <div style={{ marginTop: 14, fontWeight: 700, color: "#111827" }}>{profile.full_name}</div>
-            <div style={{ marginTop: 4, color: "#475569" }}>{profile.email}</div>
-            <div style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>Rol: {getUserDisplayRoleLabel(profile) || getRoleLabel(profile.role)}</div>
+            <div className="iuap-full-name">{profile.full_name}</div>
+            <div className="iuap-email">{profile.email}</div>
+            <div className="iuap-role">Rol: {getUserDisplayRoleLabel(profile) || getRoleLabel(profile.role)}</div>
           </div>
         )}
 
-        {error && <div style={{ marginTop: 16, padding: 12, borderRadius: 12, background: "#fee2e2", color: "#991b1b" }}>{error}</div>}
-        {success && <div style={{ marginTop: 16, padding: 12, borderRadius: 12, background: "#dcfce7", color: "#166534" }}>{success}</div>}
+        {error && <div className="iuap-error">{error}</div>}
+        {success && <div className="iuap-success">{success}</div>}
 
         {!success && (
-          <form onSubmit={handleSubmit} style={{ marginTop: 18, display: "grid", gap: 14 }}>
-            <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontWeight: 700, color: "#334155" }}>Yeni Şifre</span>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid #cbd5e1" }} />
+          <form onSubmit={handleSubmit} className="iuap-form">
+            <label className="iuap-label">
+              <span className="iuap-label-text">Yeni Şifre</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="iuap-input"
+              />
             </label>
-            <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ fontWeight: 700, color: "#334155" }}>Şifre Tekrar</span>
-              <input type="password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid #cbd5e1" }} />
+            <label className="iuap-label">
+              <span className="iuap-label-text">Şifre Tekrar</span>
+              <input
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                className="iuap-input"
+              />
             </label>
-            <button type="submit" disabled={submitting} style={{ marginTop: 6, padding: "14px 18px", borderRadius: 14, border: "none", background: "#2563eb", color: "white", fontWeight: 800, cursor: "pointer", opacity: submitting ? 0.7 : 1 }}>
+            <button type="submit" disabled={submitting} className="iuap-submit-btn">
               {submitting ? "Aktifleştiriliyor..." : "Hesabı Aktifleştir"}
             </button>
           </form>
