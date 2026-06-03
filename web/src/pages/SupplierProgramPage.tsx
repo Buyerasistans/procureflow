@@ -1,7 +1,5 @@
 import NavBar from "../components/NavBar";
-import { BRAND_COLORS } from "../components/nav-brand-colors";
-
-const c = BRAND_COLORS.supplier;
+import "./SupplierProgramPage.css";
 
 const features = [
   { icon: "[Hiz]", title: "Hızlı Profil Devreye Alma", desc: "Tedarikçi profilinizi dakikalar içinde oluşturun, kategori ve coğrafya etiketlerinizi tanımlayın." },
@@ -38,13 +36,13 @@ const supplierPlans = [
   {
     name: "Tedarikçi Ücretsiz",
     price: "0 TRY / ay",
-    accent: "#0284c7",
+    variant: "free" as const,
     features: ["Profil olusturma", "Teklif yanitlama", "Aylik performans ozeti"],
   },
   {
     name: "Tedarikçi Prime",
     price: "Premium feature ile genisler",
-    accent: "#7c3aed",
+    variant: "prime" as const,
     features: ["One cikarma", "Kategori bazli rapor", "Oncelikli gorunurluk"],
   },
 ];
@@ -53,71 +51,69 @@ export default function SupplierProgramPage() {
   const activePath = typeof window !== "undefined" && window.location.pathname === "/tedarikciler" ? "/tedarikciler" : "/tedarikci-ol";
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh", background: "#f0f9ff" }}>
+    <div className="spp-root">
       <NavBar variant="supplier" activePath={activePath} />
 
-      <section style={{ background: `linear-gradient(135deg, ${c.bg} 0%, #1e4976 55%, #1a3a5c 100%)`, color: c.text, padding: "64px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(14,165,233,0.12)", border: "1px solid rgba(14,165,233,0.35)", color: c.accent, borderRadius: 999, padding: "6px 16px", fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase" as const, marginBottom: 24 }}>
-            Tedarikçi Programı
-          </div>
-          <h1 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 900, lineHeight: 1.08, color: "#fff" }}>
-            Daha Fazla Aliciya Ulasin, <span style={{ color: c.accent }}>Daha Hizli Buyuyun</span>
+      <section className="spp-hero">
+        <div className="spp-hero-inner">
+          <div className="spp-hero-badge">Tedarikçi Programı</div>
+          <h1 className="spp-hero-title">
+            Daha Fazla Aliciya Ulasin, <span className="spp-hero-title-accent">Daha Hizli Buyuyun</span>
           </h1>
-          <p style={{ margin: "0 auto 32px", fontSize: 17, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, maxWidth: 700 }}>
+          <p className="spp-hero-desc">
             BUYER ASISTANS tedarikçi programı; kurumsal alıcılarla buluşmanız, tekliflerinizi yönetmeniz ve performansınızı izlemeniz için tek bir platformdur.
           </p>
-          <div style={{ maxWidth: 760, margin: "0 auto 28px", borderRadius: 18, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(14,165,233,0.22)", padding: "16px 18px", textAlign: "left" }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: c.accent }}>Kategoriye Gore Gorunurluk</div>
-            <div style={{ marginTop: 8, color: "rgba(255,255,255,0.82)", lineHeight: 1.7, fontSize: 14 }}>
+          <div className="spp-hero-info-box">
+            <div className="spp-hero-info-label">Kategoriye Gore Gorunurluk</div>
+            <div className="spp-hero-info-text">
               Tedarikçi kaydında seçtiğiniz kategori ve uzmanlık alanı yalnızca bilgi amaçlı tutulmaz.
               Bu veri sizi uygun stratejik partner havuzlariyla eslestirmek, dogru RFQ akislarinda gorunur kilmak ve
               platform ekibinin kategori bazlı supplier kapsamını yönetebilmesi için aktif olarak kullanılır.
             </div>
           </div>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="/onboarding?tenant_type=supplier" style={{ background: `linear-gradient(135deg, ${c.accent} 0%, ${c.accentHover} 100%)`, color: "#fff", padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 15 }}>Tedarikçi Ol</a>
-            <a href="/demo?audience=supplier" style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)", padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15 }}>Tedarikçi Demosu</a>
-            <a href="#planlar" style={{ background: "transparent", color: c.accent, border: `1px solid ${c.accent}`, padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15 }}>Planlari Gor</a>
+          <div className="spp-hero-ctas">
+            <a href="/onboarding?tenant_type=supplier" className="spp-hero-cta-primary">Tedarikçi Ol</a>
+            <a href="/demo?audience=supplier" className="spp-hero-cta-demo">Tedarikçi Demosu</a>
+            <a href="#planlar" className="spp-hero-cta-plans">Planlari Gor</a>
           </div>
         </div>
       </section>
 
-      <section style={{ maxWidth: 1080, margin: "0 auto", padding: "52px 24px" }}>
-        <h2 style={{ textAlign: "center", fontSize: 28, fontWeight: 900, color: "#0f172a", marginBottom: 6 }}>Tedarikçi İçin Ne Sunuyoruz?</h2>
-        <p style={{ textAlign: "center", color: "#64748b", marginBottom: 32, fontSize: 15 }}>Gorunurlukten buyumeye, butun asamalarda yaninizdayiz</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
+      <section className="spp-features-section">
+        <h2 className="spp-features-title">Tedarikçi İçin Ne Sunuyoruz?</h2>
+        <p className="spp-features-subtitle">Gorunurlukten buyumeye, butun asamalarda yaninizdayiz</p>
+        <div className="spp-features-grid">
           {features.map((f) => (
-            <article key={f.title} style={{ background: "#fff", borderTop: "1px solid #e0f2fe", borderRight: "1px solid #e0f2fe", borderBottom: "1px solid #e0f2fe", borderLeft: `4px solid ${c.accent}`, borderRadius: 14, padding: 22, boxShadow: "0 4px 16px rgba(0,0,0,0.05)" }}>
-              <div style={{ fontSize: 20, marginBottom: 10 }}>{f.icon}</div>
-              <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 16, marginBottom: 6 }}>{f.title}</div>
-              <p style={{ margin: 0, color: "#475569", lineHeight: 1.6, fontSize: 14 }}>{f.desc}</p>
+            <article key={f.title} className="spp-feature-card">
+              <div className="spp-feature-icon">{f.icon}</div>
+              <div className="spp-feature-name">{f.title}</div>
+              <p className="spp-feature-desc">{f.desc}</p>
             </article>
           ))}
         </div>
-        <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        <div className="spp-matching-grid">
           {matchingDetails.map((item) => (
-            <article key={item.title} style={{ background: "#fff", border: "1px solid #dbeafe", borderRadius: 14, padding: 18, boxShadow: "0 6px 18px rgba(15, 23, 42, 0.04)" }}>
-              <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>{item.title}</div>
-              <p style={{ margin: 0, color: "#475569", lineHeight: 1.7, fontSize: 14 }}>{item.desc}</p>
+            <article key={item.title} className="spp-matching-card">
+              <div className="spp-matching-title">{item.title}</div>
+              <p className="spp-matching-desc">{item.desc}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section id="planlar" style={{ maxWidth: 1080, margin: "0 auto", padding: "0 24px 52px" }}>
-        <div style={{ display: "grid", gap: 12, marginBottom: 18 }}>
-          <h2 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: "#0f172a", textAlign: "center" }}>Tedarikçiler sayfasına taşınan fiyatlandırma ve çözüm yapısı</h2>
-          <p style={{ margin: 0, textAlign: "center", color: "#64748b", lineHeight: 1.7 }}>
+      <section id="planlar" className="spp-plans-section">
+        <div className="spp-plans-header">
+          <h2 className="spp-plans-title">Tedarikçiler sayfasına taşınan fiyatlandırma ve çözüm yapısı</h2>
+          <p className="spp-plans-subtitle">
             Eski Fiyatlandırma ve Çözümler içeriği artık tedarikçi bağlamında burada okunur. Görünürlük, teklif hızı ve premium vitrinde öne çıkma aynı plan katmanında anlatılır.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        <div className="spp-plans-grid">
           {supplierPlans.map((plan) => (
-            <article key={plan.name} style={{ borderRadius: 18, border: `1px solid ${plan.accent}33`, background: "#fff", padding: 18, boxShadow: "0 12px 32px rgba(15, 23, 42, 0.05)" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, textTransform: "uppercase", color: plan.accent }}>{plan.name}</div>
-              <div style={{ marginTop: 10, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>{plan.price}</div>
-              <ul style={{ margin: "14px 0 0", paddingLeft: 18, color: "#475569", lineHeight: 1.7, fontSize: 14 }}>
+            <article key={plan.name} className={`spp-plan-card spp-plan-card--${plan.variant}`}>
+              <div className="spp-plan-name">{plan.name}</div>
+              <div className="spp-plan-price">{plan.price}</div>
+              <ul className="spp-plan-features">
                 {plan.features.map((feature) => (
                   <li key={feature}>{feature}</li>
                 ))}
@@ -127,32 +123,32 @@ export default function SupplierProgramPage() {
         </div>
       </section>
 
-      <section style={{ background: `linear-gradient(135deg, ${c.bg} 0%, #1e4976 100%)`, padding: "52px 24px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#fff", marginBottom: 32 }}>Nasıl Başlarsınız?</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+      <section className="spp-steps-section">
+        <div className="spp-steps-inner">
+          <h2 className="spp-steps-title">Nasıl Başlarsınız?</h2>
+          <div className="spp-steps-grid">
             {steps.map((s) => (
-              <div key={s.num} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 14, padding: 22, textAlign: "center" }}>
-                <div style={{ width: 48, height: 48, borderRadius: "50%", background: c.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, margin: "0 auto 14px" }}>{s.num}</div>
-                <div style={{ fontWeight: 800, color: "#fff", marginBottom: 6, fontSize: 15 }}>{s.title}</div>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.65)", fontSize: 13, lineHeight: 1.6 }}>{s.desc}</p>
+              <div key={s.num} className="spp-step-card">
+                <div className="spp-step-num">{s.num}</div>
+                <div className="spp-step-name">{s.title}</div>
+                <p className="spp-step-desc">{s.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ textAlign: "center", padding: "52px 24px", background: "#fff" }}>
-        <h2 style={{ fontSize: 26, fontWeight: 900, color: "#0f172a", margin: "0 0 12px" }}>Hemen Platforma Katilin</h2>
-        <p style={{ color: "#64748b", marginBottom: 28, fontSize: 15 }}>Ucretsiz temel plan ile hemen baslayin.</p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <a href="/onboarding?tenant_type=supplier" style={{ background: `linear-gradient(135deg, ${c.bg} 0%, #1e4976 100%)`, color: c.accent, padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 15, border: "1px solid rgba(14,165,233,0.3)" }}>Tedarikçi Kaydı</a>
-          <a href="/demo?audience=supplier" style={{ background: c.accent, color: "#fff", padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 15 }}>Demo Talep Et</a>
-          <a href="/supplier/login" style={{ background: "#f1f5f9", color: "#0f172a", padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15, border: "1px solid #e2e8f0" }}>Tedarikçi Girişi</a>
+      <section className="spp-cta-section">
+        <h2 className="spp-cta-title">Hemen Platforma Katilin</h2>
+        <p className="spp-cta-subtitle">Ucretsiz temel plan ile hemen baslayin.</p>
+        <div className="spp-cta-group">
+          <a href="/onboarding?tenant_type=supplier" className="spp-cta-register">Tedarikçi Kaydı</a>
+          <a href="/demo?audience=supplier" className="spp-cta-demo">Demo Talep Et</a>
+          <a href="/supplier/login" className="spp-cta-login">Tedarikçi Girişi</a>
         </div>
       </section>
 
-      <footer style={{ background: c.bg, color: "rgba(255,255,255,0.55)", textAlign: "center", padding: "20px", fontSize: 13 }}>
+      <footer className="spp-footer">
         (c) {new Date().getFullYear()} BUYER ASISTANS - Tedarikçi Programı
       </footer>
     </div>
