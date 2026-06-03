@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { getPublicReferralInfo } from "../services/profile.service";
 import type { PublicReferralInfo } from "../services/profile.service";
+import "./ReferralLandingPage.css";
 
 export default function ReferralLandingPage() {
   const { code } = useParams<{ code: string }>();
@@ -43,155 +44,68 @@ export default function ReferralLandingPage() {
       : null;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 20px",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-      }}
-    >
-      <div style={{ marginBottom: 32, textAlign: "center" }}>
-        <div
-          style={{
-            fontSize: 28,
-            fontWeight: 900,
-            color: "#f8fafc",
-            letterSpacing: -0.5,
-          }}
-        >
-          Buyer Asistans
-        </div>
-        <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 4 }}>
-          Tedarik ve İş Ortağı Platformu
-        </div>
+    <div className="rlp-root">
+      <div className="rlp-logo-section">
+        <div className="rlp-logo-name">Buyer Asistans</div>
+        <div className="rlp-logo-sub">Tedarik ve İş Ortağı Platformu</div>
       </div>
 
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 18,
-          padding: "36px 40px",
-          maxWidth: 480,
-          width: "100%",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-        }}
-      >
-        {loading && (
-          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 15 }}>
-            Yukleniyor...
-          </div>
-        )}
+      <div className="rlp-card">
+        {loading && <div className="rlp-loading">Yukleniyor...</div>}
 
         {!loading && error && (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>
-              Link Gecersiz
-            </div>
-            <div style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>{error}</div>
-            <Link to="/" style={{ fontSize: 14, color: "#2563eb", textDecoration: "none" }}>
-              Ana sayfaya don &rarr;
-            </Link>
+          <div className="rlp-status">
+            <div className="rlp-status-emoji">⚠️</div>
+            <div className="rlp-status-title">Link Gecersiz</div>
+            <div className="rlp-status-desc">{error}</div>
+            <Link to="/" className="rlp-status-link">Ana sayfaya don &rarr;</Link>
           </div>
         )}
 
         {!loading && !error && info && !info.is_active && (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>
-              Link Artik Aktif Degil
-            </div>
-            <div style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
+          <div className="rlp-status">
+            <div className="rlp-status-emoji">🔒</div>
+            <div className="rlp-status-title">Link Artik Aktif Degil</div>
+            <div className="rlp-status-desc">
               Bu referral link pasife alınmış. Daha güncel bir link için ilgili iş ortağıyla iletişime geçin.
             </div>
-            <Link to="/" style={{ fontSize: 14, color: "#2563eb", textDecoration: "none" }}>
-              Ana sayfaya don &rarr;
-            </Link>
+            <Link to="/" className="rlp-status-link">Ana sayfaya don &rarr;</Link>
           </div>
         )}
 
         {!loading && !error && info && info.is_active && (
           <>
-            <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>🤝</div>
+            <div className="rlp-active-header">
+              <div className="rlp-active-emoji">🤝</div>
               {info.org_name && (
-                <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>
-                  <strong style={{ color: "#1e293b" }}>{info.org_name}</strong> sizi davet ediyor
+                <div className="rlp-org-name">
+                  <strong>{info.org_name}</strong> sizi davet ediyor
                 </div>
               )}
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>
-                {targetLabel}'ne Katil
-              </div>
-              <div style={{ fontSize: 14, color: "#64748b", marginTop: 8 }}>
+              <div className="rlp-target-label">{targetLabel}'ne Katil</div>
+              <div className="rlp-active-desc">
                 Bu davet linki ile kayit olun ve avantajlardan yararlanin.
               </div>
             </div>
 
             {registerPath ? (
-              <Link
-                to={registerPath}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "center",
-                  padding: "14px 0",
-                  borderRadius: 10,
-                  background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-                  color: "#fff",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  boxShadow: "0 4px 14px rgba(37,99,235,0.35)",
-                }}
-              >
+              <Link to={registerPath} className="rlp-register-btn">
                 Hemen Kayit Ol →
               </Link>
             ) : (
-              <div style={{ display: "grid", gap: 10 }}>
-                <Link
-                  to={strategicPartnerPath}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "12px 0",
-                    borderRadius: 10,
-                    background: "linear-gradient(135deg, #0f766e, #0d9488)",
-                    color: "#fff",
-                    fontSize: 15,
-                    fontWeight: 700,
-                    textDecoration: "none",
-                  }}
-                >
+              <div className="rlp-mixed-links">
+                <Link to={strategicPartnerPath} className="rlp-partner-btn">
                   Stratejik Partner Olarak Devam Et
                 </Link>
-                <Link
-                  to={supplierPath}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "12px 0",
-                    borderRadius: 10,
-                    background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-                    color: "#fff",
-                    fontSize: 15,
-                    fontWeight: 700,
-                    textDecoration: "none",
-                  }}
-                >
+                <Link to={supplierPath} className="rlp-supplier-btn">
                   Tedarikçi Olarak Devam Et
                 </Link>
               </div>
             )}
 
-            <div style={{ marginTop: 16, textAlign: "center", fontSize: 12, color: "#94a3b8" }}>
-              Zaten hesabınız var mı? <Link to="/login" style={{ color: "#2563eb", textDecoration: "none" }}>Giriş yapın</Link>
+            <div className="rlp-login-hint">
+              Zaten hesabınız var mı?{" "}
+              <Link to="/login" className="rlp-login-link">Giriş yapın</Link>
             </div>
           </>
         )}
