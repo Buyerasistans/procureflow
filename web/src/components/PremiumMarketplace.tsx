@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { http } from "../lib/http";
+import "./PremiumMarketplace.css";
 
 interface PremiumFeature {
   code: string;
@@ -94,138 +95,37 @@ export function PremiumMarketplace({
     }
   };
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#f3f4f6",
-          color: "#6b7280",
-          textAlign: "center",
-        }}
-      >
-        Yükleniyor...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        style={{
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#fee2e2",
-          color: "#991b1b",
-          fontSize: "14px",
-        }}
-      >
-        {error}
-      </div>
-    );
-  }
+  if (loading) return <div className="pm-loading">Yükleniyor...</div>;
+  if (error) return <div className="pm-error">{error}</div>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div className="pm-list">
       <div>
-        <h2
-          style={{
-            margin: "0 0 8px 0",
-            color: "#1f2937",
-            fontSize: "20px",
-            fontWeight: "600",
-          }}
-        >
-          Premium Özellikler Pazarı
-        </h2>
-        <p
-          style={{
-            margin: "0 0 16px 0",
-            color: "#6b7280",
-            fontSize: "14px",
-          }}
-        >
+        <h2 className="pm-section-title">Premium Özellikler Pazarı</h2>
+        <p className="pm-section-desc">
           Hesabınızı geliştirmek için ekstra özellikler aktivasyon edin.
         </p>
       </div>
 
-      {/* Active Features Section */}
       {activePremiums.length > 0 && (
-        <div
-          style={{
-            padding: "16px",
-            backgroundColor: "#f0fdf4",
-            border: "1px solid #bbf7d0",
-            borderRadius: "8px",
-          }}
-        >
-          <h3
-            style={{
-              margin: "0 0 12px 0",
-              color: "#15803d",
-              fontSize: "14px",
-              fontWeight: "600",
-              textTransform: "uppercase",
-            }}
-          >
-            ✓ Aktif Premium Özellikleriniz
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div className="pm-active-section">
+          <h3 className="pm-active-section__title">✓ Aktif Premium Özellikleriniz</h3>
+          <div className="pm-active-list">
             {activePremiums
               .filter((ap) => ap.is_active)
               .map((activePremium) => {
-                const feature = features.find(
-                  (f) => f.code === activePremium.feature_code
-                );
+                const feature = features.find((f) => f.code === activePremium.feature_code);
                 return (
-                  <div
-                    key={activePremium.feature_code}
-                    style={{
-                      padding: "8px 12px",
-                      backgroundColor: "#ecfdf5",
-                      borderRadius: "4px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div key={activePremium.feature_code} className="pm-active-item">
                     <div>
-                      <p
-                        style={{
-                          margin: "0 0 2px 0",
-                          color: "#15803d",
-                          fontWeight: "600",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {feature?.name}
-                      </p>
+                      <p className="pm-active-item__name">{feature?.name}</p>
                       {activePremium.expires_at && (
-                        <p
-                          style={{
-                            margin: 0,
-                            color: "#6b7280",
-                            fontSize: "12px",
-                          }}
-                        >
+                        <p className="pm-active-item__expires">
                           Süresi bitişi: {activePremium.expires_at}
                         </p>
                       )}
                     </div>
-                    <span
-                      style={{
-                        padding: "4px 8px",
-                        backgroundColor: "#10b981",
-                        color: "white",
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Aktif
-                    </span>
+                    <span className="pm-active-badge">Aktif</span>
                   </div>
                 );
               })}
@@ -233,27 +133,9 @@ export function PremiumMarketplace({
         </div>
       )}
 
-      {/* Available Features Grid */}
       <div>
-        <h3
-          style={{
-            margin: "0 0 12px 0",
-            color: "#1f2937",
-            fontSize: "14px",
-            fontWeight: "600",
-            textTransform: "uppercase",
-          }}
-        >
-          Mevcut Premium Özellikler
-        </h3>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "16px",
-          }}
-        >
+        <h3 className="pm-avail-title">Mevcut Premium Özellikler</h3>
+        <div className="pm-avail-grid">
           {features.map((feature) => {
             const isActive = activePremiums.some(
               (ap) => ap.feature_code === feature.code && ap.is_active
@@ -263,163 +145,35 @@ export function PremiumMarketplace({
             return (
               <div
                 key={feature.code}
-                style={{
-                  padding: "16px",
-                  border: isActive ? "2px solid #10b981" : "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  backgroundColor: isActive ? "#f0fdf4" : "#ffffff",
-                  transition: "all 0.2s",
-                  cursor: "default",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "#d1d5db";
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 4px 6px rgba(0,0,0,0.1)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "#e5e7eb";
-                    (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                  }
-                }}
+                className={`pm-feat-card${isActive ? " pm-feat-card--active" : ""}`}
               >
-                {/* Header */}
-                <div style={{ marginBottom: "12px" }}>
-                  <div
-                    style={{
-                      fontSize: "24px",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    {feature.icon || "⭐"}
-                  </div>
-                  <h4
-                    style={{
-                      margin: "0 0 4px 0",
-                      color: "#1f2937",
-                      fontSize: "16px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {feature.name}
-                  </h4>
-                  <p
-                    style={{
-                      margin: 0,
-                      color: "#6b7280",
-                      fontSize: "13px",
-                      lineHeight: "1.4",
-                    }}
-                  >
-                    {feature.description}
-                  </p>
+                <div className="pm-feat-card__header">
+                  <div className="pm-feat-card__icon">{feature.icon || "⭐"}</div>
+                  <h4 className="pm-feat-card__name">{feature.name}</h4>
+                  <p className="pm-feat-card__desc">{feature.description}</p>
                 </div>
 
-                {/* Price */}
                 {feature.price_monthly && (
-                  <div
-                    style={{
-                      marginBottom: "12px",
-                      paddingBottom: "12px",
-                      borderBottom: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <p
-                      style={{
-                        margin: "0 0 4px 0",
-                        color: "#6b7280",
-                        fontSize: "12px",
-                        textTransform: "uppercase",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Fiyat
-                    </p>
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "#1f2937",
-                        fontSize: "18px",
-                        fontWeight: "700",
-                      }}
-                    >
+                  <div className="pm-feat-card__price-section">
+                    <p className="pm-feat-card__price-label">Fiyat</p>
+                    <p className="pm-feat-card__price-value">
                       ${feature.price_monthly.toFixed(2)}
-                      <span
-                        style={{
-                          fontSize: "13px",
-                          color: "#6b7280",
-                          fontWeight: "400",
-                        }}
-                      >
-                        {" "}
-                        /ay
-                      </span>
+                      <span className="pm-feat-card__price-period"> /ay</span>
                     </p>
                   </div>
                 )}
 
-                {/* Status Badge */}
                 {isActive && (
-                  <div
-                    style={{
-                      marginBottom: "12px",
-                      padding: "8px",
-                      backgroundColor: "#ecfdf5",
-                      borderRadius: "4px",
-                      textAlign: "center",
-                    }}
-                  >
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "#10b981",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      ✓ Aktif
-                    </p>
+                  <div className="pm-feat-card__active-badge">
+                    <p className="pm-feat-card__active-label">✓ Aktif</p>
                   </div>
                 )}
 
-                {/* CTA Button */}
                 {!isActive && (
                   <button
                     onClick={() => handleActivateFeature(feature.code)}
                     disabled={isActivating}
-                    style={{
-                      marginTop: "auto",
-                      padding: "10px 16px",
-                      backgroundColor: "#4f46e5",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "6px",
-                      fontWeight: "600",
-                      fontSize: "14px",
-                      cursor: isActivating ? "not-allowed" : "pointer",
-                      opacity: isActivating ? 0.6 : 1,
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActivating) {
-                        (
-                          e.currentTarget as HTMLButtonElement
-                        ).style.backgroundColor = "#4338ca";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActivating) {
-                        (
-                          e.currentTarget as HTMLButtonElement
-                        ).style.backgroundColor = "#4f46e5";
-                      }
-                    }}
+                    className={`pm-feat-card__cta-btn${isActivating ? " pm-feat-card__cta-btn--activating" : ""}`}
                   >
                     {isActivating ? "Aktivasyonda..." : "Aktivasyon Yap"}
                   </button>
@@ -431,15 +185,7 @@ export function PremiumMarketplace({
       </div>
 
       {features.length === 0 && (
-        <div
-          style={{
-            padding: "32px",
-            textAlign: "center",
-            backgroundColor: "#f3f4f6",
-            borderRadius: "8px",
-            color: "#6b7280",
-          }}
-        >
+        <div className="pm-empty">
           Bu tenant tipi için premium özellik mevcut değil.
         </div>
       )}
