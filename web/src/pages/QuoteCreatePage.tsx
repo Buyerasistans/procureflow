@@ -18,86 +18,9 @@ import { useAuth } from "../hooks/useAuth";
 import { getSettings } from "../services/settings.service";
 import { canManageQuoteWorkspace, isPlatformStaffUser, isScopedTenantUser } from "../auth/permissions";
 import { filterUsersByAssignmentScope, getUserDepartmentIds } from "../utils/tenantUserAssignments";
+import "./QuoteCreatePage.css";
 
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-const S = {
-  page: { maxWidth: "960px", margin: "0 auto", padding: "24px 16px" } as React.CSSProperties,
-  card: {
-    background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: "8px",
-    padding: "20px",
-    marginBottom: "16px",
-  } as React.CSSProperties,
-  sectionTitle: {
-    fontSize: "15px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "16px",
-    paddingBottom: "8px",
-    borderBottom: "2px solid #3b82f6",
-    display: "inline-block",
-  } as React.CSSProperties,
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" } as React.CSSProperties,
-  row3: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" } as React.CSSProperties,
-  label: { display: "block", fontSize: "13px", fontWeight: 600, marginBottom: "4px", color: "#374151" } as React.CSSProperties,
-  input: {
-    width: "100%",
-    padding: "8px 10px",
-    borderRadius: "6px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-    boxSizing: "border-box" as const,
-  },
-  textarea: {
-    width: "100%",
-    padding: "8px 10px",
-    borderRadius: "6px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-    boxSizing: "border-box" as const,
-    resize: "vertical" as const,
-  },
-  select: {
-    width: "100%",
-    padding: "8px 10px",
-    borderRadius: "6px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-    background: "#fff",
-  },
-  btn: (bg: string) => ({
-    padding: "9px 20px",
-    background: bg,
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "14px",
-  }) as React.CSSProperties,
-  tabBtn: (active: boolean) => ({
-    padding: "8px 20px",
-    border: "none",
-    borderRadius: "6px 6px 0 0",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "13px",
-    background: active ? "#3b82f6" : "#e5e7eb",
-    color: active ? "#fff" : "#374151",
-  }) as React.CSSProperties,
-  th: { padding: "10px 8px", textAlign: "left" as const, fontSize: "12px", fontWeight: 700, color: "#6b7280", background: "#f3f4f6" },
-  td: { padding: "6px 4px" },
-  itemInput: {
-    width: "100%",
-    padding: "5px 6px",
-    border: "1px solid #d1d5db",
-    borderRadius: "4px",
-    fontSize: "13px",
-    boxSizing: "border-box" as const,
-  },
-};
 
 const EMPTY_ITEM = (): RfqItemPayload => ({
   line_number: "",
@@ -293,7 +216,6 @@ export default function QuoteCreatePage() {
   const effectiveDepartmentId = isScopedUser ? (departmentId || "") : departmentId;
   const effectiveAssignedToId = isScopedUser ? (assignedToId || "") : assignedToId;
 
-  // Veri yükleme
   useEffect(() => {
     Promise.all([getProjects(), getDepartments(), getTenantUsers()]).then(
       ([p, d, u]) => { setProjects(p); setDepartments(d); setPersonnel(u); }
@@ -403,7 +325,6 @@ export default function QuoteCreatePage() {
     }, 0);
   const overallGross = overallNet + overallVat;
 
-  // --- Items helpers ---
   const updateItem = (idx: number, field: keyof RfqItemPayload, val: string | number | undefined) => {
     setItems((prev) => {
       const next = [...prev];
@@ -465,7 +386,6 @@ export default function QuoteCreatePage() {
     setCollapsedGroups((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }));
   };
 
-  // --- Submit ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canManageQuotes) {
@@ -505,7 +425,6 @@ export default function QuoteCreatePage() {
         const result = await res.json();
         navigate(`/quotes/${result.quote_id}`);
       } else {
-        // Manuel oluştur
         const validItems = items
           .filter((it) => it.description.trim() || it.line_number.trim())
           .map((it) => {
@@ -551,18 +470,12 @@ export default function QuoteCreatePage() {
 
   if (readOnly) {
     return (
-      <div style={S.page}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            style={{ padding: "6px 12px", background: "#f3f4f6", border: "1px solid #ddd", borderRadius: "6px", cursor: "pointer" }}
-          >
-            ← Geri
-          </button>
-          <h2 style={{ margin: 0, fontSize: "20px" }}>Yeni RFQ / Teklif Talebi</h2>
+      <div className="qcp-root">
+        <div className="qcp-header">
+          <button type="button" onClick={() => navigate(-1)} className="qcp-back-btn">← Geri</button>
+          <h2 className="qcp-page-title">Yeni RFQ / Teklif Talebi</h2>
         </div>
-        <div style={{ ...S.card, background: "#eff6ff", borderColor: "#bfdbfe", color: "#1e3a8a" }}>
+        <div className="qcp-card qcp-card--readonly">
           Platform personeli teklif alanında salt okunur erişime sahiptir. Yeni teklif oluşturma akışı bu hesaplar için kapatıldı.
         </div>
       </div>
@@ -570,33 +483,26 @@ export default function QuoteCreatePage() {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={S.page}>
-      {/* Başlık */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          style={{ padding: "6px 12px", background: "#f3f4f6", border: "1px solid #ddd", borderRadius: "6px", cursor: "pointer" }}
-        >
-          ← Geri
-        </button>
+    <form onSubmit={handleSubmit} className="qcp-root">
+      <div className="qcp-header">
+        <button type="button" onClick={() => navigate(-1)} className="qcp-back-btn">← Geri</button>
         <div>
-          <h2 style={{ margin: 0, fontSize: "20px" }}>Yeni RFQ / Teklif Talebi</h2>
-          <div style={{ marginTop: "4px", color: "#6b7280", fontSize: "13px" }}>
+          <h2 className="qcp-page-title">Yeni RFQ / Teklif Talebi</h2>
+          <div className="qcp-subtitle">
             RFQ adapter gecisi aktif: bu ekran mevcut quote akisini korurken RFQ terminolojisini de gorunur kilir.
           </div>
         </div>
       </div>
 
       {error && (
-        <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: "6px", marginBottom: "16px", display: "grid", gap: 10 }}>
+        <div className="qcp-error-box">
           <div>{error}</div>
           {hasSubscriptionUpgradeGuidance(error) ? (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <a href={getSubscriptionUpgradeHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#991b1b", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+            <div className="qcp-cta-row">
+              <a href={getSubscriptionUpgradeHref(error)} className="qcp-cta-link qcp-cta-link--upgrade">
                 {SUBSCRIPTION_UPGRADE_CTA_LABEL}
               </a>
-              <a href={getSubscriptionAddonHref(error)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "fit-content", padding: "8px 12px", borderRadius: 10, background: "#7c2d12", color: "#fff", textDecoration: "none", fontWeight: 700 }}>
+              <a href={getSubscriptionAddonHref(error)} className="qcp-cta-link qcp-cta-link--addon">
                 {SUBSCRIPTION_ADDON_CTA_LABEL}
               </a>
             </div>
@@ -605,21 +511,21 @@ export default function QuoteCreatePage() {
       )}
 
       {/* ① Temel Bilgiler */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>① Temel Bilgiler</div>
-        <div style={{ marginBottom: "12px" }}>
-          <label style={S.label}>Başlık *</label>
-          <input aria-label="Başlık" style={S.input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Teklif başlığı" required />
+      <div className="qcp-card">
+        <div className="qcp-section-title">① Temel Bilgiler</div>
+        <div className="qcp-mb">
+          <label className="qcp-label">Başlık *</label>
+          <input aria-label="Başlık" className="qcp-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Teklif başlığı" required />
         </div>
-        <div style={{ marginBottom: "12px" }}>
-          <label style={S.label}>Açıklama</label>
-          <textarea aria-label="Açıklama" style={S.textarea} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="İsteğe bağlı açıklama" />
+        <div className="qcp-mb">
+          <label className="qcp-label">Açıklama</label>
+          <textarea aria-label="Açıklama" className="qcp-textarea" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="İsteğe bağlı açıklama" />
         </div>
-        <div style={{ marginBottom: "12px" }}>
-          <label style={S.label}>Yayin Modeli *</label>
+        <div className="qcp-mb">
+          <label className="qcp-label">Yayin Modeli *</label>
           <select
             aria-label="Yayin Modeli"
-            style={S.select}
+            className="qcp-select"
             value={listingScopePreference}
             onChange={(e) => setListingScopePreference(e.target.value as ListingScopePreference)}
           >
@@ -627,14 +533,14 @@ export default function QuoteCreatePage() {
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
-          <div style={{ marginTop: 6, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+          <div className="qcp-hint">
             {LISTING_SCOPE_OPTIONS.find((option) => option.value === listingScopePreference)?.hint}
           </div>
         </div>
-        <div style={S.row3}>
+        <div className="qcp-row-3">
           <div>
-            <label style={S.label}>Proje *</label>
-            <select aria-label="Proje" style={S.select} value={projectId} onChange={(e) => setProjectId(Number(e.target.value) || "")} required>
+            <label className="qcp-label">Proje *</label>
+            <select aria-label="Proje" className="qcp-select" value={projectId} onChange={(e) => setProjectId(Number(e.target.value) || "")} required>
               <option value="">-- Proje seçin --</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
@@ -642,10 +548,10 @@ export default function QuoteCreatePage() {
             </select>
           </div>
           <div>
-            <label style={S.label}>Departman</label>
+            <label className="qcp-label">Departman</label>
             <select
               aria-label="Departman"
-              style={S.select}
+              className="qcp-select"
               value={effectiveDepartmentId}
               onChange={(e) => { setDepartmentId(Number(e.target.value) || ""); setAssignedToId(""); }}
               disabled={isScopedUser}
@@ -657,10 +563,10 @@ export default function QuoteCreatePage() {
             </select>
           </div>
           <div>
-            <label style={S.label}>Sorumlu Kişi</label>
+            <label className="qcp-label">Sorumlu Kişi</label>
             <select
               aria-label="Sorumlu Kişi"
-              style={S.select}
+              className="qcp-select"
               value={effectiveAssignedToId}
               onChange={(e) => setAssignedToId(Number(e.target.value) || "")}
               disabled={isScopedUser}
@@ -671,64 +577,61 @@ export default function QuoteCreatePage() {
               ))}
             </select>
             {projectPersonnelAssignmentsLoading && selectedProject?.personnel?.length ? (
-              <div style={{ marginTop: 6, fontSize: 12, color: "#475569" }}>
-                Proje personel atamaları yükleniyor...
-              </div>
+              <div className="qcp-hint">Proje personel atamaları yükleniyor...</div>
             ) : null}
             {!projectPersonnelAssignmentsLoading && !visiblePersonnel.length && effectiveDepartmentId ? (
-              <div style={{ marginTop: 6, fontSize: 12, color: "#92400e" }}>
-                Seçili proje ve departman için uygun sorumlu bulunamadı.
-              </div>
+              <div className="qcp-hint qcp-hint--warn">Seçili proje ve departman için uygun sorumlu bulunamadı.</div>
             ) : null}
           </div>
         </div>
       </div>
 
       {/* ② Kalemler */}
-      <div style={S.card}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "16px" }}>
-          <div style={S.sectionTitle}>② Teklif Kalemleri</div>
-          <div style={{ display: "flex", gap: "4px" }}>
-            <button type="button" style={S.tabBtn(mode === "manual")} onClick={() => setMode("manual")}>Manuel Giriş</button>
-            <button type="button" style={S.tabBtn(mode === "excel")} onClick={() => setMode("excel")}>Excel'den İçe Aktar</button>
+      <div className="qcp-card">
+        <div className="qcp-items-header">
+          <div className="qcp-section-title">② Teklif Kalemleri</div>
+          <div className="qcp-tab-row">
+            <button type="button" className={mode === "manual" ? "qcp-tab-btn qcp-tab-btn--active" : "qcp-tab-btn"} onClick={() => setMode("manual")}>Manuel Giriş</button>
+            <button type="button" className={mode === "excel" ? "qcp-tab-btn qcp-tab-btn--active" : "qcp-tab-btn"} onClick={() => setMode("excel")}>Excel'den İçe Aktar</button>
           </div>
         </div>
 
         {mode === "excel" ? (
           <div>
-            <label style={S.label}>Excel Dosyası (.xlsx/.xlsm) *</label>
+            <label className="qcp-label">Excel Dosyası (.xlsx/.xlsm) *</label>
             <input
               ref={fileRef}
               type="file"
               accept=".xlsx,.xlsm,.xls"
+              aria-label="Excel Dosyası"
               onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-              style={{ marginBottom: "8px" }}
+              className="qcp-excel-input"
             />
             {excelFile && (
-              <div style={{ fontSize: "13px", color: "#059669", marginTop: "4px" }}>
+              <div className="qcp-excel-info">
                 ✓ {excelFile.name} seçildi ({(excelFile.size / 1024).toFixed(0)} KB)
               </div>
             )}
-            <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "8px" }}>
+            <p className="qcp-excel-hint">
               PİZZAMAX_TEKLİF_ formatında Excel dosyası yükleyiniz. Kalemler otomatik okunacaktır.
             </p>
           </div>
         ) : (
           <div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <div className="qcp-table-wrap">
+              <table className="qcp-table">
                 <thead>
                   <tr>
-                    <th style={{ ...S.th, width: "50px" }}>Sıra</th>
-                    <th style={{ ...S.th, minWidth: "180px" }}>Açıklama *</th>
-                    <th style={{ ...S.th, width: "60px" }}>Birim</th>
-                    <th style={{ ...S.th, width: "70px" }}>Miktar</th>
-                    <th style={{ ...S.th, width: "100px" }}>Birim Fiyat</th>
-                    <th style={{ ...S.th, width: "120px" }}>Birim Toplam Fiyat</th>
-                    <th style={{ ...S.th, width: "86px" }}>KDV</th>
-                    <th style={{ ...S.th, width: "110px" }}>KDV Tutar</th>
-                    <th style={{ ...S.th, width: "130px" }}>KDV Dahil Toplam</th>
-                    <th style={{ ...S.th, width: "36px" }}></th>
+                    <th className="qcp-th">Sıra</th>
+                    <th className="qcp-th">Açıklama *</th>
+                    <th className="qcp-th">Birim</th>
+                    <th className="qcp-th">Miktar</th>
+                    <th className="qcp-th">Birim Fiyat</th>
+                    <th className="qcp-th">Birim Toplam Fiyat</th>
+                    <th className="qcp-th">KDV</th>
+                    <th className="qcp-th">KDV Tutar</th>
+                    <th className="qcp-th">KDV Dahil Toplam</th>
+                    <th className="qcp-th" aria-label="İşlem"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -748,58 +651,52 @@ export default function QuoteCreatePage() {
                     return [
                       <tr
                         key={`${idx}-row`}
-                        style={{
-                          borderBottom: header ? "2px solid #eab308" : "1px solid #f3f4f6",
-                          background: header ? "#fef3c7" : "transparent",
-                          fontWeight: header ? 700 : 400,
-                        }}
+                        className={header ? "qcp-item-row qcp-item-row--header" : "qcp-item-row"}
                       >
-                        <td style={S.td}>
-                          <span style={{ ...S.itemInput, display: "inline-block", width: "44px", background: "#f9fafb", textAlign: "center" }}>{item.line_number || "-"}</span>
+                        <td className="qcp-td">
+                          <span className="qcp-cell-input qcp-cell-input--static qcp-cell-input--w44">{item.line_number || "-"}</span>
                         </td>
-                        <td style={S.td}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <td className="qcp-td">
+                          <div className="qcp-desc-cell">
                             {header && (
                               <button
                                 type="button"
                                 onClick={() => toggleGroup(key)}
-                                style={{ border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, color: "#92400e" }}
+                                className="qcp-toggle-btn"
                                 title={collapsedGroups[key] ? "Alt kalemleri aç" : "Alt kalemleri kapat"}
                               >
                                 {collapsedGroups[key] ? "▶" : "▼"}
                               </button>
                             )}
                             {header && (
-                              <span style={{ fontSize: "11px", background: "#f59e0b", color: "#fff", borderRadius: "999px", padding: "2px 7px", fontWeight: 700 }}>
-                                Grup
-                              </span>
+                              <span className="qcp-group-badge">Grup</span>
                             )}
-                            <div style={{ width: "100%" }}>
-                              <input style={S.itemInput} value={item.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="Kalem açıklaması" required={idx === 0} />
+                            <div className="qcp-desc-input-wrap">
+                              <input className="qcp-cell-input" value={item.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="Kalem açıklaması" required={idx === 0} />
                             </div>
                           </div>
                         </td>
-                        <td style={S.td}>
+                        <td className="qcp-td">
                           {header ? "" : (
-                            <select style={{ ...S.itemInput, width: "58px" }} value={item.unit} onChange={(e) => updateItem(idx, "unit", e.target.value)}>
+                            <select aria-label="Birim" className="qcp-cell-input qcp-cell-input--w58" value={item.unit} onChange={(e) => updateItem(idx, "unit", e.target.value)}>
                               {["adet", "m²", "m³", "m", "kg", "ton", "set", "mt", "lt"].map((u) => <option key={u}>{u}</option>)}
                             </select>
                           )}
                         </td>
-                        <td style={S.td}>
+                        <td className="qcp-td">
                           {header ? "" : (
-                            <input type="number" min="0" step="0.01" style={{ ...S.itemInput, width: "64px" }} value={item.quantity} onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))} />
+                            <input type="number" min="0" step="0.01" aria-label="Miktar" className="qcp-cell-input qcp-cell-input--w64" value={item.quantity} onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))} />
                           )}
                         </td>
-                        <td style={S.td}>
+                        <td className="qcp-td">
                           {header ? (
-                            <span style={{ fontSize: "11px", color: "#92400e", fontWeight: 700 }}>Grup Toplamı</span>
+                            <span className="qcp-group-total-label">Grup Toplamı</span>
                           ) : (
                             <input
                               type="number"
                               min="0"
                               step="0.01"
-                              style={{ ...S.itemInput, width: "92px" }}
+                              className="qcp-cell-input qcp-cell-input--w92"
                               value={item.unit_price ?? ""}
                               onFocus={() => {
                                 if ((item.unit_price ?? 0) === 0) {
@@ -811,21 +708,14 @@ export default function QuoteCreatePage() {
                             />
                           )}
                         </td>
-                        <td style={S.td}>
-                          {header ? (
-                            <span style={{ ...S.td, fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap" }}>
-                              {total > 0 ? `₺${total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "-"}
-                            </span>
-                          ) : (
-                            <span style={{ ...S.td, fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap" }}>
-                              {total > 0 ? `₺${total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "-"}
-                            </span>
-                          )}
+                        <td className="qcp-td qcp-td--total">
+                          {total > 0 ? `₺${total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "-"}
                         </td>
-                        <td style={S.td}>
+                        <td className="qcp-td">
                           {header ? "" : (
                             <select
-                              style={{ ...S.itemInput, width: "82px" }}
+                              aria-label="KDV Oranı"
+                              className="qcp-cell-input qcp-cell-input--w82"
                               value={item.vat_rate ?? 20}
                               onChange={(e) => updateItem(idx, "vat_rate", Number(e.target.value))}
                             >
@@ -835,26 +725,27 @@ export default function QuoteCreatePage() {
                             </select>
                           )}
                         </td>
-                        <td style={{ ...S.td, fontWeight: 600, whiteSpace: "nowrap" }}>
+                        <td className="qcp-td qcp-td--total">
                           {header ? `₺${vatAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : (vatAmount > 0 ? `₺${vatAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "-")}
                         </td>
-                        <td style={{ ...S.td, fontWeight: 600, whiteSpace: "nowrap" }}>
+                        <td className="qcp-td qcp-td--total">
                           {grossTotal > 0 ? `₺${grossTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "-"}
                         </td>
-                        <td style={S.td}>
-                          <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} style={{ padding: "4px 7px", background: "#fee2e2", color: "#dc2626", border: "none", borderRadius: "4px", cursor: "pointer" }}>✕</button>
+                        <td className="qcp-td">
+                          <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="qcp-remove-btn">✕</button>
                         </td>
                       </tr>,
                       !header ? (
-                        <tr key={`${idx}-meta`} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                          <td style={S.td}></td>
-                          <td colSpan={8} style={{ ...S.td, paddingTop: "0px" }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: "10px", alignItems: "start" }}>
+                        <tr key={`${idx}-meta`} className="qcp-meta-row">
+                          <td className="qcp-td"></td>
+                          <td colSpan={8} className="qcp-td qcp-td--meta">
+                            <div className="qcp-meta-grid">
                               <div>
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  style={{ ...S.itemInput, padding: "4px" }}
+                                  aria-label="Kalem görseli"
+                                  className="qcp-cell-input qcp-cell-input--file"
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
@@ -863,15 +754,15 @@ export default function QuoteCreatePage() {
                                   }}
                                 />
                                 {meta.imageUrl && (
-                                  <div style={{ marginTop: "6px" }}>
+                                  <div className="qcp-img-preview">
                                     <img
                                       src={meta.imageUrl}
                                       alt="Kalem görseli"
-                                      style={{ width: "100%", maxHeight: "100px", objectFit: "cover", borderRadius: "6px", border: "1px solid #e5e7eb" }}
+                                      className="qcp-item-img"
                                     />
                                     <button
                                       type="button"
-                                      style={{ marginTop: "4px", ...S.itemInput, cursor: "pointer", background: "#fff7ed", borderColor: "#fdba74", color: "#9a3412" }}
+                                      className="qcp-remove-img-btn"
                                       onClick={() => updateItem(idx, "notes", composeItemMeta(meta.detail, ""))}
                                     >
                                       Görseli Kaldır
@@ -880,7 +771,7 @@ export default function QuoteCreatePage() {
                                 )}
                               </div>
                               <textarea
-                                style={{ ...S.itemInput, resize: "vertical" }}
+                                className="qcp-cell-input qcp-cell-textarea"
                                 rows={3}
                                 value={meta.detail}
                                 onChange={(e) => {
@@ -890,7 +781,7 @@ export default function QuoteCreatePage() {
                               />
                             </div>
                           </td>
-                          <td style={S.td}></td>
+                          <td className="qcp-td"></td>
                         </tr>
                       ) : null,
                     ];
@@ -898,22 +789,22 @@ export default function QuoteCreatePage() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={8} style={{ padding: "10px 8px", textAlign: "right", fontSize: "13px", fontWeight: 700 }}>Ara Toplam:</td>
-                    <td style={{ padding: "10px 4px", fontWeight: 700, fontSize: "14px", color: "#1d4ed8" }}>
+                    <td colSpan={8} className="qcp-tfoot-label-net">Ara Toplam:</td>
+                    <td className="qcp-tfoot-net">
                       ₺{overallNet.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
                     <td />
                   </tr>
                   <tr>
-                    <td colSpan={8} style={{ padding: "6px 8px", textAlign: "right", fontSize: "13px", fontWeight: 700 }}>Toplam KDV:</td>
-                    <td style={{ padding: "6px 4px", fontWeight: 700, fontSize: "14px", color: "#b45309" }}>
+                    <td colSpan={8} className="qcp-tfoot-label">Toplam KDV:</td>
+                    <td className="qcp-tfoot-vat">
                       ₺{overallVat.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
                     <td />
                   </tr>
                   <tr>
-                    <td colSpan={8} style={{ padding: "6px 8px", textAlign: "right", fontSize: "13px", fontWeight: 700 }}>KDV Dahil Genel Toplam:</td>
-                    <td style={{ padding: "6px 4px", fontWeight: 700, fontSize: "14px", color: "#15803d" }}>
+                    <td colSpan={8} className="qcp-tfoot-label">KDV Dahil Genel Toplam:</td>
+                    <td className="qcp-tfoot-gross">
                       ₺{overallGross.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                     </td>
                     <td />
@@ -921,22 +812,18 @@ export default function QuoteCreatePage() {
                 </tfoot>
               </table>
             </div>
-            <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
-              <button type="button" onClick={addGroup} style={{ padding: "7px 14px", background: "#fef3c7", color: "#92400e", border: "1px dashed #f59e0b", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: 700 }}>
-                + Grup Ekle
-              </button>
-              <button type="button" onClick={addItem} style={{ padding: "7px 14px", background: "#eff6ff", color: "#2563eb", border: "1px dashed #93c5fd", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>
-                + Ürün Ekle
-              </button>
+            <div className="qcp-add-row">
+              <button type="button" onClick={addGroup} className="qcp-add-group-btn">+ Grup Ekle</button>
+              <button type="button" onClick={addItem} className="qcp-add-item-btn">+ Ürün Ekle</button>
             </div>
           </div>
         )}
       </div>
 
       {/* Aksiyon butonu */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-        <button type="button" onClick={() => navigate(-1)} style={S.btn("#6b7280")}>İptal</button>
-        <button type="submit" disabled={loading} style={S.btn(loading ? "#9ca3af" : "#10b981")}>
+      <div className="qcp-actions-row">
+        <button type="button" onClick={() => navigate(-1)} className="qcp-btn qcp-btn--cancel">İptal</button>
+        <button type="submit" disabled={loading} className={loading ? "qcp-btn qcp-btn--save qcp-btn--loading" : "qcp-btn qcp-btn--save"}>
           {loading ? "Kaydediliyor..." : "Teklif Talebini Kaydet"}
         </button>
       </div>
