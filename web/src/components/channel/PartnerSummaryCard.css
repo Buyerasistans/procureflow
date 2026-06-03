@@ -1,0 +1,10 @@
+/* PartnerSummaryCard — psc-* namespace */
+.psc-header-name { font-size: 12px; color: #475569; }
+.psc-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.psc-stats-grid--no-mb { margin-bottom: 0; }
+.psc-stat-value { font-size: 20px; }
