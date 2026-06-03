@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { canAccessAdminSurface, isSuperAdminUser } from "../../auth/permissions";
 import { useAuth } from "../../hooks/useAuth";
 import { getAccessToken } from "../../lib/token";
 import { CampaignsAdminTab } from "../../components/admin/CampaignsTab.tsx";
 import { PageHeader, StatCard, Section, DataTable } from "./AdminTabContent";
-import { getProjects, type Project } from "../../services/admin.service";
+import { getProjects, getCompanies, type Project, type Company } from "../../services/admin.service";
 import "./adminSecondaryTabs.css";
 import "./networkHub.css";
 
@@ -2267,42 +2268,70 @@ const AIL_AUTO_KEY = "pf_ail_admin_auto_open";
 
 /* ── AI Lab Admin Tab (ail-) ── */
 export function AiLabAdminTab() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = isSuperAdminUser(user);
+
   const [selectedModel, setSelectedModel] = useState<"buyer_cad" | "claude" | "gpt" | "gemini">("buyer_cad");
-  const [uploading, setUploading]   = useState(false);
-  const [activeStep, setActiveStep] = useState(-1);
-  const [doneSteps, setDoneSteps]   = useState<number[]>([]);
+  const [uploading, setUploading]     = useState(false);
+  const [activeStep, setActiveStep]   = useState(-1);
+  const [doneSteps, setDoneSteps]     = useState<number[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [result, setResult]         = useState<AilResult | null>(null);
-  const [fileName, setFileName]     = useState<string | null>(null);
-  const [autoOpen, setAutoOpen]     = useState<boolean>(() => {
+  const [result, setResult]           = useState<AilResult | null>(null);
+  const [fileName, setFileName]       = useState<string | null>(null);
+  const [autoOpen, setAutoOpen]       = useState<boolean>(() => {
     try { return window.localStorage.getItem(AIL_AUTO_KEY) === "true"; } catch { return false; }
   });
-  const [resultTab, setResultTab]   = useState<"katman" | "rfq">("katman");
-  const [projects, setProjects]             = useState<Project[]>([]);
+  const [resultTab, setResultTab]     = useState<"katman" | "rfq">("katman");
+  const [projects, setProjects]       = useState<Project[]>([]);
+  const [companies, setCompanies]     = useState<Company[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const fileRef    = useRef<HTMLInputElement>(null);
-  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fileRef  = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { getProjects().then(setProjects).catch(() => {}); }, []);
+  useEffect(() => {
+    getProjects().then(setProjects).catch(() => {});
+    if (isSuperAdmin) getCompanies().then(setCompanies).catch(() => {});
+  }, [isSuperAdmin]);
   useEffect(() => {
     try { window.localStorage.setItem(AIL_AUTO_KEY, String(autoOpen)); } catch { /* ignore */ }
   }, [autoOpen]);
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
-  function advanceSteps(step: number) {
-    setActiveStep(step);
-    if (step < AIL_STEPS.length - 1) {
-      timerRef.current = setTimeout(() => {
-        setDoneSteps((prev) => [...prev, step]);
-        advanceSteps(step + 1);
-      }, 1800);
-    }
+  /* animation: step 0→1 on upload start; steps 2-5 animate fast on API success */
+  function startAnimation() {
+    setDoneSteps([]);
+    setActiveStep(0);
+    timerRef.current = setTimeout(() => {
+      setDoneSteps([0]);
+      setActiveStep(1); // stays until API returns
+    }, 1200);
   }
 
-  function finishSteps(success: boolean) {
+  function finishAnimationSuccess() {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (success) { setDoneSteps(AIL_STEPS.map((_, i) => i)); setActiveStep(-1); }
-    else         { setActiveStep(-1); }
+    const FAST = 480;
+    setDoneSteps([0, 1]);
+    let step = 2;
+    const tick = () => {
+      setDoneSteps(AIL_STEPS.map((_, i) => i).slice(0, step));
+      setActiveStep(step);
+      step++;
+      if (step < AIL_STEPS.length) {
+        timerRef.current = setTimeout(tick, FAST);
+      } else {
+        timerRef.current = setTimeout(() => {
+          setDoneSteps(AIL_STEPS.map((_, i) => i));
+          setActiveStep(-1);
+        }, FAST);
+      }
+    };
+    tick();
+  }
+
+  function finishAnimationError() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setActiveStep(-1);
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -2316,11 +2345,9 @@ export function AiLabAdminTab() {
     setUploadError(null);
     setResult(null);
     setResultTab("katman");
-    setDoneSteps([]);
-    setActiveStep(-1);
     setFileName(file.name);
     setUploading(true);
-    advanceSteps(0);
+    startAnimation();
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -2334,11 +2361,11 @@ export function AiLabAdminTab() {
       });
       const data = (await res.json()) as AilResult & { detail?: unknown };
       if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Analiz başarısız.");
-      finishSteps(true);
+      finishAnimationSuccess();
       setResult(data);
       if (autoOpen) setResultTab("rfq");
     } catch (err) {
-      finishSteps(false);
+      finishAnimationError();
       setUploadError(err instanceof Error ? err.message : "Bilinmeyen hata.");
     } finally {
       setUploading(false);
@@ -2346,12 +2373,12 @@ export function AiLabAdminTab() {
     }
   }
 
-  const bomRows  = result?.bom ?? [];
-  const layers   = result?.metadata?.katmanlar ?? [];
-  const totalLen = layers.reduce((s, l) => s + l.total_length, 0);
+  const bomRows   = result?.bom ?? [];
+  const layers    = result?.metadata?.katmanlar ?? [];
+  const totalLen  = layers.reduce((s, l) => s + l.total_length, 0);
   const showSteps = uploading || result !== null || uploadError !== null;
 
-  /* group BOM rows by group_name and assign LYR-XX codes */
+  /* group BOM rows by group_name, assign LYR-XX codes */
   const bomGroups: Record<string, (AilBomItem & { lyrNum: number })[]> = {};
   let lyrCounter = 0;
   for (const row of bomRows) {
@@ -2361,7 +2388,21 @@ export function AiLabAdminTab() {
     bomGroups[g].push({ ...row, lyrNum: lyrCounter });
   }
   const bomGroupEntries = Object.entries(bomGroups);
-  const totalQty = bomRows.reduce((s, r) => s + r.quantity, 0);
+
+  /* project dropdown: grouped by company for SuperAdmin */
+  const companyMap = new Map(companies.map((c) => [c.id, c.name]));
+  const byCompany: Record<string, Project[]> = {};
+  const noCompany: Project[] = [];
+  for (const p of projects) {
+    if (isSuperAdmin && p.company_id) {
+      const cname = companyMap.get(p.company_id) ?? `Firma #${p.company_id}`;
+      if (!byCompany[cname]) byCompany[cname] = [];
+      byCompany[cname].push(p);
+    } else {
+      noCompany.push(p);
+    }
+  }
+  const companyGroupEntries = Object.entries(byCompany);
 
   return (
     <div className="ail-tab">
@@ -2402,15 +2443,33 @@ export function AiLabAdminTab() {
       <Section title="Yeni Proje Yükle">
         <div className="ail-upload-row">
           <div className="ail-select-wrap">
-            <label className="ail-field-label">Proje</label>
+            <label className="ail-field-label" htmlFor="ail-project-select">Proje</label>
             <select
+              id="ail-project-select"
+              title="Proje seçin"
               className="ail-select"
               value={selectedProjectId ?? ""}
               onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : null)}
               disabled={uploading}
             >
-              <option value="">Otomatik (yeni Discovery Lab projesi oluşturulacak)</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              <option value="">Otomatik (yeni proje oluşturulacak)</option>
+              {/* SuperAdmin: projects grouped by company */}
+              {isSuperAdmin ? (
+                <>
+                  {companyGroupEntries.map(([cname, cprojects]) => (
+                    <optgroup key={cname} label={cname}>
+                      {cprojects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </optgroup>
+                  ))}
+                  {noCompany.length > 0 && (
+                    <optgroup label="Firma Atanmamış">
+                      {noCompany.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </optgroup>
+                  )}
+                </>
+              ) : (
+                projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)
+              )}
             </select>
           </div>
 
@@ -2429,7 +2488,7 @@ export function AiLabAdminTab() {
             ) : (
               <><span className="ail-upload-icon">↑</span><p className="ail-upload-zone__text">Mimari projeyi sürükleyin veya tıklayın</p><p className="ail-upload-zone__sub">.dwg veya .dxf · maks. 250 MB</p></>
             )}
-            <input ref={fileRef} type="file" accept=".dwg,.dxf" disabled={uploading} style={{ display: "none" }} onChange={handleFile} />
+            <input ref={fileRef} type="file" accept=".dwg,.dxf" disabled={uploading} className="ail-file-hidden" aria-label="DWG veya DXF dosyası seç" onChange={handleFile} />
           </div>
           {uploadError && <p className="ail-error">{uploadError}</p>}
         </div>
@@ -2463,9 +2522,6 @@ export function AiLabAdminTab() {
         <Section
           title={`Analiz Sonuçları — ${bomRows.length || layers.length} kalem`}
           sub={`${fileName} · ${AIL_MODELS.find(m => m.id === selectedModel)?.label ?? selectedModel}`}
-          action={result.session_id
-            ? <a href={`/discovery-lab?session=${result.session_id}`} className="ail-link ail-link--btn">Discovery Lab'da tam görünüm →</a>
-            : undefined}
         >
           {/* tab bar */}
           <div className="ail-res-tabs">
@@ -2524,8 +2580,7 @@ export function AiLabAdminTab() {
                     ))}
                     <tfoot>
                       <tr className="ail-bom-totals">
-                        <td colSpan={4}>Toplam — {bomRows.length} kalem</td>
-                        <td className="ail-bom-num">{totalQty}</td>
+                        <td colSpan={5}>Toplam — {bomRows.length} kalem</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -2550,28 +2605,34 @@ export function AiLabAdminTab() {
             <div className="ail-rfq-panel">
               <div className="ail-rfq-icon">📋</div>
               <p className="ail-rfq-msg">
-                RFQ taslağı oluşturuldu. Tedarikçi davet, teklif toplama ve karşılaştırma için Discovery Lab'ı kullanın.
+                RFQ taslağı hazır. Tedarikçi havuzuna göndermek veya mevcut analiz oturumunu yönetmek için
+                aşağıdaki işlemleri kullanın.
               </p>
-              <div className="ail-rfq-actions">
-                {result.session_id ? (
-                  <a
-                    href={`/discovery-lab?session=${result.session_id}`}
-                    className="ail-link ail-link--btn"
-                  >
-                    Discovery Lab'da RFQ'yu Aç →
-                  </a>
-                ) : (
-                  <a href="/discovery-lab" className="ail-link ail-link--btn">
-                    Discovery Lab'a Git →
-                  </a>
-                )}
-              </div>
               {result.ai_report?.teknik_analiz && (
                 <div className="ail-rfq-report">
                   <strong>AI Teknik Analiz</strong>
                   <p>{result.ai_report.teknik_analiz}</p>
                 </div>
               )}
+              <div className="ail-rfq-actions">
+                <button
+                  type="button"
+                  className="ail-link ail-link--btn"
+                  onClick={() => navigate("/admin?tab=discovery_lab_operations")}
+                >
+                  Discovery Lab Operasyonlarında Görüntüle →
+                </button>
+                {result.session_id && (
+                  <a
+                    href={`/discovery-lab?session=${result.session_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ail-link"
+                  >
+                    Tenant görünümünde aç ↗
+                  </a>
+                )}
+              </div>
             </div>
           )}
         </Section>

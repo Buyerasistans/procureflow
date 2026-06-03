@@ -3190,7 +3190,7 @@ export default function AdminPage() {
     }) as AdminTabKey[]);
     const policyFilteredTabs = baseTabs.filter((tab) => policyVisibleTabKeys.has(tab.key));
 
-    if (!activeWorkspacePanelProfile) {
+    if (!activeWorkspacePanelProfile || isSuperAdminUser(user)) {
       return policyFilteredTabs;
     }
 

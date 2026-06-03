@@ -653,6 +653,7 @@
   border-radius: 8px; font-size: 0.85rem; color: #991b1b; margin-bottom: 0;
 }
 
+.ail-file-hidden { display: none; }
 .ail-toggle-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #334155; cursor: pointer; }
 .ail-toggle-row input { width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; }
 
