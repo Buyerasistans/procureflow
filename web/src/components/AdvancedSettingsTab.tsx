@@ -913,16 +913,15 @@ export const AdvancedSettingsTab: React.FC = () => {
 
           {!isSuperAdmin && (
             <div className="em-note em-note--blue">
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
+              <div className="em-flex1">
+                <div className="em-note-cap">
                   Varsayılan Kullanım Bilgisi
                 </div>
                 <div>Standart akışta sistem, buyerasistans.com.tr varsayılan ayarlarını kullanır. Özel sağlayıcı kullanmak için ayar ekranını açabilirsiniz.</div>
                 <button
                   type="button"
                   onClick={() => setIsEmailCustomizationOpen((prev) => !prev)}
-                  className={isEmailCustomizationOpen ? "em-btn--ghost" : "em-btn--primary"}
-                  style={{ marginTop: 10 }}
+                  className={isEmailCustomizationOpen ? "em-btn--ghost em-mt10" : "em-btn--primary em-mt10"}
                 >
                   {isEmailCustomizationOpen ? "Özelleştirme Ekranını Kapat" : "SMTP / POP / IMAP Ayarlarını Özelleştir"}
                 </button>
@@ -930,7 +929,7 @@ export const AdvancedSettingsTab: React.FC = () => {
             </div>
           )}
 
-          <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+          <fieldset disabled={readOnly} className="em-fieldset">
 
           {!isSuperAdmin && !isEmailCustomizationOpen && (
             <p className="em-muted">Aktif Email Profili: Standart profil kullanılıyor. Özelleştirmek için yukarıdaki butonu kullanın.</p>
@@ -1185,7 +1184,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                     ))}
                   </div>
                   {channelPrefs.templates.filter((tpl) => tpl.key === activeTemplateKey).map((tpl) => (
-                    <div key={tpl.key} style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                    <div key={tpl.key} className="em-grid--g8 em-mt10">
                       <input aria-label={`${tpl.label} Başlığı`} className="em-input" value={tpl.subject}
                         onChange={(e) => updateTemplateField(tpl.key, "subject", e.target.value)} />
                       <textarea aria-label={`${tpl.label} İçeriği`} className="em-input em-input--ta" rows={4}
@@ -1217,14 +1216,14 @@ export const AdvancedSettingsTab: React.FC = () => {
                       Ekle
                     </button>
                   </div>
-                  <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                  <div className="em-grid--g6 em-mt8">
                     {channelPrefs.signature_library.map((preset) => (
                       <div key={preset.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid var(--pf-border-color)", borderRadius: 6, background: "var(--pf-surface)", padding: "8px 10px" }}>
                         <div>
                           <div style={{ fontWeight: 700, color: "var(--pf-slate-900)" }}>{preset.name}</div>
                           <div style={{ fontSize: 12, color: "var(--pf-slate-500)" }}>{preset.signature_name} · {preset.signature_title}</div>
                         </div>
-                        <div style={{ display: "flex", gap: 6 }}>
+                        <div className="em-flex--g6">
                           <button type="button" className="em-mini em-mini--accent"
                             onClick={() => setEmailForm((prev) => ({ ...prev, signature_name: preset.signature_name, signature_title: preset.signature_title, signature_note: preset.signature_note }))}>
                             Uygula
@@ -1241,7 +1240,7 @@ export const AdvancedSettingsTab: React.FC = () => {
 
                 <div className="em-chan-card">
                   <h4>3) Gönderim Limiti ve Kota</h4>
-                  <div className="em-row2" style={{ marginTop: 8 }}>
+                  <div className="em-row2 em-mt8">
                     <label className="em-field">
                       <span className="em-field__label">Saatlik Hız</span>
                       <input aria-label="Saatlik Gönderim Hızı" className="em-input" type="number" min={1}
@@ -1262,7 +1261,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                   {emailHealthLoading ? (
                     <p className="em-muted">Yükleniyor…</p>
                   ) : (
-                    <div className="em-health" style={{ marginTop: 8 }}>
+                    <div className="em-health em-mt8">
                       <div className="em-stat"><b>{emailHealth?.success_rate_7d ?? 0}%</b><span>Başarı</span></div>
                       <div className="em-stat"><b>{emailHealth?.bounce_rate_7d ?? 0}%</b><span>Bounce</span></div>
                       <div className="em-stat"><b>{emailHealth?.spam_rate_7d ?? 0}%</b><span>Spam</span></div>
@@ -1273,7 +1272,7 @@ export const AdvancedSettingsTab: React.FC = () => {
 
                 <div className="em-chan-card">
                   <h4>5) Doğrulanmış Domain Beyaz Liste</h4>
-                  <div className="em-row2" style={{ marginTop: 8 }}>
+                  <div className="em-row2 em-mt8">
                     <label className="em-field">
                       <input className="em-input" value={newAllowedDomain}
                         onChange={(e) => setNewAllowedDomain(e.target.value)} placeholder="ornek.com" />
@@ -1285,7 +1284,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                       setNewAllowedDomain("");
                     }}>Ekle</button>
                   </div>
-                  <div className="em-chan-tags" style={{ marginTop: 8 }}>
+                  <div className="em-chan-tags em-mt8">
                     {channelPrefs.allowed_from_domains.map((domain) => (
                       <span key={domain} className="em-chan-tag">
                         {domain}
@@ -1297,7 +1296,7 @@ export const AdvancedSettingsTab: React.FC = () => {
 
                 <div className="em-chan-card">
                   <h4>6) Mailbox Fallback Politikası</h4>
-                  <select aria-label="Mailbox Fallback Politikası" className="em-input" style={{ marginTop: 8 }}
+                  <select aria-label="Mailbox Fallback Politikası" className="em-input em-mt8"
                     value={channelPrefs.fallback_policy}
                     onChange={(e) => setChannelPrefs((prev) => ({ ...prev, fallback_policy: e.target.value as ChannelEmailPreferences["fallback_policy"] }))}>
                     <option value="platform_default">Platform varsayılanına dön</option>
@@ -1305,8 +1304,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                     <option value="queue_only">Sadece kuyruğa al</option>
                   </select>
                   {channelPrefs.fallback_policy === "secondary_mailbox" && (
-                    <input aria-label="Yedek Mailbox E-posta Adresi" type="email" className="em-input"
-                      style={{ marginTop: 8 }}
+                    <input aria-label="Yedek Mailbox E-posta Adresi" type="email" className="em-input em-mt8"
                       value={channelPrefs.secondary_fallback_email}
                       onChange={(e) => setChannelPrefs((prev) => ({ ...prev, secondary_fallback_email: e.target.value }))}
                       placeholder="yedek-mailbox@ornek.com" />
@@ -1315,7 +1313,7 @@ export const AdvancedSettingsTab: React.FC = () => {
 
                 <div className="em-chan-card">
                   <h4>7) Kanal Markalama</h4>
-                  <div className="em-row2" style={{ marginTop: 8 }}>
+                  <div className="em-row2 em-mt8">
                     <label className="em-field">
                       <span className="em-field__label">Gönderici Alias</span>
                       <input aria-label="Gönderici Adı Takma Adı" className="em-input" value={channelPrefs.sender_alias}
@@ -1328,7 +1326,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                     </label>
                     <label className="em-field em-field--half">
                       <span className="em-field__label">Renk</span>
-                      <input aria-label="Birincil Marka Rengi" type="color" style={{ width: "100%", height: 36 }}
+                      <input aria-label="Birincil Marka Rengi" type="color" className="em-color-input"
                         value={channelPrefs.branding_primary_color}
                         onChange={(e) => setChannelPrefs((prev) => ({ ...prev, branding_primary_color: e.target.value }))} />
                     </label>
@@ -1392,7 +1390,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                       </div>
                     </div>
                     {editingEmailId === email.id && (
-                      <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+                      <div className="em-grid--g6 em-mt10">
                         <input type="password" className="em-input em-input--mono" value={editingPassword}
                           onChange={(e) => setEditingPassword(e.target.value)}
                           placeholder="SMTP şifresi (boş bırakılırsa değişmez)" />
@@ -1420,7 +1418,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+              <div className="em-grid--g8 em-mt12">
                 <div className="em-row2">
                   <label className="em-field">
                     <span className="em-field__label">Yeni Mail</span>
@@ -1455,7 +1453,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                       placeholder="Açıklama" />
                   </label>
                 </div>
-                <button type="button" className="em-btn--primary" onClick={handleSystemEmailCreate} disabled={loading} style={{ alignSelf: "start" }}>
+                <button type="button" className="em-btn--primary em-self-start" onClick={handleSystemEmailCreate} disabled={loading}>
                   {loading ? "Ekleniyor…" : "Ekle"}
                 </button>
               </div>
@@ -1468,7 +1466,7 @@ export const AdvancedSettingsTab: React.FC = () => {
       )}
 
       {canAccessSettingsSurface && activeTab === "logging" && (
-        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+        <fieldset disabled={readOnly} className="em-fieldset">
           <section className="em-card">
             <header className="em-card__head">
               <span className="em-card__ico">📊</span>
@@ -1543,7 +1541,7 @@ export const AdvancedSettingsTab: React.FC = () => {
       )}
 
       {canAccessSettingsSurface && activeTab === "backup" && (
-        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+        <fieldset disabled={readOnly} className="em-fieldset">
           <section className="em-card">
             <header className="em-card__head">
               <span className="em-card__ico">💾</span>
@@ -1612,7 +1610,7 @@ export const AdvancedSettingsTab: React.FC = () => {
       )}
 
       {canAccessSettingsSurface && activeTab === "notifications" && (
-        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+        <fieldset disabled={readOnly} className="em-fieldset">
           <section className="em-card">
             <header className="em-card__head">
               <span className="em-card__ico">🔔</span>
@@ -1648,9 +1646,9 @@ export const AdvancedSettingsTab: React.FC = () => {
               <EmToggle label="Günlük Özet Etkinleştir"
                 checked={Boolean((notificationForm as Record<string, unknown>).enable_daily_digest)}
                 onChange={(v) => setNotificationForm({ ...notificationForm, enable_daily_digest: v } as NotificationSettingsData)} />
-              <label className="em-field" style={{ marginTop: 4 }}>
+              <label className="em-field em-mt4">
                 <span className="em-field__label">Özet Saati</span>
-                <input id="digest_time" className="em-input" type="time" style={{ width: "auto" }}
+                <input id="digest_time" className="em-input em-input--auto" type="time"
                   value={String((notificationForm as Record<string, unknown>).digest_time ?? "09:00")}
                   onChange={(e) => setNotificationForm({ ...notificationForm, digest_time: e.target.value } as NotificationSettingsData)} />
               </label>
@@ -1668,7 +1666,7 @@ export const AdvancedSettingsTab: React.FC = () => {
       )}
 
       {canManageApiKeys && activeTab === "api-keys" && (
-        <fieldset disabled={readOnly} style={{ margin: 0, padding: 0, border: "none", minWidth: 0 }}>
+        <fieldset disabled={readOnly} className="em-fieldset">
           <section className="em-card">
             <header className="em-card__head">
               <span className="em-card__ico">🔑</span>
@@ -1683,7 +1681,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                   <span className="em-field__label">Anahtar Adı</span>
                   <input className="em-input" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} placeholder="Anahtar adı" />
                 </label>
-                <button type="button" className="em-btn--primary" onClick={handleCreateAPIKey} disabled={loading} style={{ alignSelf: "end" }}>
+                <button type="button" className="em-btn--primary em-self-end" onClick={handleCreateAPIKey} disabled={loading}>
                   {loading ? "Oluşturuluyor…" : "Yeni Anahtar"}
                 </button>
               </div>
