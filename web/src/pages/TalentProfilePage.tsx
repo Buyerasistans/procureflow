@@ -165,7 +165,6 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
               type="checkbox"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              style={{ marginRight: 6 }}
             />
             Profili herkese açık göster
           </label>
@@ -304,7 +303,6 @@ function EditForm({ profile, onSuccess, onCancel }: EditFormProps) {
               type="checkbox"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              style={{ marginRight: 6 }}
             />
             Profili herkese açık göster
           </label>
@@ -469,9 +467,8 @@ function ProfileView({ profile, onProfileUpdate }: ProfileViewProps) {
               </span>
             </div>
             <button
-              className="talent-form__btn talent-form__btn--secondary"
+              className="talent-form__btn talent-form__btn--secondary talent-form__btn--compact"
               onClick={() => setEditing(true)}
-              style={{ padding: "6px 14px", fontSize: 13 }}
             >
               Düzenle
             </button>
@@ -486,7 +483,7 @@ function ProfileView({ profile, onProfileUpdate }: ProfileViewProps) {
             )}
             {profile.is_public && <span className="talent-card__badge">Herkese Açık</span>}
             {profile.linkedin_url && (
-              <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#1d4ed8" }}>
+              <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
                 LinkedIn ↗
               </a>
             )}

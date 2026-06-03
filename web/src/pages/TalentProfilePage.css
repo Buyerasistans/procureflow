@@ -39,6 +39,9 @@
 .talent-form__btn--primary:hover { background: #0a5441; }
 .talent-form__btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .talent-form__btn--secondary { background: #e2e8f0; color: #1e293b; }
+.talent-form__btn--compact { padding: 6px 14px; font-size: 13px; }
+.talent-form__label input[type="checkbox"] { margin-right: 6px; }
+.talent-card__meta a { color: #1d4ed8; font-size: 13px; }
 
 /* Earnings */
 .earnings-section { margin-top: 24px; }
