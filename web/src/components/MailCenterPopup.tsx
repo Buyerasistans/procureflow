@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import DOMPurify from "dompurify";
 import { Archive, ArrowLeft, BadgeAlert, Bell, Download, ExternalLink, MailOpen, Paperclip, Reply, Search, ShieldAlert, Star, Trash2 } from "lucide-react";
 import { diagnoseMailCenterAccount, fetchMailCenterAttachment, getMailCenterAccounts, getMailCenterMessages, sendMailCenterTest, syncMailCenterInbox, updateMailCenterMessage, type MailCenterAccount, type MailCenterAccountDiagnosis, type MailCenterMessage } from "../services/mail-center.service";
@@ -434,7 +435,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
           </div>
 
           {/* ── Body: list | resizer | detail ── */}
-          <div className="mc-body" style={{ gridTemplateColumns: `${mailListPaneWidth}px 14px minmax(540px, 1fr)` }}>
+          <div className="mc-body" style={{ "--mc-list-w": `${mailListPaneWidth}px` } as CSSProperties}>
 
             {/* List pane */}
             <div className="mc-list">
@@ -488,7 +489,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
                     >
                       <div className="mc-row__top">
                         <div className="mc-row__left">
-                          <input type="checkbox" checked={selectedMessageIds.includes(entry.id)} onChange={(event) => { event.stopPropagation(); toggleMessageSelection(entry.id); }} onClick={(event) => event.stopPropagation()} style={{ marginTop: 2 }} />
+                          <input type="checkbox" checked={selectedMessageIds.includes(entry.id)} onChange={(event) => { event.stopPropagation(); toggleMessageSelection(entry.id); }} onClick={(event) => event.stopPropagation()} />
                           <div className="mc-row__meta">
                             <div className="mc-row__subject-row">
                               <button type="button" aria-label={entry.is_starred ? "Yıldızı kaldır" : "Yıldızla"} className={`mc-row__icon-btn mc-row__icon-btn--star${entry.is_starred ? " on" : ""}`} onClick={(event) => { event.stopPropagation(); void handleMetaAction(entry.is_starred ? "unstar" : "star", entry); }}>
@@ -501,7 +502,7 @@ export default function MailCenterPopup({ isOpen, initialAccountId, onClose }: P
                             </div>
                           </div>
                         </div>
-                        <span className="mc-badge" style={{ background: tone.background, color: tone.color }}>
+                        <span className="mc-badge" style={{ "--mc-badge-bg": tone.background, "--mc-badge-fg": tone.color } as CSSProperties}>
                           {entry.direction === "outbound" ? "Giden" : entry.status === "spam" ? "Spam" : entry.status === "archived" ? "Arşiv" : entry.status === "deleted" ? "Çöp" : entry.is_read ? "Okundu" : "Okunmadı"}
                         </span>
                       </div>

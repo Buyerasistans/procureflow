@@ -166,8 +166,8 @@
   cursor: pointer;
 }
 
-/* Body grid — gridTemplateColumns is dynamic (mailListPaneWidth), set via inline style */
-.mc-body { display: grid; min-height: 0; overflow: hidden; }
+/* Body grid — --mc-list-w is set via inline CSS var (user-resizable pane) */
+.mc-body { display: grid; grid-template-columns: var(--mc-list-w) 14px minmax(540px, 1fr); min-height: 0; overflow: hidden; }
 
 /* List pane */
 .mc-list {
@@ -231,6 +231,7 @@
 .mc-row--active { border-color: #2563eb; background: #eff6ff; }
 .mc-row__top  { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
 .mc-row__left { display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
+.mc-row__left input[type="checkbox"] { margin-top: 2px; }
 .mc-row__meta { display: grid; gap: 4px; min-width: 0; }
 .mc-row__subject-row { display: flex; gap: 6px; align-items: center; }
 .mc-row__icon-btn {
@@ -244,8 +245,7 @@
 .mc-row__icon-btn--star.on      { color: #f59e0b; }
 .mc-row__icon-btn--important.on { color: #dc2626; }
 .mc-row__subject  { color: #0f172a; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* mc-badge background/color are dynamic via inline style */
-.mc-badge { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; flex-shrink: 0; min-width: 82px; text-align: center; }
+.mc-badge { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; flex-shrink: 0; min-width: 82px; text-align: center; background: var(--mc-badge-bg); color: var(--mc-badge-fg); }
 .mc-row__from    { font-size: 12px; color: #334155; font-weight: 700; }
 .mc-row__snippet { font-size: 12px; color: #64748b; line-height: 1.45; }
 .mc-row__foot    { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; }
