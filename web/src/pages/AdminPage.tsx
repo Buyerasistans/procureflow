@@ -4562,7 +4562,7 @@ export default function AdminPage() {
                         <div className="ph-section__sub">Son 12 ay · net büyüme = yeni − churn</div>
                       </div>
                       <div className="ph-legend">
-                        <span className="ph-legend-dot" style={{ background: "#2563eb" }} />MRR
+                        <span className="ph-legend-dot ph-legend-dot--mrr" />MRR
                       </div>
                     </div>
                     <div className="ph-mrr-chart">
@@ -5260,7 +5260,7 @@ export default function AdminPage() {
               <div className="ph-kpi-card ph-kpi-card--green">
                 <div className="ph-kpi-card__label">CAC</div>
                 <div className="ph-kpi-card__value">₺11.200</div>
-                <div className="ph-kpi-card__delta" style={{ color: "#15803d" }}>▼%3.1 (iyileşme)</div>
+                <div className="ph-kpi-card__delta">▼%3.1 (iyileşme)</div>
               </div>
               <div className="ph-kpi-card ph-kpi-card--green">
                 <div className="ph-kpi-card__label">LTV:CAC</div>
@@ -5311,7 +5311,7 @@ export default function AdminPage() {
                   <div className="ph-section__title">MRR Detayı · 12 ay</div>
                 </div>
                 <div className="ph-legend">
-                  <span className="ph-legend-dot" style={{ background: "#2563eb" }} />MRR
+                  <span className="ph-legend-dot ph-legend-dot--mrr" />MRR
                 </div>
               </div>
               <div className="ph-mrr-chart">
@@ -5342,13 +5342,13 @@ export default function AdminPage() {
                 {PH_PLAN_DISTRIBUTION.map((p) => {
                   const maxPct = Math.max(...PH_PLAN_DISTRIBUTION.map((x) => x.percent));
                   return (
-                    <div key={p.code} className="ph-plan-row">
+                    <div key={p.code} className="ph-plan-row" style={{ "--plan-color": p.color, "--plan-w": `${(p.percent / maxPct) * 100}%` } as React.CSSProperties}>
                       <div className="ph-plan-row__label">
-                        <span className="ph-plan-row__dot" style={{ background: p.color }} />
+                        <span className="ph-plan-row__dot" />
                         {p.label}
                       </div>
                       <div className="ph-plan-row__bar-wrap">
-                        <div className="ph-plan-row__bar" style={{ width: `${(p.percent / maxPct) * 100}%`, background: p.color }} />
+                        <div className="ph-plan-row__bar" />
                       </div>
                       <div className="ph-plan-row__meta">
                         <b>{p.count}</b> <span>(%{p.percent})</span>
@@ -5372,12 +5372,12 @@ export default function AdminPage() {
               {(() => {
                 const maxVal = Math.max(...PH_NET_GROWTH_SERIES.map((d) => Math.max(d.newMrr, d.churn)));
                 return PH_NET_GROWTH_SERIES.map((d) => (
-                  <div key={d.m} className="ph-bars-col">
+                  <div key={d.m} className="ph-bars-col" style={{ "--new-h": `${(d.newMrr / maxVal) * 100}%`, "--churn-h": `${(d.churn / maxVal) * 100}%` } as React.CSSProperties}>
                     <div className="ph-bars-stack">
-                      <div className="ph-bar ph-bar--new" style={{ height: `${(d.newMrr / maxVal) * 100}%` }}>
+                      <div className="ph-bar ph-bar--new">
                         <span>+{(d.newMrr / 1000).toFixed(0)}K</span>
                       </div>
-                      <div className="ph-bar ph-bar--churn" style={{ height: `${(d.churn / maxVal) * 100}%` }}>
+                      <div className="ph-bar ph-bar--churn">
                         <span>−{(d.churn / 1000).toFixed(0)}K</span>
                       </div>
                     </div>
@@ -5387,8 +5387,8 @@ export default function AdminPage() {
               })()}
             </div>
             <div className="ph-bars-legend">
-              <span><span className="ph-legend-dot" style={{ background: "#16a34a" }} />Yeni MRR</span>
-              <span><span className="ph-legend-dot" style={{ background: "#be123c" }} />Churn MRR</span>
+              <span><span className="ph-legend-dot ph-legend-dot--new" />Yeni MRR</span>
+              <span><span className="ph-legend-dot ph-legend-dot--churn" />Churn MRR</span>
             </div>
           </div>
         </div>
@@ -6125,7 +6125,7 @@ export default function AdminPage() {
                       <div><code className="disc-code">{c.name}</code><div className="disc-chain__desc">{c.desc}</div></div>
                       <span className={`disc-chain__success disc-chain__success--${c.success >= 90 ? "high" : c.success >= 80 ? "mid" : "low"}`}>{c.success}%</span>
                     </div>
-                    <div className="disc-chain__bar"><div className="disc-chain__fill" style={{ width: c.success + "%", background: c.success >= 90 ? "#16a34a" : c.success >= 80 ? "#b45309" : "#be123c" }}></div></div>
+                    <div className="disc-chain__bar"><div className={`disc-chain__fill disc-chain__fill--${c.success >= 90 ? "high" : c.success >= 80 ? "mid" : "low"}`} style={{ "--fill-w": c.success + "%" } as React.CSSProperties}></div></div>
                     <div className="disc-chain__meta"><span><b>{c.stages}</b> aşama</span><span><b>{c.duration}</b> ort. süre</span><span>Son: <b>{c.lastRun}</b></span></div>
                   </div>
                 ))}
@@ -6634,7 +6634,7 @@ export default function AdminPage() {
                       <div key={s.k} className="te-skill">
                         <div className="te-skill__hd"><span>{s.k}</span><b>{s.n}</b></div>
                         <div className="te-skill__bar">
-                          <i style={{ width: `${Math.round(s.n / teMaxSkill * 100)}%` }} />
+                          <i style={{ "--skill-w": `${Math.round(s.n / teMaxSkill * 100)}%` } as React.CSSProperties} />
                         </div>
                       </div>
                     ))}
@@ -6657,7 +6657,7 @@ export default function AdminPage() {
                         <b>{l.name}</b>
                         <span>{l.tasks} görev tamamlandı</span>
                       </div>
-                      <span className="te-tier-badge" style={{ color: TE_TIER_COLORS[l.tier], background: TE_TIER_BG[l.tier] }}>{l.tier}</span>
+                      <span className="te-tier-badge" style={{ "--tc": TE_TIER_COLORS[l.tier], "--tg": TE_TIER_BG[l.tier] } as React.CSSProperties}>{l.tier}</span>
                       <div className="te-leader__num"><b>{l.rep}</b><span>itibar</span></div>
                       <div className="te-leader__num"><b>{teMoney(l.earned)}</b><span>kazanç</span></div>
                     </div>
@@ -6667,7 +6667,7 @@ export default function AdminPage() {
 
               {/* KYC Kuyruğu + Görevler | Ödeme Kuyruğu */}
               <div className="te-split">
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div className="te-split__col">
                   <div className="ph-section">
                     <div className="ph-section__head">
                       <span className="ph-section__title">Yetenek & KYC Onay Kuyruğu</span>
