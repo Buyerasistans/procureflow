@@ -1,4 +1,5 @@
 import NavBar from "../components/NavBar";
+import "./SolutionsPage.css";
 
 const cards = [
   {
@@ -35,21 +36,21 @@ const cards = [
 
 export default function SolutionsPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #f8fafc 0%, #eef6ff 100%)", fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="sp-root">
       <NavBar activePath="/cozumler" />
-      <main style={{ padding: "40px 20px" }}>
-      <section style={{ maxWidth: 1080, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 40, marginBottom: 8, color: "#0f172a" }}>Çözümler</h1>
-        <p style={{ color: "#475569", marginBottom: 28, maxWidth: 860, lineHeight: 1.7 }}>
+      <main className="sp-main">
+      <section className="sp-section">
+        <h1 className="sp-h1">Çözümler</h1>
+        <p className="sp-intro">
           Bu i?erik art?k Teklifler, Tedarik?iler ve Stratejik Partnerlik sayfalar?na da??t?ld?. Bu sayfa sadece ge?i? merkezi olarak tutulur.
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+        <div className="sp-grid">
           {cards.map((c) => (
-            <article key={c.title} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 16 }}>
-              <h2 style={{ margin: "0 0 8px", fontSize: 17, color: "#0f172a" }}>{c.title}</h2>
-              <p style={{ margin: 0, color: "#475569", fontSize: 14, lineHeight: 1.5 }}>{c.body}</p>
-              <ul style={{ margin: "10px 0 0", paddingLeft: 18, color: "#334155", fontSize: 13, lineHeight: 1.6 }}>
+            <article key={c.title} className="sp-card">
+              <h2 className="sp-card__title">{c.title}</h2>
+              <p className="sp-card__body">{c.body}</p>
+              <ul className="sp-card__bullets">
                 {c.bullets.map((b) => (
                   <li key={b}>{b}</li>
                 ))}
@@ -58,41 +59,21 @@ export default function SolutionsPage() {
           ))}
         </div>
 
-        <section style={{ marginTop: 26, background: "#0f172a", color: "#e2e8f0", borderRadius: 16, padding: 20 }}>
-          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: 22, color: "#f8fafc" }}>Bizi Ayrıştıran Kurumsal Çerçeve</h2>
-          <p style={{ margin: 0, lineHeight: 1.7, fontSize: 14 }}>
+        <section className="sp-framework">
+          <h2 className="sp-framework__title">Bizi Ayrıştıran Kurumsal Çerçeve</h2>
+          <p className="sp-framework__body">
             Rakiplerde görülen geniş ürün setini; daha net rol modeli, daha hızlı canlıya geçiş ve yönetim seviyesi raporlanabilirlik ile birleştiriyoruz.
             Bu sayede sadece operasyon değil, satın alma yönetimi kültürünü de olgunlaştıran bir stratejik partner deneyimi sunuyoruz.
           </p>
         </section>
 
-        <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
-          <a href="/teklifler" style={ctaPrimary}>Teklifler Akisina Git</a>
-          <a href="/tedarikciler" style={ctaSecondary}>Tedarik?iler Sayfas?na Git</a>
-          <a href="/stratejik-ortaklik" style={ctaSecondary}>Stratejik Partnerlik Sayfas?na Git</a>
+        <div className="sp-cta-row">
+          <a href="/teklifler" className="sp-cta--primary">Teklifler Akisina Git</a>
+          <a href="/tedarikciler" className="sp-cta--secondary">Tedarik?iler Sayfas?na Git</a>
+          <a href="/stratejik-ortaklik" className="sp-cta--secondary">Stratejik Partnerlik Sayfas?na Git</a>
         </div>
       </section>
       </main>
     </div>
   );
 }
-
-const ctaPrimary = {
-  background: "#16a34a",
-  color: "#062012",
-  borderRadius: 9,
-  padding: "10px 16px",
-  textDecoration: "none",
-  fontWeight: 700,
-};
-
-const ctaSecondary = {
-  background: "#fff",
-  color: "#0f172a",
-  border: "1px solid #cbd5e1",
-  borderRadius: 9,
-  padding: "10px 16px",
-  textDecoration: "none",
-  fontWeight: 700,
-};
-
