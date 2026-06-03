@@ -2243,11 +2243,24 @@ export function ChannelPartnersAdminTab() {
   );
 }
 
+interface AilBomItem { material: string; quantity: number; unit: string; source_layer: string; group_name?: string; }
+interface AilLayer   { layer_name: string; total_length: number; unit: string; }
+interface AilResult  { status?: string; session_id?: string; metadata?: { katmanlar?: AilLayer[] }; bom?: AilBomItem[]; ai_report?: { teknik_analiz?: string }; }
+
 const AIL_MODELS = [
-  { id: "buyer_cad" as const, label: "Buyer-CAD",  icon: "🏗️", sub: "Özel mimari model" },
-  { id: "claude"    as const, label: "Claude",      icon: "🤖", sub: "Anthropic · Sonnet" },
-  { id: "gpt"       as const, label: "GPT",         icon: "⚡", sub: "OpenAI · GPT-4o" },
-  { id: "gemini"    as const, label: "Gemini",      icon: "✨", sub: "Google · 1.5 Pro" },
+  { id: "buyer_cad" as const, label: "Buyer-CAD v4",   icon: "🏗️", sub: "Self-hosted · sektör eğitimli",           speed: "Yavaş", cost: "₺0/sayfa",    tag: "Önerilen" },
+  { id: "claude"    as const, label: "Claude Sonnet",   icon: "🤖", sub: "En dengeli · CAD + metraj + RFQ",         speed: "Hızlı", cost: "₺0.018/sayfa", tag: null },
+  { id: "gpt"       as const, label: "GPT-4o",          icon: "⚡", sub: "Karmaşık geometri · yüksek doğruluk",    speed: "Orta",  cost: "₺0.024/sayfa", tag: null },
+  { id: "gemini"    as const, label: "Gemini 2.5 Pro",  icon: "✨", sub: "Çok katmanlı · 3D analiz",               speed: "Orta",  cost: "₺0.020/sayfa", tag: null },
+];
+
+const AIL_STEPS = [
+  { key: "upload",  label: "Dosya yükleme",       sub: "DWG/DXF · max 100MB" },
+  { key: "convert", label: "DWG→DXF dönüşümü",   sub: "ODAFileConverter · katmanları koru" },
+  { key: "layers",  label: "Katman çıkarımı",     sub: "Ana + alt katmanlar tespit" },
+  { key: "metraj",  label: "Metraj hesabı",       sub: "Birim bazlı miktar + fiyatlandırma" },
+  { key: "audit",   label: "AI bilişsel denetim", sub: "Soru oluşturma + tutarlılık kontrolü" },
+  { key: "rfq",     label: "RFQ taslağı",         sub: "Otomatik teklif paketi" },
 ];
 
 const AIL_AUTO_KEY = "pf_discovery_lab_auto_open_quote";
@@ -2255,125 +2268,215 @@ const AIL_AUTO_KEY = "pf_discovery_lab_auto_open_quote";
 /* ── AI Lab Admin Tab (ail-) ── */
 export function AiLabAdminTab() {
   const [selectedModel, setSelectedModel] = useState<"buyer_cad" | "claude" | "gpt" | "gemini">("buyer_cad");
-  const [uploading, setUploading] = useState(false);
-  const [uploadPhase, setUploadPhase] = useState<string | null>(null);
+  const [uploading, setUploading]   = useState(false);
+  const [activeStep, setActiveStep] = useState(-1);
+  const [doneSteps, setDoneSteps]   = useState<number[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadDone, setUploadDone] = useState(false);
-  const [autoOpen, setAutoOpen] = useState<boolean>(() => {
+  const [result, setResult]         = useState<AilResult | null>(null);
+  const [fileName, setFileName]     = useState<string | null>(null);
+  const [autoOpen, setAutoOpen]     = useState<boolean>(() => {
     try { return window.localStorage.getItem(AIL_AUTO_KEY) === "true"; } catch { return false; }
   });
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects]             = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef    = useRef<HTMLInputElement>(null);
+  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { getProjects().then(setProjects).catch(() => {}); }, []);
-
   useEffect(() => {
     try { window.localStorage.setItem(AIL_AUTO_KEY, String(autoOpen)); } catch { /* ignore */ }
   }, [autoOpen]);
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  function advanceSteps(step: number) {
+    setActiveStep(step);
+    if (step < AIL_STEPS.length - 1) {
+      timerRef.current = setTimeout(() => {
+        setDoneSteps((prev) => [...prev, step]);
+        advanceSteps(step + 1);
+      }, 1800);
+    }
+  }
+
+  function finishSteps(success: boolean) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (success) { setDoneSteps(AIL_STEPS.map((_, i) => i)); setActiveStep(-1); }
+    else         { setActiveStep(-1); }
+  }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadError(null);
-    setUploadDone(false);
+    setResult(null);
+    setDoneSteps([]);
+    setActiveStep(-1);
+    setFileName(file.name);
     setUploading(true);
-    setUploadPhase("Dosya sunucuya aktarılıyor…");
+    advanceSteps(0);
     try {
       const fd = new FormData();
       fd.append("file", file);
       if (selectedProjectId) fd.append("project_id", String(selectedProjectId));
       const token = getAccessToken();
       const base = (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8000";
-      setUploadPhase("CAD metadata çıkarılıyor, AI denetimi hazırlanıyor…");
       const res = await fetch(`${base}/api/v1/ai-lab/analyze`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: fd,
       });
-      const data = (await res.json()) as { detail?: unknown; session_id?: string };
+      const data = (await res.json()) as AilResult & { detail?: unknown };
       if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Analiz başarısız.");
-      setUploadDone(true);
+      finishSteps(true);
+      setResult(data);
       if (autoOpen) window.location.href = "/discovery-lab";
     } catch (err) {
+      finishSteps(false);
       setUploadError(err instanceof Error ? err.message : "Bilinmeyen hata.");
     } finally {
       setUploading(false);
-      setUploadPhase(null);
       if (fileRef.current) fileRef.current.value = "";
     }
   }
+
+  const bomRows  = result?.bom ?? [];
+  const layers   = result?.metadata?.katmanlar ?? [];
+  const totalLen = layers.reduce((s, l) => s + l.total_length, 0);
+  const showSteps = uploading || result !== null || uploadError !== null;
 
   return (
     <div className="ail-tab">
       <PageHeader
         eyebrow="AI & Keşif"
         title="AI Keşif Lab"
-        sub="Model seçimi, DWG/DXF yükleme ve AI destekli metraj çıkarımı"
+        sub="Mimari proje (DWG/DXF) yükle, AI denetlesin, metraj otomatik çıksın ve doğrudan RFQ üret."
       />
 
-      <Section title="Model Seçimi">
+      {/* ── Aktif AI Modeli ── */}
+      <Section title="Aktif AI Modeli" sub="Analiz için kullanılacak model. İşlem başlamadan değiştirilebilir.">
         <div className="ail-models">
           {AIL_MODELS.map((m) => (
             <button
               key={m.id}
               type="button"
-              className={`ail-model-card${selectedModel === m.id ? " ail-model-card--active" : ""}`}
-              onClick={() => setSelectedModel(m.id)}
+              className={`ail-model-card${selectedModel === m.id ? " ail-model-card--active" : ""}${result && selectedModel === m.id ? " ail-model-card--used" : ""}`}
+              onClick={() => !uploading && setSelectedModel(m.id)}
+              disabled={uploading}
             >
+              {m.tag && <span className="ail-model-tag">{m.tag}</span>}
               <span className="ail-model-icon">{m.icon}</span>
               <span className="ail-model-name">{m.label}</span>
               <span className="ail-model-sub">{m.sub}</span>
+              <div className="ail-model-meta">
+                <span className="ail-model-speed">{m.speed}</span>
+                <span className="ail-model-cost">{m.cost}</span>
+              </div>
+              {result && selectedModel === m.id && (
+                <span className="ail-model-badge">✓ Analiz yapıldı</span>
+              )}
             </button>
           ))}
         </div>
       </Section>
 
-      <Section title="Proje">
-        <select
-          className="ail-select"
-          value={selectedProjectId ?? ""}
-          onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : null)}
-        >
-          <option value="">Otomatik (yeni Discovery Lab projesi oluşturulacak)</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </Section>
+      {/* ── Proje + Yükleme ── */}
+      <Section title="Yeni Proje Yükle">
+        <div className="ail-upload-row">
+          <div className="ail-select-wrap">
+            <label className="ail-field-label">Proje</label>
+            <select
+              className="ail-select"
+              value={selectedProjectId ?? ""}
+              onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : null)}
+              disabled={uploading}
+            >
+              <option value="">Otomatik (yeni Discovery Lab projesi oluşturulacak)</option>
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
 
-      <Section title="DWG / DXF Yükle">
-        <div
-          className={`ail-upload-zone${uploading ? " ail-upload-zone--uploading" : ""}`}
-          onClick={() => !uploading && fileRef.current?.click()}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (!uploading && (e.key === "Enter" || e.key === " ")) fileRef.current?.click(); }}
-          aria-label="Dosya yükleme alanı"
-        >
-          {uploading ? (
-            <>
-              <div className="ail-spinner" />
-              <p className="ail-upload-zone__text">{uploadPhase ?? "Analiz devam ediyor…"}</p>
-            </>
-          ) : uploadDone ? (
-            <>
-              <span className="ail-upload-ok">✓</span>
-              <p className="ail-upload-zone__text">Analiz tamamlandı</p>
-              <a href="/discovery-lab" className="ail-link" onClick={(e) => e.stopPropagation()}>Discovery Lab'da görüntüle →</a>
-            </>
-          ) : (
-            <>
-              <span className="ail-upload-icon">↑</span>
-              <p className="ail-upload-zone__text">Mimari projeyi sürükleyin veya tıklayın</p>
-              <p className="ail-upload-zone__sub">.dwg veya .dxf · maks. 50 MB</p>
-            </>
-          )}
-          <input ref={fileRef} type="file" accept=".dwg,.dxf" disabled={uploading} style={{ display: "none" }} onChange={handleFile} />
+          <div
+            className={`ail-upload-zone${uploading ? " ail-upload-zone--uploading" : ""}${result ? " ail-upload-zone--done" : ""}`}
+            onClick={() => !uploading && fileRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (!uploading && (e.key === "Enter" || e.key === " ")) fileRef.current?.click(); }}
+            aria-label="Dosya yükleme alanı"
+          >
+            {uploading ? (
+              <><div className="ail-spinner" /><p className="ail-upload-zone__text">Analiz devam ediyor…</p><p className="ail-upload-zone__sub">{fileName}</p></>
+            ) : result ? (
+              <><span className="ail-upload-ok">✓</span><p className="ail-upload-zone__text">Tamamlandı — {fileName}</p><p className="ail-upload-zone__sub">Yeni dosya için tıklayın</p></>
+            ) : (
+              <><span className="ail-upload-icon">↑</span><p className="ail-upload-zone__text">Mimari projeyi sürükleyin veya tıklayın</p><p className="ail-upload-zone__sub">.dwg veya .dxf · maks. 50 MB</p></>
+            )}
+            <input ref={fileRef} type="file" accept=".dwg,.dxf" disabled={uploading} style={{ display: "none" }} onChange={handleFile} />
+          </div>
+          {uploadError && <p className="ail-error">{uploadError}</p>}
         </div>
-        {uploadError && <p className="ail-error">{uploadError}</p>}
       </Section>
 
+      {/* ── Analiz Adımları ── */}
+      {showSteps && (
+        <Section title={result ? "Analiz Tamamlandı" : uploadError ? "Analiz Kesildi" : "Analiz İlerlemesi"}>
+          <div className="ail-steps">
+            {AIL_STEPS.map((s, i) => {
+              const done   = doneSteps.includes(i);
+              const active = activeStep === i;
+              return (
+                <div key={s.key} className={`ail-step${done ? " ail-step--done" : active ? " ail-step--active" : ""}`}>
+                  <div className="ail-step__ico">
+                    {done ? "✓" : active ? <span className="ail-step-spin" /> : <span>{i + 1}</span>}
+                  </div>
+                  <div className="ail-step__body">
+                    <div className="ail-step__label">{s.label}</div>
+                    <div className="ail-step__sub">{s.sub}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      )}
+
+      {/* ── Teknik Katman Özeti ── */}
+      {result && (bomRows.length > 0 || layers.length > 0) && (
+        <Section
+          title={`Teknik Katman Özeti — ${bomRows.length > 0 ? bomRows.length : layers.length} kalem`}
+          sub="CAD dosyasından çıkarılan ana metraj katmanları · AI güveniyle"
+          action={result.session_id ? <a href="/discovery-lab" className="ail-link ail-link--btn">Discovery Lab'da tam görünüm →</a> : undefined}
+        >
+          {layers.length > 0 && (
+            <div className="ail-summary-bar">
+              <span>Toplam Metraj Değeri</span>
+              <strong>{totalLen.toFixed(2)} m</strong>
+            </div>
+          )}
+          {bomRows.length > 0 ? (
+            <DataTable
+              rows={bomRows as unknown as Record<string, unknown>[]}
+              columns={[
+                { key: "source_layer", label: "Katman" },
+                { key: "material",     label: "Malzeme" },
+                { key: "quantity",     label: "Miktar", align: "right", render: (r) => String((r as unknown as AilBomItem).quantity) },
+                { key: "unit",         label: "Birim" },
+                { key: "group_name",   label: "Grup", render: (r) => (r as unknown as AilBomItem).group_name ?? "—" },
+              ]}
+            />
+          ) : (
+            <DataTable
+              rows={layers as unknown as Record<string, unknown>[]}
+              columns={[
+                { key: "layer_name",   label: "Katman" },
+                { key: "total_length", label: "Uzunluk", align: "right", render: (r) => String((r as unknown as AilLayer).total_length) },
+                { key: "unit",         label: "Birim" },
+              ]}
+            />
+          )}
+        </Section>
+      )}
+
+      {/* ── Seçenek ── */}
       <Section title="Seçenek">
         <label className="ail-toggle-row">
           <input type="checkbox" checked={autoOpen} onChange={(e) => setAutoOpen(e.target.checked)} />
