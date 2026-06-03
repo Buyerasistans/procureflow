@@ -656,6 +656,68 @@
 .ail-toggle-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #334155; cursor: pointer; }
 .ail-toggle-row input { width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; }
 
+/* result tabs */
+.ail-res-tabs {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.ail-res-tab {
+  padding: 8px 18px; font-size: 0.875rem; font-weight: 600;
+  color: #64748b; background: transparent; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+.ail-res-tab:hover { color: #7c3aed; }
+.ail-res-tab--active { color: #7c3aed; border-bottom-color: #7c3aed; }
+
+/* BOM table */
+.ail-bom-wrap { overflow-x: auto; margin-top: 4px; }
+.ail-bom-table {
+  width: 100%; border-collapse: collapse; font-size: 0.845rem;
+}
+.ail-bom-table th {
+  padding: 8px 12px; background: #f1f5f9;
+  text-align: left; font-size: 0.78rem; font-weight: 700;
+  color: #475569; text-transform: uppercase; letter-spacing: 0.03em;
+  border-bottom: 2px solid #e2e8f0;
+}
+.ail-bom-table td {
+  padding: 7px 12px; border-bottom: 1px solid #f1f5f9; color: #1e293b;
+}
+.ail-bom-table tr:hover td { background: #f8fafc; }
+.ail-bom-group td {
+  padding: 6px 12px; background: #f5f3ff;
+  font-size: 0.78rem; font-weight: 700;
+  color: #7c3aed; text-transform: uppercase; letter-spacing: 0.04em;
+  border-top: 2px solid #ede9fe; border-bottom: 1px solid #ede9fe;
+}
+.ail-bom-totals td {
+  padding: 8px 12px; background: #f8fafc;
+  font-weight: 700; color: #1e293b;
+  border-top: 2px solid #e2e8f0;
+}
+.ail-bom-lyr { font-size: 0.78rem; color: #94a3b8; font-family: monospace; }
+.ail-bom-num { text-align: right; }
+.ail-empty { padding: 24px; text-align: center; color: #94a3b8; font-size: 0.875rem; }
+
+/* RFQ panel */
+.ail-rfq-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 40px 24px; text-align: center;
+}
+.ail-rfq-icon { font-size: 3rem; }
+.ail-rfq-msg {
+  max-width: 440px; font-size: 0.9rem; color: #475569; line-height: 1.55; margin: 0;
+}
+.ail-rfq-actions { display: flex; gap: 12px; justify-content: center; }
+.ail-rfq-report {
+  width: 100%; text-align: left; background: #f8fafc;
+  border: 1px solid #e2e8f0; border-radius: 10px;
+  padding: 14px 16px; font-size: 0.85rem; color: #334155;
+}
+.ail-rfq-report strong { display: block; margin-bottom: 6px; color: #1e293b; }
+
 .ppt-btn--ghost:disabled {
   opacity: 0.5;
   cursor: not-allowed;

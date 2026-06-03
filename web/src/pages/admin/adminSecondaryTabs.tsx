@@ -2255,7 +2255,7 @@ const AIL_MODELS = [
 ];
 
 const AIL_STEPS = [
-  { key: "upload",  label: "Dosya yükleme",       sub: "DWG/DXF · max 100MB" },
+  { key: "upload",  label: "Dosya yükleme",       sub: "DWG/DXF · max 250MB" },
   { key: "convert", label: "DWG→DXF dönüşümü",   sub: "ODAFileConverter · katmanları koru" },
   { key: "layers",  label: "Katman çıkarımı",     sub: "Ana + alt katmanlar tespit" },
   { key: "metraj",  label: "Metraj hesabı",       sub: "Birim bazlı miktar + fiyatlandırma" },
@@ -2263,7 +2263,7 @@ const AIL_STEPS = [
   { key: "rfq",     label: "RFQ taslağı",         sub: "Otomatik teklif paketi" },
 ];
 
-const AIL_AUTO_KEY = "pf_discovery_lab_auto_open_quote";
+const AIL_AUTO_KEY = "pf_ail_admin_auto_open";
 
 /* ── AI Lab Admin Tab (ail-) ── */
 export function AiLabAdminTab() {
@@ -2277,6 +2277,7 @@ export function AiLabAdminTab() {
   const [autoOpen, setAutoOpen]     = useState<boolean>(() => {
     try { return window.localStorage.getItem(AIL_AUTO_KEY) === "true"; } catch { return false; }
   });
+  const [resultTab, setResultTab]   = useState<"katman" | "rfq">("katman");
   const [projects, setProjects]             = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const fileRef    = useRef<HTMLInputElement>(null);
@@ -2307,8 +2308,14 @@ export function AiLabAdminTab() {
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 250 * 1024 * 1024) {
+      setUploadError("Dosya 250 MB sınırını aşıyor. Lütfen daha küçük bir dosya seçin.");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
     setUploadError(null);
     setResult(null);
+    setResultTab("katman");
     setDoneSteps([]);
     setActiveStep(-1);
     setFileName(file.name);
@@ -2329,7 +2336,7 @@ export function AiLabAdminTab() {
       if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Analiz başarısız.");
       finishSteps(true);
       setResult(data);
-      if (autoOpen) window.location.href = "/discovery-lab";
+      if (autoOpen) setResultTab("rfq");
     } catch (err) {
       finishSteps(false);
       setUploadError(err instanceof Error ? err.message : "Bilinmeyen hata.");
@@ -2343,6 +2350,18 @@ export function AiLabAdminTab() {
   const layers   = result?.metadata?.katmanlar ?? [];
   const totalLen = layers.reduce((s, l) => s + l.total_length, 0);
   const showSteps = uploading || result !== null || uploadError !== null;
+
+  /* group BOM rows by group_name and assign LYR-XX codes */
+  const bomGroups: Record<string, (AilBomItem & { lyrNum: number })[]> = {};
+  let lyrCounter = 0;
+  for (const row of bomRows) {
+    const g = row.group_name ?? "Genel";
+    if (!bomGroups[g]) bomGroups[g] = [];
+    lyrCounter++;
+    bomGroups[g].push({ ...row, lyrNum: lyrCounter });
+  }
+  const bomGroupEntries = Object.entries(bomGroups);
+  const totalQty = bomRows.reduce((s, r) => s + r.quantity, 0);
 
   return (
     <div className="ail-tab">
@@ -2408,7 +2427,7 @@ export function AiLabAdminTab() {
             ) : result ? (
               <><span className="ail-upload-ok">✓</span><p className="ail-upload-zone__text">Tamamlandı — {fileName}</p><p className="ail-upload-zone__sub">Yeni dosya için tıklayın</p></>
             ) : (
-              <><span className="ail-upload-icon">↑</span><p className="ail-upload-zone__text">Mimari projeyi sürükleyin veya tıklayın</p><p className="ail-upload-zone__sub">.dwg veya .dxf · maks. 50 MB</p></>
+              <><span className="ail-upload-icon">↑</span><p className="ail-upload-zone__text">Mimari projeyi sürükleyin veya tıklayın</p><p className="ail-upload-zone__sub">.dwg veya .dxf · maks. 250 MB</p></>
             )}
             <input ref={fileRef} type="file" accept=".dwg,.dxf" disabled={uploading} style={{ display: "none" }} onChange={handleFile} />
           </div>
@@ -2439,39 +2458,121 @@ export function AiLabAdminTab() {
         </Section>
       )}
 
-      {/* ── Teknik Katman Özeti ── */}
-      {result && (bomRows.length > 0 || layers.length > 0) && (
+      {/* ── Sonuç Sekmeleri ── */}
+      {result && (
         <Section
-          title={`Teknik Katman Özeti — ${bomRows.length > 0 ? bomRows.length : layers.length} kalem`}
-          sub="CAD dosyasından çıkarılan ana metraj katmanları · AI güveniyle"
-          action={result.session_id ? <a href="/discovery-lab" className="ail-link ail-link--btn">Discovery Lab'da tam görünüm →</a> : undefined}
+          title={`Analiz Sonuçları — ${bomRows.length || layers.length} kalem`}
+          sub={`${fileName} · ${AIL_MODELS.find(m => m.id === selectedModel)?.label ?? selectedModel}`}
+          action={result.session_id
+            ? <a href={`/discovery-lab?session=${result.session_id}`} className="ail-link ail-link--btn">Discovery Lab'da tam görünüm →</a>
+            : undefined}
         >
-          {layers.length > 0 && (
-            <div className="ail-summary-bar">
-              <span>Toplam Metraj Değeri</span>
-              <strong>{totalLen.toFixed(2)} m</strong>
-            </div>
+          {/* tab bar */}
+          <div className="ail-res-tabs">
+            <button
+              type="button"
+              className={`ail-res-tab${resultTab === "katman" ? " ail-res-tab--active" : ""}`}
+              onClick={() => setResultTab("katman")}
+            >
+              Teknik Katman Özeti
+            </button>
+            <button
+              type="button"
+              className={`ail-res-tab${resultTab === "rfq" ? " ail-res-tab--active" : ""}`}
+              onClick={() => setResultTab("rfq")}
+            >
+              Oluşan RFQ
+            </button>
+          </div>
+
+          {/* Teknik Katman Özeti */}
+          {resultTab === "katman" && (
+            <>
+              {layers.length > 0 && (
+                <div className="ail-summary-bar">
+                  <span>Toplam Metraj Değeri</span>
+                  <strong>{totalLen.toFixed(2)} m</strong>
+                </div>
+              )}
+              {bomRows.length > 0 ? (
+                <div className="ail-bom-wrap">
+                  <table className="ail-bom-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Katman</th>
+                        <th>Malzeme Adı</th>
+                        <th>Birim</th>
+                        <th className="ail-bom-num">Miktar</th>
+                      </tr>
+                    </thead>
+                    {bomGroupEntries.map(([groupName, rows]) => (
+                      <tbody key={groupName}>
+                        <tr className="ail-bom-group">
+                          <td colSpan={5}>{groupName}</td>
+                        </tr>
+                        {rows.map((row) => (
+                          <tr key={row.lyrNum}>
+                            <td className="ail-bom-lyr">LYR-{String(row.lyrNum).padStart(2, "0")}</td>
+                            <td>{row.source_layer}</td>
+                            <td>{row.material}</td>
+                            <td>{row.unit}</td>
+                            <td className="ail-bom-num">{row.quantity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    ))}
+                    <tfoot>
+                      <tr className="ail-bom-totals">
+                        <td colSpan={4}>Toplam — {bomRows.length} kalem</td>
+                        <td className="ail-bom-num">{totalQty}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              ) : layers.length > 0 ? (
+                <DataTable
+                  rows={layers as unknown as Record<string, unknown>[]}
+                  columns={[
+                    { key: "layer_name",   label: "Katman" },
+                    { key: "total_length", label: "Uzunluk", align: "right", render: (r) => String((r as unknown as AilLayer).total_length) },
+                    { key: "unit",         label: "Birim" },
+                  ]}
+                />
+              ) : (
+                <p className="ail-empty">Analiz tamamlandı ancak katman verisi bulunamadı.</p>
+              )}
+            </>
           )}
-          {bomRows.length > 0 ? (
-            <DataTable
-              rows={bomRows as unknown as Record<string, unknown>[]}
-              columns={[
-                { key: "source_layer", label: "Katman" },
-                { key: "material",     label: "Malzeme" },
-                { key: "quantity",     label: "Miktar", align: "right", render: (r) => String((r as unknown as AilBomItem).quantity) },
-                { key: "unit",         label: "Birim" },
-                { key: "group_name",   label: "Grup", render: (r) => (r as unknown as AilBomItem).group_name ?? "—" },
-              ]}
-            />
-          ) : (
-            <DataTable
-              rows={layers as unknown as Record<string, unknown>[]}
-              columns={[
-                { key: "layer_name",   label: "Katman" },
-                { key: "total_length", label: "Uzunluk", align: "right", render: (r) => String((r as unknown as AilLayer).total_length) },
-                { key: "unit",         label: "Birim" },
-              ]}
-            />
+
+          {/* Oluşan RFQ */}
+          {resultTab === "rfq" && (
+            <div className="ail-rfq-panel">
+              <div className="ail-rfq-icon">📋</div>
+              <p className="ail-rfq-msg">
+                RFQ taslağı oluşturuldu. Tedarikçi davet, teklif toplama ve karşılaştırma için Discovery Lab'ı kullanın.
+              </p>
+              <div className="ail-rfq-actions">
+                {result.session_id ? (
+                  <a
+                    href={`/discovery-lab?session=${result.session_id}`}
+                    className="ail-link ail-link--btn"
+                  >
+                    Discovery Lab'da RFQ'yu Aç →
+                  </a>
+                ) : (
+                  <a href="/discovery-lab" className="ail-link ail-link--btn">
+                    Discovery Lab'a Git →
+                  </a>
+                )}
+              </div>
+              {result.ai_report?.teknik_analiz && (
+                <div className="ail-rfq-report">
+                  <strong>AI Teknik Analiz</strong>
+                  <p>{result.ai_report.teknik_analiz}</p>
+                </div>
+              )}
+            </div>
           )}
         </Section>
       )}
@@ -2480,7 +2581,7 @@ export function AiLabAdminTab() {
       <Section title="Seçenek">
         <label className="ail-toggle-row">
           <input type="checkbox" checked={autoOpen} onChange={(e) => setAutoOpen(e.target.checked)} />
-          <span>Aktarım tamamlanınca RFQ ekranı aç</span>
+          <span>Aktarım tamamlanınca RFQ sekmesini aç</span>
         </label>
       </Section>
     </div>
