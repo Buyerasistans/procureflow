@@ -72,6 +72,7 @@
 .nh-badge.wait { background: #fef9c3; color: #854d0e; }
 .nh-badge.off  { background: #f1f5f9; color: #475569; }
 .nh-badge.info { background: #dbeafe; color: #1d4ed8; }
+.nh-badge--mr  { margin-right: 4px; }
 
 /* Invite link telemetry block */
 .nh-link { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 4px 0; }
@@ -170,6 +171,7 @@
 .nh-mono { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px; }
 .nh-mut  { color: #94a3b8; font-size: 12px; }
 .nh-list-empty { padding: 20px 16px; color: #94a3b8; font-size: 13px; }
+.nh-list-empty--lg { padding: 40px; }
 
 /* Talent split: wider payout sidebar */
 .nh-talent-split { display: flex; gap: 16px; min-height: 400px; }

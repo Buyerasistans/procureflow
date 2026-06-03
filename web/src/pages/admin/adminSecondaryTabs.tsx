@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 
 import { canAccessAdminSurface, isSuperAdminUser } from "../../auth/permissions";
 import { useAuth } from "../../hooks/useAuth";
@@ -95,7 +96,7 @@ export function ReportsTabContent() {
             >
               <span
                 className="rp-typecard__ico"
-                style={{ background: t.color + "1f", color: t.color }}
+                style={{ "--rp-bg": t.color + "1f", "--rp-fg": t.color } as CSSProperties}
               >
                 {t.abbr}
               </span>
@@ -144,10 +145,10 @@ export function ReportsTabContent() {
             {history.map((r) => {
               const t = RP_TYPE_DEFS.find((x) => x.code === r.type) ?? { label: r.type, color: "#64748b", abbr: "?" };
               return (
-                <tr key={r.id}>
+                <tr key={r.id} style={{ "--rp-bg": t.color + "1f", "--rp-fg": t.color } as CSSProperties}>
                   <td>
                     <div className="rp-tname">
-                      <span className="rp-dot" style={{ background: t.color }} />
+                      <span className="rp-dot" />
                       <div>
                         <b>{r.name}</b>
                         <span>{r.id}{r.size !== "—" ? ` · ${r.size}` : ""}</span>
@@ -155,7 +156,7 @@ export function ReportsTabContent() {
                     </div>
                   </td>
                   <td>
-                    <span className="rp-typebadge" style={{ background: t.color + "1f", color: t.color }}>
+                    <span className="rp-typebadge">
                       {t.label}
                     </span>
                   </td>
@@ -402,8 +403,8 @@ function PaMultiLine({ series, lines, height = 240 }: {
   const x = (i: number) => PL + (i * (W - PL - PR)) / (n - 1);
   const y = (v: number) => PT + (height - PT - PB) * (1 - v / max);
   return (
-    <div className="pa-chart">
-      <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
+    <div className="pa-chart" style={{ "--pa-chart-h": height + "px" } as CSSProperties}>
+      <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none">
         {[0, 1, 2, 3, 4].map((i) => {
           const yy = PT + ((height - PT - PB) * i) / 4;
           return (
@@ -437,8 +438,8 @@ function PaMultiLine({ series, lines, height = 240 }: {
       </svg>
       <div className="pa-legend">
         {lines.map((l) => (
-          <span key={l.key}>
-            <i style={{ background: l.color }} />
+          <span key={l.key} style={{ "--leg-bg": l.color } as CSSProperties}>
+            <i />
             {l.label}
           </span>
         ))}
@@ -461,8 +462,8 @@ function PaCareerLine({ series, height = 220 }: {
   const appPts = series.map((d, i) => `${x(i)},${yA(d.applications)}`).join(" ");
   const plPts  = series.map((d, i) => `${x(i)},${yP(d.placements)}`).join(" ");
   return (
-    <div className="pa-chart">
-      <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
+    <div className="pa-chart" style={{ "--pa-chart-h": height + "px" } as CSSProperties}>
+      <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none">
         {[0, 1, 2, 3, 4].map((i) => {
           const yy = PT + ((height - PT - PB) * i) / 4;
           return <line key={i} x1={PL} y1={yy} x2={W - PR} y2={yy} stroke="#eef2f7" strokeWidth="1" />;
@@ -480,8 +481,8 @@ function PaCareerLine({ series, height = 220 }: {
         )}
       </svg>
       <div className="pa-legend">
-        <span><i style={{ background: "#7c3aed" }} />Başvuru</span>
-        <span><i style={{ background: "#1d4ed8" }} />Yerleşme</span>
+        <span><i className="pa-legend-i--violet" />Başvuru</span>
+        <span><i className="pa-legend-i--blue" />Yerleşme</span>
       </div>
     </div>
   );
@@ -498,7 +499,7 @@ function PaFunnelBars({ steps, color }: { steps: { stage: string; count: number 
           <div key={i} className="pa-funnel__row">
             <span className="pa-funnel__lbl">{s.stage}</span>
             <div className="pa-funnel__track">
-              <div className="pa-funnel__bar" style={{ width: pct + "%", background: color }}>
+              <div className="pa-funnel__bar" style={{ "--funnel-w": pct + "%", "--funnel-bg": color } as CSSProperties}>
                 <b>{s.count.toLocaleString("tr-TR")}</b>
               </div>
             </div>
@@ -517,17 +518,17 @@ function PaGroupBars({ data }: { data: { m: string; partners: number; suppliers:
       <div className="pa-gbars">
         {data.map((d) => (
           <div key={d.m} className="pa-gbars__col">
-            <div className="pa-gbars__pair">
-              <div className="pa-gbars__b" style={{ height: (d.partners / max * 100) + "%", background: "#1d4ed8" }} title={`Getirilen partner: ${d.partners}`} />
-              <div className="pa-gbars__b" style={{ height: (d.suppliers / max * 100) + "%", background: "#be123c" }} title={`Getirilen tedarikçi: ${d.suppliers}`} />
+            <div className="pa-gbars__pair" style={{ "--ph": (d.partners / max * 100) + "%", "--sh": (d.suppliers / max * 100) + "%" } as CSSProperties}>
+              <div className="pa-gbars__b pa-gbars__b--partner" title={`Getirilen partner: ${d.partners}`} />
+              <div className="pa-gbars__b pa-gbars__b--supplier" title={`Getirilen tedarikçi: ${d.suppliers}`} />
             </div>
             <div className="pa-gbars__lbl">{d.m}</div>
           </div>
         ))}
       </div>
-      <div className="pa-legend" style={{ marginTop: 10 }}>
-        <span><i style={{ background: "#1d4ed8" }} />Getirilen partner</span>
-        <span><i style={{ background: "#be123c" }} />Getirilen tedarikçi</span>
+      <div className="pa-legend">
+        <span><i className="pa-legend-i--blue" />Getirilen partner</span>
+        <span><i className="pa-legend-i--churn" />Getirilen tedarikçi</span>
       </div>
     </>
   );
@@ -541,7 +542,7 @@ function PaCityBars({ data }: { data: [string, number][] }) {
         <div key={city} className="pa-city__row">
           <span className="pa-city__name">{city}</span>
           <div className="pa-city__track">
-            <div className="pa-city__bar" style={{ width: (n / max * 100) + "%" }} />
+            <div className="pa-city__bar" style={{ "--city-w": (n / max * 100) + "%" } as CSSProperties} />
           </div>
           <span className="pa-city__n">{n}</span>
         </div>
@@ -579,7 +580,7 @@ function PaDonut({ data, size = 200 }: { data: { label: string; count: number; c
       <div className="pa-donut-legend">
         {data.map((d) => (
           <div key={d.label} className="pa-donut-legend__row">
-            <span className="pa-donut-legend__dot" style={{ background: d.color }} />
+            <span className="pa-donut-legend__dot" style={{ "--dot-bg": d.color } as CSSProperties} />
             <span className="pa-donut-legend__label">{d.label}</span>
             <span className="pa-donut-legend__val">{d.count} <small>({Math.round(d.count / total * 100)}%)</small></span>
           </div>
@@ -1221,7 +1222,7 @@ export function PlatformSuppliersTab() {
 
         <div className="nh-detail">
           {!sel ? (
-            <div className="nh-list-empty" style={{ padding: 40 }}>Tedarikçi seçin.</div>
+            <div className="nh-list-empty nh-list-empty--lg">Tedarikçi seçin.</div>
           ) : (
             <>
               <div className="nh-detail__hd">
@@ -1320,7 +1321,7 @@ export function PlatformSuppliersTab() {
                             <td className="nh-mut">{t.assignments.map((a) => a.project).join(", ") || "—"}</td>
                             <td>
                               {t.assignments.map((a, j) => (
-                                <span key={j} className={`nh-badge ${SN_INVITE_LABEL[a.invite]?.cls ?? "info"}`} style={{ marginRight: 4 }}>
+                                <span key={j} className={`nh-badge nh-badge--mr ${SN_INVITE_LABEL[a.invite]?.cls ?? "info"}`}>
                                   {SN_INVITE_LABEL[a.invite]?.label ?? a.invite}
                                 </span>
                               ))}

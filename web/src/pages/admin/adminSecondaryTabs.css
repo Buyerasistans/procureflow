@@ -1101,6 +1101,8 @@
 .pa-chart svg {
   overflow: visible;
   display: block;
+  width: 100%;
+  height: var(--pa-chart-h, 220px);
 }
 .pa-legend {
   display: flex;
@@ -1121,7 +1123,11 @@
   height: 3px;
   border-radius: 2px;
   flex-shrink: 0;
+  background: var(--leg-bg);
 }
+.pa-legend-i--violet { background: #7c3aed; }
+.pa-legend-i--blue   { background: #1d4ed8; }
+.pa-legend-i--churn  { background: #be123c; }
 
 /* Funnel bars */
 .pa-funnel {
@@ -1155,6 +1161,8 @@
   padding-left: 8px;
   min-width: 6%;
   transition: width 0.3s ease;
+  width: var(--funnel-w);
+  background: var(--funnel-bg);
 }
 .pa-funnel__bar b {
   font-size: 11px;
@@ -1200,6 +1208,8 @@
   min-height: 4px;
   transition: height 0.3s ease;
 }
+.pa-gbars__b--partner { background: #1d4ed8; height: var(--ph); }
+.pa-gbars__b--supplier { background: #be123c; height: var(--sh); }
 .pa-gbars__lbl {
   font-size: 11px;
   color: var(--pf-slate-500, #64748b);
@@ -1236,6 +1246,7 @@
   background: #1d4ed8;
   border-radius: 3px;
   transition: width 0.3s ease;
+  width: var(--city-w);
 }
 .pa-city__n {
   font-size: 12px;
@@ -1269,6 +1280,7 @@
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--dot-bg);
 }
 .pa-donut-legend__label {
   color: var(--pf-slate-700, #334155);
@@ -1358,6 +1370,8 @@
   font-weight: 900;
   letter-spacing: -0.5px;
   margin-bottom: 4px;
+  background: var(--rp-bg);
+  color: var(--rp-fg);
 }
 
 .rp-typecard b {
@@ -1498,6 +1512,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--rp-fg);
 }
 
 .rp-tname div {
@@ -1524,6 +1539,8 @@
   border-radius: 6px;
   padding: 2px 8px;
   white-space: nowrap;
+  background: var(--rp-bg);
+  color: var(--rp-fg);
 }
 
 /* Format badge */
