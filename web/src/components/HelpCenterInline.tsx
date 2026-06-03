@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import SupportTicketWidget from "./SupportTicketWidget";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
+import "./HelpCenterInline.css";
 
 const DOCS_BASE = "https://buyerasistans.info/docs";
 
@@ -55,37 +56,37 @@ export default function HelpCenterInline() {
   }, [query, activeCategory]);
 
   return (
-    <section style={{ marginTop: 16, background: "#fff", border: "1px solid #dbeafe", borderRadius: 14, padding: 18 }}>
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#1d4ed8" }}>{t.title}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", marginTop: 6 }}>{t.subtitle}</div>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <button type="button" onClick={() => setPanel("search")} style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: panel === "search" ? "#1d4ed8" : "#f1f5f9", color: panel === "search" ? "white" : "#334155", fontWeight: 700, cursor: "pointer" }}>{t.articles_tab}</button>
-        <button type="button" onClick={() => setPanel("ticket")} style={{ padding: "7px 12px", borderRadius: 8, border: "none", background: panel === "ticket" ? "#1d4ed8" : "#f1f5f9", color: panel === "ticket" ? "white" : "#334155", fontWeight: 700, cursor: "pointer" }}>{t.ticket_tab}</button>
+    <section className="hci-section">
+      <div className="hci-eyebrow">{t.title}</div>
+      <div className="hci-title">{t.subtitle}</div>
+      <div className="hci-tabs">
+        <button type="button" onClick={() => setPanel("search")} className={`hci-tab${panel === "search" ? " hci-tab--active" : ""}`}>{t.articles_tab}</button>
+        <button type="button" onClick={() => setPanel("ticket")} className={`hci-tab${panel === "ticket" ? " hci-tab--active" : ""}`}>{t.ticket_tab}</button>
       </div>
 
       {panel === "search" ? (
-        <div style={{ marginTop: 12 }}>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search_placeholder} style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 10, border: "1px solid #dbe3ee", background: "#f8fafc" }} />
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-            <button type="button" onClick={() => setActiveCategory(null)} style={{ padding: "4px 10px", borderRadius: 999, border: "none", background: !activeCategory ? "#1d4ed8" : "#e2e8f0", color: !activeCategory ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 12 }}>{t.all_categories}</button>
+        <div className="hci-search-wrap">
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search_placeholder} className="hci-input" />
+          <div className="hci-cats">
+            <button type="button" onClick={() => setActiveCategory(null)} className={`hci-cat-btn${!activeCategory ? " hci-cat-btn--active" : ""}`}>{t.all_categories}</button>
             {CATEGORIES.map((cat) => (
-              <button key={cat} type="button" onClick={() => setActiveCategory(cat === activeCategory ? null : cat)} style={{ padding: "4px 10px", borderRadius: 999, border: "none", background: cat === activeCategory ? "#1d4ed8" : "#e2e8f0", color: cat === activeCategory ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 12 }}>
+              <button key={cat} type="button" onClick={() => setActiveCategory(cat === activeCategory ? null : cat)} className={`hci-cat-btn${cat === activeCategory ? " hci-cat-btn--active" : ""}`}>
                 {cat}
               </button>
             ))}
           </div>
-          <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 8 }}>
-            {filteredArticles.length === 0 ? <div style={{ color: "#64748b" }}>{t.not_found}</div> : filteredArticles.map((article) => (
-              <a key={article.id} href={`${DOCS_BASE}/${article.slug}`} target="_blank" rel="noreferrer" style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: 10, textDecoration: "none", background: "#f8fafc" }}>
-                <div style={{ color: "#1d4ed8", fontWeight: 700 }}>{article.title}</div>
-                <div style={{ color: "#64748b", marginTop: 4, fontSize: 13 }}>{article.summary}</div>
+          <div className="hci-article-grid">
+            {filteredArticles.length === 0 ? <div className="hci-not-found">{t.not_found}</div> : filteredArticles.map((article) => (
+              <a key={article.id} href={`${DOCS_BASE}/${article.slug}`} target="_blank" rel="noreferrer" className="hci-article-link">
+                <div className="hci-article-link__title">{article.title}</div>
+                <div className="hci-article-link__summary">{article.summary}</div>
               </a>
             ))}
           </div>
-          <a href={DOCS_BASE} target="_blank" rel="noreferrer" style={{ display: "inline-block", marginTop: 10, color: "#1d4ed8", fontWeight: 700 }}>{t.view_all_docs}</a>
+          <a href={DOCS_BASE} target="_blank" rel="noreferrer" className="hci-docs-link">{t.view_all_docs}</a>
         </div>
       ) : (
-        <div style={{ marginTop: 12 }}>
+        <div className="hci-ticket-wrap">
           <SupportTicketWidget embed source="help_center_page" />
         </div>
       )}
