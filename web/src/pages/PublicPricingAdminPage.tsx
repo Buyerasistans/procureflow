@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
+import "./PublicPricingAdminPage.css";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -278,53 +279,53 @@ export default function PublicPricingAdminPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "radial-gradient(circle at top left, #eff6ff 0, #f8fafc 42%, #fff 100%)", padding: "28px 18px 40px", fontFamily: "'Segoe UI', sans-serif" }}>
-      <section style={{ maxWidth: 1120, margin: "0 auto", background: "rgba(255,255,255,0.92)", border: "1px solid #e2e8f0", borderRadius: 18, padding: 24, boxShadow: "0 18px 48px rgba(15, 23, 42, 0.08)" }}>
-        <h1 style={{ marginTop: 0, color: "#0f172a" }}>Public Fiyatlandırma Ayarları</h1>
-        <p style={{ color: "#475569", lineHeight: 1.6 }}>
+    <main className="ppa-root">
+      <section className="ppa-card">
+        <h1 className="ppa-heading">Public Fiyatlandırma Ayarları</h1>
+        <p className="ppa-intro">
           Bu alan stratejik partner ve tedarikçi plan fiyatlarını merkezi olarak yönetir.
           Public sayfalar (`/fiyatlandirma`) bu konfigürasyonu otomatik kullanır.
         </p>
 
         {loading ? (
-          <div style={{ color: "#64748b" }}>Yükleniyor...</div>
+          <div className="ppa-loading">Yükleniyor...</div>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 12 }}>
+            <div className="ppa-stat-grid">
               <StatCard label="Stratejik Plan" value={String(config.strategic_partner?.plans?.length || 0)} />
               <StatCard label="Tedarikçi Plan" value={String(config.supplier?.plans?.length || 0)} />
               <StatCard label="Premium Özellik" value={String(sortedPremiumFeatures.length)} />
               <StatCard label="Yetki" value={isSuperAdmin ? "Yazma" : "Salt Okuma"} />
             </div>
 
-            <section style={{ display: "grid", gap: 16, marginBottom: 16 }}>
-              <article style={{ border: "1px solid #dbe3ee", borderRadius: 12, padding: 16, background: "linear-gradient(135deg,#eff6ff,#f8fafc)" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#1d4ed8" }}>Public Bilgi Mimarisi</div>
-                <div style={{ marginTop: 6, color: "#334155", lineHeight: 1.7 }}>
+            <section className="ppa-section">
+              <article className="ppa-article ppa-article--info">
+                <div className="ppa-article-eyebrow ppa-article-eyebrow--blue-dark">Public Bilgi Mimarisi</div>
+                <div className="ppa-article-text ppa-article-text--dark">
                   Public nav artık scope bazlı ilerlemeli: Ana Sayfa, Teklifler, Tedarikçiler, Stratejik Partnerlik, İş Ortağı Programı, Tedarikçi Ol, Demo Talep Et ve Sisteme Giriş. Fiyatlandırma ve çözümler içeriği bu sayfalarda dağıtılabilir.
                 </div>
               </article>
 
-              <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-                <CatalogCard title="Stratejik Partner Paketleri" accent="#0f766e" plans={strategicPlans} />
-                <CatalogCard title="Tedarikçi Paketleri" accent="#0284c7" plans={supplierPlans} />
+              <div className="ppa-catalog-grid">
+                <CatalogCard title="Stratejik Partner Paketleri" variant="strategic" plans={strategicPlans} />
+                <CatalogCard title="Tedarikçi Paketleri" variant="supplier" plans={supplierPlans} />
               </div>
 
-              <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0f766e" }}>Form Tabanlı Paket Yönetimi</div>
-                <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
+              <article className="ppa-article">
+                <div className="ppa-article-eyebrow ppa-article-eyebrow--green">Form Tabanlı Paket Yönetimi</div>
+                <div className="ppa-article-text">
                   Super admin burada paket fiyatlarini, limitlerini ve tek tek satilan ekstra haklari form ile guncelleyebilir. JSON editor altta ileri seviye fallback olarak kalir.
                 </div>
-                <div style={{ marginTop: 14, display: "grid", gap: 14 }}>
+                <div className="ppa-article-body">
                   {strategicPlans.map((plan) => (
-                    <div key={plan.code} style={{ border: "1px solid #dbe3ee", borderRadius: 14, padding: 16, background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)", display: "grid", gap: 12 }}>
-                      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                    <div key={plan.code} className="ppa-plan-card">
+                      <div className="ppa-plan-row">
                         <LabeledInput label="Paket Adi" value={plan.name} disabled={!isSuperAdmin} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, name: value }))} />
                         <LabeledNumberInput label="Aylik Fiyat" value={plan.price_monthly} disabled={!isSuperAdmin} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, price_monthly: value }))} />
                         <LabeledInput label="Para Birimi" value={plan.currency || "TRY"} disabled={!isSuperAdmin} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, currency: value }))} />
                       </div>
                       <LabeledTextarea label="Açıklama" value={plan.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updateStrategicPlan(plan.code, (current) => ({ ...current, description: value }))} />
-                      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                      <div className="ppa-plan-row">
                         {LIMIT_FIELDS.map((limitField) => (
                           <LabeledNumberInput
                             key={`${plan.code}-${limitField.key}`}
@@ -343,15 +344,15 @@ export default function PublicPricingAdminPage() {
                 </div>
               </article>
 
-              <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#b45309" }}>Ekstra Paket ve Adet Bazli Haklar</div>
-                <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
+              <article className="ppa-article">
+                <div className="ppa-article-eyebrow ppa-article-eyebrow--amber">Ekstra Paket ve Adet Bazli Haklar</div>
+                <div className="ppa-article-text">
                   Paket geçişi istemeyen müşteriler için adet bazlı haklar burada yönetilir. Birim fiyatları üst paket geçişinden yüksek tutulabilir.
                 </div>
-                <div style={{ marginTop: 14, display: "grid", gap: 14 }}>
+                <div className="ppa-article-body">
                   {strategicAddons.map((addon) => (
-                    <div key={addon.code} style={{ border: "1px solid #dbe3ee", borderRadius: 14, padding: 16, background: "linear-gradient(180deg, #fffaf0 0%, #ffffff 100%)", display: "grid", gap: 12 }}>
-                      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                    <div key={addon.code} className="ppa-plan-card ppa-plan-card--addon">
+                      <div className="ppa-plan-row">
                         <LabeledInput label="Ek Özellik Adı" value={addon.name} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, name: value }))} />
                         <LabeledNumberInput label="Aylik Fiyat" value={addon.price_monthly} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, price_monthly: value }))} />
                         <LabeledNumberInput label="Tek Seferde Kazanim" value={addon.increment} disabled={!isSuperAdmin} onChange={(value) => updateAddon(addon.code, (current) => ({ ...current, increment: value }))} />
@@ -373,15 +374,15 @@ export default function PublicPricingAdminPage() {
                 </div>
               </article>
 
-              <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#0284c7" }}>Tedarikçi Paket Yönetimi</div>
-                <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
+              <article className="ppa-article">
+                <div className="ppa-article-eyebrow ppa-article-eyebrow--blue">Tedarikçi Paket Yönetimi</div>
+                <div className="ppa-article-text">
                   Tedarikçi paketlerinin ad, açıklama ve fiyat alanları da buradan düzenlenebilir.
                 </div>
-                <div style={{ marginTop: 14, display: "grid", gap: 14 }}>
+                <div className="ppa-article-body">
                   {supplierPlans.map((plan) => (
-                    <div key={plan.code} style={{ border: "1px solid #dbe3ee", borderRadius: 14, padding: 16, background: "linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)", display: "grid", gap: 12 }}>
-                      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                    <div key={plan.code} className="ppa-plan-card ppa-plan-card--supplier">
+                      <div className="ppa-plan-row">
                         <LabeledInput label="Paket Adi" value={plan.name} disabled={!isSuperAdmin} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, name: value }))} />
                         <LabeledNumberInput label="Aylik Fiyat" value={plan.price_monthly} disabled={!isSuperAdmin} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, price_monthly: value }))} />
                         <LabeledInput label="Para Birimi" value={plan.currency || "TRY"} disabled={!isSuperAdmin} onChange={(value) => updateSupplierPlan(plan.code, (current) => ({ ...current, currency: value }))} />
@@ -392,14 +393,14 @@ export default function PublicPricingAdminPage() {
                 </div>
               </article>
 
-              <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: "#7c3aed" }}>Premium Feature Matrisi</div>
-                <div style={{ marginTop: 6, color: "#475569", lineHeight: 1.7 }}>
+              <article className="ppa-article">
+                <div className="ppa-article-eyebrow ppa-article-eyebrow--purple">Premium Feature Matrisi</div>
+                <div className="ppa-article-text">
                   Ödeme doğrulaması sonrası aktifleştirilecek premium özellikler burada scope bazlı görünür. Paket limiti yetmediğinde RFQ entitlement zinciri bu feature aktivasyonlarıyla tamamlanır.
                 </div>
-                <div style={{ marginTop: 14, border: "1px dashed #c4b5fd", borderRadius: 14, padding: 14, background: "#faf5ff", display: "grid", gap: 10 }}>
-                  <div style={{ fontWeight: 800, color: "#581c87" }}>Yeni Premium Feature Ekle</div>
-                  <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                <div className="ppa-pf-add-box">
+                  <div className="ppa-pf-add-title">Yeni Premium Feature Ekle</div>
+                  <div className="ppa-plan-row">
                     <LabeledInput label="Code" value={newPremiumFeature.code} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, code: value }))} />
                     <LabeledInput label="Özellik Adı" value={newPremiumFeature.name} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, name: value }))} />
                     <LabeledNumberInput label="Aylik Fiyat" value={newPremiumFeature.monthly_price} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, monthly_price: value }))} />
@@ -408,35 +409,35 @@ export default function PublicPricingAdminPage() {
                   </div>
                   <LabeledTextarea label="Açıklama" value={newPremiumFeature.description} disabled={!isSuperAdmin} rows={2} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, description: value }))} />
                   <LabeledInput label="Scope JSON / Liste" value={newPremiumFeature.available_for_tenant_types} disabled={!isSuperAdmin} onChange={(value) => setNewPremiumFeature((current) => ({ ...current, available_for_tenant_types: value }))} />
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                    <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                  <div className="ppa-pf-add-footer">
+                    <label className="ppa-pf-active-label">
                       <input type="checkbox" checked={newPremiumFeature.is_active} disabled={!isSuperAdmin} onChange={(event) => setNewPremiumFeature((current) => ({ ...current, is_active: event.target.checked }))} />
                       Aktif başlat
                     </label>
-                    <button type="button" onClick={addPremiumFeatureDraft} disabled={!isSuperAdmin || isNewPremiumFeatureCodeDuplicate} style={{ border: "none", borderRadius: 10, padding: "10px 14px", background: isSuperAdmin && !isNewPremiumFeatureCodeDuplicate ? "#7c3aed" : "#c4b5fd", color: "#fff", fontWeight: 800, cursor: isSuperAdmin && !isNewPremiumFeatureCodeDuplicate ? "pointer" : "not-allowed" }}>
+                    <button type="button" onClick={addPremiumFeatureDraft} disabled={!isSuperAdmin || isNewPremiumFeatureCodeDuplicate} className="ppa-add-feature-btn">
                       Listeye Ekle
                     </button>
                   </div>
-                  {isNewPremiumFeatureCodeDuplicate ? <div style={{ color: "#b91c1c", fontSize: 12, fontWeight: 700 }}>Bu code zaten listede var. Farkli bir code girin.</div> : null}
+                  {isNewPremiumFeatureCodeDuplicate ? <div className="ppa-pf-dupe-error">Bu code zaten listede var. Farkli bir code girin.</div> : null}
                 </div>
-                <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+                <div className="ppa-pf-list">
                   {sortedPremiumFeatures.length === 0 ? (
-                    <div style={{ color: "#64748b" }}>Tanımlı premium özellik yok.</div>
+                    <div className="ppa-empty">Tanımlı premium özellik yok.</div>
                   ) : sortedPremiumFeatures.map((feature) => (
-                    <div key={feature.id} style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 14, display: "grid", gap: 8, background: "linear-gradient(180deg, #faf5ff 0%, #ffffff 100%)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                          <div style={{ fontWeight: 800, color: "#0f172a" }}>{feature.name}</div>
-                          {feature.isNew ? <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#ede9fe", color: "#6d28d9", fontWeight: 700, fontSize: 12 }}>Yeni</span> : null}
+                    <div key={feature.id} className="ppa-pf-item">
+                      <div className="ppa-pf-item-header">
+                        <div className="ppa-pf-item-title-group">
+                          <div className="ppa-pf-item-name">{feature.name}</div>
+                          {feature.isNew ? <span className="ppa-pf-badge ppa-pf-badge--new">Yeni</span> : null}
                         </div>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                          <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#ede9fe", color: "#6d28d9", fontWeight: 700, fontSize: 12 }}>{feature.code}</span>
-                          <button type="button" onClick={() => queuePremiumFeatureDelete(feature.id)} disabled={!isSuperAdmin} style={{ border: "1px solid #e9d5ff", borderRadius: 999, padding: "6px 10px", background: "#fff", color: "#7c2d12", fontWeight: 700, cursor: isSuperAdmin ? "pointer" : "not-allowed" }}>
+                        <div className="ppa-pf-item-actions">
+                          <span className="ppa-pf-badge ppa-pf-badge--code">{feature.code}</span>
+                          <button type="button" onClick={() => queuePremiumFeatureDelete(feature.id)} disabled={!isSuperAdmin} className="ppa-pf-delete-btn">
                             Sil
                           </button>
                         </div>
                       </div>
-                      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+                      <div className="ppa-plan-row">
                         <LabeledInput label="Özellik Adı" value={feature.name} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, name: value }))} />
                         <LabeledNumberInput label="Aylik Fiyat" value={feature.monthly_price == null ? undefined : Number(feature.monthly_price)} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, monthly_price: value }))} />
                         <LabeledNumberInput label="Yillik Fiyat" value={feature.annual_price == null ? undefined : Number(feature.annual_price)} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, annual_price: value }))} />
@@ -444,14 +445,14 @@ export default function PublicPricingAdminPage() {
                       </div>
                       <LabeledTextarea label="Açıklama" value={feature.description || ""} disabled={!isSuperAdmin} rows={2} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, description: value }))} />
                       <LabeledInput label="Scope JSON / Liste" value={feature.available_for_tenant_types || ""} disabled={!isSuperAdmin} onChange={(value) => updatePremiumFeature(feature.id, (current) => ({ ...current, available_for_tenant_types: value }))} />
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                        <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: 12 }}>
+                      <div className="ppa-pf-meta-row">
+                        <span className="ppa-pf-badge ppa-pf-badge--scope">
                           Scope: {formatPremiumAudience(feature.available_for_tenant_types)}
                         </span>
-                        <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#fff7ed", color: "#b45309", fontWeight: 700, fontSize: 12 }}>
+                        <span className="ppa-pf-badge ppa-pf-badge--price">
                           {formatPrice(feature.monthly_price)} / ay
                         </span>
-                        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                        <label className="ppa-pf-active-label">
                           <input
                             type="checkbox"
                             checked={feature.is_active ?? true}
@@ -467,8 +468,8 @@ export default function PublicPricingAdminPage() {
               </article>
             </section>
 
-            <details style={{ marginTop: 14 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 700, color: "#0f172a" }}>Gelistirici JSON Gorunumu</summary>
+            <details className="ppa-details">
+              <summary className="ppa-details-summary">Gelistirici JSON Gorunumu</summary>
               <textarea
                 value={raw}
                 onChange={(e) => {
@@ -482,29 +483,30 @@ export default function PublicPricingAdminPage() {
                   }
                 }}
                 rows={20}
-                style={{ width: "100%", marginTop: 10, border: "1px solid #cbd5e1", borderRadius: 10, padding: 12, fontFamily: "Consolas, monospace", fontSize: 13 }}
+                className="ppa-json-editor"
                 disabled={!isSuperAdmin}
               />
             </details>
 
-            {error && <div style={{ marginTop: 10, color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: 10 }}>{error}</div>}
-            {message && <div style={{ marginTop: 10, color: "#065f46", background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: 8, padding: 10 }}>{message}</div>}
+            {error && <div className="ppa-error-msg">{error}</div>}
+            {message && <div className="ppa-success-msg">{message}</div>}
 
-            <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", padding: 14, borderRadius: 14, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-              <div style={{ color: "#475569", fontSize: 13, lineHeight: 1.6 }}>
+            <div className="ppa-footer-bar">
+              <div className="ppa-footer-text">
                 Paketler, ekstra haklar ve premium feature fiyatları tek kayıt akışında güncellenir.
               </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button
-                onClick={saveConfig}
-                disabled={!isSuperAdmin || saving}
-                style={{ background: isSuperAdmin ? "#0f766e" : "#94a3b8", color: "#fff", border: "none", borderRadius: 8, padding: "10px 14px", fontWeight: 700, cursor: isSuperAdmin ? "pointer" : "not-allowed" }}
-              >
-                {saving ? "Kaydediliyor..." : "Kaydet"}
-              </button>
-              <a href="/admin?tab=campaigns" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 8, border: "1px solid #cbd5e1", color: "#0f172a", fontWeight: 700 }}>
-                Admin'e Don
-              </a>
+              <div className="ppa-footer-actions">
+                <button
+                  type="button"
+                  onClick={saveConfig}
+                  disabled={!isSuperAdmin || saving}
+                  className="ppa-save-btn"
+                >
+                  {saving ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+                <a href="/admin?tab=campaigns" className="ppa-back-link">
+                  Admin'e Don
+                </a>
               </div>
             </div>
           </>
@@ -514,24 +516,24 @@ export default function PublicPricingAdminPage() {
   );
 }
 
-function CatalogCard({ title, accent, plans }: { title: string; accent: string; plans: Plan[] }) {
+function CatalogCard({ title, variant, plans }: { title: string; variant: "strategic" | "supplier"; plans: Plan[] }) {
   return (
-    <article style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#fff" }}>
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", color: accent }}>{title}</div>
-      <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+    <article className={`ppa-catalog-card ppa-catalog-card--${variant}`}>
+      <div className="ppa-catalog-eyebrow">{title}</div>
+      <div className="ppa-catalog-plan-list">
         {plans.map((plan) => (
-          <div key={plan.code} style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: 12, background: "#f8fafc" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <div style={{ fontWeight: 800, color: "#0f172a" }}>{plan.name}</div>
-              <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: `${accent}15`, color: accent, fontWeight: 700, fontSize: 12 }}>{plan.code}</span>
+          <div key={plan.code} className="ppa-catalog-plan">
+            <div className="ppa-catalog-plan-header">
+              <div className="ppa-catalog-plan-name">{plan.name}</div>
+              <span className="ppa-catalog-plan-code">{plan.code}</span>
             </div>
-            <div style={{ marginTop: 6, color: "#475569", fontSize: 13 }}>{plan.description || "Açıklama yok"}</div>
-            <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#f1f5f9", color: "#334155", fontWeight: 700, fontSize: 12 }}>
+            <div className="ppa-catalog-plan-desc">{plan.description || "Açıklama yok"}</div>
+            <div className="ppa-catalog-tags">
+              <span className="ppa-catalog-tag ppa-catalog-tag--price">
                 {plan.price_monthly ? `${plan.price_monthly} ${plan.currency || "TRY"} / ay` : "Kuruma özel"}
               </span>
               {(plan.features || []).slice(0, 3).map((feature) => (
-                <span key={feature} style={{ display: "inline-flex", padding: "4px 8px", borderRadius: 999, background: "#ecfeff", color: "#155e75", fontWeight: 700, fontSize: 12 }}>{feature}</span>
+                <span key={feature} className="ppa-catalog-tag ppa-catalog-tag--feature">{feature}</span>
               ))}
             </div>
           </div>
@@ -561,22 +563,22 @@ function formatPrice(value?: number | null): string {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <article style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: 12, background: "#f8fafc" }}>
-      <div style={{ color: "#64748b", fontSize: 12, textTransform: "uppercase" }}>{label}</div>
-      <div style={{ color: "#0f172a", fontSize: 24, fontWeight: 800, marginTop: 4 }}>{value}</div>
+    <article className="ppa-stat-card">
+      <div className="ppa-stat-label">{label}</div>
+      <div className="ppa-stat-value">{value}</div>
     </article>
   );
 }
 
 function LabeledInput({ label, value, onChange, disabled }: { label: string; value: string; onChange: (value: string) => void; disabled?: boolean }) {
   return (
-    <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{label}</span>
+    <label className="ppa-field-label">
+      <span className="ppa-field-span">{label}</span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
-        style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", fontSize: 13, background: disabled ? "#f8fafc" : "#fff" }}
+        className="ppa-field-input"
       />
     </label>
   );
@@ -584,14 +586,14 @@ function LabeledInput({ label, value, onChange, disabled }: { label: string; val
 
 function LabeledNumberInput({ label, value, onChange, disabled }: { label: string; value?: number; onChange: (value: number) => void; disabled?: boolean }) {
   return (
-    <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{label}</span>
+    <label className="ppa-field-label">
+      <span className="ppa-field-span">{label}</span>
       <input
         type="number"
         value={value ?? 0}
         onChange={(event) => onChange(Number(event.target.value || 0))}
         disabled={disabled}
-        style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", fontSize: 13, background: disabled ? "#f8fafc" : "#fff" }}
+        className="ppa-field-input"
       />
     </label>
   );
@@ -599,14 +601,14 @@ function LabeledNumberInput({ label, value, onChange, disabled }: { label: strin
 
 function LabeledTextarea({ label, value, onChange, disabled, rows }: { label: string; value: string; onChange: (value: string) => void; disabled?: boolean; rows?: number }) {
   return (
-    <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{label}</span>
+    <label className="ppa-field-label">
+      <span className="ppa-field-span">{label}</span>
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
         rows={rows || 3}
-        style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", fontSize: 13, background: disabled ? "#f8fafc" : "#fff", resize: "vertical" }}
+        className="ppa-field-input ppa-field-textarea"
       />
     </label>
   );

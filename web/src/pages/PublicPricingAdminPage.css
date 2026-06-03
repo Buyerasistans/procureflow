@@ -1,0 +1,494 @@
+/* PublicPricingAdminPage.css — namespace: ppa-* */
+
+/* ── Root & Card ── */
+.ppa-root {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #eff6ff 0, #f8fafc 42%, #fff 100%);
+  padding: 28px 18px 40px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.ppa-card {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+.ppa-heading {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+.ppa-intro {
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* ── Loading ── */
+.ppa-loading {
+  color: #64748b;
+}
+
+/* ── Stat Grid ── */
+.ppa-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ppa-stat-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.ppa-stat-label {
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.ppa-stat-value {
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+/* ── Section & Articles ── */
+.ppa-section {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ppa-article {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.ppa-article--info {
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+  border-color: #dbe3ee;
+}
+
+.ppa-article-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.ppa-article-eyebrow--blue-dark { color: #1d4ed8; }
+.ppa-article-eyebrow--green     { color: #0f766e; }
+.ppa-article-eyebrow--amber     { color: #b45309; }
+.ppa-article-eyebrow--blue      { color: #0284c7; }
+.ppa-article-eyebrow--purple    { color: #7c3aed; }
+
+.ppa-article-text {
+  margin-top: 6px;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.ppa-article-text--dark {
+  color: #334155;
+}
+
+.ppa-article-body {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+/* ── Catalog Grid ── */
+.ppa-catalog-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* ── CatalogCard ── */
+.ppa-catalog-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.ppa-catalog-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.ppa-catalog-card--strategic .ppa-catalog-eyebrow { color: #0f766e; }
+.ppa-catalog-card--supplier  .ppa-catalog-eyebrow { color: #0284c7; }
+
+.ppa-catalog-plan-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.ppa-catalog-plan {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.ppa-catalog-plan-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ppa-catalog-plan-name {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ppa-catalog-plan-code {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ppa-catalog-card--strategic .ppa-catalog-plan-code {
+  background: rgba(15, 118, 110, 0.08);
+  color: #0f766e;
+}
+
+.ppa-catalog-card--supplier .ppa-catalog-plan-code {
+  background: rgba(2, 132, 199, 0.08);
+  color: #0284c7;
+}
+
+.ppa-catalog-plan-desc {
+  margin-top: 6px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.ppa-catalog-tags {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ppa-catalog-tag {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ppa-catalog-tag--price   { background: #f1f5f9; color: #334155; }
+.ppa-catalog-tag--feature { background: #ecfeff; color: #155e75; }
+
+/* ── Plan Cards (strategic / addon / supplier) ── */
+.ppa-plan-card {
+  border: 1px solid #dbe3ee;
+  border-radius: 14px;
+  padding: 16px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  display: grid;
+  gap: 12px;
+}
+
+.ppa-plan-card--addon    { background: linear-gradient(180deg, #fffaf0 0%, #ffffff 100%); }
+.ppa-plan-card--supplier { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%); }
+
+.ppa-plan-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* ── Premium Feature Add Box ── */
+.ppa-pf-add-box {
+  margin-top: 14px;
+  border: 1px dashed #c4b5fd;
+  border-radius: 14px;
+  padding: 14px;
+  background: #faf5ff;
+  display: grid;
+  gap: 10px;
+}
+
+.ppa-pf-add-title {
+  font-weight: 800;
+  color: #581c87;
+}
+
+.ppa-pf-add-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Shared Pill Badge ── */
+.ppa-pf-badge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ppa-pf-badge--new   { background: #ede9fe; color: #6d28d9; }
+.ppa-pf-badge--code  { background: #ede9fe; color: #6d28d9; }
+.ppa-pf-badge--scope { background: #eff6ff; color: #1d4ed8; }
+.ppa-pf-badge--price { background: #fff7ed; color: #b45309; }
+
+/* ── Add Feature Button ── */
+.ppa-add-feature-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #7c3aed;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ppa-add-feature-btn:disabled {
+  background: #c4b5fd;
+  cursor: not-allowed;
+}
+
+/* ── Duplicate Code Error ── */
+.ppa-pf-dupe-error {
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Premium Feature List ── */
+.ppa-pf-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.ppa-empty {
+  color: #64748b;
+}
+
+.ppa-pf-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
+}
+
+.ppa-pf-item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ppa-pf-item-title-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ppa-pf-item-name {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ppa-pf-item-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ── Delete Button ── */
+.ppa-pf-delete-btn {
+  border: 1px solid #e9d5ff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #7c2d12;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ppa-pf-delete-btn:disabled {
+  cursor: not-allowed;
+}
+
+/* ── Meta Row ── */
+.ppa-pf-meta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Checkbox Label ── */
+.ppa-pf-active-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* ── JSON Editor ── */
+.ppa-details {
+  margin-top: 14px;
+}
+
+.ppa-details-summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ppa-json-editor {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+/* ── Messages ── */
+.ppa-error-msg {
+  margin-top: 10px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.ppa-success-msg {
+  margin-top: 10px;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* ── Footer Save Bar ── */
+.ppa-footer-bar {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.ppa-footer-text {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ppa-footer-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Save Button ── */
+.ppa-save-btn {
+  background: #0f766e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ppa-save-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ── Back Link ── */
+.ppa-back-link {
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ── Form Field Components ── */
+.ppa-field-label {
+  display: grid;
+  gap: 6px;
+}
+
+.ppa-field-span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.ppa-field-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.ppa-field-input:disabled {
+  background: #f8fafc;
+}
+
+.ppa-field-textarea {
+  resize: vertical;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .ppa-root { padding: 12px 10px 24px; }
+  .ppa-card { padding: 16px; border-radius: 12px; }
+  .ppa-footer-bar { flex-direction: column; align-items: stretch; }
+  .ppa-footer-actions { flex-direction: column; }
+  .ppa-save-btn,
+  .ppa-back-link { width: 100%; text-align: center; box-sizing: border-box; }
+}
