@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { Copy, Plus, RefreshCcw, Save, Trash2 } from "lucide-react";
 import "./panelDesignerTab.css";
 
@@ -395,7 +396,7 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
                 className={`pd-profile-row${i === activeIdx ? " on" : ""}`}
                 onClick={() => setActiveIdx(i)}
               >
-                <div className="pd-profile-row__dot" style={{ background: p.color, color: p.accent }}>
+                <div className="pd-profile-row__dot" style={{ "--pd-color": p.color, "--pd-accent": p.accent } as CSSProperties}>
                   {p.biz.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="pd-profile-row__meta">
@@ -484,21 +485,21 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
         <div className="pd-grp-h">Tanım & Başlıklar</div>
         <div className="pd-row-2">
           <div className="pd-field">
-            <label>nav_label</label>
-            <input value={profile.navLabel} onChange={(e) => onUpdate("navLabel", e.target.value)} />
+            <label htmlFor="pd-nav-label">nav_label</label>
+            <input id="pd-nav-label" value={profile.navLabel} onChange={(e) => onUpdate("navLabel", e.target.value)} />
           </div>
           <div className="pd-field">
-            <label>workspace_label</label>
-            <input value={profile.wsLabel} onChange={(e) => onUpdate("wsLabel", e.target.value)} />
+            <label htmlFor="pd-ws-label">workspace_label</label>
+            <input id="pd-ws-label" value={profile.wsLabel} onChange={(e) => onUpdate("wsLabel", e.target.value)} />
           </div>
         </div>
         <div className="pd-field">
-          <label>hero_title</label>
-          <input value={profile.heroTitle} onChange={(e) => onUpdate("heroTitle", e.target.value)} />
+          <label htmlFor="pd-hero-title">hero_title</label>
+          <input id="pd-hero-title" value={profile.heroTitle} onChange={(e) => onUpdate("heroTitle", e.target.value)} />
         </div>
         <div className="pd-field">
-          <label>hero_description</label>
-          <textarea rows={2} value={profile.heroDesc} onChange={(e) => onUpdate("heroDesc", e.target.value)} />
+          <label htmlFor="pd-hero-desc">hero_description</label>
+          <textarea id="pd-hero-desc" rows={2} value={profile.heroDesc} onChange={(e) => onUpdate("heroDesc", e.target.value)} />
         </div>
       </div>
 
@@ -512,8 +513,8 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
         </div>
         <div className="pd-row-2">
           <div className="pd-field">
-            <label>menu_style</label>
-            <select value={profile.menuStyle} onChange={(e) => onUpdate("menuStyle", e.target.value)}>
+            <label htmlFor="pd-menu-style">menu_style</label>
+            <select id="pd-menu-style" value={profile.menuStyle} onChange={(e) => onUpdate("menuStyle", e.target.value)}>
               <option value="pill">pill (Rozet Menü)</option>
               <option value="accordion">accordion (Açılır/Kapanır)</option>
               <option value="drawer">drawer (Yandan Çekmece)</option>
@@ -521,24 +522,22 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
             </select>
           </div>
           <div className="pd-field">
-            <label>glow_intensity ({profile.glow.toFixed(2)})</label>
-            <input type="range" min={0} max={1} step={0.05} value={profile.glow} onChange={(e) => onUpdate("glow", Number(e.target.value))} />
+            <label htmlFor="pd-glow">glow_intensity ({profile.glow.toFixed(2)})</label>
+            <input id="pd-glow" type="range" min={0} max={1} step={0.05} value={profile.glow} onChange={(e) => onUpdate("glow", Number(e.target.value))} />
           </div>
         </div>
         <div className="pd-row-2">
           <div className="pd-field">
-            <label>accent_opacity ({profile.opacity.toFixed(2)})</label>
-            <input type="range" min={0} max={1} step={0.05} value={profile.opacity} onChange={(e) => onUpdate("opacity", Number(e.target.value))} />
+            <label htmlFor="pd-opacity">accent_opacity ({profile.opacity.toFixed(2)})</label>
+            <input id="pd-opacity" type="range" min={0} max={1} step={0.05} value={profile.opacity} onChange={(e) => onUpdate("opacity", Number(e.target.value))} />
           </div>
           <div className="pd-field">
             <label>swatch</label>
-            <div className="pd-swatch-row">
-              <span className="pd-swatch" style={{ background: profile.color }} />
-              <span className="pd-swatch" style={{ background: profile.accent }} />
-              <span className="pd-swatch" style={{ background: profile.textColor }} />
-              <span style={{ flex: 1, padding: "6px 8px", background: `linear-gradient(135deg, ${profile.color}, ${profile.accent})`, borderRadius: 6, fontSize: 10, color: profile.textColor, textAlign: "center", fontWeight: 800 }}>
-                Header
-              </span>
+            <div className="pd-swatch-row" style={{ "--pd-color": profile.color, "--pd-accent": profile.accent, "--pd-text": profile.textColor } as CSSProperties}>
+              <span className="pd-swatch pd-swatch--color" />
+              <span className="pd-swatch pd-swatch--accent" />
+              <span className="pd-swatch pd-swatch--text" />
+              <span className="pd-swatch-gradient">Header</span>
             </div>
           </div>
         </div>
@@ -549,12 +548,12 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
         <div className="pd-grp-h">Tipografi</div>
         <div className="pd-row-2">
           <div className="pd-field">
-            <label>hero başlık ({profile.fontTitle}px)</label>
-            <input type="range" min={20} max={40} step={1} value={profile.fontTitle} onChange={(e) => onUpdate("fontTitle", Number(e.target.value))} />
+            <label htmlFor="pd-font-title">hero başlık ({profile.fontTitle}px)</label>
+            <input id="pd-font-title" type="range" min={20} max={40} step={1} value={profile.fontTitle} onChange={(e) => onUpdate("fontTitle", Number(e.target.value))} />
           </div>
           <div className="pd-field">
-            <label>body ({profile.fontBody}px)</label>
-            <input type="range" min={11} max={16} step={1} value={profile.fontBody} onChange={(e) => onUpdate("fontBody", Number(e.target.value))} />
+            <label htmlFor="pd-font-body">body ({profile.fontBody}px)</label>
+            <input id="pd-font-body" type="range" min={11} max={16} step={1} value={profile.fontBody} onChange={(e) => onUpdate("fontBody", Number(e.target.value))} />
           </div>
         </div>
       </div>
@@ -603,12 +602,13 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
 
 // ── Color field ──────────────────────────────────────────────────
 function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const fieldId = `pd-cf-${label.replace(/\s/g, "-")}`;
   return (
     <div className="pd-field">
-      <label>{label}</label>
+      <label htmlFor={fieldId}>{label}</label>
       <div className="pd-color">
-        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
-        <input type="text"  value={value} onChange={(e) => onChange(e.target.value)} />
+        <input type="color" aria-label={`${label} renk seçici`} value={value} onChange={(e) => onChange(e.target.value)} />
+        <input type="text" id={fieldId} value={value} onChange={(e) => onChange(e.target.value)} />
       </div>
     </div>
   );
@@ -667,43 +667,56 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
         </div>
       </div>
 
-      <div className={`pd-preview-frame pd-preview-frame--${mode}`}>
-        <div className="pd-mock-strip" style={{ background: profile.color, color: profile.textColor }}>
+      <div
+          className={`pd-preview-frame pd-preview-frame--${mode}`}
+          style={{
+            "--pd-color": profile.color,
+            "--pd-accent": profile.accent,
+            "--pd-text": profile.textColor,
+            "--pd-font-title": profile.fontTitle + "px",
+            "--pd-font-body": profile.fontBody + "px",
+            "--pd-opacity": String(profile.opacity),
+            "--pd-color-ee": profile.color + "ee",
+            "--pd-accent-glow": profile.accent + glowHex,
+            "--pd-accent-22": profile.accent + "22",
+          } as CSSProperties}
+        >
+        <div className="pd-mock-strip">
           <span>Tenant: ACME · Plan: Enterprise</span>
           <span>Q2 2026</span>
         </div>
 
         {topTabs.length > 0 && (
-          <div className="pd-mock-topnav" style={{ background: profile.color }}>
+          <div className="pd-mock-topnav">
             {topTabs.slice(0, 7).map((t, idx) => (
-              <span key={t.key} style={idx === 0 ? { background: profile.accent, color: profile.textColor } : { color: profile.textColor, opacity: 0.78 }}>
+              <span key={t.key} className={idx === 0 ? "pd-topnav-tab pd-topnav-tab--active" : "pd-topnav-tab"}>
                 {t.label}
               </span>
             ))}
-            {topTabs.length > 7 && <span className="pd-mock-more" style={{ color: profile.textColor, opacity: 0.6 }}>+{topTabs.length - 7}</span>}
+            {topTabs.length > 7 && <span className="pd-mock-more">+{topTabs.length - 7}</span>}
           </div>
         )}
 
         <div className="pd-mock-shell">
           {sideTabs.length > 0 && (
-            <div className="pd-mock-sidenav" style={{ background: profile.color }}>
+            <div className="pd-mock-sidenav">
               {sideTabs.slice(0, 11).map((t, idx) => (
-                <span key={t.key} className="pd-sn" style={idx === 0 ? { background: profile.accent + "22", color: profile.accent } : { color: profile.textColor, opacity: 0.72 }}>
+                <span key={t.key} className={idx === 0 ? "pd-sn pd-sn--active" : "pd-sn"}>
                   {t.label}
                 </span>
               ))}
-              {sideTabs.length > 11 && <span className="pd-sn" style={{ color: profile.textColor, opacity: 0.5 }}>+{sideTabs.length - 11}</span>}
+              {sideTabs.length > 11 && <span className="pd-sn pd-sn--more">+{sideTabs.length - 11}</span>}
             </div>
           )}
           <div className="pd-mock-main">
-            <div className="pd-mock-hero" style={{ background: `linear-gradient(135deg, ${profile.color} 0%, ${profile.color}ee 55%, ${profile.accent}${glowHex} 100%)`, color: profile.textColor }}>
+            <div className="pd-mock-hero">
               <div className="pd-mock-hero__inner">
-                <div className="pd-mock-eyebrow" style={{ color: profile.accent, opacity: profile.opacity }}>{profile.navLabel}</div>
-                <h2 style={{ fontSize: profile.fontTitle + "px", color: profile.textColor }}>{profile.heroTitle}</h2>
-                <p  style={{ fontSize: profile.fontBody  + "px", color: profile.textColor, opacity: 0.82 }}>{profile.heroDesc}</p>
+                <div className="pd-mock-eyebrow">{profile.navLabel}</div>
+                <h2>{profile.heroTitle}</h2>
+                <p>{profile.heroDesc}</p>
               </div>
-              <div className="pd-mock-user" style={{ color: profile.textColor }}>
-                <span style={{ opacity: 0.7 }}>Hoş geldiniz</span>
+              <div className="pd-mock-user">
+                <span className="pd-mock-user__greeting">Hoş geldiniz</span>
                 <b>A. Yılmaz</b>
               </div>
             </div>
@@ -711,19 +724,19 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
               <div className="pd-mock-section-title">İçerik · {visibleTabs.length} modül</div>
               <div className="pd-mock-modules">
                 {visibleTabs.slice(0, 12).map((t) => (
-                  <div key={t.key} className="pd-mock-module" style={{ borderLeftColor: profile.accent }}>
+                  <div key={t.key} className="pd-mock-module">
                     <div className="pd-mock-module__title">{t.label}</div>
-                    <div className="pd-mock-module__btn" style={{ background: profile.accent, color: profile.textColor }}>Aç →</div>
+                    <div className="pd-mock-module__btn">Aç →</div>
                   </div>
                 ))}
               </div>
               {profile.quickLinks.length > 0 && (
                 <>
-                  <div className="pd-mock-section-title" style={{ marginTop: 14 }}>Hızlı Erişim</div>
+                  <div className="pd-mock-section-title pd-mock-section-title--mt">Hızlı Erişim</div>
                   <div className="pd-mock-links">
                     {profile.quickLinks.map((ql, i) => (
                       <div key={i} className="pd-mock-link">
-                        <b style={{ color: profile.accent }}>{ql.label}</b>
+                        <b className="pd-mock-link__label">{ql.label}</b>
                         <span>{ql.href} · {ql.desc}</span>
                       </div>
                     ))}
