@@ -321,6 +321,11 @@
 .pa-chart {
   overflow: hidden;
 }
+.pa-chart svg {
+  width: 100%;
+  height: var(--pa-chart-h, 240px);
+  display: block;
+}
 
 /* Lejant */
 .pa-legend {
@@ -344,6 +349,7 @@
   height: 3px;
   border-radius: 2px;
   flex-shrink: 0;
+  background: var(--leg-color);
 }
 
 .pa-gbars + .pa-legend {
@@ -385,6 +391,8 @@
   align-items: center;
   padding: 0 8px;
   min-width: 6%;
+  width: var(--funnel-w);
+  background: var(--funnel-color);
 }
 
 .pa-funnel__bar b {
@@ -432,8 +440,8 @@
   min-height: 4px;
 }
 
-.pa-gbars__b--strategic { background: #1d4ed8; }
-.pa-gbars__b--supplier  { background: #be123c; }
+.pa-gbars__b--strategic { background: #1d4ed8; height: var(--ph); }
+.pa-gbars__b--supplier  { background: #be123c; height: var(--sh); }
 
 .pa-gbars__lbl {
   font-size: 10px;
@@ -476,6 +484,7 @@
   background: #2563eb;
   height: 100%;
   border-radius: 4px;
+  width: var(--city-w);
 }
 
 .pa-city__n {
@@ -518,6 +527,7 @@
   width: 12px;
   height: 12px;
   border-radius: 3px;
+  background: var(--dot-bg);
 }
 
 .pa-donut-legend__label {

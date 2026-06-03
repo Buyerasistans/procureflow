@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { getAccessToken } from "../../lib/token";
 import { PageHeader, Section, StatCard } from "./AdminTabContent";
 import "./PlatformAnalyticsTab.css";
@@ -123,8 +124,8 @@ function PaMultiLine({
   const y = (v: number) => padT + (height - padT - padB) * (1 - v / max);
   const ticks = 4;
   return (
-    <div className="pa-chart">
-      <svg viewBox={`0 0 ${w} ${height}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
+    <div className="pa-chart" style={{ "--pa-chart-h": height + "px" } as CSSProperties}>
+      <svg viewBox={`0 0 ${w} ${height}`} preserveAspectRatio="none">
         {Array.from({ length: ticks + 1 }, (_, i) => {
           const yy = padT + ((height - padT - padB) * i) / ticks;
           return <line key={i} x1={padL} y1={yy} x2={w - padR} y2={yy} stroke="#eef2f7" strokeWidth="1" />;
@@ -159,8 +160,8 @@ function PaMultiLine({
       </svg>
       <div className="pa-legend">
         {lines.map((l) => (
-          <span key={l.key}>
-            <i style={{ background: l.color }} />
+          <span key={l.key} style={{ "--leg-color": l.color } as CSSProperties}>
+            <i />
             {l.label}
           </span>
         ))}
@@ -200,7 +201,7 @@ function PaDonut({ data, size = 160 }: { data: PaDonutSlice[]; size?: number }) 
 function PaFunnelBars({ steps, color }: { steps: PaFunnelStep[]; color: string }) {
   const max = steps[0]?.count ?? 1;
   return (
-    <div className="pa-funnel">
+    <div className="pa-funnel" style={{ "--funnel-color": color } as CSSProperties}>
       {steps.map((s, i) => {
         const pct = Math.max(6, Math.round((s.count / max) * 100));
         const prev = steps[i - 1]?.count ?? null;
@@ -209,7 +210,7 @@ function PaFunnelBars({ steps, color }: { steps: PaFunnelStep[]; color: string }
           <div key={i} className="pa-funnel__row">
             <span className="pa-funnel__lbl">{s.stage}</span>
             <div className="pa-funnel__track">
-              <div className="pa-funnel__bar" style={{ width: `${pct}%`, background: color }}>
+              <div className="pa-funnel__bar" style={{ "--funnel-w": pct + "%" } as CSSProperties}>
                 <b>{s.count.toLocaleString("tr-TR")}</b>
               </div>
             </div>
@@ -228,15 +229,13 @@ function PaGroupBars({ data }: { data: PaBarPoint[] }) {
       <div className="pa-gbars">
         {data.map((d) => (
           <div key={d.m} className="pa-gbars__col">
-            <div className="pa-gbars__pair">
+            <div className="pa-gbars__pair" style={{ "--ph": (d.partners / max * 100) + "%", "--sh": (d.suppliers / max * 100) + "%" } as CSSProperties}>
               <div
                 className="pa-gbars__b pa-gbars__b--strategic"
-                style={{ height: `${(d.partners / max) * 100}%` }}
                 title={`Partner: ${d.partners}`}
               />
               <div
                 className="pa-gbars__b pa-gbars__b--supplier"
-                style={{ height: `${(d.suppliers / max) * 100}%` }}
                 title={`Tedarikçi: ${d.suppliers}`}
               />
             </div>
@@ -260,7 +259,7 @@ function PaCityBars() {
         <div key={city} className="pa-city__row">
           <span className="pa-city__name">{city}</span>
           <div className="pa-city__track">
-            <div className="pa-city__bar" style={{ width: `${(n / max) * 100}%` }} />
+            <div className="pa-city__bar" style={{ "--city-w": (n / max * 100) + "%" } as CSSProperties} />
           </div>
           <span className="pa-city__n">{n}</span>
         </div>
@@ -574,7 +573,7 @@ export function PlatformAnalyticsTab() {
                 const total = PA_ORIGIN_DONUT.reduce((s, x) => s + x.count, 0);
                 return (
                   <div key={d.label} className="pa-donut-legend__item">
-                    <span className="pa-donut-legend__dot" style={{ background: d.color }} />
+                    <span className="pa-donut-legend__dot" style={{ "--dot-bg": d.color } as CSSProperties} />
                     <span className="pa-donut-legend__label">{d.label}</span>
                     <span className="pa-donut-legend__val">
                       {d.count} <small>({Math.round((d.count / total) * 100)}%)</small>
