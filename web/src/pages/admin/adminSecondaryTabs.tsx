@@ -2244,9 +2244,28 @@ export function ChannelPartnersAdminTab() {
   );
 }
 
-interface AilBomItem { material: string; quantity: number; unit: string; source_layer: string; group_name?: string; }
+interface AilBomItem { material: string; quantity: number; unit: string; source_layer: string; group_name?: string; group_key?: string; }
 interface AilLayer   { layer_name: string; total_length: number; unit: string; }
-interface AilResult  { status?: string; session_id?: string; metadata?: { katmanlar?: AilLayer[] }; bom?: AilBomItem[]; ai_report?: { teknik_analiz?: string }; }
+interface AilKararSoru { id: number; soru: string; neden: string; }
+interface AilResult  {
+  status?: string;
+  session_id?: string;
+  metadata?: { katmanlar?: AilLayer[] };
+  bom?: AilBomItem[];
+  ai_report?: {
+    teknik_analiz?: string;
+    karar_destek_sorulari?: AilKararSoru[];
+    kritik_uyarilar?: string[];
+  };
+}
+interface AilConfirmResult {
+  transfer_id: string;
+  quote_id: number;
+  project_id: number;
+  project_name: string;
+  confirmed_by_email?: string;
+  status?: string;
+}
 
 const AIL_MODELS = [
   { id: "buyer_cad" as const, label: "Buyer-CAD v4",   icon: "🏗️", sub: "Self-hosted · sektör eğitimli",           speed: "Yavaş", cost: "₺0/sayfa",    tag: "Önerilen" },
@@ -2286,6 +2305,9 @@ export function AiLabAdminTab() {
   const [projects, setProjects]       = useState<Project[]>([]);
   const [companies, setCompanies]     = useState<Company[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [confirming, setConfirming]   = useState(false);
+  const [confirmResult, setConfirmResult] = useState<AilConfirmResult | null>(null);
+  const [confirmError, setConfirmError]   = useState<string | null>(null);
   const fileRef  = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -2334,6 +2356,39 @@ export function AiLabAdminTab() {
     setActiveStep(-1);
   }
 
+  async function handleConfirm() {
+    if (!result?.session_id) return;
+    setConfirming(true);
+    setConfirmError(null);
+    try {
+      const keys = bomRows.map((item, idx) =>
+        `${item.source_layer}-${item.material}-${idx}`
+      );
+      const token = getAccessToken();
+      const base = (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8000";
+      const res = await fetch(`${base}/api/v1/ai-lab/confirm`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          session_id: result.session_id,
+          project_id: selectedProjectId ?? null,
+          selected_bom_item_keys: keys,
+        }),
+      });
+      const data = (await res.json()) as { status?: string; transfer?: AilConfirmResult; detail?: unknown };
+      if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Onay başarısız.");
+      setConfirmResult(data.transfer ?? null);
+      setResultTab("rfq");
+    } catch (err) {
+      setConfirmError(err instanceof Error ? err.message : "Bilinmeyen hata.");
+    } finally {
+      setConfirming(false);
+    }
+  }
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2345,6 +2400,8 @@ export function AiLabAdminTab() {
     setUploadError(null);
     setResult(null);
     setResultTab("katman");
+    setConfirmResult(null);
+    setConfirmError(null);
     setFileName(file.name);
     setUploading(true);
     startAnimation();
@@ -2544,12 +2601,6 @@ export function AiLabAdminTab() {
           {/* Teknik Katman Özeti */}
           {resultTab === "katman" && (
             <>
-              {layers.length > 0 && (
-                <div className="ail-summary-bar">
-                  <span>Toplam Metraj Değeri</span>
-                  <strong>{totalLen.toFixed(2)} m</strong>
-                </div>
-              )}
               {bomRows.length > 0 ? (
                 <div className="ail-bom-wrap">
                   <table className="ail-bom-table">
@@ -2597,42 +2648,110 @@ export function AiLabAdminTab() {
               ) : (
                 <p className="ail-empty">Analiz tamamlandı ancak katman verisi bulunamadı.</p>
               )}
+
+              {/* onay alanı */}
+              {confirmResult ? (
+                <div className="ail-approved-stamp">
+                  <div className="ail-approved-stamp__header">
+                    <span className="ail-approved-stamp__check">✓</span>
+                    <span className="ail-approved-stamp__title">AI Onaylı</span>
+                  </div>
+                  <div className="ail-approved-stamp__rows">
+                    <span className="ail-approved-stamp__label">Transfer</span>
+                    <span className="ail-approved-stamp__val">{confirmResult.transfer_id}</span>
+                    <span className="ail-approved-stamp__label">Teklif #</span>
+                    <span className="ail-approved-stamp__val">{confirmResult.quote_id}</span>
+                    <span className="ail-approved-stamp__label">Proje</span>
+                    <span className="ail-approved-stamp__val">{confirmResult.project_name}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="ail-confirm-bar">
+                  {confirmError && <p className="ail-error" style={{marginBottom: 8}}>{confirmError}</p>}
+                  <button
+                    type="button"
+                    className="ail-confirm-btn"
+                    onClick={handleConfirm}
+                    disabled={confirming || bomRows.length === 0}
+                  >
+                    {confirming ? <><span className="ail-step-spin" /> Onaylanıyor…</> : "Onayla ve RFQ Oluştur"}
+                  </button>
+                  <p className="ail-confirm-hint">
+                    Tüm {bomRows.length} kalem seçili projeye AI Onaylı damgasıyla iletilir.
+                  </p>
+                </div>
+              )}
             </>
           )}
 
           {/* Oluşan RFQ */}
           {resultTab === "rfq" && (
             <div className="ail-rfq-panel">
-              <div className="ail-rfq-icon">📋</div>
-              <p className="ail-rfq-msg">
-                RFQ taslağı hazır. Tedarikçi havuzuna göndermek veya mevcut analiz oturumunu yönetmek için
-                aşağıdaki işlemleri kullanın.
-              </p>
-              {result.ai_report?.teknik_analiz && (
-                <div className="ail-rfq-report">
-                  <strong>AI Teknik Analiz</strong>
-                  <p>{result.ai_report.teknik_analiz}</p>
-                </div>
+              {confirmResult ? (
+                <>
+                  {/* AI Onaylı damga */}
+                  <div className="ail-approved-stamp ail-approved-stamp--center">
+                    <div className="ail-approved-stamp__header">
+                      <span className="ail-approved-stamp__check">✓</span>
+                      <span className="ail-approved-stamp__title">AI Onaylı RFQ Oluşturuldu</span>
+                    </div>
+                    <div className="ail-approved-stamp__rows">
+                      <span className="ail-approved-stamp__label">Transfer ID</span>
+                      <span className="ail-approved-stamp__val">{confirmResult.transfer_id}</span>
+                      <span className="ail-approved-stamp__label">Teklif #</span>
+                      <span className="ail-approved-stamp__val">{confirmResult.quote_id}</span>
+                      <span className="ail-approved-stamp__label">Proje</span>
+                      <span className="ail-approved-stamp__val">{confirmResult.project_name}</span>
+                    </div>
+                  </div>
+                  <div className="ail-rfq-actions">
+                    <button
+                      type="button"
+                      className="ail-link ail-link--btn"
+                      onClick={() => navigate("/admin?tab=discovery_lab_operations")}
+                    >
+                      Discovery Lab Operasyonlarında Görüntüle →
+                    </button>
+                    {result.session_id && (
+                      <a
+                        href={`/discovery-lab?session=${result.session_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ail-link"
+                      >
+                        Tenant görünümünde aç ↗
+                      </a>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="ail-rfq-icon">📋</div>
+                  <p className="ail-rfq-msg">
+                    BOM tablosunu inceledikten sonra <strong>Teknik Katman Özeti</strong> sekmesindeki
+                    "Onayla ve RFQ Oluştur" butonuna tıklayın.
+                    RFQ oluşturulduktan sonra burada AI Onaylı damgası ve teklif detayları görünür.
+                  </p>
+                  {/* AI karar soruları varsa göster */}
+                  {(result.ai_report?.karar_destek_sorulari ?? []).length > 0 && (
+                    <div className="ail-rfq-report" style={{width: "100%", textAlign: "left"}}>
+                      <strong>AI Karar Destek Soruları</strong>
+                      {result.ai_report!.karar_destek_sorulari!.map((q) => (
+                        <div key={q.id} className="ail-karar-soru">
+                          <span className="ail-karar-soru__q">S{q.id}: {q.soru}</span>
+                          <span className="ail-karar-soru__why">{q.neden}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {result.ai_report?.teknik_analiz && (
+                    <div className="ail-rfq-report" style={{width: "100%", textAlign: "left", marginTop: 8}}>
+                      <strong>AI Teknik Analiz</strong>
+                      <p>{result.ai_report.teknik_analiz}</p>
+                    </div>
+                  )}
+                </>
               )}
-              <div className="ail-rfq-actions">
-                <button
-                  type="button"
-                  className="ail-link ail-link--btn"
-                  onClick={() => navigate("/admin?tab=discovery_lab_operations")}
-                >
-                  Discovery Lab Operasyonlarında Görüntüle →
-                </button>
-                {result.session_id && (
-                  <a
-                    href={`/discovery-lab?session=${result.session_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ail-link"
-                  >
-                    Tenant görünümünde aç ↗
-                  </a>
-                )}
-              </div>
             </div>
           )}
         </Section>
