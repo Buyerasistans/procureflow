@@ -1,0 +1,52 @@
+/* TeamHierarchyTree — tht-* namespace */
+.tht-empty { color: #9ca3af; font-size: 13px; }
+.tht-tree {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.tht-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid #f3f4f6;
+  padding-left: var(--tht-indent, 4px);
+}
+.tht-toggle-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: default;
+  color: transparent;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+.tht-toggle-btn--has-children { cursor: pointer; color: #6b7280; }
+.tht-role-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--tht-role-color, #6b7280);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tht-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.tht-name--root     { font-weight: 700; }
+.tht-name--inactive { color: #9ca3af; }
+.tht-pasif-badge { margin-left: 6px; font-size: 10px; color: #ef4444; }
+.tht-referral { font-size: 11px; color: #047857; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
