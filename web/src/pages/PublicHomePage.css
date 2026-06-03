@@ -1,0 +1,221 @@
+/* PublicHomePage.css — namespace: php-* */
+
+/* ── Root ── */
+.php-root {
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 0%, #e8f8f1 0%, #eef7ff 40%, #f8fafc 100%);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Main / container ── */
+.php-main      { padding: 24px 20px 64px; }
+.php-container { max-width: 1120px; margin: 0 auto; }
+
+/* ── Slider ── */
+.php-slider-section {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.18);
+}
+
+.php-slider-ratio {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+}
+
+.php-slider-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 16px;
+}
+
+/* ── CTA row ── */
+.php-cta-row {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.php-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  letter-spacing: 0.2px;
+  min-width: 210px;
+}
+
+.php-cta--green { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #fff; }
+.php-cta--teal  { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #fff; }
+.php-cta--gold  { background: linear-gradient(135deg, #D4AF37 0%, #b5952f 100%); color: #112a25; }
+.php-cta--dark  { background: linear-gradient(135deg, #112a25 0%, #1e4a3d 100%); color: #D4AF37; }
+
+/* ── Audience grid ── */
+.php-audience-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+/* ── Tile card ── */
+.php-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.php-tile-title      { font-weight: 800; color: #0f172a; }
+.php-tile-title--lg  { font-size: 18px; }
+
+.php-tile-body {
+  margin: 8px 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.php-tile-body--top { margin-bottom: 0; }
+
+.php-tile-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Mini link buttons ── */
+.php-mini-primary {
+  background: #16a34a;
+  color: #062012;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.php-mini-ghost {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ── Highlights grid ── */
+.php-highlights-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.php-highlight-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 1.2px;
+}
+
+.php-highlight-value {
+  margin-top: 8px;
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+/* ── Panel grid (why + strategic promise) ── */
+.php-panel-grid {
+  margin-top: 38px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 16px;
+}
+
+.php-panel {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+}
+
+/* ── Typography ── */
+.php-h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: #0f172a;
+}
+
+.php-h2--mb { margin-bottom: 12px; }
+
+.php-body {
+  margin: 0 0 10px;
+  color: #334155;
+  line-height: 1.7;
+}
+
+.php-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #334155;
+  line-height: 1.8;
+}
+
+/* ── Primary CTA link ── */
+.php-primary-cta {
+  display: inline-block;
+  margin-top: 8px;
+  background: #22c55e;
+  color: #07261c;
+  padding: 12px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+/* ── Auto grid (flow / domain sections) ── */
+.php-auto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+/* ── Flow section ── */
+.php-flow-section { margin-top: 30px; }
+
+/* ── Domain section ── */
+.php-domain-section { margin-top: 38px; }
+
+.php-domain-role {
+  margin-top: 6px;
+  color: #0b5d4a;
+  font-weight: 700;
+}
+
+/* ── Footer ── */
+.php-footer {
+  margin-top: 44px;
+  border-top: 1px solid #dbeafe;
+  padding-top: 18px;
+  color: #475569;
+  font-size: 13px;
+}
