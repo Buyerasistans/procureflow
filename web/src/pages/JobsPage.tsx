@@ -238,7 +238,7 @@ function ApplyForm({ job, onSuccess, onCancel }: ApplyFormProps) {
         onChange={(e) => setCoverLetter(e.target.value)}
         placeholder={`${job.title} pozisyonu için neden başvuruyorsunuz?`}
       />
-      <div className="jobs-form__actions" style={{ marginTop: 10 }}>
+      <div className="jobs-form__actions jobs-form__actions--compact">
         <button type="submit" className="jobs-page__btn jobs-page__btn--primary" disabled={submitting}>
           {submitting ? "Gönderiliyor..." : "Başvur"}
         </button>
@@ -300,7 +300,7 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, op
         {(job.city || job.country) && (
           <span className="job-card__badge">{[job.city, job.country].filter(Boolean).join(", ")}</span>
         )}
-        <span style={{ color: "#94a3b8", fontSize: 12 }}>{job.application_count} başvuru</span>
+        <span className="job-card__app-count">{job.application_count} başvuru</span>
       </div>
       <p className="job-card__desc">{job.description}</p>
       <div className="job-card__actions">
@@ -310,7 +310,7 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, op
           </button>
         )}
         {canEmployer && (
-          <span style={{ fontSize: 13, color: "#64748b" }}>
+          <span className="job-card__date">
             {new Date(job.created_at).toLocaleDateString("tr-TR")}
           </span>
         )}
