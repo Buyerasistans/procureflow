@@ -3,6 +3,7 @@
  * Sol: filtrelenebilir liste (master) · Sağ: seçili talep detayı + güncelleme
  */
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { PageHeader, Section, StatCard } from "../../pages/admin/AdminTabContent";
 import {
   adminListSupportTickets,
@@ -237,8 +238,9 @@ export function SupportTicketAdminTab() {
                     type="button"
                     className={"spt-row" + (t.id === sel?.id ? " on" : "")}
                     onClick={() => { setSelId(t.id); setNote(""); }}
+                    style={{ "--spt-color": color, "--spt-color-bg": color + "1f" } as CSSProperties}
                   >
-                    <span className="spt-row__bar" style={{ background: color }} />
+                    <span className="spt-row__bar" />
                     <span
                       className={"spt-prio spt-prio--" + t.priority}
                       title={PRIORITY_LABELS[t.priority] ?? t.priority}
@@ -251,10 +253,7 @@ export function SupportTicketAdminTab() {
                         </span>
                       </b>
                       <span>
-                        <span
-                          className="spt-tpill"
-                          style={{ background: color + "1f", color }}
-                        >
+                        <span className="spt-tpill">
                           {t.tenant_name ?? "—"}
                         </span>
                         {" "}#{t.id} · {CATEGORY_LABELS[t.category] ?? t.category}
@@ -269,7 +268,10 @@ export function SupportTicketAdminTab() {
         </aside>
 
         {/* ── Detail pane ── */}
-        <div className="spt-detail">
+        <div
+          className="spt-detail"
+          style={sel ? { "--spt-color": tColor(sel), "--spt-color-bg": tColor(sel) + "1f" } as CSSProperties : undefined}
+        >
           {!sel ? (
             <div className="spt-state spt-state--pad">Listeden bir talep seçin.</div>
           ) : (
@@ -285,10 +287,7 @@ export function SupportTicketAdminTab() {
                   </span>
                 </h3>
                 <div className="spt-detail__meta">
-                  <span
-                    className="spt-tpill spt-tpill--lg"
-                    style={{ background: tColor(sel) + "1f", color: tColor(sel) }}
-                  >
+                  <span className="spt-tpill spt-tpill--lg">
                     {sel.tenant_name ?? "—"}
                   </span>
                   <span className="spt-sep">·</span>

@@ -161,6 +161,7 @@
   min-height: 42px;
   border-radius: 0 2px 2px 0;
   flex-shrink: 0;
+  background: var(--spt-color);
 }
 
 /* Priority dot */
@@ -227,6 +228,8 @@
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  background: var(--spt-color-bg);
+  color: var(--spt-color);
 }
 
 .spt-tpill--lg {
