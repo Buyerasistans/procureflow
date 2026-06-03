@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { isSuperAdminUser, getPersonnelRolePermissionMatrix } from "../auth/permissions";
@@ -179,8 +180,8 @@ function RoleCatalogSection() {
       </p>
       {[...groups.entries()].map(([grup, rows]) => (
         <div key={grup} className="rm-group-block">
-          <div className="rm-group-header" style={{ borderLeftColor: GROUP_COLORS[grup] ?? "#94a3b8" }}>
-            <span style={{ color: GROUP_COLORS[grup] ?? "#334155" }}>{grup}</span>
+          <div className="rm-group-header" style={{ "--rm-color": GROUP_COLORS[grup] ?? "#94a3b8" } as CSSProperties}>
+            <span>{grup}</span>
             <span className="rm-group-count">{rows.length} rol</span>
           </div>
           <div className="rm-table-wrap">
@@ -289,8 +290,8 @@ function PermissionMatrixSection({ data }: { data: ReturnType<typeof getPersonne
       ))}
 
       <div className="rm-group-block">
-        <div className="rm-group-header" style={{ borderLeftColor: "#be185d" }}>
-          <span style={{ color: "#be185d" }}>Talent Ekosistemi — Ek İzinler</span>
+        <div className="rm-group-header rm-group-header--talent">
+          <span>Talent Ekosistemi — Ek İzinler</span>
         </div>
         <div className="rm-table-wrap">
           <table className="rm-table rm-table--perm">
@@ -624,8 +625,8 @@ function SystemRoleSection() {
 
       {[...byKatman.entries()].map(([katman, docs]) => (
         <div key={katman} className="rm-group-block">
-          <div className="rm-group-header" style={{ borderLeftColor: KATMAN_COLORS[katman] ?? "#94a3b8" }}>
-            <span style={{ color: KATMAN_COLORS[katman] }}>
+          <div className="rm-group-header" style={{ "--rm-color": KATMAN_COLORS[katman] ?? "#94a3b8" } as CSSProperties}>
+            <span>
               {KATMAN_LABELS[katman] ?? katman} — system_role değerleri
             </span>
             <span className="rm-group-count">{docs.length} değer</span>
