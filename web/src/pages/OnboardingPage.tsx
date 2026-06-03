@@ -1,9 +1,9 @@
-// FILE: web/src/pages/OnboardingPage.tsx
-import { useEffect, useMemo, useState, type CSSProperties, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { useSearchParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
 import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
+import "./OnboardingPage.css";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -75,8 +75,6 @@ interface TenantTypeOption {
   type: TenantType;
   title: string;
   description: string;
-  color: string;
-  bgColor: string;
 }
 
 const TENANT_TYPES: TenantTypeOption[] = [
@@ -84,15 +82,11 @@ const TENANT_TYPES: TenantTypeOption[] = [
     type: "strategic_partner",
     title: "Stratejik Partnerlik",
     description: "Kurumsal satın alma ekibi - Tedarikçileri yönetin, teklif alın",
-    color: "#4f46e5",
-    bgColor: "#eef2ff",
   },
   {
     type: "supplier",
     title: "Tedarikçi",
     description: "Teklif sunun, müşteri bulun, daha fazla iş kazanın",
-    color: "#0891b2",
-    bgColor: "#ecf0ff",
   },
 ];
 
@@ -108,6 +102,16 @@ const CATEGORY_HELP_COPY: Record<TenantType, { title: string; detail: string }> 
       "Seçtiğiniz uzmanlık alanı sizi yalnızca profil etiketine dönüştürmez. Bu bilgi; ilgili RFQ akışlarında daha doğru görünürlük, daha isabetli davet ve admin tarafında kategori bazlı supplier kapsamı takibi için kullanılır.",
   },
 };
+
+const WIZARD_STEPS: WizardStep[] = ["tenant_type", "details", "plan", "payment", "done"];
+
+function stepLabel(s: WizardStep): string {
+  if (s === "tenant_type") return "Siz Kimsiniz?";
+  if (s === "details") return "Hesap Bilgileri";
+  if (s === "plan") return "Plan Seçimi";
+  if (s === "payment") return "Ödeme";
+  return "Tamamlandı";
+}
 
 export default function OnboardingPage() {
   const [searchParams] = useSearchParams();
@@ -168,6 +172,8 @@ export default function OnboardingPage() {
   const selectedPlanNeedsSalesContact = Boolean(
     selectedPlanObj?.audience === "strategic_partner" && selectedPlanPrice <= 0,
   );
+
+  const currentStepIdx = WIZARD_STEPS.indexOf(step);
 
   function toggleCategorySelection(
     value: string,
@@ -551,38 +557,38 @@ export default function OnboardingPage() {
   const navVariant = selectedTenantType === "supplier" ? "supplier" : "strategic";
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%)" }}>
+    <div className="obp-root">
       <NavBar variant={navVariant} activePath="/onboarding" />
-      <div style={styles.page}>
-        <div style={styles.card}>
-          <div style={styles.header}>
+      <div className="obp-page">
+        <div className="obp-card">
+          <div className="obp-header">
             <PublicBrandLogo height={44} maxWidth={220} />
-            <div style={styles.subtitle}>Tedarik süreçlerinizi dijitalleştirin</div>
+            <div className="obp-subtitle">Tedarik süreçlerinizi dijitalleştirin</div>
           </div>
 
           {trackingToken ? (
-            <div style={{ ...styles.prominentInfoBox, marginBottom: 18, borderColor: "#93c5fd", background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)" }}>
-              <div style={{ fontWeight: 800, color: "#1d4ed8", marginBottom: 6 }}>Başvuru Takibi</div>
+            <div className="obp-prominent-box obp-prominent-box--tracking">
+              <div className="obp-prominent-box-title">Başvuru Takibi</div>
               {statusLookupLoading ? (
                 <div>Başvuru durumu yükleniyor...</div>
               ) : statusLookup ? (
-                <div style={{ display: "grid", gap: 8 }}>
+                <div className="obp-tracking-grid">
                   <div><strong>Başvuru:</strong> {statusLookup.brand_name || statusLookup.legal_name}</div>
                   <div><strong>Durum:</strong> {statusLookup.onboarding_approval_status} / {statusLookup.onboarding_payment_status}</div>
                   {statusLookup.tracking_token_expires_at ? <div><strong>Takip linki son geçerlilik:</strong> {new Date(statusLookup.tracking_token_expires_at).toLocaleString("tr-TR")}</div> : null}
                   {statusLookup.onboarding_activation_notes ? <div><strong>Operasyon notu:</strong> {statusLookup.onboarding_activation_notes}</div> : null}
                   {statusLookup.can_resubmit_receipt ? (
-                    <div style={{ display: "grid", gap: 10, marginTop: 4 }}>
-                      <div style={{ color: "#1e3a8a" }}>Yeni dekont veya açıklama yükleyerek başvurunuzu güncelleyebilirsiniz.</div>
-                      <label style={styles.label}>
+                    <div className="obp-resubmit-grid">
+                      <div className="obp-tracking-note">Yeni dekont veya açıklama yükleyerek başvurunuzu güncelleyebilirsiniz.</div>
+                      <label className="obp-label">
                         Yeni dekont dosyasi
-                        <input type="file" accept="application/pdf,image/*" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} style={styles.input} />
+                        <input type="file" accept="application/pdf,image/*" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} className="obp-input" />
                       </label>
-                      <label style={styles.label}>
+                      <label className="obp-label">
                         Guncel aciklama
-                        <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} style={{ ...styles.input, resize: "vertical" }} placeholder="Yeni dekont aciklamasi veya banka referansi" />
+                        <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} className="obp-textarea" placeholder="Yeni dekont aciklamasi veya banka referansi" />
                       </label>
-                      <button type="button" style={styles.btnPrimary} disabled={statusActionLoading} onClick={() => void handleResubmitReceipt()}>
+                      <button type="button" className="obp-btn-primary" disabled={statusActionLoading} onClick={() => void handleResubmitReceipt()}>
                         {statusActionLoading ? "Güncelleniyor..." : "Dekontu Yeniden Yükle"}
                       </button>
                     </div>
@@ -594,31 +600,26 @@ export default function OnboardingPage() {
             </div>
           ) : null}
 
-          <div style={styles.steps}>
-            {(["tenant_type", "details", "plan", "payment", "done"] as WizardStep[]).map((s, i) => (
-              <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div
-                  style={{
-                    ...styles.stepDot,
-                    background: step === s ? "#4f46e5" : i < ["tenant_type", "details", "plan", "payment", "done"].indexOf(step) ? "#6ee7b7" : "#e5e7eb",
-                    color: step === s || i < ["tenant_type", "details", "plan", "payment", "done"].indexOf(step) ? "#fff" : "#9ca3af",
-                  }}
-                >
-                  {i + 1}
+          <div className="obp-steps">
+            {WIZARD_STEPS.map((s, i) => {
+              const dotVariant: "active" | "done" | "pending" = s === step ? "active" : i < currentStepIdx ? "done" : "pending";
+              return (
+                <div key={s} className="obp-step-item">
+                  <div className={`obp-step-dot obp-step-dot--${dotVariant}`}>{i + 1}</div>
+                  <span className={s === step ? "obp-step-label obp-step-label--active" : "obp-step-label"}>
+                    {stepLabel(s)}
+                  </span>
+                  {i < WIZARD_STEPS.length - 1 && <div className="obp-step-line" />}
                 </div>
-                <span style={{ fontSize: 12, color: step === s ? "#4f46e5" : "#6b7280", fontWeight: step === s ? 600 : 400 }}>
-                  {s === "tenant_type" ? "Siz Kimsiniz?" : s === "details" ? "Hesap Bilgileri" : s === "plan" ? "Plan Seçimi" : s === "payment" ? "Ödeme" : "Tamamlandı"}
-                </span>
-                {i < 4 && <div style={styles.stepLine} />}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {step === "tenant_type" && (
             <div>
-              <h2 style={styles.stepTitle}>Siz kimsiniz?</h2>
-              <p style={styles.stepDesc}>Lütfen işletme tipinizi seçin.</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginTop: 20 }}>
+              <h2 className="obp-step-title">Siz kimsiniz?</h2>
+              <p className="obp-step-desc">Lütfen işletme tipinizi seçin.</p>
+              <div className="obp-type-grid">
                 {TENANT_TYPES.map((type) => (
                   <div
                     key={type.type}
@@ -628,34 +629,15 @@ export default function OnboardingPage() {
                       setError(null);
                       setStep("details");
                     }}
-                    style={{
-                      ...styles.planCard,
-                      border: "2px solid #e5e7eb",
-                      cursor: "pointer",
-                      background: "#fff",
-                    }}
+                    className="obp-plan-card"
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 8,
-                          background: type.bgColor,
-                          border: `2px solid ${type.color}`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: type.color,
-                          fontWeight: 700,
-                          fontSize: 20,
-                        }}
-                      >
+                    <div className="obp-type-card-header">
+                      <div className={`obp-type-icon obp-type-icon--${type.type === "strategic_partner" ? "strategic" : "supplier"}`}>
                         {type.type === "strategic_partner" ? "🏢" : "🏭"}
                       </div>
-                      <span style={{ fontWeight: 700, fontSize: 17, color: "#111827" }}>{type.title}</span>
+                      <span className="obp-type-title">{type.title}</span>
                     </div>
-                    <p style={{ fontSize: 13, color: "#6b7280", margin: 0 }}>{type.description}</p>
+                    <p className="obp-type-desc">{type.description}</p>
                   </div>
                 ))}
               </div>
@@ -664,12 +646,12 @@ export default function OnboardingPage() {
 
           {step === "plan" && (
             <div>
-              <h2 style={styles.stepTitle}>Paketinizi seçin</h2>
-              <p style={styles.stepDesc}>Fiyat bilgisi super admin tarafından yönetilir ve seçime göre ödeme adımı zorunlu tutulur.</p>
+              <h2 className="obp-step-title">Paketinizi seçin</h2>
+              <p className="obp-step-desc">Fiyat bilgisi super admin tarafından yönetilir ve seçime göre ödeme adımı zorunlu tutulur.</p>
               {plansLoading ? (
-                <div style={styles.loading}>Paketler yükleniyor...</div>
+                <div className="obp-loading">Paketler yükleniyor...</div>
               ) : (
-                <div style={styles.planGrid}>
+                <div className="obp-plan-grid">
                   {plans.map((plan) => (
                     <div
                       key={plan.code}
@@ -677,25 +659,18 @@ export default function OnboardingPage() {
                         setSelectedPlan(plan.code);
                         setError(null);
                       }}
-                      style={{
-                        ...styles.planCard,
-                        border: selectedPlan === plan.code ? "2px solid #4f46e5" : "2px solid #e5e7eb",
-                        background: selectedPlan === plan.code ? "#eef2ff" : "#fff",
-                        cursor: "pointer",
-                      }}
+                      className={selectedPlan === plan.code ? "obp-plan-card obp-plan-card--selected" : "obp-plan-card"}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontWeight: 700, fontSize: 17 }}>{plan.name}</span>
-                        {plan.is_default ? <span style={styles.badge}>Önerilen</span> : null}
+                      <div className="obp-plan-header">
+                        <span className="obp-plan-name">{plan.name}</span>
+                        {plan.is_default ? <span className="obp-badge">Önerilen</span> : null}
                       </div>
-                      <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>{plan.description}</p>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", marginTop: 4 }}>
-                        {renderPrice(plan)}
-                      </div>
-                      <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <p className="obp-plan-desc">{plan.description}</p>
+                      <div className="obp-plan-price">{renderPrice(plan)}</div>
+                      <div className="obp-plan-modules">
                         {plan.modules.slice(0, 4).map((m) => (
-                          <div key={m.code} style={{ fontSize: 12, color: "#374151", display: "flex", gap: 6, alignItems: "center" }}>
-                            <span style={{ color: "#10b981" }}>✓</span>
+                          <div key={m.code} className="obp-module-item">
+                            <span className="obp-module-check">✓</span>
                             <span>
                               {m.name}
                               {m.limit_value ? ` - ${m.limit_value} ${m.unit}` : ""}
@@ -707,23 +682,22 @@ export default function OnboardingPage() {
                   ))}
                 </div>
               )}
-              {error && <div style={styles.error}>{error}</div>}
-              <div style={styles.actions}>
+              {error && <div className="obp-error">{error}</div>}
+              <div className="obp-actions">
                 {!paramTenantType ? (
-                  <button type="button" style={styles.btnSecondary} onClick={() => setStep("tenant_type")}>← Geri</button>
+                  <button type="button" className="obp-btn-secondary" onClick={() => setStep("tenant_type")}>← Geri</button>
                 ) : null}
                 <button
-                  style={styles.btnPrimary}
+                  type="button"
+                  className="obp-btn-primary"
                   disabled={!selectedPlan || selectedPlanNeedsSalesContact || submitting}
-                  onClick={() => {
-                    void handlePlanContinue();
-                  }}
+                  onClick={() => { void handlePlanContinue(); }}
                 >
                   {submitting ? "Kaydediliyor..." : "Devam Et →"}
                 </button>
               </div>
               {selectedPlanNeedsSalesContact ? (
-                <div style={styles.infoBox}>
+                <div className="obp-info-box">
                   Bu plan kuruma özel olduğu için self-serve akışta devam edilemez. Lütfen <a href="/demo?audience=strategic">satış ekibiyle görüşün</a>.
                 </div>
               ) : null}
@@ -732,91 +706,92 @@ export default function OnboardingPage() {
 
           {step === "details" && (
             <form data-telemetry-name="onboarding-register-form" onSubmit={handleDetailsContinue}>
-              <h2 style={styles.stepTitle}>Firma ve hesap bilgileri</h2>
-              <p style={styles.stepDesc}>Sisteme giriş yapacak ilk yönetici hesabını oluşturun.</p>
+              <h2 className="obp-step-title">Firma ve hesap bilgileri</h2>
+              <p className="obp-step-desc">Sisteme giriş yapacak ilk yönetici hesabını oluşturun.</p>
               {selectedPlanObj && (
-                <div style={styles.prominentInfoBox}>
+                <div className="obp-prominent-box">
                   <strong>Seçilen plan:</strong> {selectedPlanObj.name} - {renderPrice(selectedPlanObj)}
                 </div>
               )}
-              <div style={styles.formGrid}>
-                <label style={styles.label}>
+              <div className="obp-form-grid">
+                <label className="obp-label">
                   Firma ticari unvani *
-                  <input style={styles.input} value={legalName} onChange={(e) => setLegalName(e.target.value)} placeholder="Ornek A.S." required />
+                  <input className="obp-input" value={legalName} onChange={(e) => setLegalName(e.target.value)} placeholder="Ornek A.S." required aria-label="Firma ticari unvani" />
                 </label>
-                <label style={styles.label}>
+                <label className="obp-label">
                   Marka adi
-                  <input style={styles.input} value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder="Opsiyonel" />
+                  <input className="obp-input" value={brandName} onChange={(e) => setBrandName(e.target.value)} placeholder="Opsiyonel" aria-label="Marka adi" />
                 </label>
                 {selectedTenantType ? (
-                  <div style={{ ...styles.label, gridColumn: "1 / -1" }}>
-                    <div style={styles.selectionHeaderRow}>
+                  <div className="obp-label">
+                    <div className="obp-selection-header">
                       <span>Mevcut faaliyet kategorileri *</span>
-                      <button type="button" style={styles.inlineSelectBtn} onClick={() => { setError(null); setActiveCategoryModal("offered"); }}>
+                      <button type="button" className="obp-inline-select-btn" onClick={() => { setError(null); setActiveCategoryModal("offered"); }}>
                         Kategori Seç
                       </button>
                     </div>
-                    <div style={styles.selectionSummaryBox}>
+                    <div className="obp-selection-summary">
                       {selectedCategories.length > 0 ? selectedCategories.map((item) => (
-                        <span key={`selected-offered-${item}`} style={styles.selectedChip}>{item}</span>
-                      )) : <span style={styles.selectionEmpty}>En az 1 kategori seçilmeli</span>}
+                        <span key={`selected-offered-${item}`} className="obp-chip">{item}</span>
+                      )) : <span className="obp-selection-empty">En az 1 kategori seçilmeli</span>}
                     </div>
-                    <div style={styles.selectionMeta}>{selectedCategories.length} / {MAX_COMPANY_CATEGORY_COUNT} seçildi</div>
+                    <div className="obp-selection-meta">{selectedCategories.length} / {MAX_COMPANY_CATEGORY_COUNT} seçildi</div>
                   </div>
                 ) : null}
                 {selectedTenantType ? (
-                  <div style={{ ...styles.label, gridColumn: "1 / -1" }}>
-                    <div style={styles.selectionHeaderRow}>
+                  <div className="obp-label">
+                    <div className="obp-selection-header">
                       <span>Hedef ilgilenilen kategoriler</span>
-                      <button type="button" style={styles.inlineSelectBtn} onClick={() => { setError(null); setActiveCategoryModal("target"); }}>
+                      <button type="button" className="obp-inline-select-btn" onClick={() => { setError(null); setActiveCategoryModal("target"); }}>
                         Hedef Kategori Seç
                       </button>
                     </div>
-                    <div style={styles.selectionSummaryBox}>
+                    <div className="obp-selection-summary">
                       {selectedTargetCategories.length > 0 ? selectedTargetCategories.map((item) => (
-                        <span key={`selected-target-${item}`} style={{ ...styles.selectedChip, background: "#eef2ff", color: "#3730a3", borderColor: "#c7d2fe" }}>{item}</span>
-                      )) : <span style={styles.selectionEmpty}>Varsayilan olarak {includedTargetCategoryLimit} hedef kategoriye kadar ucretsiz</span>}
+                        <span key={`selected-target-${item}`} className="obp-chip obp-chip--target">{item}</span>
+                      )) : <span className="obp-selection-empty">Varsayilan olarak {includedTargetCategoryLimit} hedef kategoriye kadar ucretsiz</span>}
                     </div>
-                    <div style={styles.selectionMeta}>
+                    <div className="obp-selection-meta">
                       {includedTargetCategoryLimit} hedef kategori dahil. Liste disi hedef kategori talepleri de bu limite dahildir; sonraki her kategori icin {extraTargetCategorySlotPrice.toLocaleString("tr-TR")} {extraTargetCategorySlotCurrency} eklenir.
                     </div>
                   </div>
                 ) : null}
-                <label style={styles.label}>
+                <label className="obp-label">
                   Yetkili adi soyadi *
-                  <input style={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ahmet Yilmaz" required />
+                  <input className="obp-input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ahmet Yilmaz" required aria-label="Yetkili adi soyadi" />
                 </label>
-                <label style={styles.label}>
+                <label className="obp-label">
                   E-posta *
-                  <input style={styles.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ahmet@sirket.com.tr" required />
+                  <input className="obp-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ahmet@sirket.com.tr" required aria-label="E-posta" />
                 </label>
-                <label style={styles.label}>
+                <label className="obp-label">
                   Telefon *
-                  <input style={styles.input} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+90 5xx xxx xx xx" required />
+                  <input className="obp-input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+90 5xx xxx xx xx" required aria-label="Telefon" />
                 </label>
-                <label style={styles.label}>
+                <label className="obp-label">
                   Takip Kodu
                   <input
-                    style={styles.input}
+                    className="obp-input"
                     value={referralCodeInput}
                     onChange={(e) => setReferralCodeInput(e.target.value.toUpperCase())}
                     placeholder="Ornek: CH-Y5LHNUHI"
+                    aria-label="Takip Kodu"
                   />
                 </label>
               </div>
               {selectedTenantType ? (
-                <div style={{ ...styles.prominentInfoBox, marginTop: 14, marginBottom: 0, borderColor: selectedTenantType === "supplier" ? "#7dd3fc" : "#a5b4fc", background: selectedTenantType === "supplier" ? "linear-gradient(135deg, #ecfeff 0%, #f0f9ff 100%)" : "linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)" }}>
+                <div className={`obp-prominent-box ${selectedTenantType === "supplier" ? "obp-prominent-box--help-supplier" : "obp-prominent-box--help-strategic"}`}>
                   <strong>{CATEGORY_HELP_COPY[selectedTenantType].title}</strong>
-                  <div style={{ marginTop: 6 }}>{CATEGORY_HELP_COPY[selectedTenantType].detail}</div>
-                  <div style={{ marginTop: 8, color: "#475569" }}>
+                  <div className="obp-info-detail">{CATEGORY_HELP_COPY[selectedTenantType].detail}</div>
+                  <div className="obp-info-note">
                     Kategori seçimi popup ile yönetilir. Faaliyet kategorisi en fazla {MAX_COMPANY_CATEGORY_COUNT} adet seçilebilir. Hedef kategorilerde {includedTargetCategoryLimit} adet temel limite dahildir; daha fazlası ödeme tutarına eklenir.
                   </div>
                 </div>
               ) : null}
-              {error && <div style={styles.error}>{error}</div>}
-              <div style={styles.actions}>
-                <button type="button" style={styles.btnSecondary} onClick={() => setStep("tenant_type")}>← Geri</button>
-                <button type="submit" style={styles.btnPrimary} disabled={submitting}>
+              {error && <div className="obp-error">{error}</div>}
+              <div className="obp-actions">
+                <button type="button" className="obp-btn-secondary" onClick={() => setStep("tenant_type")}>← Geri</button>
+                <button type="submit" className="obp-btn-primary" disabled={submitting}>
                   Plan Seçimine Devam Et →
                 </button>
               </div>
@@ -825,18 +800,18 @@ export default function OnboardingPage() {
 
           {step === "payment" && (
             <div>
-              <h2 style={styles.stepTitle}>Ödeme adımı</h2>
-              <p style={styles.stepDesc}>Seçilen plan ücretli olduğu için kayıt öncesi ödeme işlemi zorunludur.</p>
-              <div style={styles.prominentInfoBox}>
+              <h2 className="obp-step-title">Ödeme adımı</h2>
+              <p className="obp-step-desc">Seçilen plan ücretli olduğu için kayıt öncesi ödeme işlemi zorunludur.</p>
+              <div className="obp-prominent-box">
                 <div><strong>Plan:</strong> {selectedPlanObj?.name}</div>
                 <div><strong>Plan ucreti:</strong> {selectedPlanPrice.toLocaleString("tr-TR")} {selectedPlanCurrency} / ay</div>
                 <div><strong>Ek hedef kategori ucreti:</strong> {extraTargetCategoryFee.toLocaleString("tr-TR")} {extraTargetCategorySlotCurrency}</div>
                 <div><strong>Toplam:</strong> {totalPaymentAmount.toLocaleString("tr-TR")} {selectedPlanCurrency}</div>
               </div>
 
-              <label style={styles.label}>
+              <label className="obp-label">
                 Ödeme yontemi
-                <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} style={styles.select}>
+                <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} className="obp-select" aria-label="Ödeme yontemi">
                   {paymentProviders.length === 0 ? <option value="bank_transfer">Havale / EFT</option> : null}
                   {paymentProviders.map((p) => (
                     <option key={p.code} value={p.code}>{p.name}</option>
@@ -845,43 +820,43 @@ export default function OnboardingPage() {
               </label>
 
               {selectedProvider === "bank_transfer" ? (
-                <div style={styles.prominentInfoBox}>
+                <div className="obp-prominent-box">
                   <div><strong>EFT / Havale iş akışı:</strong> Dekont yüklendikten sonra ödeme super admin ekibi tarafından doğrulanır, ardından üyelik aktivasyon onayı verilir.</div>
                   {bankTransferInstructions ? (
-                    <div style={{ marginTop: 10, padding: 12, borderRadius: 10, border: "1px solid #cbd5e1", background: "white", display: "grid", gap: 4 }}>
+                    <div className="obp-bank-box">
                       <div><strong>Banka:</strong> {bankTransferInstructions.bank_name || "-"}</div>
                       <div><strong>Hesap adi:</strong> {bankTransferInstructions.account_name || "-"}</div>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div className="obp-bank-row">
                         <span><strong>IBAN:</strong> {bankTransferInstructions.iban || "-"}</span>
-                        <button type="button" style={styles.copyBtn} onClick={() => void copyToClipboard(bankTransferInstructions.iban || "", "IBAN")}>IBAN Kopyala</button>
+                        <button type="button" className="obp-copy-btn" onClick={() => void copyToClipboard(bankTransferInstructions.iban || "", "IBAN")}>IBAN Kopyala</button>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div className="obp-bank-row">
                         <span><strong>Açıklama / Referans:</strong> {bankTransferInstructions.reference || "-"}</span>
-                        <button type="button" style={styles.copyBtn} onClick={() => void copyToClipboard(bankTransferInstructions.reference || "", "Referans")}>Referansi Kopyala</button>
+                        <button type="button" className="obp-copy-btn" onClick={() => void copyToClipboard(bankTransferInstructions.reference || "", "Referans")}>Referansi Kopyala</button>
                       </div>
                       <div><strong>Gönderilecek tutar:</strong> {bankTransferInstructions.amount || totalPaymentAmount} {bankTransferInstructions.currency || selectedPlanCurrency}</div>
                     </div>
                   ) : (
-                    <div style={{ marginTop: 10, color: "#64748b", fontSize: 12 }}>Ödeme başlatıldığında banka hesap bilgileri burada görünecek.</div>
+                    <div className="obp-bank-missing">Ödeme başlatıldığında banka hesap bilgileri burada görünecek.</div>
                   )}
-                  {copyFeedback ? <div style={{ marginTop: 10, color: "#1d4ed8", fontSize: 12 }}>{copyFeedback}</div> : null}
-                  <label style={{ ...styles.label, marginTop: 12 }}>
+                  {copyFeedback ? <div className="obp-copy-feedback">{copyFeedback}</div> : null}
+                  <label className="obp-label obp-label--mt">
                     Dekont dosyasi
-                    <input type="file" accept="application/pdf,image/*" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} style={styles.input} />
+                    <input type="file" accept="application/pdf,image/*" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} className="obp-input" aria-label="Dekont dosyasi" />
                   </label>
-                  <label style={{ ...styles.label, marginTop: 12 }}>
+                  <label className="obp-label obp-label--mt">
                     Referans / aciklama
-                    <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} style={{ ...styles.input, resize: "vertical" }} placeholder="Gönderen hesap adı, EFT referansı veya not" />
+                    <textarea value={paymentReceiptNote} onChange={(e) => setPaymentReceiptNote(e.target.value)} rows={3} className="obp-textarea" placeholder="Gönderen hesap adı, EFT referansı veya not" aria-label="Referans / aciklama" />
                   </label>
                 </div>
               ) : null}
 
-              {paymentNote ? <div style={styles.success}>{paymentNote}</div> : null}
-              {error && <div style={styles.error}>{error}</div>}
+              {paymentNote ? <div className="obp-success">{paymentNote}</div> : null}
+              {error && <div className="obp-error">{error}</div>}
 
-              <div style={styles.actions}>
-                <button type="button" style={styles.btnSecondary} onClick={() => setStep("plan")}>← Geri</button>
-                <button type="button" style={styles.btnPrimary} onClick={handlePaymentAndComplete} disabled={paymentLoading || submitting}>
+              <div className="obp-actions">
+                <button type="button" className="obp-btn-secondary" onClick={() => setStep("plan")}>← Geri</button>
+                <button type="button" className="obp-btn-primary" onClick={handlePaymentAndComplete} disabled={paymentLoading || submitting}>
                   {paymentLoading || submitting ? "İşleniyor..." : "Ödemeyi Başlat ve Kaydı Tamamla"}
                 </button>
               </div>
@@ -889,47 +864,48 @@ export default function OnboardingPage() {
           )}
 
           {step === "done" && doneData && (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
-              <h2 style={{ ...styles.stepTitle, textAlign: "center" }}>Kaydınız alındı!</h2>
-              <p style={{ color: "#6b7280", margin: "0 0 20px" }}>{doneData.message}</p>
-              <div style={styles.doneBox}>
+            <div className="obp-done-section">
+              <div className="obp-done-emoji">🎉</div>
+              <h2 className="obp-step-title obp-step-title--center">Kaydınız alındı!</h2>
+              <p className="obp-done-msg">{doneData.message}</p>
+              <div className="obp-done-box">
                 <div><strong>Hesap:</strong> {doneData.admin_email}</div>
-                <div style={{ marginTop: 6 }}>
+                <div className="obp-done-status">
                   {doneData.payment_verified
                     ? "✅ Ödeme adımı doğrulandı."
                     : doneData.payment_transaction_id
                       ? "⏳ Ödeme kaydı alındı. Dekont veya işlem sonucu operasyon ekibi tarafından doğrulandıktan sonra aktivasyon ilerleyecek."
                       : "ℹ️ Bu plan için ödeme adımı gerekmiyor."}
                 </div>
-                <div style={{ marginTop: 6 }}>
+                <div className="obp-done-status">
                   {doneData.invitation_sent ? "✅ Aktivasyon e-postası gönderildi. Gelen kutunuzu kontrol edin." : "⏳ Aktivasyon bağlantısı yakında iletilecektir."}
                 </div>
-                {doneData.payment_transaction_id ? <div style={{ marginTop: 6 }}><strong>Ödeme işlem no:</strong> {doneData.payment_transaction_id}</div> : null}
+                {doneData.payment_transaction_id ? <div className="obp-done-status"><strong>Ödeme işlem no:</strong> {doneData.payment_transaction_id}</div> : null}
               </div>
-              <a href="/login" style={styles.linkBtn}>Giriş sayfasına git →</a>
+              <a href="/login" className="obp-link-btn">Giriş sayfasına git →</a>
             </div>
           )}
         </div>
       </div>
       {activeCategoryModal ? (
-        <div style={styles.modalOverlay} onClick={() => setActiveCategoryModal(null)}>
-          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeaderRow}>
+        <div className="obp-modal-overlay" onClick={() => setActiveCategoryModal(null)}>
+          <div className="obp-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="obp-modal-header">
               <div>
-                <div style={styles.modalTitle}>{activeCategoryModal === "offered" ? "Faaliyet Kategorisi Seç" : "Hedef Kategori Seç"}</div>
-                <div style={styles.modalDesc}>
+                <div className="obp-modal-title">{activeCategoryModal === "offered" ? "Faaliyet Kategorisi Seç" : "Hedef Kategori Seç"}</div>
+                <div className="obp-modal-desc">
                   {activeCategoryModal === "offered"
                     ? `En fazla ${MAX_COMPANY_CATEGORY_COUNT} faaliyet kategorisi seçilebilir. En az 1 kategori zorunludur.`
                     : `${includedTargetCategoryLimit} hedef kategori dahil. Fazlası kategori başına ${extraTargetCategorySlotPrice.toLocaleString("tr-TR")} ${extraTargetCategorySlotCurrency} eklenir.`}
                 </div>
               </div>
-              <button type="button" style={styles.modalCloseBtn} onClick={() => setActiveCategoryModal(null)}>Kapat</button>
+              <button type="button" className="obp-modal-close" onClick={() => setActiveCategoryModal(null)}>Kapat</button>
             </div>
-            <div style={styles.modalChipGrid}>
+            <div className="obp-modal-chips">
               {COMPANY_CATEGORY_OPTIONS.map((item) => {
                 const isOffered = activeCategoryModal === "offered";
                 const active = isOffered ? selectedCategories.includes(item) : selectedTargetCategories.includes(item);
+                const chipVariant = active ? (isOffered ? "obp-modal-chip--active-offered" : "obp-modal-chip--active-target") : "";
                 return (
                   <button
                     key={`${activeCategoryModal}-${item}`}
@@ -942,35 +918,31 @@ export default function OnboardingPage() {
                       }
                       toggleCategorySelection(item, setSelectedTargetCategories);
                     }}
-                    style={{
-                      ...styles.modalChip,
-                      borderColor: active ? (isOffered ? "#0f766e" : "#4338ca") : "#cbd5e1",
-                      background: active ? (isOffered ? "#ccfbf1" : "#e0e7ff") : "white",
-                      color: active ? (isOffered ? "#115e59" : "#3730a3") : "#334155",
-                    }}
+                    className={`obp-modal-chip ${chipVariant}`}
                   >
                     {item}
                   </button>
                 );
               })}
             </div>
-            <label style={{ ...styles.label, marginTop: 16 }}>
+            <label className="obp-label obp-label--mt">
               {activeCategoryModal === "offered" ? "Listede yoksa yeni faaliyet kategorileri" : "Listede yoksa yeni hedef kategorileri"}
               <textarea
                 value={activeCategoryModal === "offered" ? customCategoriesText : customTargetCategoriesText}
                 onChange={(e) => activeCategoryModal === "offered" ? setCustomCategoriesText(e.target.value) : setCustomTargetCategoriesText(e.target.value)}
                 rows={3}
-                style={{ ...styles.input, resize: "vertical" }}
+                className="obp-textarea"
                 placeholder={activeCategoryModal === "offered" ? "Kategori adlarını virgülle yazın" : "Hedef kategori adlarını virgülle yazın"}
+                aria-label={activeCategoryModal === "offered" ? "Yeni faaliyet kategorileri" : "Yeni hedef kategorileri"}
               />
             </label>
-            <div style={styles.modalFooterRow}>
-              <div style={styles.selectionMeta}>
+            <div className="obp-modal-footer">
+              <div className="obp-selection-meta">
                 {activeCategoryModal === "offered"
                   ? `${selectedCategories.length} / ${MAX_COMPANY_CATEGORY_COUNT} kategori seçildi`
-                    : `${totalTargetCategoryCount} hedef kategori seçildi • ${extraTargetCategoryCount} adet ücretli ek slot`}
+                  : `${totalTargetCategoryCount} hedef kategori seçildi • ${extraTargetCategoryCount} adet ücretli ek slot`}
               </div>
-              <button type="button" style={styles.btnPrimary} onClick={() => setActiveCategoryModal(null)}>Seçimi Kaydet</button>
+              <button type="button" className="obp-btn-primary" onClick={() => setActiveCategoryModal(null)}>Seçimi Kaydet</button>
             </div>
           </div>
         </div>
@@ -986,62 +958,3 @@ function renderPrice(plan: Plan): string {
   }
   return `${amount.toLocaleString("tr-TR")} ${plan.currency || "TRY"} / ay`;
 }
-
-const styles: Record<string, CSSProperties> = {
-  page: {
-    minHeight: "calc(100vh - 60px)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "24px 16px",
-    fontFamily: "'Segoe UI', sans-serif",
-  },
-  card: {
-    background: "#fff",
-    borderRadius: 16,
-    boxShadow: "0 4px 32px rgba(0,0,0,0.10)",
-    padding: "40px 48px",
-    width: "100%",
-    maxWidth: 760,
-  },
-  header: { textAlign: "center", marginBottom: 28 },
-  subtitle: { fontSize: 14, color: "#6b7280", marginTop: 4 },
-  steps: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 32, flexWrap: "wrap" },
-  stepDot: { width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 12 },
-  stepLine: { width: 22, height: 2, background: "#e5e7eb" },
-  stepTitle: { fontSize: 32, fontWeight: 700, color: "#111827", margin: "0 0 6px" },
-  stepDesc: { fontSize: 14, color: "#6b7280", margin: "0 0 20px" },
-  loading: { textAlign: "center", padding: 32, color: "#6b7280" },
-  planGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14, marginBottom: 24 },
-  planCard: { borderRadius: 10, padding: "16px 14px", transition: "border-color 0.15s" },
-  badge: { background: "#4f46e5", color: "#fff", fontSize: 11, padding: "2px 8px", borderRadius: 20, fontWeight: 600 },
-  formGrid: { display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 },
-  label: { display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: "#374151", fontWeight: 500 },
-  input: { border: "1px solid #d1d5db", borderRadius: 8, padding: "9px 12px", fontSize: 14, outline: "none", color: "#111827" },
-  select: { border: "1px solid #d1d5db", borderRadius: 8, padding: "9px 12px", fontSize: 14, outline: "none", color: "#111827", marginBottom: 16 },
-  selectionHeaderRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" },
-  inlineSelectBtn: { background: "#eef2ff", color: "#3730a3", border: "1px solid #c7d2fe", borderRadius: 999, padding: "8px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer" },
-  selectionSummaryBox: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10, padding: 12, borderRadius: 12, border: "1px solid #dbe4ff", background: "#f8fafc", minHeight: 48, alignItems: "center" },
-  selectedChip: { display: "inline-flex", alignItems: "center", padding: "7px 12px", borderRadius: 999, border: "1px solid #99f6e4", background: "#ecfeff", color: "#115e59", fontWeight: 700, fontSize: 12 },
-  selectionEmpty: { color: "#64748b", fontSize: 12 },
-  selectionMeta: { marginTop: 8, color: "#64748b", fontSize: 12 },
-  error: { background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 },
-  success: { background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1d4ed8", borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 },
-  infoBox: { background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", marginBottom: 14, color: "#334155", fontSize: 13 },
-  prominentInfoBox: { background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)", border: "1px solid #cbd5e1", borderRadius: 14, padding: "14px 16px", marginBottom: 14, color: "#334155", fontSize: 13, boxShadow: "0 10px 28px rgba(79, 70, 229, 0.08)" },
-  actions: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 },
-  btnPrimary: { background: "#4f46e5", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontWeight: 600, fontSize: 14, cursor: "pointer" },
-  btnSecondary: { background: "transparent", color: "#6b7280", border: "1px solid #d1d5db", borderRadius: 8, padding: "10px 20px", fontWeight: 500, fontSize: 14, cursor: "pointer" },
-  copyBtn: { background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 8, padding: "6px 10px", fontWeight: 700, fontSize: 12, cursor: "pointer" },
-  doneBox: { background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "16px 20px", textAlign: "left", marginBottom: 20, fontSize: 14 },
-  linkBtn: { display: "inline-block", color: "#4f46e5", fontWeight: 600, fontSize: 14, textDecoration: "none" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 60 },
-  modalCard: { width: "100%", maxWidth: 720, maxHeight: "85vh", overflowY: "auto", background: "#fff", borderRadius: 20, padding: 24, boxShadow: "0 24px 80px rgba(15, 23, 42, 0.28)" },
-  modalHeaderRow: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 },
-  modalTitle: { fontSize: 24, fontWeight: 800, color: "#0f172a" },
-  modalDesc: { marginTop: 6, color: "#475569", fontSize: 13 },
-  modalCloseBtn: { background: "transparent", color: "#475569", border: "1px solid #cbd5e1", borderRadius: 999, padding: "8px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer" },
-  modalChipGrid: { display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 },
-  modalChip: { padding: "10px 14px", borderRadius: 999, border: "1px solid #cbd5e1", background: "white", color: "#334155", fontWeight: 700, fontSize: 13, cursor: "pointer" },
-  modalFooterRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginTop: 18, flexWrap: "wrap" },
-};
