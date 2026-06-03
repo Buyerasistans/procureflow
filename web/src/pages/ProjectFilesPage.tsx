@@ -7,6 +7,7 @@ import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
 import type { ProjectFile, Project } from "../types/project";
 import type { Company } from "../services/admin.service";
+import "./ProjectFilesPage.css";
 
 export default function ProjectFilesPage() {
   const { id } = useParams<{ id: string }>();
@@ -101,13 +102,11 @@ export default function ProjectFilesPage() {
       });
 
       if (!response.ok) {
-        // Eğer hatarsa indir
         handleDownload(file);
         return;
       }
     } catch (error) {
       console.error("Dosya açma hatası:", error);
-      // Fallback: indir
       handleDownload(file);
     }
   };
@@ -133,12 +132,7 @@ export default function ProjectFilesPage() {
         <img
           src={`/api/v1/files/${file.id}/thumbnail`}
           alt={file.original_filename}
-          style={{
-            width: "60px",
-            height: "60px",
-            objectFit: "cover",
-            borderRadius: "4px",
-          }}
+          className="pfp-thumb-img"
           onError={(e) => {
             e.currentTarget.style.display = "none";
           }}
@@ -146,147 +140,58 @@ export default function ProjectFilesPage() {
       );
     }
     return (
-      <div
-        style={{
-          width: "60px",
-          height: "60px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "4px",
-          fontSize: "32px",
-        }}
-      >
+      <div className="pfp-thumb-icon">
         {getFileIcon(file)}
       </div>
     );
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: "32px" }}>Yükleniyor...</div>;
-  if (!project) return <div style={{ textAlign: "center", padding: "32px", color: "red" }}>Proje bulunamadı</div>;
+  if (loading) return <div className="pfp-loading">Yükleniyor...</div>;
+  if (!project) return <div className="pfp-not-found">Proje bulunamadı</div>;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+    <div className="pfp-root">
       {readOnly && (
-        <div style={{ marginBottom: "16px", padding: "12px", borderRadius: "12px", background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa" }}>
+        <div className="pfp-readonly-banner">
           Bu dosya portföyü platform personeli için salt okunur durumdadır.
         </div>
       )}
-      {/* Header */}
-      <button
-        onClick={() => navigate(`/admin/projects/${projectId}`)}
-        style={{
-          marginBottom: "20px",
-          padding: "8px 16px",
-          backgroundColor: "#f0f0f0",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "bold",
-        }}
-      >
+
+      <button type="button" onClick={() => navigate(`/admin/projects/${projectId}`)} className="pfp-back-btn">
         ← Geri Dön
       </button>
 
-      <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: "0 0 8px 0" }}>
-        {getCompanyName(project.company_id)}
-      </h1>
-      <p style={{ fontSize: "14px", color: "#666", margin: "0 0 24px 0" }}>
-        {project.name} - Tüm Dosyalar ({files.length})
-      </p>
+      <h1 className="pfp-title">{getCompanyName(project.company_id)}</h1>
+      <p className="pfp-subtitle">{project.name} - Tüm Dosyalar ({files.length})</p>
 
       {files.length > 0 ? (
         <div>
-          {/* Görüntüler Grid */}
           {files.some((f) => isImage(f)) && (
             <div>
-              <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-                🖼️ Görseller
-              </h3>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                  gap: "12px",
-                  marginBottom: "32px",
-                }}
-              >
+              <h3 className="pfp-section-title">🖼️ Görseller</h3>
+              <div className="pfp-images-grid">
                 {files
                   .filter((f) => isImage(f))
                   .map((file) => (
-                    <div
-                      key={file.id}
-                      style={{
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        border: "1px solid #e0e0e0",
-                        backgroundColor: "white",
-                      }}
-                    >
+                    <div key={file.id} className="pfp-image-card">
                       <img
                         src={`/api/v1/files/${file.id}/thumbnail`}
                         alt={file.original_filename}
-                        style={{
-                          width: "100%",
-                          height: "150px",
-                          objectFit: "cover",
-                          cursor: "pointer",
-                        }}
+                        className="pfp-image-thumb"
                         onClick={() => setSelectedImage(file)}
                         onError={(e) => {
                           e.currentTarget.style.backgroundColor = "#f0f0f0";
                         }}
                       />
-                      <div style={{ padding: "8px", display: "flex", gap: "4px" }}>
-                        <button
-                          onClick={() => handleOpenFile(file)}
-                          style={{
-                            flex: "1",
-                            padding: "6px",
-                            backgroundColor: "#2196F3",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
+                      <div className="pfp-image-actions">
+                        <button type="button" onClick={() => handleOpenFile(file)} className="pfp-btn pfp-btn--blue pfp-btn--sm">
                           👁️ Görüntüle
                         </button>
-                        <button
-                          onClick={() => handleDownload(file)}
-                          style={{
-                            flex: "1",
-                            padding: "6px",
-                            backgroundColor: "#4caf50",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
+                        <button type="button" onClick={() => handleDownload(file)} className="pfp-btn pfp-btn--green pfp-btn--sm">
                           ⬇️ İndir
                         </button>
                         {!readOnly && (
-                          <button
-                            onClick={() => handleDeleteFile(file.id)}
-                            style={{
-                              flex: "1",
-                              padding: "6px",
-                              backgroundColor: "#f44336",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              cursor: "pointer",
-                              fontWeight: "bold",
-                            }}
-                          >
+                          <button type="button" onClick={() => handleDeleteFile(file.id)} className="pfp-btn pfp-btn--red pfp-btn--sm">
                             🗑️ Sil
                           </button>
                         )}
@@ -297,91 +202,30 @@ export default function ProjectFilesPage() {
             </div>
           )}
 
-          {/* Diğer Dosyalar */}
           {files.some((f) => !isImage(f)) && (
             <div>
-              <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "12px", color: "#333" }}>
-                📄 Diğer Dosyalar
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <h3 className="pfp-section-title">📄 Diğer Dosyalar</h3>
+              <div className="pfp-files-list">
                 {files
                   .filter((f) => !isImage(f))
                   .map((file) => (
-                    <div
-                      key={file.id}
-                      style={{
-                        display: "flex",
-                        gap: "12px",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "12px",
-                        backgroundColor: "#f9f9f9",
-                        borderRadius: "4px",
-                        border: "1px solid #e0e0e0",
-                      }}
-                    >
-                      {/* Sol Thumbnail */}
-                      <div style={{ flexShrink: 0 }}>
+                    <div key={file.id} className="pfp-file-row">
+                      <div className="pfp-thumb-wrap">
                         {getThumbnail(file)}
                       </div>
-
-                      {/* Ortadaki Bilgiler */}
-                      <div style={{ flex: "1", minWidth: 0 }}>
-                        <p style={{ margin: "0 0 4px 0", fontWeight: "bold", fontSize: "13px", wordBreak: "break-word" }}>
-                          {file.original_filename}
-                        </p>
-                        <p style={{ margin: "0", fontSize: "12px", color: "#666" }}>
-                          {(file.file_size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                      <div className="pfp-file-info">
+                        <p className="pfp-file-name">{file.original_filename}</p>
+                        <p className="pfp-file-size">{(file.file_size / 1024 / 1024).toFixed(2)} MB</p>
                       </div>
-
-                      {/* Sağdaki Butonlar */}
-                      <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                        <button
-                          onClick={() => handleOpenFile(file)}
-                          style={{
-                            padding: "6px 12px",
-                            backgroundColor: "#2196F3",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                            fontWeight: "bold",
-                          }}
-                        >
+                      <div className="pfp-file-actions">
+                        <button type="button" onClick={() => handleOpenFile(file)} className="pfp-btn pfp-btn--blue pfp-btn--md">
                           🔓 Aç
                         </button>
-                        <button
-                          onClick={() => handleDownload(file)}
-                          style={{
-                            padding: "6px 12px",
-                            backgroundColor: "#4caf50",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                            fontWeight: "bold",
-                          }}
-                        >
+                        <button type="button" onClick={() => handleDownload(file)} className="pfp-btn pfp-btn--green pfp-btn--md">
                           ⬇️ İndir
                         </button>
                         {!readOnly && (
-                          <button
-                            onClick={() => handleDeleteFile(file.id)}
-                            style={{
-                              padding: "6px 12px",
-                              backgroundColor: "#ef4444",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              cursor: "pointer",
-                            }}
-                          >
+                          <button type="button" onClick={() => handleDeleteFile(file.id)} className="pfp-btn pfp-btn--red pfp-btn--md">
                             🗑️ Sil
                           </button>
                         )}
@@ -393,120 +237,38 @@ export default function ProjectFilesPage() {
           )}
         </div>
       ) : (
-        <p style={{ fontSize: "14px", color: "#999" }}>Henüz dosya yüklenilmedi</p>
+        <p className="pfp-empty">Henüz dosya yüklenilmedi</p>
       )}
 
-      {/* Görüntü Modal */}
       {selectedImage && (
-        <div
-          onClick={() => setSelectedImage(null)}
-          style={{
-            position: "fixed",
-            top: "0",
-            left: "0",
-            right: "0",
-            bottom: "0",
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: "9999",
-          }}
-        >
-          <button
-            onClick={() => setSelectedImage(null)}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              backgroundColor: "white",
-              color: "black",
-              border: "none",
-              borderRadius: "50%",
-              width: "40px",
-              height: "40px",
-              fontSize: "24px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              zIndex: "10000",
-            }}
-          >
-            ✕
-          </button>
+        <div className="pfp-modal-overlay" onClick={() => setSelectedImage(null)}>
+          <button type="button" onClick={() => setSelectedImage(null)} className="pfp-modal-close">✕</button>
           <img
             src={`/api/v1/files/${selectedImage.id}`}
             alt={selectedImage.original_filename}
-            style={{
-              maxWidth: "90%",
-              maxHeight: "90vh",
-              borderRadius: "8px",
-              boxShadow: "0 0 30px rgba(0, 0, 0, 0.3)",
-            }}
+            className="pfp-modal-image"
             onClick={(e) => e.stopPropagation()}
           />
-          <div
-            style={{
-              position: "absolute",
-              bottom: "20px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              display: "flex",
-              gap: "12px",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-            }}
-          >
-            <p
-              style={{
-                color: "white",
-                fontSize: "14px",
-                margin: "0",
-                maxWidth: "80%",
-                textAlign: "center",
-              }}
-            >
-              {selectedImage.original_filename}
-            </p>
-            <div style={{ display: "flex", gap: "8px" }}>
+          <div className="pfp-modal-footer">
+            <p className="pfp-modal-filename">{selectedImage.original_filename}</p>
+            <div className="pfp-modal-btns">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenFile(selectedImage);
-                }}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#2196f3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleOpenFile(selectedImage); }}
+                className="pfp-btn pfp-btn--blue pfp-btn--lg"
               >
                 🔓 Aç
               </button>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDownload(selectedImage);
-                }}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#4caf50",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleDownload(selectedImage); }}
+                className="pfp-btn pfp-btn--green pfp-btn--lg"
               >
                 ⬇️ İndir
               </button>
               {!readOnly && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (confirm("Dosyayı silmek istediğinize emin misiniz?")) {
@@ -514,16 +276,7 @@ export default function ProjectFilesPage() {
                       setSelectedImage(null);
                     }
                   }}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#f44336",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
+                  className="pfp-btn pfp-btn--red pfp-btn--lg"
                 >
                   🗑️ Sil
                 </button>
