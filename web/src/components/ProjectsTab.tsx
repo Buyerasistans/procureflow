@@ -1,5 +1,6 @@
 // web/src/components/ProjectsTab.tsx
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { getCompanies } from "../services/admin.service";
 import { getProjects, deleteProject } from "../services/project.service";
@@ -95,7 +96,7 @@ function BidModal({ bid, project, onClose }: BidModalProps) {
             <span className={"nh-badge " + (BID_STATUS_CLS[bid.status] ?? "info")}>
               {bid.status === "Kazandı" ? "★ Kazandı" : bid.status}
             </span>
-            <span className="pr-score" style={{ background: color + "1f", color }}>
+            <span className="pr-score" style={{ "--pr-score-bg": color + "1f", "--pr-score-fg": color } as CSSProperties}>
               Teklif puanı: {score}/100
             </span>
           </div>
@@ -282,17 +283,18 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
                   key={p.id}
                   type="button"
                   className={"pr-row" + (p.id === selId ? " on" : "") + (p.is_active ? "" : " off")}
+                  style={{ "--pr-color": col, "--pr-color-bg": col + "1f" } as CSSProperties}
                   onClick={() => setSelId(p.id)}
                 >
-                  <span className="pr-row__bar" style={{ background: col }} />
-                  <span className="pr-row__ico" style={{ background: col }}>📁</span>
+                  <span className="pr-row__bar" />
+                  <span className="pr-row__ico">📁</span>
                   <span className="pr-row__meta">
                     <b>
                       {p.name}
                       <span className={tm.cls}>{tm.label}</span>
                     </b>
                     <span>
-                      <span className="pr-firm" style={{ background: col + "1f", color: col }}>
+                      <span className="pr-firm">
                         {getCompanyName(p.company_id)}
                       </span>
                       <span className="pr-code">{p.code}</span>
@@ -309,14 +311,14 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
         </aside>
 
         {/* Right: detail pane */}
-        <div className="nh-detail">
+        <div className="nh-detail" style={sel ? { "--pr-color": selColor, "--pr-color-bg": selColor + "1f" } as CSSProperties : undefined}>
           {!sel ? (
             <div className="nh-mut">Bir proje seçin.</div>
           ) : (
             <>
               <div className="nh-detail__hd">
                 <div className="pr-detail__hd-l">
-                  <span className="pr-logo" style={{ background: selColor }}>📁</span>
+                  <span className="pr-logo">📁</span>
                   <div>
                     <h3>
                       {sel.name}
@@ -325,7 +327,7 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
                     </h3>
                     <p>{sel.description ?? "—"}</p>
                     <div className="pr-owner">
-                      <span className="pr-firm pr-firm--lg" style={{ background: selColor + "1f", color: selColor }}>
+                      <span className="pr-firm pr-firm--lg">
                         {getCompanyName(sel.company_id)}
                       </span>
                       <span className="pr-owner__sep">·</span>
@@ -364,7 +366,7 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
                 <Section title="Saha yetkilisi" sub="proje yöneticisi (sahada)">
                   {sel.manager_name ? (
                     <div className="pr-contact">
-                      <span className="nh-av" style={{ background: selColor, width: 42, height: 42, fontSize: 14 } as React.CSSProperties}>
+                      <span className="nh-av pr-av pr-av--lg">
                         {prInitials(sel.manager_name)}
                       </span>
                       <div className="pr-contact__b">
@@ -394,7 +396,7 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
                         <tr key={m.id}>
                           <td>
                             <div className="nh-tname">
-                              <span className="nh-av sm" style={{ background: selColor } as React.CSSProperties}>
+                              <span className="nh-av sm pr-av">
                                 {prInitials(m.full_name)}
                               </span>
                               <div><b>{m.full_name}</b></div>
@@ -446,7 +448,7 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
               {sel.address && (
                 <Section title="Konum & adres" sub="proje sahası">
                   <div className="pr-location">
-                    <span className="pr-pin" style={{ color: selColor }}>📍</span>
+                    <span className="pr-pin">📍</span>
                     <div>
                       <b>{sel.address}</b>
                       {sel.latitude && sel.longitude && (
