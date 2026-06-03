@@ -714,7 +714,7 @@ export function PlatformOperationsTab({
                   <div className="po-q-card__count">{q.total}</div>
                 </div>
                 <div className="po-q-card__bar">
-                  <div className="po-q-card__fill" style={{ width: pct + "%" }}></div>
+                  <div className="po-q-card__fill" style={{ "--fill-w": pct + "%" } as CSSProperties}></div>
                 </div>
                 <div className="po-q-card__stats">
                   <span><b>{q.sla}</b> SLA içinde</span>
@@ -803,7 +803,7 @@ export function PlatformOperationsTab({
                 <div className="po-assignee__bar">
                   <div
                     className={`po-assignee__fill po-assignee__fill--${a.open > 7 ? "red" : a.open > 4 ? "amber" : "green"}`}
-                    style={{ width: Math.min(100, a.open * 10) + "%" }}
+                    style={{ "--fill-w": Math.min(100, a.open * 10) + "%" } as CSSProperties}
                   ></div>
                 </div>
               </div>

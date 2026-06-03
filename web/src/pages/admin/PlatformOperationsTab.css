@@ -669,6 +669,7 @@
   height: 100%;
   background: var(--qc, #1d4ed8);
   border-radius: 4px;
+  width: var(--fill-w);
 }
 
 .po-q-card__stats {
@@ -908,6 +909,7 @@
 .po-assignee__fill {
   height: 100%;
   border-radius: 4px;
+  width: var(--fill-w);
 }
 
 .po-assignee__fill--green { background: #16a34a; }
