@@ -184,6 +184,7 @@
   min-height: 44px;
   border-radius: 0 2px 2px 0;
   flex-shrink: 0;
+  background: var(--ap-color);
 }
 
 .ap-row__ico {
@@ -197,6 +198,7 @@
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
+  background: var(--ap-color);
 }
 
 .ap-row__meta {
@@ -256,6 +258,8 @@
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  background: var(--ap-color-bg);
+  color: var(--ap-color);
 }
 
 .ap-company-pill--lg {
@@ -292,6 +296,7 @@
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
+  background: var(--ap-color);
 }
 
 .ap-detail__info {

@@ -3,6 +3,7 @@
  * Sol: onay kuyruğu (master) · Sağ: seçili onay detayı + karar
  */
 import { useState, useEffect, useCallback } from "react";
+import type { CSSProperties } from "react";
 import { PageHeader, Section, StatCard } from "../pages/admin/AdminTabContent";
 import "./ApprovalDashboard.css";
 
@@ -314,16 +315,17 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
                     type="button"
                     className={"ap-row" + (a.approval_id === sel?.approval_id ? " on" : "")}
                     onClick={() => { setSelId(a.approval_id); setComment(""); }}
+                    style={{ "--ap-color": color, "--ap-color-bg": color + "1f" } as CSSProperties}
                   >
-                    <span className="ap-row__bar" style={{ background: color }} />
-                    <span className="ap-row__ico" style={{ background: color }}>✓</span>
+                    <span className="ap-row__bar" />
+                    <span className="ap-row__ico">✓</span>
                     <span className="ap-row__meta">
                       <b>
                         {a.quote_title}{" "}
                         <span className="ap-badge ap-badge--wait">Bekliyor</span>
                       </b>
                       <span>
-                        <span className="ap-company-pill" style={{ background: color + "1f", color }}>
+                        <span className="ap-company-pill">
                           {a.company_name}
                         </span>
                         {" "}· {fmtMoney(a.total_amount)}
@@ -338,23 +340,23 @@ export function ApprovalDashboard({ apiUrl, authToken }: ApprovalDashboardProps)
         </aside>
 
         {/* ── Detail pane ── */}
-        <div className="ap-detail">
+        <div
+          className="ap-detail"
+          style={sel ? { "--ap-color": selColor, "--ap-color-bg": selColor + "1f" } as CSSProperties : undefined}
+        >
           {!sel ? (
             <div className="ap-state ap-state--pad">Listeden bir onay seçin.</div>
           ) : (
             <>
               <div className="ap-detail__hd">
-                <div className="ap-detail__ico" style={{ background: selColor }}>✓</div>
+                <div className="ap-detail__ico">✓</div>
                 <div className="ap-detail__info">
                   <h3 className="ap-detail__title">
                     {sel.quote_title}{" "}
                     <span className="ap-badge ap-badge--wait">Onay bekliyor</span>
                   </h3>
                   <div className="ap-detail__meta">
-                    <span
-                      className="ap-company-pill ap-company-pill--lg"
-                      style={{ background: selColor + "1f", color: selColor }}
-                    >
+                    <span className="ap-company-pill ap-company-pill--lg">
                       {sel.company_name}
                     </span>
                     <span className="ap-sep">·</span>
