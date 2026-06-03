@@ -408,8 +408,8 @@ export default function NavManagerTab() {
                 </div>
               )}
               <div className="nm-pv-content">
-                <div className="nm-pv-line" style={{ width: "52%" }} />
-                <div className="nm-pv-line nm-pv-line--sm" style={{ width: "70%" }} />
+                <div className="nm-pv-line" />
+                <div className="nm-pv-line nm-pv-line--sm" />
                 <div className="nm-pv-cards"><span /><span /><span /></div>
               </div>
             </div>

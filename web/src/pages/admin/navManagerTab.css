@@ -299,8 +299,9 @@
   height: 8px;
   background: #e2e8f0;
   border-radius: 4px;
+  width: 52%;
 }
-.nm-pv-line--sm { height: 6px; }
+.nm-pv-line--sm { height: 6px; width: 70%; }
 .nm-pv-cards {
   display: flex;
   gap: 8px;
