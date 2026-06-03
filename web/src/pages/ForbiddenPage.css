@@ -1,0 +1,32 @@
+/* ── ForbiddenPage (fb-) ── */
+
+.fb-root {
+  max-width: 720px;
+  margin: 48px auto;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.fb-root h1 {
+  margin-bottom: 8px;
+}
+
+.fb-root p {
+  color: #374151;
+}
+
+.fb-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.fb-btn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #111827;
+}
