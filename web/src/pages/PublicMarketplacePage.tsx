@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import NavBar from "../components/NavBar";
 import { withPublicApiPrefix } from "../lib/public-api";
 import { getToken } from "../lib/session";
+import "./PublicMarketplacePage.css";
 
 type ShowcasePayload = {
   open_tenders: Array<{
@@ -112,7 +113,7 @@ export default function PublicMarketplacePage() {
     }
   }
 
-  function handleOfferClick(row: any) {
+  function handleOfferClick(row: { offer_allowed?: boolean; id: number }) {
     const token = getToken();
     if (!token) {
       setOfferMessage("Teklif vermek için önce giriş yapmalısınız. Giriş sonrası yetkiniz kontrol edilip otomatik devam edilir.");
@@ -134,7 +135,8 @@ export default function PublicMarketplacePage() {
       .join("") || "BA";
   }
 
-  function renderAvatar(name: string, logoUrl?: string | null, size = 54) {
+  function renderAvatar(name: string, logoUrl: string | null | undefined, variant: "lg" | "sm") {
+    const sizeClass = `pmp-avatar--${variant}`;
     const normalizedLogoUrl = logoUrl
       ? (logoUrl.startsWith("http") ? logoUrl : withPublicApiPrefix(logoUrl))
       : null;
@@ -143,27 +145,12 @@ export default function PublicMarketplacePage() {
         <img
           src={normalizedLogoUrl}
           alt={`${name} logo`}
-          style={{ width: size, height: size, objectFit: "contain", borderRadius: 10, border: "1px solid #dbe2ef", background: "#fff", flexShrink: 0 }}
+          className={`pmp-avatar pmp-avatar-img ${sizeClass}`}
         />
       );
     }
     return (
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: 10,
-          border: "1px solid #dbe2ef",
-          background: "linear-gradient(135deg,#0f172a,#1d4ed8)",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: 800,
-          fontSize: Math.max(14, Math.floor(size / 2.6)),
-          flexShrink: 0,
-        }}
-      >
+      <div className={`pmp-avatar pmp-avatar-initials ${sizeClass}`}>
         {initials(name)}
       </div>
     );
@@ -179,223 +166,130 @@ export default function PublicMarketplacePage() {
   const currentView = getCurrentView();
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="pmp-root">
       <NavBar activePath={window.location.pathname} />
-      <main style={{ maxWidth: 1120, margin: "0 auto", padding: "28px 20px 56px" }}>
-        <section style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 18 }}>
-          <h1 style={{ margin: 0, fontSize: 30, color: "#0f172a" }}>{title}</h1>
-          <p style={{ marginTop: 8, color: "#64748b" }}>Canli veritabanindan ozet liste.</p>
+      <main className="pmp-main">
+        <section className="pmp-section-header">
+          <h1 className="pmp-title">{title}</h1>
+          <p className="pmp-subtitle">Canli veritabanindan ozet liste.</p>
           {mode === "strategic" ? (
-            <div style={{ marginTop: 12, display: "inline-flex", border: "1px solid #cbd5e1", borderRadius: 10, overflow: "hidden" }}>
-              <button
-                type="button"
-                onClick={() => setStrategicView("list")}
-                style={{
-                  border: "none",
-                  background: strategicView === "list" ? "#1d4ed8" : "#fff",
-                  color: strategicView === "list" ? "#fff" : "#334155",
-                  padding: "8px 12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Liste
-              </button>
-              <button
-                type="button"
-                onClick={() => setStrategicView("grid")}
-                style={{
-                  border: "none",
-                  background: strategicView === "grid" ? "#1d4ed8" : "#fff",
-                  color: strategicView === "grid" ? "#fff" : "#334155",
-                  padding: "8px 12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Kart
-              </button>
+            <div className="pmp-view-toggle">
+              <button type="button" onClick={() => setStrategicView("list")} className={strategicView === "list" ? "pmp-view-btn pmp-view-btn--active" : "pmp-view-btn"}>Liste</button>
+              <button type="button" onClick={() => setStrategicView("grid")} className={strategicView === "grid" ? "pmp-view-btn pmp-view-btn--active" : "pmp-view-btn"}>Kart</button>
             </div>
           ) : null}
           {mode === "suppliers" ? (
-            <div style={{ marginTop: 12, display: "inline-flex", border: "1px solid #cbd5e1", borderRadius: 10, overflow: "hidden" }}>
-              <button type="button" onClick={() => setSupplierView("list")} style={{ border: "none", background: supplierView === "list" ? "#1d4ed8" : "#fff", color: supplierView === "list" ? "#fff" : "#334155", padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>Liste</button>
-              <button type="button" onClick={() => setSupplierView("grid")} style={{ border: "none", background: supplierView === "grid" ? "#1d4ed8" : "#fff", color: supplierView === "grid" ? "#fff" : "#334155", padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>Kart</button>
+            <div className="pmp-view-toggle">
+              <button type="button" onClick={() => setSupplierView("list")} className={supplierView === "list" ? "pmp-view-btn pmp-view-btn--active" : "pmp-view-btn"}>Liste</button>
+              <button type="button" onClick={() => setSupplierView("grid")} className={supplierView === "grid" ? "pmp-view-btn pmp-view-btn--active" : "pmp-view-btn"}>Kart</button>
             </div>
           ) : null}
           {mode === "channels" ? (
-            <div style={{ marginTop: 12, display: "inline-flex", border: "1px solid #cbd5e1", borderRadius: 10, overflow: "hidden" }}>
-              <button type="button" onClick={() => setChannelView("list")} style={{ border: "none", background: channelView === "list" ? "#1d4ed8" : "#fff", color: channelView === "list" ? "#fff" : "#334155", padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>Liste</button>
-              <button type="button" onClick={() => setChannelView("grid")} style={{ border: "none", background: channelView === "grid" ? "#1d4ed8" : "#fff", color: channelView === "grid" ? "#fff" : "#334155", padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>Kart</button>
+            <div className="pmp-view-toggle">
+              <button type="button" onClick={() => setChannelView("list")} className={channelView === "list" ? "pmp-view-btn pmp-view-btn--active" : "pmp-view-btn"}>Liste</button>
+              <button type="button" onClick={() => setChannelView("grid")} className={channelView === "grid" ? "pmp-view-btn pmp-view-btn--active" : "pmp-view-btn"}>Kart</button>
             </div>
           ) : null}
         </section>
-        <section
-          style={{
-            marginTop: 14,
-            display: "grid",
-            gridTemplateColumns:
-              currentView === "list"
-                ? "1fr"
-                : "repeat(auto-fit,minmax(260px,1fr))",
-            gap: 12,
-          }}
-        >
+        <section className={currentView === "list" ? "pmp-section-grid pmp-section-grid--list" : "pmp-section-grid pmp-section-grid--cards"}>
           {offerMessage ? (
-            <article style={{ gridColumn: "1 / -1", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: 12, color: "#9a3412" }}>
+            <article className="pmp-offer-msg">
               <div>{offerMessage}</div>
-              <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <a href="/supplier/login" style={{ background: "#1d4ed8", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Giriş Yap</a>
-                <a href="/fiyatlandirma#tedarikci" style={{ background: "#0f766e", color: "#fff", borderRadius: 8, padding: "6px 10px", textDecoration: "none", fontWeight: 700 }}>Üyeliği Yükselt</a>
-                <button type="button" onClick={() => setOfferMessage(null)} style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>Kapat</button>
+              <div className="pmp-offer-msg-actions">
+                <a href="/supplier/login" className="pmp-offer-login-link">Giriş Yap</a>
+                <a href="/fiyatlandirma#tedarikci" className="pmp-offer-upgrade-link">Üyeliği Yükselt</a>
+                <button type="button" onClick={() => setOfferMessage(null)} className="pmp-offer-close-btn">Kapat</button>
               </div>
             </article>
           ) : null}
-          {rows.map((row: any) => (
-            <article key={row.id} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
+          {(rows as Array<Record<string, unknown>>).map((row) => (
+            <article key={row.id as number} className="pmp-article">
               {mode === "offers" && (
                 <>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    {renderAvatar(row.company_name, row.company_logo_url, 72)}
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 800, color: "#0f172a", textAlign: "left" }}>{row.title}</div>
-                      <div style={{ color: "#475569", marginTop: 6, textAlign: "left" }}>{row.company_name} / {row.project_name}</div>
-                      <div style={{ color: "#64748b", marginTop: 4, textAlign: "left" }}>
-                        Şehir: {row.project_city || "-"} | Proje No: {row.project_code || "-"}
+                  <div className="pmp-row-header">
+                    {renderAvatar(String(row.company_name ?? ""), row.company_logo_url as string | null, "lg")}
+                    <div className="pmp-info">
+                      <div className="pmp-offer-title">{row.title as string}</div>
+                      <div className="pmp-offer-meta">{row.company_name as string} / {row.project_name as string}</div>
+                      <div className="pmp-offer-city">
+                        Şehir: {(row.project_city as string) || "-"} | Proje No: {(row.project_code as string) || "-"}
                       </div>
-                      <div style={{ marginTop: 8, color: "#0b5d4a", fontWeight: 700, textAlign: "left" }}>
-                        Tedarikçi sayısı: {row.supplier_count || 0} | Teklif sayısı: {row.bidder_count || 0}
+                      <div className="pmp-offer-stats">
+                        Tedarikçi sayısı: {(row.supplier_count as number) || 0} | Teklif sayısı: {(row.bidder_count as number) || 0}
                       </div>
                     </div>
                   </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <button
-                      type="button"
-                      onClick={() => void loadFiles(row.id)}
-                      style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", fontWeight: 700, cursor: "pointer" }}
-                    >
+                  <div className="pmp-offer-actions">
+                    <button type="button" onClick={() => void loadFiles(row.id as number)} className="pmp-files-btn">
                       Dosyaları Görüntüle
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleOfferClick(row)}
-                      style={{
-                        border: "1px solid #16a34a",
-                        background: row.offer_allowed ? "#16a34a" : "#e2e8f0",
-                        color: row.offer_allowed ? "#fff" : "#475569",
-                        borderRadius: 8,
-                        padding: "6px 10px",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
+                      onClick={() => handleOfferClick(row as { offer_allowed?: boolean; id: number })}
+                      className={row.offer_allowed ? "pmp-offer-btn pmp-offer-btn--allowed" : "pmp-offer-btn pmp-offer-btn--blocked"}
                     >
                       Teklif Ver
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => void loadBidders(row.id)}
-                      style={{ border: "1px solid #334155", background: "#fff", borderRadius: 8, padding: "6px 10px", fontWeight: 700, cursor: "pointer", color: "#0f172a" }}
-                    >
+                    <button type="button" onClick={() => void loadBidders(row.id as number)} className="pmp-bidders-btn">
                       Teklif Veren Firmalar
                     </button>
                   </div>
-                  {filesByQuote[row.id] ? (
-                    <ul style={{ marginTop: 8, paddingLeft: 18, color: "#475569", fontSize: 13 }}>
-                      {filesByQuote[row.id].length === 0 ? <li>Dosya bulunamad?.</li> : filesByQuote[row.id].map((item) => <li key={item.id}>{item.name}</li>)}
+                  {filesByQuote[row.id as number] ? (
+                    <ul className="pmp-file-list">
+                      {filesByQuote[row.id as number].length === 0
+                        ? <li>Dosya bulunamad?.</li>
+                        : filesByQuote[row.id as number].map((item) => <li key={item.id}>{item.name}</li>)}
                     </ul>
                   ) : null}
                 </>
               )}
               {mode === "suppliers" && (
-                <>
-                  <div style={{ display: "flex", alignItems: currentView === "list" ? "center" : "flex-start", gap: 12, flexDirection: currentView === "list" ? "row" : "column" }}>
-                    {renderAvatar(row.company_name, row.logo_url, currentView === "list" ? 72 : 54)}
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 800, color: "#0f172a" }}>{row.company_name}</div>
-                      <div style={{ color: "#475569", marginTop: 6 }}>
-                        {row.city} | {row.category} | Davet: {row.invite_count}
-                      </div>
+                <div className={currentView === "list" ? "pmp-entity-header pmp-entity-header--list" : "pmp-entity-header pmp-entity-header--grid"}>
+                  {renderAvatar(String(row.company_name ?? ""), row.logo_url as string | null, currentView === "list" ? "lg" : "sm")}
+                  <div className="pmp-info">
+                    <div className="pmp-entity-name pmp-entity-name--list">{row.company_name as string}</div>
+                    <div className="pmp-entity-meta">
+                      {row.city as string} | {row.category as string} | Davet: {row.invite_count as number}
                     </div>
                   </div>
-                </>
+                </div>
               )}
               {mode === "strategic" && (
-                <>
-                  <div style={{ display: "flex", alignItems: currentView === "list" ? "center" : "flex-start", gap: 12, flexDirection: currentView === "list" ? "row" : "column" }}>
-                    {renderAvatar(row.name, row.logo_url, currentView === "list" ? 72 : 54)}
-                    <div style={{ minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 800,
-                          color: "#0f172a",
-                          overflow: "hidden",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          lineHeight: 1.25,
-                          maxWidth: currentView === "list" ? 420 : "100%",
-                        }}
-                      >
-                        {row.name}
-                      </div>
-                      <div style={{ color: "#475569", marginTop: 6 }}>
-                        Şehir: {row.city} | Proje: {row.project_count} | İhale: {row.tender_count ?? 0}
-                      </div>
+                <div className={currentView === "list" ? "pmp-entity-header pmp-entity-header--list" : "pmp-entity-header pmp-entity-header--grid"}>
+                  {renderAvatar(String(row.name ?? ""), row.logo_url as string | null, currentView === "list" ? "lg" : "sm")}
+                  <div className="pmp-info">
+                    <div className={currentView === "list" ? "pmp-entity-name pmp-entity-name--list" : "pmp-entity-name pmp-entity-name--grid"}>
+                      {row.name as string}
+                    </div>
+                    <div className="pmp-entity-meta">
+                      Şehir: {row.city as string} | Proje: {row.project_count as number} | İhale: {(row.tender_count as number) ?? 0}
                     </div>
                   </div>
-                </>
+                </div>
               )}
               {mode === "channels" && (
-                <>
-                  <div style={{ display: "flex", alignItems: currentView === "list" ? "center" : "flex-start", gap: 12, flexDirection: currentView === "list" ? "row" : "column" }}>
-                    {renderAvatar(row.name, row.logo_url, currentView === "list" ? 72 : 54)}
-                    <div style={{ minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 800,
-                          color: "#0f172a",
-                          overflow: "hidden",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          lineHeight: 1.25,
-                          maxWidth: currentView === "list" ? 420 : "100%",
-                        }}
-                      >
-                        {row.name}
-                      </div>
-                      <div style={{ color: "#475569", marginTop: 6 }}>Referans: {row.referral_count}</div>
-                      <div style={{ marginTop: 4, color: "#0b5d4a", fontWeight: 700 }}>Basari Puani: {row.success_score}</div>
+                <div className={currentView === "list" ? "pmp-entity-header pmp-entity-header--list" : "pmp-entity-header pmp-entity-header--grid"}>
+                  {renderAvatar(String(row.name ?? ""), row.logo_url as string | null, currentView === "list" ? "lg" : "sm")}
+                  <div className="pmp-info">
+                    <div className={currentView === "list" ? "pmp-entity-name pmp-entity-name--list" : "pmp-entity-name pmp-entity-name--grid"}>
+                      {row.name as string}
                     </div>
+                    <div className="pmp-entity-meta">Referans: {row.referral_count as number}</div>
+                    <div className="pmp-entity-score">Basari Puani: {row.success_score as number}</div>
                   </div>
-                </>
+                </div>
               )}
             </article>
           ))}
         </section>
         {activeBiddersQuoteId !== null ? (
-          <div
-            onClick={() => setActiveBiddersQuoteId(null)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(15,23,42,0.45)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
-              zIndex: 1000,
-            }}
-          >
-            <div
-              onClick={(event) => event.stopPropagation()}
-              style={{ width: "min(560px, 100%)", maxHeight: "70vh", overflowY: "auto", background: "#fff", borderRadius: 12, border: "1px solid #cbd5e1", padding: 14 }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ fontWeight: 800, color: "#1e3a8a", fontSize: 20 }}>Teklif Veren Firmalar</div>
-                <button type="button" onClick={() => setActiveBiddersQuoteId(null)} style={{ border: "1px solid #cbd5e1", background: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>Kapat</button>
+          <div className="pmp-modal-overlay" onClick={() => setActiveBiddersQuoteId(null)}>
+            <div className="pmp-modal" onClick={(event) => event.stopPropagation()}>
+              <div className="pmp-modal-header">
+                <div className="pmp-modal-title">Teklif Veren Firmalar</div>
+                <button type="button" onClick={() => setActiveBiddersQuoteId(null)} className="pmp-modal-close-btn">Kapat</button>
               </div>
-              <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, color: "#334155", fontSize: 14, lineHeight: 1.8 }}>
+              <ul className="pmp-modal-list">
                 {(biddersByQuote[activeBiddersQuoteId] || []).length === 0 ? (
                   <li>Henuz teklif veren firma yok.</li>
                 ) : (
