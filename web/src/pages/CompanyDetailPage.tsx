@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { isSuperAdminUser } from "../auth/permissions";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
 import { CompanyDetailSuppliersTab } from "./CompanyDetailSuppliersTab";
+import "./CompanyDetailPage.css";
 
 export default function CompanyDetailPage() {
   const { user } = useAuth();
@@ -131,202 +132,223 @@ export default function CompanyDetailPage() {
   };
 
   if (!isSuperAdminUser(user)) {
-    return <div style={{ padding: 20, color: "red" }}>Erişim Reddedildi</div>;
+    return <div className="cdp-denied">Erişim Reddedildi</div>;
   }
 
-  if (loading) return <div style={{ padding: 20 }}>Yükleniyor...</div>;
+  if (loading) return <div className="cdp-loading">Yükleniyor...</div>;
 
   if (!company) {
     return (
-      <div style={{ padding: 20 }}>
-        <button onClick={() => navigate("/admin")}>Geri</button>
+      <div className="cdp-not-found">
+        <button type="button" className="cdp-btn cdp-btn--secondary" onClick={() => navigate("/admin")}>Geri</button>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 10, flexWrap: "wrap" }}>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: "clamp(24px, 3vw, 42px)",
-            lineHeight: 1.05,
-            fontWeight: 800,
-            maxWidth: "100%",
-            wordBreak: "break-word",
-          }}
-        >
-          {company.name}
-        </h1>
-        <div style={{ display: "flex", gap: 8 }}>
+    <div className="cdp-root">
+      <div className="cdp-header">
+        <h1 className="cdp-title">{company.name}</h1>
+        <div className="cdp-header-actions">
           {!isEditing && (
-            <button onClick={() => setIsEditing(true)} style={{ padding: "8px 14px", borderRadius: 8, border: 0, background: "#2563eb", color: "#fff", cursor: "pointer", fontWeight: 600 }}>
+            <button type="button" onClick={() => setIsEditing(true)} className="cdp-btn cdp-btn--primary">
               ✏️ Düzenle
             </button>
           )}
-          <button onClick={() => navigate("/admin")} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontWeight: 600 }}>
+          <button type="button" onClick={() => navigate("/admin")} className="cdp-btn cdp-btn--secondary">
             Geri
           </button>
         </div>
       </div>
 
-      {error && <div style={{ padding: 12, borderRadius: 8, background: "#fee2e2", color: "#991b1b", marginBottom: 12 }}>{error}</div>}
-      {success && <div style={{ padding: 12, borderRadius: 8, background: "#d1fae5", color: "#065f46", marginBottom: 12 }}>{success}</div>}
+      {error && <div className="cdp-error-msg">{error}</div>}
+      {success && <div className="cdp-success-msg">{success}</div>}
 
-      <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: 20 }}>
-        <div style={{ display: "grid", justifyItems: "center", gap: 10, marginBottom: 18 }}>
-          <div style={{ width: 132, height: 132, borderRadius: 20, border: "1px solid #dbe3ee", background: "#f8fafc", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 13 }}>
-            {logoFile ? "Yeni Logo Seçildi" : logoSrc ? <img src={logoSrc} alt="Firma logosu" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 6 }} /> : "Logo Yok"}
+      <div className="cdp-card">
+        <div className="cdp-logo-area">
+          <div className="cdp-logo-box">
+            {logoFile
+              ? "Yeni Logo Seçildi"
+              : logoSrc
+                ? <img src={logoSrc} alt="Firma logosu" className="cdp-logo-img" />
+                : "Logo Yok"}
           </div>
           {isEditing && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 18px", borderRadius: 8, border: "2px dashed #93c5fd", cursor: "pointer", color: "#2563eb", fontWeight: 600, fontSize: 13, background: "#eff6ff" }}>
+            <div className="cdp-logo-upload">
+              <label className="cdp-logo-upload-label">
                 📎 Logo Ekle
-                <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} style={{ display: "none" }} />
+                <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} className="cdp-logo-file-input" />
               </label>
-              {logoFile && <div style={{ color: "#475569", fontSize: 12 }}>{logoFile.name}</div>}
+              {logoFile && <div className="cdp-logo-file-name">{logoFile.name}</div>}
             </div>
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-          <button type="button" onClick={() => setShowMap((v) => !v)} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "7px 10px", background: "#fff", cursor: "pointer", fontWeight: 600, color: "#334155" }}>
+        <div className="cdp-actions-row">
+          <button type="button" onClick={() => setShowMap((v) => !v)} className="cdp-btn--map">
             {showMap ? "Şirket Konumunu Gizle" : "Şirket Konumunu Göster"}
           </button>
-          <button type="button" onClick={shareOnWhatsapp} style={{ border: "1px solid #86efac", borderRadius: 8, padding: "7px 10px", background: "#fff", color: "#166534", cursor: "pointer", fontWeight: 600 }}>
+          <button type="button" onClick={shareOnWhatsapp} className="cdp-btn--whatsapp">
             WhatsApp Paylaş
           </button>
         </div>
 
         {!isEditing ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div className="cdp-fields">
             {/* Satır 1: Firma Adı + Renk */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Firma Adı</span><div style={{ fontWeight: 600, marginTop: 2 }}>{company.name || "-"}</div></div>
+            <div className="cdp-field-row cdp-field-row--2col">
               <div>
-                <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Renk</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  <span style={{ display: "inline-block", width: 22, height: 22, borderRadius: 6, background: company.color || "#3b82f6", border: "1px solid #e2e8f0", flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600 }}>{company.color || "-"}</span>
+                <span className="cdp-field-label">Firma Adı</span>
+                <div className="cdp-field-value">{company.name || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">Renk</span>
+                <div className="cdp-color-display">
+                  <span className="cdp-color-swatch" style={{ background: company.color || "#3b82f6" }} />
+                  <span className="cdp-field-value">{company.color || "-"}</span>
                 </div>
               </div>
             </div>
-            {/* Satır 2: Firma Ünvanı (varsa, tam genişlik) */}
+            {/* Satır 2: Firma Ünvanı (varsa) */}
             {company.trade_name && (
-              <div style={{ padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-                <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Firma Ünvanı</span>
-                <div style={{ fontWeight: 600, marginTop: 2 }}>{company.trade_name}</div>
+              <div className="cdp-field-row">
+                <span className="cdp-field-label">Firma Ünvanı</span>
+                <div className="cdp-field-value">{company.trade_name}</div>
               </div>
             )}
             {/* Satır 3: Vergi Dairesi + Vergi No + Telefon */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Vergi Dairesi</span><div style={{ marginTop: 2 }}>{company.tax_office || "-"}</div></div>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Vergi No</span><div style={{ marginTop: 2 }}>{company.tax_number || "-"}</div></div>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Telefon</span><div style={{ marginTop: 2 }}>{company.phone || "-"}</div></div>
+            <div className="cdp-field-row cdp-field-row--3col">
+              <div>
+                <span className="cdp-field-label">Vergi Dairesi</span>
+                <div className="cdp-field-value--normal">{company.tax_office || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">Vergi No</span>
+                <div className="cdp-field-value--normal">{company.tax_number || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">Telefon</span>
+                <div className="cdp-field-value--normal">{company.phone || "-"}</div>
+              </div>
             </div>
-            {/* Satır 4: Yetkili Kullanici + E-posta */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Yetkili Kullanıcı</span><div style={{ marginTop: 2 }}>{company.owner_full_name || "-"}</div></div>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>E-posta</span><div style={{ marginTop: 2 }}>{company.owner_email || "-"}</div></div>
+            {/* Satır 4: Yetkili Kullanıcı + E-posta */}
+            <div className="cdp-field-row cdp-field-row--2col">
+              <div>
+                <span className="cdp-field-label">Yetkili Kullanıcı</span>
+                <div className="cdp-field-value--normal">{company.owner_full_name || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">E-posta</span>
+                <div className="cdp-field-value--normal">{company.owner_email || "-"}</div>
+              </div>
             </div>
             {/* Satır 5: İl + İlçe + Posta Kodu + Durum */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>İl</span><div style={{ marginTop: 2 }}>{company.city || "-"}</div></div>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>İlçe</span><div style={{ marginTop: 2 }}>{company.address_district || "-"}</div></div>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Posta Kodu</span><div style={{ marginTop: 2 }}>{company.postal_code || "-"}</div></div>
-              <div><span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Durum</span>
+            <div className="cdp-field-row cdp-field-row--4col">
+              <div>
+                <span className="cdp-field-label">İl</span>
+                <div className="cdp-field-value--normal">{company.city || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">İlçe</span>
+                <div className="cdp-field-value--normal">{company.address_district || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">Posta Kodu</span>
+                <div className="cdp-field-value--normal">{company.postal_code || "-"}</div>
+              </div>
+              <div>
+                <span className="cdp-field-label">Durum</span>
                 <div style={{ marginTop: 4 }}>
-                  <span style={{ display: "inline-block", padding: "2px 10px", borderRadius: 12, fontSize: 12, fontWeight: 700, background: company.is_active ? "#d1fae5" : "#f1f5f9", color: company.is_active ? "#065f46" : "#64748b" }}>
+                  <span className={company.is_active ? "cdp-status-badge cdp-status-badge--active" : "cdp-status-badge cdp-status-badge--inactive"}>
                     {company.is_active ? "Aktif" : "Pasif"}
                   </span>
                 </div>
               </div>
             </div>
-            {/* Satır 6: Adres (tam genişlik) */}
+            {/* Satır 6: Adres */}
             {company.address && (
-              <div style={{ padding: "10px 0" }}>
-                <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Adres</span>
-                <div style={{ marginTop: 2 }}>{company.address}</div>
+              <div className="cdp-field-row cdp-field-row--last">
+                <span className="cdp-field-label">Adres</span>
+                <div className="cdp-field-value--normal">{company.address}</div>
               </div>
             )}
           </div>
         ) : (
           <>
             {/* Firma Adı + Renk */}
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 12, marginBottom: 12 }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Firma Adı
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+            <div className="cdp-form-row cdp-form-row--name-color">
+              <label className="cdp-form-label">Firma Adı
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="cdp-input" />
               </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Renk
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} style={{ width: 54, height: 38, borderRadius: 8, border: "1px solid #d1d5db", cursor: "pointer" }} />
-                  <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} style={{ flex: 1, border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+              <label className="cdp-form-label">Renk
+                <div className="cdp-color-row">
+                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="cdp-color-picker" />
+                  <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="cdp-color-text" />
                 </div>
               </label>
             </div>
             {/* Firma Ünvanı */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Firma Ünvanı
-                <input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} placeholder="Ticari unvan" style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+            <div className="cdp-form-mb">
+              <label className="cdp-form-label">Firma Ünvanı
+                <input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} placeholder="Ticari unvan" className="cdp-input" />
               </label>
             </div>
             {/* Vergi Dairesi + Vergi No + Posta Kodu */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginBottom: 12 }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Vergi Dairesi
-                <input value={form.tax_office} onChange={(e) => setForm({ ...form, tax_office: e.target.value })} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+            <div className="cdp-form-row cdp-form-row--3col">
+              <label className="cdp-form-label">Vergi Dairesi
+                <input value={form.tax_office} onChange={(e) => setForm({ ...form, tax_office: e.target.value })} className="cdp-input" />
               </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Vergi Numarası
-                <input value={form.tax_number} onChange={(e) => setForm({ ...form, tax_number: e.target.value })} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+              <label className="cdp-form-label">Vergi Numarası
+                <input value={form.tax_number} onChange={(e) => setForm({ ...form, tax_number: e.target.value })} className="cdp-input" />
               </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Posta Kodu
-                <input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+              <label className="cdp-form-label">Posta Kodu
+                <input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} className="cdp-input" />
               </label>
             </div>
             {/* Telefon + İl + İlçe */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginBottom: 12 }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Telefon
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px" }} />
+            <div className="cdp-form-row cdp-form-row--3col">
+              <label className="cdp-form-label">Telefon
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="cdp-input" />
               </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>İl
-                <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value, address_district: "" })} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", background: "#fff" }}>
+              <label className="cdp-form-label">İl
+                <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value, address_district: "" })} className="cdp-select">
                   <option value="">İl seçin</option>
                   {cityNames.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>İlçe
-                <select value={form.address_district} onChange={(e) => setForm({ ...form, address_district: e.target.value })} disabled={!form.city} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", background: "#fff" }}>
+              <label className="cdp-form-label">İlçe
+                <select value={form.address_district} onChange={(e) => setForm({ ...form, address_district: e.target.value })} disabled={!form.city} className="cdp-select">
                   <option value="">İlçe seçin</option>
                   {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </label>
             </div>
             {/* Adres */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>Adres
-                <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} style={{ border: "1px solid #d1d5db", borderRadius: 8, padding: "8px 10px", resize: "vertical" }} />
+            <div className="cdp-form-mb">
+              <label className="cdp-form-label">Adres
+                <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} className="cdp-textarea" />
               </label>
             </div>
             {/* Aktif */}
-            <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <label className="cdp-form-check">
               <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
               Aktif
             </label>
-            <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-              <button onClick={handleSave} style={{ padding: "8px 16px", borderRadius: 8, background: "#2563eb", color: "white", border: 0, cursor: "pointer", fontWeight: 600 }}>Kaydet</button>
-              <button onClick={() => { setIsEditing(false); setLogoFile(null); setSuccess(null); setShowMap(!(company.hide_location || false)); }} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" }}>İptal</button>
+            <div className="cdp-form-actions">
+              <button type="button" onClick={handleSave} className="cdp-btn cdp-btn--primary">Kaydet</button>
+              <button type="button" onClick={() => { setIsEditing(false); setLogoFile(null); setSuccess(null); setShowMap(!(company.hide_location || false)); }} className="cdp-btn cdp-btn--secondary">İptal</button>
             </div>
           </>
         )}
 
         {showMap && mapQuery && (
-          <div style={{ marginTop: 14, border: "1px solid #dbe3ee", borderRadius: 8, overflow: "hidden" }}>
-            <iframe title="Firma konumu" src={getMapEmbedSrc()} width="100%" height="280" style={{ border: 0 }} loading="lazy" />
+          <div className="cdp-map-wrap">
+            <iframe title="Firma konumu" src={getMapEmbedSrc()} className="cdp-map-iframe" loading="lazy" />
           </div>
         )}
 
-        <div style={{ marginTop: 24, borderTop: "1px solid #e5e7eb", paddingTop: 16 }}>
-          <h2 style={{ margin: 0, marginBottom: 12, fontSize: 18, color: "#0f172a" }}>Tedarikçiler</h2>
+        <div className="cdp-suppliers-section">
+          <h2 className="cdp-suppliers-title">Tedarikçiler</h2>
           <CompanyDetailSuppliersTab
             tenantId={company.tenant_id ?? null}
             tenantName={company.name}
