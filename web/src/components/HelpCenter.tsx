@@ -10,6 +10,7 @@ import { useState, useMemo } from "react";
 import SupportTicketWidget from "./SupportTicketWidget";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
+import "./HelpCenter.css";
 
 const DOCS_BASE = "https://buyerasistans.info/docs";
 
@@ -92,98 +93,53 @@ export default function HelpCenter() {
 
   return (
     <>
-      {/* Floating buton */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Yardim merkezi"
-        style={{
-          position: "fixed",
-          bottom: 28,
-          right: 28,
-          zIndex: 9000,
-          width: 52,
-          height: 52,
-          borderRadius: "50%",
-          border: "none",
-          background: open ? "#1d4ed8" : "linear-gradient(135deg, #1d4ed8, #3b82f6)",
-          color: "white",
-          fontSize: 22,
-          fontWeight: 900,
-          cursor: "pointer",
-          boxShadow: "0 8px 24px rgba(29, 78, 216, 0.38)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "all 0.2s",
-        }}
+        className={`hc-fab${open ? " hc-fab--open" : ""}`}
       >
         {open ? "x" : "?"}
       </button>
 
-      {/* Panel */}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 92,
-            right: 28,
-            zIndex: 8999,
-            width: 360,
-            maxWidth: "calc(100vw - 40px)",
-            maxHeight: "70vh",
-            borderRadius: 20,
-            background: "white",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 24px 60px rgba(15, 23, 42, 0.18)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          {/* Panel basligi */}
-          <div style={{ padding: "16px 18px 12px", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#1d4ed8", marginBottom: 4 }}>
-              {t.title}
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{t.subtitle}</div>
-            {/* Tab */}
-            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+        <div className="hc-panel">
+          <div className="hc-panel__head">
+            <div className="hc-panel__eyebrow">{t.title}</div>
+            <div className="hc-panel__title">{t.subtitle}</div>
+            <div className="hc-panel__tabs">
               <button
                 type="button"
                 onClick={() => setPanel("search")}
-                style={{ padding: "5px 12px", borderRadius: 8, border: "none", background: panel === "search" ? "#1d4ed8" : "#f1f5f9", color: panel === "search" ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                className={`hc-tab${panel === "search" ? " hc-tab--active" : ""}`}
               >
                 {t.articles_tab}
               </button>
               <button
                 type="button"
                 onClick={() => setPanel("ticket")}
-                style={{ padding: "5px 12px", borderRadius: 8, border: "none", background: panel === "ticket" ? "#1d4ed8" : "#f1f5f9", color: panel === "ticket" ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                className={`hc-tab${panel === "ticket" ? " hc-tab--active" : ""}`}
               >
                 {t.ticket_tab}
               </button>
             </div>
           </div>
 
-          {/* Panel icerigi - kaydirilabilir */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+          <div className="hc-panel__body">
             {panel === "search" ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                {/* Arama */}
+              <div className="hc-search-panel">
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t.search_placeholder}
-                  style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#0f172a", background: "#f8fafc", fontSize: 13, width: "100%", boxSizing: "border-box" }}
+                  className="hc-search-input"
                 />
 
-                {/* Kategori filtreleri */}
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div className="hc-cats">
                   <button
                     type="button"
                     onClick={() => setActiveCategory(null)}
-                    style={{ padding: "3px 10px", borderRadius: 999, border: "none", background: !activeCategory ? "#1d4ed8" : "#e2e8f0", color: !activeCategory ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 11 }}
+                    className={`hc-cat-btn${!activeCategory ? " hc-cat-btn--active" : ""}`}
                   >
                     {t.all_categories}
                   </button>
@@ -192,57 +148,48 @@ export default function HelpCenter() {
                       key={cat}
                       type="button"
                       onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
-                      style={{ padding: "3px 10px", borderRadius: 999, border: "none", background: cat === activeCategory ? "#1d4ed8" : "#e2e8f0", color: cat === activeCategory ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 11 }}
+                      className={`hc-cat-btn${cat === activeCategory ? " hc-cat-btn--active" : ""}`}
                     >
                       {cat}
                     </button>
                   ))}
                 </div>
 
-                {/* Makale listesi */}
                 {filteredArticles.length === 0 ? (
-                  <div style={{ color: "#64748b", fontSize: 13, padding: "12px 0" }}>
-                    {t.not_found}
-                  </div>
+                  <div className="hc-not-found">{t.not_found}</div>
                 ) : (
-                  <div style={{ display: "grid", gap: 6 }}>
+                  <div className="hc-article-list">
                     {filteredArticles.map((article) => (
                       <a
                         key={article.id}
                         href={`${DOCS_BASE}/${article.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ borderRadius: 12, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "10px 12px", textDecoration: "none", display: "block", transition: "background 0.15s" }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#eff6ff"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#f8fafc"; }}
+                        className="hc-article-link"
                       >
-                        <div style={{ fontWeight: 700, color: "#1d4ed8", fontSize: 13 }}>{article.title}</div>
-                        <div style={{ color: "#64748b", fontSize: 12, marginTop: 2 }}>{article.summary}</div>
+                        <div className="hc-article-link__title">{article.title}</div>
+                        <div className="hc-article-link__summary">{article.summary}</div>
                       </a>
                     ))}
                   </div>
                 )}
 
-                {/* Destek talebi CTA */}
-                <div style={{ borderRadius: 14, border: "1px solid #bfdbfe", background: "#eff6ff", padding: "12px 14px", marginTop: 4 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1e3a8a", marginBottom: 6 }}>
-                    {t.missing_prompt}
-                  </div>
+                <div className="hc-support-cta">
+                  <div className="hc-support-cta__title">{t.missing_prompt}</div>
                   <button
                     type="button"
                     onClick={() => setPanel("ticket")}
-                    style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: "#1d4ed8", color: "white", fontWeight: 800, cursor: "pointer", fontSize: 13 }}
+                    className="hc-support-cta__btn"
                   >
                     {t.create_ticket}
                   </button>
                 </div>
 
-                {/* Tam dokumantasyon linki */}
                 <a
                   href={DOCS_BASE}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ textAlign: "center", color: "#1d4ed8", fontWeight: 700, fontSize: 12, textDecoration: "underline", display: "block", paddingBottom: 4 }}
+                  className="hc-docs-link"
                 >
                   {t.view_all_docs}
                 </a>
