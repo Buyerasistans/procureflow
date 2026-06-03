@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import type { CSSProperties } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { updateCompany, getCompanies, uploadCompanyLogo, type Company } from "../services/admin.service";
 import { useAuth } from "../hooks/useAuth";
@@ -204,7 +205,7 @@ export default function CompanyDetailPage() {
               <div>
                 <span className="cdp-field-label">Renk</span>
                 <div className="cdp-color-display">
-                  <span className="cdp-color-swatch" style={{ background: company.color || "#3b82f6" }} />
+                  <span className="cdp-color-swatch" style={{ "--cdp-swatch-bg": company.color || "#3b82f6" } as CSSProperties} />
                   <span className="cdp-field-value">{company.color || "-"}</span>
                 </div>
               </div>
@@ -258,7 +259,7 @@ export default function CompanyDetailPage() {
               </div>
               <div>
                 <span className="cdp-field-label">Durum</span>
-                <div style={{ marginTop: 4 }}>
+                <div className="cdp-status-wrap">
                   <span className={company.is_active ? "cdp-status-badge cdp-status-badge--active" : "cdp-status-badge cdp-status-badge--inactive"}>
                     {company.is_active ? "Aktif" : "Pasif"}
                   </span>

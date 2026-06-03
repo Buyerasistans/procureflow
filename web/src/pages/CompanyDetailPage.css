@@ -222,8 +222,9 @@
   border-radius: 6px;
   border: 1px solid #e2e8f0;
   flex-shrink: 0;
-  /* background set via inline style (dynamic user color) */
+  background: var(--cdp-swatch-bg, #3b82f6);
 }
+.cdp-status-wrap { margin-top: 4px; }
 
 /* ── Status Badge ── */
 .cdp-status-badge {
