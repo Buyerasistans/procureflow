@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { BRAND_COLORS } from "./nav-brand-colors";
 import PublicBrandLogo from "./PublicBrandLogo";
@@ -130,46 +131,27 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
     setShowLoginPopup(true);
   }
 
+  const navVars = {
+    "--nb-bg": c.bg,
+    "--nb-accent": c.accent,
+  } as CSSProperties;
+
   return (
-    <nav
-      style={{
-        background: c.bg,
-        padding: "0 28px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 60,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        fontFamily: "'Segoe UI', sans-serif",
-      }}
-    >
+    <nav className="nb-nav" style={navVars}>
       {/* Logo -> Ana Sayfa */}
-      <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+      <a href="/" className="nb-logo-link">
         <PublicBrandLogo invert height={36} maxWidth={160} />
       </a>
 
       {/* Navigasyon Linkleri */}
-      <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "nowrap", justifyContent: "flex-end", flex: 1, minWidth: 0 }}>
+      <div className="nb-links-wrap">
         {links.map((l) => {
           const isActive = activePath === l.href;
           return (
             <a
               key={l.href}
               href={l.href}
-              style={{
-                color: isActive ? c.accent ?? "#D4AF37" : "rgba(255,255,255,0.75)",
-                textDecoration: "none",
-                fontWeight: isActive ? 800 : 600,
-                fontSize: 12,
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
-                borderBottom: isActive ? `2px solid ${c.accent ?? "#D4AF37"}` : "2px solid transparent",
-                transition: "all 0.15s",
-              }}
+              className={`nb-nav-link${isActive ? " nb-nav-link--active" : ""}`}
             >
               {l.label}
             </a>
@@ -183,30 +165,29 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
         </a>
 
         {/* Sag CTA butonlari */}
-        <div ref={loginContainerRef} style={{ marginLeft: 8, display: "flex", gap: 6, position: "relative", flexShrink: 0 }}>
+        <div ref={loginContainerRef} className="nb-cta-wrap">
           {variant === "supplier" ? (
-            <a href="/supplier/login" style={ctaBtn(BRAND_COLORS.supplier)}>
+            <a
+              href="/supplier/login"
+              className="nb-cta-btn"
+              style={{ "--nb-cta-bg": BRAND_COLORS.supplier.ctaBg, "--nb-cta-text": BRAND_COLORS.supplier.ctaText } as CSSProperties}
+            >
               {copy.supplierLogin}
             </a>
           ) : variant === "channel" ? (
-            <a href="/channel/login" style={ctaBtn(BRAND_COLORS.channel)}>
+            <a
+              href="/channel/login"
+              className="nb-cta-btn"
+              style={{ "--nb-cta-bg": BRAND_COLORS.channel.ctaBg, "--nb-cta-text": BRAND_COLORS.channel.ctaText } as CSSProperties}
+            >
               {copy.partnerLogin}
             </a>
           ) : (
             <button
               type="button"
               onClick={handleSystemLoginClick}
-              style={{
-                ...ctaBtn(BRAND_COLORS.strategic),
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                lineHeight: 1.15,
-                padding: "5px 14px",
-                gap: 0,
-              }}
+              className="nb-cta-btn nb-cta-btn--system"
+              style={{ "--nb-cta-bg": BRAND_COLORS.strategic.ctaBg, "--nb-cta-text": BRAND_COLORS.strategic.ctaText } as CSSProperties}
             >
               <span>{isTurkish ? "Sisteme" : "System"}</span>
               <span>{isTurkish ? "Giriş" : "Login"}</span>
@@ -215,38 +196,22 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
           <LanguageSwitcher compact />
 
           {showLoginPopup && (
-            <div
-              style={{
-                position: "fixed",
-                top: 70,
-                right: 16,
-                width: 340,
-                maxWidth: "calc(100vw - 32px)",
-                background: "#ffffff",
-                borderRadius: 14,
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 18px 36px rgba(15, 23, 42, 0.2)",
-                padding: 12,
-                zIndex: 250,
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#334155", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
-                {copy.chooseLogin}
+            <div className="nb-popup">
+              <div className="nb-popup__title">{copy.chooseLogin}</div>
+              <div className="nb-popup__grid-8">
+                <a href="/strategic-partner-login" className="nb-popup-btn nb-popup-btn--strategic">{copy.strategicLogin}</a>
+                <a href="/supplier/login" className="nb-popup-btn nb-popup-btn--supplier">{copy.supplierLogin}</a>
+                <a href="/channel/login" className="nb-popup-btn nb-popup-btn--channel">{copy.partnerLogin}</a>
               </div>
-              <div style={{ display: "grid", gap: 8 }}>
-                <a href="/strategic-partner-login" style={popupBtn("#21453d", "#ffffff")}>{copy.strategicLogin}</a>
-                <a href="/supplier/login" style={popupBtn("#0284c7", "#ffffff")}>{copy.supplierLogin}</a>
-                <a href="/channel/login" style={popupBtn("#f59e0b", "#2f1a0d")}>{copy.partnerLogin}</a>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>
+              <div className="nb-popup__section">
+                <div className="nb-popup__section-label">
                   {isTurkish ? "İşveren & Kariyer" : "Employer & Career"}
                 </div>
-                <div style={{ display: "grid", gap: 6 }}>
-                  <a href="/login" style={popupBtn("#059669", "#ffffff")}>
+                <div className="nb-popup__grid-6">
+                  <a href="/login" className="nb-popup-btn nb-popup-btn--employer">
                     {isTurkish ? "İşveren Giriş" : "Employer Login"}
                   </a>
-                  <a href="/login" style={popupBtn("#0284c7", "#ffffff")}>
+                  <a href="/login" className="nb-popup-btn nb-popup-btn--jobseeker">
                     {isTurkish ? "İş Arıyorum Giriş" : "Job Seeker Login"}
                   </a>
                 </div>
@@ -254,18 +219,7 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
               <button
                 type="button"
                 onClick={() => setShowLoginPopup(false)}
-                style={{
-                  width: "100%",
-                  marginTop: 10,
-                  border: "1px solid #e2e8f0",
-                  background: "#f8fafc",
-                  color: "#334155",
-                  borderRadius: 8,
-                  padding: "7px 10px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
+                className="nb-popup__close-btn"
               >
                 {copy.close}
               </button>
@@ -275,35 +229,4 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       </div>
     </nav>
   );
-}
-
-function ctaBtn(c: { ctaBg: string; ctaText: string }) {
-  return {
-    background: c.ctaBg,
-    color: c.ctaText,
-    padding: "7px 14px",
-    borderRadius: 8,
-    textDecoration: "none",
-    fontWeight: 800,
-    fontSize: 13,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-  } as const;
-}
-
-function popupBtn(bg: string, color: string) {
-  return {
-    display: "block",
-    width: "100%",
-    textAlign: "center" as const,
-    background: bg,
-    color,
-    borderRadius: 8,
-    textDecoration: "none",
-    padding: "10px 12px",
-    fontWeight: 700,
-    fontSize: 13,
-    lineHeight: 1.25,
-    whiteSpace: "normal" as const,
-    overflowWrap: "anywhere" as const,
-  };
 }
