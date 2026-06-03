@@ -208,6 +208,7 @@
   font-weight: 700;
   background: var(--pf-gray-50);
   border-bottom: 1px solid var(--pf-border-color);
+  color: var(--co-color);
 }
 
 .co-grouphd span {
@@ -216,6 +217,7 @@
   border-radius: 50%;
   flex-shrink: 0;
   display: inline-block;
+  background: var(--co-color);
 }
 
 /* Company row */
@@ -259,7 +261,9 @@
   min-height: 38px;
   border-radius: 0 2px 2px 0;
   flex-shrink: 0;
+  background: var(--co-color);
 }
+.co-row--supplier { --co-color: #be123c; }
 
 .co-row__tree {
   font-size: 12px;
@@ -278,7 +282,9 @@
   color: #fff;
   flex-shrink: 0;
   overflow: hidden;
+  background: var(--co-color);
 }
+.co-logo--supplier { --co-color: #be123c; }
 
 .co-logo--sm {
   width: 28px;
@@ -415,7 +421,10 @@
   font-weight: 700;
   white-space: nowrap;
   vertical-align: middle;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
 }
+.co-type-pill--supplier { --pill-bg: #be123c1f; --pill-fg: #be123c; }
 
 /* Badges in detail header */
 .co-badge {
@@ -537,7 +546,9 @@
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
+  background: var(--co-color);
 }
+.co-av--supplier { --co-color: #be123c; }
 
 .co-contact__b {
   display: grid;

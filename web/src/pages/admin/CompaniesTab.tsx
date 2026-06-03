@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { CompanyCreateModal } from "../../components/CompanyCreateModal";
 import type { AdminSupplierListItem, Company, Tenant, TenantUser } from "../../services/admin.service";
 import { deleteAdminSupplier, updateAdminSupplierManagementDetail, updateCompany } from "../../services/admin.service";
@@ -311,11 +312,12 @@ export function CompaniesTab({
         key={c.id}
         type="button"
         className={"co-row" + (c.id === sel?.id ? " on" : "") + (!c.is_active ? " co-row--off" : "") + (isAlt ? " co-row--alt" : "")}
+        style={{ "--co-color": c.color } as CSSProperties}
         onClick={() => setSelId(c.id)}
       >
-        <span className="co-row__bar" style={{ background: c.color }} />
+        <span className="co-row__bar" />
         {isAlt && <span className="co-row__tree">└</span>}
-        <span className="co-logo co-logo--sm" style={{ background: c.color }}>
+        <span className="co-logo co-logo--sm">
           {renderLogoImg(c.logo_url, c.name) ?? coLogo(c.name)}
         </span>
         <span className="co-row__meta">
@@ -341,11 +343,11 @@ export function CompaniesTab({
       <button
         key={s.id}
         type="button"
-        className={"co-row" + (s.id === selSup?.id ? " on" : "") + (!isActive ? " co-row--off" : "")}
+        className={"co-row co-row--supplier" + (s.id === selSup?.id ? " on" : "") + (!isActive ? " co-row--off" : "")}
         onClick={() => setSelId(s.id)}
       >
-        <span className="co-row__bar" style={{ background: "#be123c" }} />
-        <span className="co-logo co-logo--sm" style={{ background: "#be123c" }}>
+        <span className="co-row__bar" />
+        <span className="co-logo co-logo--sm">
           {renderLogoImg(s.logo_url, s.company_name) ?? coLogo(s.company_name)}
         </span>
         <span className="co-row__meta">
@@ -370,14 +372,14 @@ export function CompaniesTab({
     return (
       <>
         <div className="co-detail__hd">
-          <span className="co-logo co-logo--lg" style={{ background: c.color }}>
+          <span className="co-logo co-logo--lg" style={{ "--co-color": c.color } as CSSProperties}>
             {renderLogoImg(c.logo_url, c.name) ?? coLogo(c.name)}
           </span>
           <div className="co-detail__info">
             <h3 className="co-detail__title">
               {c.name}
               {" "}
-              <span className="co-type-pill" style={{ background: segColor + "1f", color: segColor }}>
+              <span className="co-type-pill" style={{ "--pill-bg": segColor + "1f", "--pill-fg": segColor } as CSSProperties}>
                 {SEG_META[segment].label}
               </span>
               {c.is_platform_primary && <span className="co-badge co-badge--platform">★ Platform Ana</span>}
@@ -436,7 +438,7 @@ export function CompaniesTab({
 
           <Section title="Yetkili & iletişim" sub="birincil kişi">
             <div className="co-contact">
-              <span className="co-av" style={{ background: c.color }}>
+              <span className="co-av" style={{ "--co-color": c.color } as CSSProperties}>
                 {coLogo(c.owner_full_name ?? c.name)}
               </span>
               <div className="co-contact__b">
@@ -470,9 +472,10 @@ export function CompaniesTab({
                   key={r.id}
                   type="button"
                   className="co-famcard"
+                  style={{ "--co-color": r.color } as CSSProperties}
                   onClick={() => setSelId(r.id)}
                 >
-                  <span className="co-logo co-logo--sm" style={{ background: r.color }}>
+                  <span className="co-logo co-logo--sm">
                     {coLogo(r.name)}
                   </span>
                   <div>
@@ -497,14 +500,14 @@ export function CompaniesTab({
     return (
       <>
         <div className="co-detail__hd">
-          <span className="co-logo co-logo--lg" style={{ background: "#be123c" }}>
+          <span className="co-logo co-logo--lg co-logo--supplier">
             {renderLogoImg(s.logo_url, s.company_name) ?? coLogo(s.company_name)}
           </span>
           <div className="co-detail__info">
             <h3 className="co-detail__title">
               {s.company_name}
               {" "}
-              <span className="co-type-pill" style={{ background: "#be123c1f", color: "#be123c" }}>
+              <span className="co-type-pill co-type-pill--supplier">
                 Tedarikçi
               </span>
               {s.special_listing_active && <span className="co-badge co-badge--special">Özel Liste</span>}
@@ -553,7 +556,7 @@ export function CompaniesTab({
 
           <Section title="Yetkili" sub="sorumlu kullanıcı">
             <div className="co-contact">
-              <span className="co-av" style={{ background: "#be123c" }}>
+              <span className="co-av co-av--supplier">
                 {coLogo(responsible || s.company_name)}
               </span>
               <div className="co-contact__b">
@@ -666,8 +669,8 @@ export function CompaniesTab({
                 const tenantLabel = resolveCompanyTenantLabel(primary) ?? primary.name;
                 return (
                   <div key={primary.tenant_id ?? primary.id}>
-                    <div className="co-grouphd" style={{ color: primary.color }}>
-                      <span style={{ background: primary.color }} />
+                    <div className="co-grouphd" style={{ "--co-color": primary.color } as CSSProperties}>
+                      <span />
                       {tenantLabel}
                     </div>
                     {group.map((c) => companyRow(c))}
