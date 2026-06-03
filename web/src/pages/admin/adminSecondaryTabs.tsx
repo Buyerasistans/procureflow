@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
 import { canAccessAdminSurface, isSuperAdminUser } from "../../auth/permissions";
@@ -6,7 +6,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getAccessToken } from "../../lib/token";
 import { CampaignsAdminTab } from "../../components/admin/CampaignsTab.tsx";
 import { PageHeader, StatCard, Section, DataTable } from "./AdminTabContent";
-import { getDiscoveryLabSummary, type DiscoveryLabSummary } from "../../services/admin.service";
+import { getProjects, type Project } from "../../services/admin.service";
 import "./adminSecondaryTabs.css";
 import "./networkHub.css";
 
@@ -2243,40 +2243,142 @@ export function ChannelPartnersAdminTab() {
   );
 }
 
+const AIL_MODELS = [
+  { id: "buyer_cad" as const, label: "Buyer-CAD",  icon: "🏗️", sub: "Özel mimari model" },
+  { id: "claude"    as const, label: "Claude",      icon: "🤖", sub: "Anthropic · Sonnet" },
+  { id: "gpt"       as const, label: "GPT",         icon: "⚡", sub: "OpenAI · GPT-4o" },
+  { id: "gemini"    as const, label: "Gemini",      icon: "✨", sub: "Google · 1.5 Pro" },
+];
+
+const AIL_AUTO_KEY = "pf_discovery_lab_auto_open_quote";
+
 /* ── AI Lab Admin Tab (ail-) ── */
 export function AiLabAdminTab() {
-  const [summary, setSummary] = useState<DiscoveryLabSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedModel, setSelectedModel] = useState<"buyer_cad" | "claude" | "gpt" | "gemini">("buyer_cad");
+  const [uploading, setUploading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadDone, setUploadDone] = useState(false);
+  const [autoOpen, setAutoOpen] = useState<boolean>(() => {
+    try { return window.localStorage.getItem(AIL_AUTO_KEY) === "true"; } catch { return false; }
+  });
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { getProjects().then(setProjects).catch(() => {}); }, []);
 
   useEffect(() => {
-    getDiscoveryLabSummary()
-      .then(setSummary)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    try { window.localStorage.setItem(AIL_AUTO_KEY, String(autoOpen)); } catch { /* ignore */ }
+  }, [autoOpen]);
 
-  const v = (key: keyof DiscoveryLabSummary) =>
-    loading ? "…" : String(summary?.[key] ?? 0);
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    setUploadDone(false);
+    setUploading(true);
+    setUploadPhase("Dosya sunucuya aktarılıyor…");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      if (selectedProjectId) fd.append("project_id", String(selectedProjectId));
+      const token = getAccessToken();
+      const base = (import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:8000";
+      setUploadPhase("CAD metadata çıkarılıyor, AI denetimi hazırlanıyor…");
+      const res = await fetch(`${base}/api/v1/ai-lab/analyze`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      const data = (await res.json()) as { detail?: unknown; session_id?: string };
+      if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Analiz başarısız.");
+      setUploadDone(true);
+      if (autoOpen) window.location.href = "/discovery-lab";
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Bilinmeyen hata.");
+    } finally {
+      setUploading(false);
+      setUploadPhase(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   return (
     <div className="ail-tab">
       <PageHeader
-        eyebrow="Bilişsel Analiz"
+        eyebrow="AI & Keşif"
         title="AI Keşif Lab"
-        sub="Mimari proje analizi, metraj çıkarımı ve RFQ üretim istatistikleri"
+        sub="Model seçimi, DWG/DXF yükleme ve AI destekli metraj çıkarımı"
       />
-      <div className="kpi-grid">
-        <StatCard label="Toplam Oturum"  value={v("total_sessions")}        accent="blue" />
-        <StatCard label="Quote Hazır"    value={v("quote_ready_sessions")}   accent="green" />
-        <StatCard label="Kilitli Oturum" value={v("locked_sessions")}        accent="warn" />
-        <StatCard label="Aktif Proje"    value={v("active_project_count")}   accent="violet" />
-        <StatCard label="Toplam Audit"   value={v("answer_audit_count")} />
-      </div>
-      <Section title="Operasyon Yönetimi">
-        <p className="ail-tab__note">
-          AI Lab oturum denetimi, RFQ bağlantıları ve cevap yönetimi için{" "}
-          <strong>Discovery Lab Operasyonları</strong> sekmesini kullanın.
-        </p>
+
+      <Section title="Model Seçimi">
+        <div className="ail-models">
+          {AIL_MODELS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`ail-model-card${selectedModel === m.id ? " ail-model-card--active" : ""}`}
+              onClick={() => setSelectedModel(m.id)}
+            >
+              <span className="ail-model-icon">{m.icon}</span>
+              <span className="ail-model-name">{m.label}</span>
+              <span className="ail-model-sub">{m.sub}</span>
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Proje">
+        <select
+          className="ail-select"
+          value={selectedProjectId ?? ""}
+          onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : null)}
+        >
+          <option value="">Otomatik (yeni Discovery Lab projesi oluşturulacak)</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      </Section>
+
+      <Section title="DWG / DXF Yükle">
+        <div
+          className={`ail-upload-zone${uploading ? " ail-upload-zone--uploading" : ""}`}
+          onClick={() => !uploading && fileRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (!uploading && (e.key === "Enter" || e.key === " ")) fileRef.current?.click(); }}
+          aria-label="Dosya yükleme alanı"
+        >
+          {uploading ? (
+            <>
+              <div className="ail-spinner" />
+              <p className="ail-upload-zone__text">{uploadPhase ?? "Analiz devam ediyor…"}</p>
+            </>
+          ) : uploadDone ? (
+            <>
+              <span className="ail-upload-ok">✓</span>
+              <p className="ail-upload-zone__text">Analiz tamamlandı</p>
+              <a href="/discovery-lab" className="ail-link" onClick={(e) => e.stopPropagation()}>Discovery Lab'da görüntüle →</a>
+            </>
+          ) : (
+            <>
+              <span className="ail-upload-icon">↑</span>
+              <p className="ail-upload-zone__text">Mimari projeyi sürükleyin veya tıklayın</p>
+              <p className="ail-upload-zone__sub">.dwg veya .dxf · maks. 50 MB</p>
+            </>
+          )}
+          <input ref={fileRef} type="file" accept=".dwg,.dxf" disabled={uploading} style={{ display: "none" }} onChange={handleFile} />
+        </div>
+        {uploadError && <p className="ail-error">{uploadError}</p>}
+      </Section>
+
+      <Section title="Seçenek">
+        <label className="ail-toggle-row">
+          <input type="checkbox" checked={autoOpen} onChange={(e) => setAutoOpen(e.target.checked)} />
+          <span>Aktarım tamamlanınca RFQ ekranı aç</span>
+        </label>
       </Section>
     </div>
   );

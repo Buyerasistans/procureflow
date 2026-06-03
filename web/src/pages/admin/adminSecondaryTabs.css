@@ -539,12 +539,57 @@
 /* ── AI Lab Admin Tab (ail-) ── */
 .ail-tab { display: grid; gap: 1.5rem; }
 
-.ail-tab__note {
-  margin: 0;
-  color: #475569;
-  font-size: 0.9rem;
-  line-height: 1.6;
+.ail-models { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.875rem; }
+@media (max-width: 768px) { .ail-models { grid-template-columns: repeat(2, 1fr); } }
+
+.ail-model-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fff; cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  text-align: center; font: inherit;
 }
+.ail-model-card:hover { border-color: #7c3aed; }
+.ail-model-card--active { border-color: #7c3aed; background: #f5f3ff; box-shadow: 0 0 0 3px #ede9fe; }
+.ail-model-icon { font-size: 1.5rem; }
+.ail-model-name { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+.ail-model-sub  { font-size: 0.72rem; color: #64748b; }
+
+.ail-select {
+  width: 100%; max-width: 480px; padding: 8px 12px;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  font: inherit; font-size: 0.9rem; color: #1e293b; background: #fff;
+}
+
+.ail-upload-zone {
+  border: 2px dashed #cbd5e1; border-radius: 16px; padding: 2.5rem 2rem;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; background: #f8fafc;
+  transition: border-color 0.15s; min-height: 180px; justify-content: center;
+}
+.ail-upload-zone:hover { border-color: #7c3aed; }
+.ail-upload-zone--uploading { cursor: not-allowed; border-color: #7c3aed; background: #f5f3ff; }
+.ail-upload-icon { font-size: 2rem; color: #7c3aed; }
+.ail-upload-ok   { font-size: 2rem; color: #16a34a; }
+.ail-upload-zone__text { font-size: 0.9rem; font-weight: 600; color: #475569; margin: 0; }
+.ail-upload-zone__sub  { font-size: 0.78rem; color: #94a3b8; margin: 0; }
+.ail-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #ede9fe; border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: ail-spin 0.8s linear infinite;
+}
+@keyframes ail-spin { to { transform: rotate(360deg); } }
+.ail-link { font-size: 0.85rem; color: #7c3aed; font-weight: 700; text-decoration: none; }
+.ail-link:hover { text-decoration: underline; }
+.ail-error {
+  margin-top: 8px; padding: 10px 14px;
+  background: #fee2e2; border: 1px solid #fecaca;
+  border-radius: 8px; font-size: 0.85rem; color: #991b1b; margin-bottom: 0;
+}
+
+.ail-toggle-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #334155; cursor: pointer; }
+.ail-toggle-row input { width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; }
 
 .ppt-btn--ghost:disabled {
   opacity: 0.5;
