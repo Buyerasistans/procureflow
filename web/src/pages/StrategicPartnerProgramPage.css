@@ -1,0 +1,397 @@
+/* StrategicPartnerProgramPage.css — namespace: stpp-* */
+
+/* ── Root ── */
+.stpp-root {
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* ── Hero ── */
+.stpp-hero {
+  background: linear-gradient(135deg, #112a25 0%, #1e4a3d 55%, #20503e 100%);
+  color: #f0fdf4;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.stpp-hero-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.stpp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #D4AF37;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.stpp-hero-title {
+  margin: 0 0 16px;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900;
+  line-height: 1.08;
+  color: #fff;
+}
+
+.stpp-hero-title-accent {
+  color: #D4AF37;
+}
+
+.stpp-hero-desc {
+  margin: 0 auto 32px;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  max-width: 700px;
+}
+
+.stpp-hero-info-box {
+  max-width: 780px;
+  margin: 0 auto 28px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  padding: 16px 18px;
+  text-align: left;
+}
+
+.stpp-hero-info-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #D4AF37;
+}
+
+.stpp-hero-info-text {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.stpp-hero-ctas {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stpp-hero-cta-primary {
+  background: linear-gradient(135deg, #D4AF37 0%, #b5952f 100%);
+  color: #112a25;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.stpp-hero-cta-demo {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.stpp-hero-cta-plans {
+  background: transparent;
+  color: #D4AF37;
+  border: 1px solid #D4AF37;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ── Features ── */
+.stpp-features-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 52px 24px;
+}
+
+.stpp-features-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.stpp-features-subtitle {
+  text-align: center;
+  color: #64748b;
+  margin: 0 0 32px;
+  font-size: 15px;
+}
+
+.stpp-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.stpp-feature-card {
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  border-left: 4px solid #D4AF37;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.stpp-feature-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.stpp-feature-name {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.stpp-feature-desc {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* ── Governance Details ── */
+.stpp-gov-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.stpp-gov-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.stpp-gov-title {
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.stpp-gov-desc {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* ── Plans ── */
+.stpp-plans-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 52px;
+}
+
+.stpp-plans-header {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.stpp-plans-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+  text-align: center;
+}
+
+.stpp-plans-subtitle {
+  margin: 0;
+  text-align: center;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.stpp-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.stpp-plan-card {
+  border-radius: 18px;
+  background: #fff;
+  padding: 18px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+}
+
+.stpp-plan-card--start      { border: 1px solid rgba(15, 118, 110, 0.2); }
+.stpp-plan-card--grow       { border: 1px solid rgba(29, 78, 216, 0.2); }
+.stpp-plan-card--enterprise { border: 1px solid rgba(124, 58, 237, 0.2); }
+
+.stpp-plan-name {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.stpp-plan-card--start      .stpp-plan-name { color: #0f766e; }
+.stpp-plan-card--grow       .stpp-plan-name { color: #1d4ed8; }
+.stpp-plan-card--enterprise .stpp-plan-name { color: #7c3aed; }
+
+.stpp-plan-price {
+  margin-top: 10px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.stpp-plan-features {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* ── Steps ── */
+.stpp-steps-section {
+  background: linear-gradient(135deg, #112a25 0%, #1a3d30 100%);
+  padding: 52px 24px;
+}
+
+.stpp-steps-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.stpp-steps-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 32px;
+}
+
+.stpp-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stpp-step-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 14px;
+  padding: 22px;
+  text-align: center;
+}
+
+.stpp-step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #D4AF37;
+  color: #112a25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 15px;
+  margin: 0 auto 14px;
+}
+
+.stpp-step-name {
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.stpp-step-desc {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── CTA Section ── */
+.stpp-cta-section {
+  text-align: center;
+  padding: 52px 24px;
+  background: #fff;
+}
+
+.stpp-cta-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.stpp-cta-subtitle {
+  color: #64748b;
+  margin-bottom: 28px;
+  font-size: 15px;
+}
+
+.stpp-cta-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stpp-cta-register {
+  background: linear-gradient(135deg, #112a25 0%, #1e4a3d 100%);
+  color: #D4AF37;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.stpp-cta-demo {
+  background: #D4AF37;
+  color: #112a25;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+/* ── Footer ── */
+.stpp-footer {
+  background: #112a25;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+}
