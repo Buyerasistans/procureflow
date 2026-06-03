@@ -1,0 +1,49 @@
+/* SupplierQuotesGroupedView — sqgv-* namespace */
+.sqgv-empty {
+  background: white; border: 1px solid #ddd; border-radius: 8px;
+  padding: 20px; text-align: center; color: #666;
+}
+.sqgv-list { display: flex; flex-direction: column; gap: 16px; }
+.sqgv-card { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: white; }
+.sqgv-card__header {
+  padding: 16px; background: #f9fafb; border-bottom: none;
+  cursor: pointer; display: flex; justify-content: space-between;
+  align-items: center; user-select: none;
+}
+.sqgv-card__header--expanded { border-bottom: 1px solid #ddd; }
+.sqgv-card__name { margin: 0 0 8px 0; font-size: 16px; }
+.sqgv-card__meta { font-size: 13px; color: #666; }
+.sqgv-card__savings { margin-top: 4px; }
+.sqgv-card__approved { margin-top: 6px; color: #166534; font-weight: 700; }
+.sqgv-card__chevron { font-size: 20px; color: #999; }
+.sqgv-card__body { padding: 16px; }
+.sqgv-quote { margin-bottom: 16px; }
+.sqgv-quote--last { margin-bottom: 0; }
+.sqgv-qcard {
+  padding: 12px; background: #fafafa; border-radius: 6px;
+  border-left: 4px solid #3b82f6; margin-bottom: 12px;
+}
+.sqgv-qcard__row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sqgv-qcard__label { font-weight: 600; font-size: 14px; }
+.sqgv-qcard__status { margin-left: 8px; font-size: 13px; color: #666; }
+.sqgv-qcard__date { font-size: 12px; color: #999; }
+.sqgv-qcard__total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.sqgv-qcard__amount { font-size: 14px; font-weight: 600; }
+.sqgv-qcard__actions { display: flex; gap: 8px; }
+.sqgv-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.sqgv-btn--view { background: #3b82f6; color: white; }
+.sqgv-btn--revise { background: #f59e0b; color: white; }
+.sqgv-btn--approve { background: #16a34a; color: white; }
+.sqgv-btn--approve-passive { background: #e5e7eb; color: #6b7280; cursor: not-allowed; }
+.sqgv-btn--loading { opacity: 0.6; cursor: wait; }
+.sqgv-badge--approved {
+  padding: 6px 12px; background: #dcfce7; color: #166534;
+  border-radius: 4px; font-size: 13px; font-weight: 700;
+}
+.sqgv-revisions { margin-left: 16px; padding-left: 12px; border-left: 2px solid #e5e7eb; }
+.sqgv-rcard {
+  padding: 12px; background: #f0fdf4; border-radius: 6px;
+  border-left: 4px solid #10b981; margin-bottom: 12px;
+}
+.sqgv-rcard__label { font-weight: 600; font-size: 14px; color: #10b981; }
+.sqgv-rcard__actions { display: flex; gap: 8px; flex-wrap: wrap; }

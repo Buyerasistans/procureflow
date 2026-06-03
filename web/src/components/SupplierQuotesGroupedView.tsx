@@ -1,6 +1,7 @@
 // web/src/components/SupplierQuotesGroupedView.tsx
 import { useState } from "react";
 import { ProfitabilityBadge } from "./ProfitabilityBadge";
+import "./SupplierQuotesGroupedView.css";
 
 interface SupplierQuote {
   id: number;
@@ -101,101 +102,68 @@ export function SupplierQuotesGroupedView({
 
   if (suppliers.length === 0) {
     return (
-      <div
-        style={{
-          background: "white",
-          border: "1px solid #ddd",
-          borderRadius: "8px",
-          padding: "20px",
-          textAlign: "center",
-          color: "#666",
-        }}
-      >
+      <div className="sqgv-empty">
         Henüz tedarikçi teklifi alınmamıştır.
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div className="sqgv-list">
       {suppliers.map((supplier) => {
         const isExpanded = expandedSuppliers.has(supplier.supplier_id);
         const latestQuote = supplier.quotes[0];
 
         return (
-          <div
-            key={supplier.supplier_id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              overflow: "hidden",
-              background: "white",
-            }}
-          >
-            {/* Supplier Header */}
+          <div key={supplier.supplier_id} className="sqgv-card">
             <div
               onClick={() => toggleSupplier(supplier.supplier_id)}
-              style={{
-                padding: "16px",
-                background: "#f9fafb",
-                borderBottom: isExpanded ? "1px solid #ddd" : "none",
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                userSelect: "none",
-              }}
+              className={`sqgv-card__header${isExpanded ? " sqgv-card__header--expanded" : ""}`}
             >
               <div>
-                <h3 style={{ margin: "0 0 8px 0", fontSize: "16px" }}>{supplier.supplier_name}</h3>
-                <div style={{ fontSize: "13px", color: "#666" }}>
+                <h3 className="sqgv-card__name">{supplier.supplier_name}</h3>
+                <div className="sqgv-card__meta">
                   <div>En Son Teklif: {formatMoney(Number(latestQuote?.total_amount || 0), latestQuote?.currency)}</div>
                   <div>Durum: {statusLabel(latestQuote?.status)}</div>
                   {latestQuote?.profitability_amount && canManage && (
-                    <div style={{ marginTop: "4px" }}>
+                    <div className="sqgv-card__savings">
                       Tasarruf: <ProfitabilityBadge amount={latestQuote.profitability_amount} percent={latestQuote.profitability_percent} />
                     </div>
                   )}
                   {latestQuote?.status === "onaylandı" && (
-                    <div style={{ marginTop: "6px", color: "#166534", fontWeight: 700 }}>
+                    <div className="sqgv-card__approved">
                       Onaylanan tedarikçi
                     </div>
                   )}
                 </div>
               </div>
-              <div style={{ fontSize: "20px", color: "#999" }}>{isExpanded ? "▼" : "▶"}</div>
+              <div className="sqgv-card__chevron">{isExpanded ? "▼" : "▶"}</div>
             </div>
 
-            {/* Supplier Details - Expanded */}
             {isExpanded && (
-              <div style={{ padding: "16px" }}>
+              <div className="sqgv-card__body">
                 {supplier.quotes.map((quote, quoteIdx) => (
-                  <div key={quote.id} style={{ marginBottom: quoteIdx < supplier.quotes.length - 1 ? "16px" : 0 }}>
-                    <div
-                      style={{
-                        padding: "12px",
-                        background: "#fafafa",
-                        borderRadius: "6px",
-                        borderLeft: "4px solid #3b82f6",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <div
+                    key={quote.id}
+                    className={`sqgv-quote${quoteIdx >= supplier.quotes.length - 1 ? " sqgv-quote--last" : ""}`}
+                  >
+                    <div className="sqgv-qcard">
+                      <div className="sqgv-qcard__row">
                         <div>
-                          <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                          <span className="sqgv-qcard__label">
                             {quote.revision_number === 0 ? "İlk Teklif" : `${quote.revision_number}. Revizyon`}
                           </span>
-                          <span style={{ marginLeft: "8px", fontSize: "13px", color: "#666" }}>
+                          <span className="sqgv-qcard__status">
                             {statusLabel(quote.status)}
                           </span>
                         </div>
                         {quote.submitted_at && (
-                          <span style={{ fontSize: "12px", color: "#999" }}>{formatDate(quote.submitted_at)}</span>
+                          <span className="sqgv-qcard__date">{formatDate(quote.submitted_at)}</span>
                         )}
                       </div>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                        <span style={{ fontSize: "14px", fontWeight: 600 }}>
+                      <div className="sqgv-qcard__total-row">
+                        <span className="sqgv-qcard__amount">
                           Toplam: {formatMoney(Number(quote.total_amount || 0), quote.currency)}
                         </span>
                         {quote.profitability_amount && canManage && (
@@ -203,18 +171,10 @@ export function SupplierQuotesGroupedView({
                         )}
                       </div>
 
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <div className="sqgv-qcard__actions">
                         <button
                           onClick={() => onViewDetails(quote.id, supplier.supplier_name)}
-                          style={{
-                            padding: "6px 12px",
-                            background: "#3b82f6",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "13px",
-                          }}
+                          className="sqgv-btn sqgv-btn--view"
                         >
                           Göster
                         </button>
@@ -229,16 +189,7 @@ export function SupplierQuotesGroupedView({
                               )
                             }
                             disabled={loading}
-                            style={{
-                              padding: "6px 12px",
-                              background: "#f59e0b",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: loading ? "wait" : "pointer",
-                              fontSize: "13px",
-                              opacity: loading ? 0.6 : 1,
-                            }}
+                            className={`sqgv-btn sqgv-btn--revise${loading ? " sqgv-btn--loading" : ""}`}
                           >
                             Revize İste
                           </button>
@@ -248,68 +199,40 @@ export function SupplierQuotesGroupedView({
                           <button
                             onClick={() => onApproveSupplierQuote(quote.id, supplier.supplier_name)}
                             disabled={loading || hasApprovedQuote}
-                            style={{
-                              padding: "6px 12px",
-                              background: hasApprovedQuote ? "#e5e7eb" : "#16a34a",
-                              color: hasApprovedQuote ? "#6b7280" : "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: loading ? "wait" : hasApprovedQuote ? "not-allowed" : "pointer",
-                              fontSize: "13px",
-                              opacity: loading ? 0.6 : 1,
-                            }}
+                            className={`sqgv-btn sqgv-btn--approve${hasApprovedQuote ? " sqgv-btn--approve-passive" : ""}${loading ? " sqgv-btn--loading" : ""}`}
                           >
                             {hasApprovedQuote ? "Pasif" : "İş Onayı Ver"}
                           </button>
                         )}
 
                         {quote.status === "onaylandı" && (
-                          <span
-                            style={{
-                              padding: "6px 12px",
-                              background: "#dcfce7",
-                              color: "#166534",
-                              borderRadius: "4px",
-                              fontSize: "13px",
-                              fontWeight: 700,
-                            }}
-                          >
+                          <span className="sqgv-badge--approved">
                             Onaylandı
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Revisions */}
                     {quote.revisions && quote.revisions.length > 0 && (
-                      <div style={{ marginLeft: "16px", paddingLeft: "12px", borderLeft: "2px solid #e5e7eb" }}>
+                      <div className="sqgv-revisions">
                         {quote.revisions.map((revision) => (
-                          <div
-                            key={revision.id}
-                            style={{
-                              padding: "12px",
-                              background: "#f0fdf4",
-                              borderRadius: "6px",
-                              borderLeft: "4px solid #10b981",
-                              marginBottom: "12px",
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                          <div key={revision.id} className="sqgv-rcard">
+                            <div className="sqgv-qcard__row">
                               <div>
-                                <span style={{ fontWeight: 600, fontSize: "14px", color: "#10b981" }}>
+                                <span className="sqgv-rcard__label">
                                   {revision.revision_number}. Revizyon
                                 </span>
-                                <span style={{ marginLeft: "8px", fontSize: "13px", color: "#666" }}>
+                                <span className="sqgv-qcard__status">
                                   {statusLabel(revision.status)}
                                 </span>
                               </div>
                               {revision.submitted_at && (
-                                <span style={{ fontSize: "12px", color: "#999" }}>{formatDate(revision.submitted_at)}</span>
+                                <span className="sqgv-qcard__date">{formatDate(revision.submitted_at)}</span>
                               )}
                             </div>
 
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                              <span style={{ fontSize: "14px", fontWeight: 600 }}>
+                            <div className="sqgv-qcard__total-row">
+                              <span className="sqgv-qcard__amount">
                                 Toplam: {formatMoney(Number(revision.total_amount || 0), revision.currency)}
                               </span>
                               {revision.profitability_amount && canManage && (
@@ -317,18 +240,10 @@ export function SupplierQuotesGroupedView({
                               )}
                             </div>
 
-                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            <div className="sqgv-rcard__actions">
                               <button
                                 onClick={() => onViewDetails(revision.id, supplier.supplier_name)}
-                                style={{
-                                  padding: "6px 12px",
-                                  background: "#3b82f6",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "4px",
-                                  cursor: "pointer",
-                                  fontSize: "13px",
-                                }}
+                                className="sqgv-btn sqgv-btn--view"
                               >
                                 Göster
                               </button>
@@ -337,32 +252,14 @@ export function SupplierQuotesGroupedView({
                                 <button
                                   onClick={() => onApproveSupplierQuote(revision.id, supplier.supplier_name)}
                                   disabled={loading || hasApprovedQuote}
-                                  style={{
-                                    padding: "6px 12px",
-                                    background: hasApprovedQuote ? "#e5e7eb" : "#16a34a",
-                                    color: hasApprovedQuote ? "#6b7280" : "white",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: loading ? "wait" : hasApprovedQuote ? "not-allowed" : "pointer",
-                                    fontSize: "13px",
-                                    opacity: loading ? 0.6 : 1,
-                                  }}
+                                  className={`sqgv-btn sqgv-btn--approve${hasApprovedQuote ? " sqgv-btn--approve-passive" : ""}${loading ? " sqgv-btn--loading" : ""}`}
                                 >
                                   {hasApprovedQuote ? "Pasif" : "İş Onayı Ver"}
                                 </button>
                               )}
 
                               {revision.status === "onaylandı" && (
-                                <span
-                                  style={{
-                                    padding: "6px 12px",
-                                    background: "#dcfce7",
-                                    color: "#166534",
-                                    borderRadius: "4px",
-                                    fontSize: "13px",
-                                    fontWeight: 700,
-                                  }}
-                                >
+                                <span className="sqgv-badge--approved">
                                   Onaylandı
                                 </span>
                               )}
