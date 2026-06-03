@@ -1,0 +1,155 @@
+/* DepartmentDetailPage.css — namespace: ddp-* */
+
+/* ── State pages ── */
+.ddp-loading   { padding: 20px; }
+.ddp-error     { padding: 20px; color: red; }
+.ddp-not-found { padding: 20px; }
+
+/* ── Root ── */
+.ddp-root {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ── Top back button ── */
+.ddp-back-btn {
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ── Card (view + edit mode) ── */
+.ddp-card {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* ── View mode fields ── */
+.ddp-field        { margin-bottom: 16px; }
+.ddp-desc-content { margin-top: 4px; }
+.ddp-task-section { margin-top: 8px; }
+
+.ddp-task-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ddp-task-item        { }
+.ddp-task-item--pasif { color: #9ca3af; }
+
+.ddp-status-active { color: #10b981; }
+.ddp-status-pasif  { color: #9ca3af; }
+
+/* ── Button row ── */
+.ddp-btn-row { display: flex; gap: 8px; }
+
+/* ── Action buttons ── */
+.ddp-edit-btn {
+  padding: 10px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.ddp-save-btn {
+  padding: 10px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.ddp-secondary-btn {
+  padding: 10px 16px;
+  background: #f3f4f6;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ── Edit mode form ── */
+.ddp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ddp-input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.ddp-textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  min-height: 100px;
+}
+
+/* ── Task input row ── */
+.ddp-task-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ddp-task-input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.ddp-task-add-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* ── Task edit list ── */
+.ddp-task-edit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ddp-task-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ddp-task-name { font-weight: 500; }
+
+.ddp-toggle-btn--active   { background: #10b981; color: white;   border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+.ddp-toggle-btn--inactive { background: #d1d5db; color: #374151; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+
+.ddp-remove-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getDepartments, updateDepartment } from "../services/admin.service";
 import type { Department } from "../services/admin.service";
+import "./DepartmentDetailPage.css";
 
 export default function DepartmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +15,6 @@ export default function DepartmentDetailPage() {
     name: "",
     description: "",
   });
-  // İş/hizmetler için state
   const [tasks, setTasks] = useState<{ name: string; active: boolean }[]>([]);
   const [taskInput, setTaskInput] = useState("");
 
@@ -29,7 +29,6 @@ export default function DepartmentDetailPage() {
           name: dept.name,
           description: dept.description || "",
         });
-        // İş/hizmetleri açıklamadan ayrıştır
         const taskLines = (dept.description || "").split("\n").filter(l => l.startsWith("- "));
         const parsedTasks = taskLines.map(line => {
           const match = line.match(/^- (.+) \[(Aktif|Pasif)\]/);
@@ -52,7 +51,6 @@ export default function DepartmentDetailPage() {
 
   const handleSave = async () => {
     try {
-      // İş/hizmetleri açıklamaya ekle
       const taskSummary = tasks.length
         ? `\nİş/Hizmetler:\n` + tasks.map(t => `- ${t.name} [${t.active ? "Aktif" : "Pasif"}]`).join("\n")
         : "";
@@ -62,7 +60,6 @@ export default function DepartmentDetailPage() {
       });
       setError(null);
       setIsEditing(false);
-      // Kaydettikten sonra departmanlar sekmesine yönlendir
       navigate("/admin?tab=departments");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Güncelleme hatası");
@@ -84,29 +81,22 @@ export default function DepartmentDetailPage() {
     setTasks(tasks.filter((_, i) => i !== idx));
   }
 
-  // URL'de ?edit=true varsa otomatik düzenleme moduna geç
   useEffect(() => {
     if (window.location.search.includes("edit=true")) {
       setIsEditing(true);
     }
   }, []);
 
-  if (loading) return <div style={{ padding: 20 }}>Yükleniyor...</div>;
-  if (error) return <div style={{ padding: 20, color: "red" }}>❌ {error}</div>;
-  if (!department) return <div style={{ padding: 20 }}>Departman bulunamadı</div>;
+  if (loading) return <div className="ddp-loading">Yükleniyor...</div>;
+  if (error) return <div className="ddp-error">❌ {error}</div>;
+  if (!department) return <div className="ddp-not-found">Departman bulunamadı</div>;
 
   return (
-    <div style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
+    <div className="ddp-root">
       <button
+        type="button"
         onClick={() => navigate("/admin?tab=departments")}
-        style={{
-          marginBottom: 20,
-          padding: "8px 16px",
-          background: "#f3f4f6",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
+        className="ddp-back-btn"
       >
         ← Geri Dön
       </button>
@@ -114,14 +104,13 @@ export default function DepartmentDetailPage() {
       <h1>🏢 {department.name}</h1>
 
       {!isEditing ? (
-        <div style={{ background: "#f9fafb", padding: 20, borderRadius: 8, border: "1px solid #ddd" }}>
-          <div style={{ marginBottom: 16 }}>
+        <div className="ddp-card">
+          <div className="ddp-field">
             <strong>Departman Adı:</strong> {department.name}
           </div>
-          {/* Açıklama ve iş/hizmetler ayrıştırılmış gösterim */}
-          <div style={{ marginBottom: 16 }}>
+          <div className="ddp-field">
             <strong>Açıklama:</strong>
-            <div style={{ marginTop: 4 }}>
+            <div className="ddp-desc-content">
               {(() => {
                 const desc = department.description || "";
                 const [mainDesc, ...rest] = desc.split(/\nİş\/Hizmetler:/);
@@ -130,16 +119,20 @@ export default function DepartmentDetailPage() {
                   <>
                     <div>{mainDesc.trim() || "Açıklama eklenmemiş"}</div>
                     {taskLines.length > 0 && (
-                      <div style={{ marginTop: 8 }}>
+                      <div className="ddp-task-section">
                         <strong>İş/Hizmetler:</strong>
-                        <ul style={{ margin: 0, paddingLeft: 20 }}>
+                        <ul className="ddp-task-list">
                           {taskLines.map((line, i) => {
                             const match = line.match(/^- (.+) \[(Aktif|Pasif)\]/);
                             return (
-                              <li key={i} style={{ color: match && match[2] === "Pasif" ? "#9ca3af" : undefined }}>
+                              <li key={i} className={match && match[2] === "Pasif" ? "ddp-task-item ddp-task-item--pasif" : "ddp-task-item"}>
                                 {match ? (
                                   <>
-                                    {match[1]} {match[2] === "Aktif" ? <span style={{ color: "#10b981" }}>[Aktif]</span> : <span style={{ color: "#9ca3af" }}>[Pasif]</span>}
+                                    {match[1]}{" "}
+                                    {match[2] === "Aktif"
+                                      ? <span className="ddp-status-active">[Aktif]</span>
+                                      : <span className="ddp-status-pasif">[Pasif]</span>
+                                    }
                                   </>
                                 ) : line}
                               </li>
@@ -153,99 +146,73 @@ export default function DepartmentDetailPage() {
               })()}
             </div>
           </div>
-          <div style={{ marginBottom: 16 }}>
+          <div className="ddp-field">
             <strong>Durum:</strong> {department.is_active ? "✅ Aktif" : "❌ Pasif"}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={() => setIsEditing(true)}
-              style={{
-                padding: "10px 16px",
-                background: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
+          <div className="ddp-btn-row">
+            <button type="button" onClick={() => setIsEditing(true)} className="ddp-edit-btn">
               Düzenle
             </button>
-            <button
-              onClick={() => navigate("/admin?tab=departments")}
-              style={{
-                padding: "10px 16px",
-                background: "#f3f4f6",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
+            <button type="button" onClick={() => navigate("/admin?tab=departments")} className="ddp-secondary-btn">
               Geri Dön
             </button>
           </div>
         </div>
       ) : (
-        <div style={{ background: "#f9fafb", padding: 20, borderRadius: 8, border: "1px solid #ddd" }}>
+        <div className="ddp-card">
           <h2>Departman Bilgilerini Düzenle</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 16 }}>
+          <div className="ddp-form-grid">
             <div>
-              <label>Departman Adı:</label>
+              <label htmlFor="ddp-dept-name">Departman Adı:</label>
               <input
+                id="ddp-dept-name"
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", boxSizing: "border-box" }}
+                className="ddp-input"
               />
             </div>
             <div>
-              <label>Açıklama:</label>
+              <label htmlFor="ddp-dept-desc">Açıklama:</label>
               <textarea
+                id="ddp-dept-desc"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", boxSizing: "border-box", minHeight: 100 }}
+                className="ddp-textarea"
               />
             </div>
-            {/* İş/Hizmet Ekleme Alanı */}
             <div>
-              <label>İş/Hizmetler</label>
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <label htmlFor="ddp-task-input">İş/Hizmetler</label>
+              <div className="ddp-task-input-row">
                 <input
+                  id="ddp-task-input"
                   type="text"
                   value={taskInput}
                   onChange={e => setTaskInput(e.target.value)}
                   placeholder="İş veya hizmet adı"
-                  style={{ flex: 1, padding: 8, borderRadius: 4, border: "1px solid #ddd" }}
+                  className="ddp-task-input"
                 />
-                <button type="button" onClick={handleAddTask} style={{ background: "#10b981", color: "white", border: "none", borderRadius: 4, padding: "8px 16px", cursor: "pointer" }}>
+                <button type="button" onClick={handleAddTask} className="ddp-task-add-btn">
                   Ekle
                 </button>
               </div>
-              {/* Sadece aktif iş/hizmetler gösterilecek */}
               {tasks.filter(t => t.active).length > 0 && (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                <ul className="ddp-task-edit-list">
                   {tasks.filter(t => t.active).map((task, idx) => (
-                    <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontWeight: 500 }}>{task.name}</span>
+                    <li key={idx} className="ddp-task-edit-item">
+                      <span className="ddp-task-name">{task.name}</span>
                       <button
                         type="button"
                         onClick={() => handleToggleTask(idx)}
                         title={task.active ? "Pasifleştir" : "Aktifleştir"}
-                        style={{
-                          background: task.active ? "#10b981" : "#d1d5db",
-                          color: task.active ? "white" : "#374151",
-                          border: "none",
-                          borderRadius: 4,
-                          padding: "2px 8px",
-                          cursor: "pointer"
-                        }}
+                        className={task.active ? "ddp-toggle-btn--active" : "ddp-toggle-btn--inactive"}
                       >
                         {task.active ? "✔️" : "❌"}
                       </button>
                       <button
                         type="button"
                         onClick={() => handleRemoveTask(idx)}
-                        style={{ background: "#ef4444", color: "white", border: "none", borderRadius: 4, padding: "2px 8px", cursor: "pointer" }}
+                        className="ddp-remove-btn"
                       >
                         Sil
                       </button>
@@ -255,31 +222,11 @@ export default function DepartmentDetailPage() {
               )}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={handleSave}
-              style={{
-                padding: "10px 16px",
-                background: "#10b981",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
+          <div className="ddp-btn-row">
+            <button type="button" onClick={handleSave} className="ddp-save-btn">
               Kaydet
             </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              style={{
-                padding: "10px 16px",
-                background: "#f3f4f6",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
+            <button type="button" onClick={() => setIsEditing(false)} className="ddp-secondary-btn">
               İptal
             </button>
           </div>
