@@ -80,6 +80,8 @@
 
 .cl-audfilter button.on {
   color: #fff;
+  background: var(--cl-aud-color);
+  border-color: var(--cl-aud-color);
 }
 
 .cl-dot {
@@ -87,6 +89,7 @@
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--cl-aud-color);
 }
 
 /* ── Two-pane split ── */
@@ -160,6 +163,7 @@
   min-height: 44px;
   border-radius: 0 2px 2px 0;
   flex-shrink: 0;
+  background: var(--cl-row-color);
 }
 
 .cl-row__ico {
@@ -171,6 +175,8 @@
   justify-content: center;
   font-size: 13px;
   flex-shrink: 0;
+  background: var(--cl-row-ico-bg);
+  color: var(--cl-row-color);
 }
 
 .cl-row__meta {
@@ -278,6 +284,8 @@
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  background: var(--cl-pill-bg);
+  color: var(--cl-pill-fg);
 }
 
 /* ── Code inline ── */
@@ -313,7 +321,12 @@
   justify-content: center;
   font-size: 14px;
   flex-shrink: 0;
+  background: var(--cl-chan-bg, transparent);
+  color: var(--cl-chan-fg, inherit);
 }
+
+.cl-chan__ico--landing { --cl-chan-bg: #eef6ff; --cl-chan-fg: #1d4ed8; }
+.cl-chan__ico--links   { --cl-chan-bg: #ecfdf5; --cl-chan-fg: #047857; }
 
 .cl-chan__b {
   flex: 1;
@@ -399,6 +412,8 @@
   height: 100%;
   border-radius: 3px;
   transition: width 0.3s;
+  width: var(--cl-prog-w, 0%);
+  background: var(--cl-prog-bg, #1d4ed8);
 }
 
 .cl-prog span { font-size: 11px; color: var(--pf-slate-500); white-space: nowrap; }
@@ -459,6 +474,8 @@
   height: 100%;
   border-radius: 4px;
   transition: width 0.3s;
+  width: var(--cl-bar-w, 0%);
+  background: var(--cl-bar-bg, #1d4ed8);
 }
 
 .cl-bar-row__n {
@@ -790,7 +807,7 @@
 }
 
 .cl-aud-card:hover { background: var(--pf-gray-50); }
-.cl-aud-card.on    { background: var(--pf-indigo-50, #eef2ff); }
+.cl-aud-card.on    { background: var(--pf-indigo-50, #eef2ff); border-color: var(--cl-aud-color); box-shadow: 0 0 0 2px var(--cl-aud-shadow); }
 
 .cl-aud-card__ico {
   width: 28px;
@@ -801,6 +818,8 @@
   justify-content: center;
   font-size: 14px;
   margin-bottom: 4px;
+  background: var(--cl-aud-ico-bg);
+  color: var(--cl-aud-color);
 }
 
 .cl-aud-card b    { font-size: 12px; font-weight: 700; color: var(--pf-slate-800); }
@@ -833,6 +852,7 @@
 }
 
 .cl-goal-opt:hover { background: var(--pf-gray-50); }
+.cl-goal-opt.on    { border-color: var(--cl-goal-color); background: var(--cl-goal-bg); }
 
 .cl-goal-opt b    { font-size: 12px; font-weight: 700; color: var(--pf-slate-800); display: block; }
 .cl-goal-opt span { font-size: 11px; color: var(--pf-slate-500); }
@@ -844,6 +864,8 @@
   border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
+  background: var(--cl-pb-bg);
+  color: var(--cl-pb-fg);
 }
 
 /* ── Wizard two-column row ── */
@@ -964,6 +986,9 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ── Utilities ── */
+.cl-flex1 { flex: 1; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {

@@ -4,6 +4,7 @@
  * Ödeme sağlayıcı ayarları en altta ayrı Section olarak korunur.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { PageHeader, Section, StatCard } from "../../pages/admin/AdminTabContent";
 import {
   applyCampaignGrant,
@@ -267,10 +268,10 @@ function CampaignWizard({ onClose, onCreate, setError }: WizardProps) {
                       key={k}
                       type="button"
                       className={"cl-aud-card" + (w.audience === k ? " on" : "")}
-                      style={w.audience === k ? { borderColor: m.color, boxShadow: "0 0 0 2px " + m.color + "33" } : {}}
+                      style={{ "--cl-aud-color": m.color, "--cl-aud-shadow": m.color + "33", "--cl-aud-ico-bg": m.color + "1f" } as CSSProperties}
                       onClick={() => pickAudience(k)}
                     >
-                      <span className="cl-aud-card__ico" style={{ background: m.color + "1f", color: m.color }}>●</span>
+                      <span className="cl-aud-card__ico">●</span>
                       <b>{m.label}</b>
                       <span>{m.desc}</span>
                     </button>
@@ -287,7 +288,7 @@ function CampaignWizard({ onClose, onCreate, setError }: WizardProps) {
                         key={g}
                         type="button"
                         className={"cl-goal-opt" + (w.goal === g ? " on" : "")}
-                        style={w.goal === g ? { borderColor: AUD_META[w.audience].color, background: AUD_META[w.audience].color + "1a" } : {}}
+                        style={{ "--cl-goal-color": AUD_META[w.audience].color, "--cl-goal-bg": AUD_META[w.audience].color + "1a" } as CSSProperties}
                         onClick={() => up({ goal: g })}
                       >
                         <b>{GOAL_META[g]?.label ?? g}</b>
@@ -303,7 +304,7 @@ function CampaignWizard({ onClose, onCreate, setError }: WizardProps) {
           {/* ADIM 2 */}
           {w.step === 2 && (
             <>
-              <span className="cl-pickbadge" style={{ background: AUD_META[w.audience].color + "1f", color: AUD_META[w.audience].color }}>
+              <span className="cl-pickbadge" style={{ "--cl-pb-bg": AUD_META[w.audience].color + "1f", "--cl-pb-fg": AUD_META[w.audience].color } as CSSProperties}>
                 {AUD_META[w.audience].label}
               </span>
               <div className="cl-row2">
@@ -367,7 +368,7 @@ function CampaignWizard({ onClose, onCreate, setError }: WizardProps) {
             <div className="cl-preview">
               <div className="cl-preview__card">
                 <div className="cl-preview__top">
-                  <span className="cl-aud-pill" style={{ background: AUD_META[w.audience].color + "1f", color: AUD_META[w.audience].color }}>
+                  <span className="cl-aud-pill" style={{ "--cl-pill-bg": AUD_META[w.audience].color + "1f", "--cl-pill-fg": AUD_META[w.audience].color } as CSSProperties}>
                     {AUD_META[w.audience].label}
                   </span>
                   <span className={"cl-badge cl-badge--" + (w.publishNow ? "ok" : "wait")}>{w.publishNow ? "Yayınlanacak" : "Taslak"}</span>
@@ -397,7 +398,7 @@ function CampaignWizard({ onClose, onCreate, setError }: WizardProps) {
               {" "}Hemen yayına al
             </label>
           )}
-          <div style={{ flex: 1 }} />
+          <div className="cl-flex1" />
           {w.step > 1
             ? <button type="button" className="cl-btn cl-btn--ghost" onClick={() => up({ step: (w.step - 1) as 1 | 2 | 3 })}>Geri</button>
             : <button type="button" className="cl-btn cl-btn--ghost" onClick={onClose}>İptal</button>
@@ -606,9 +607,9 @@ export function CampaignsAdminTab() {
                 type="button"
                 className={audFilter === k ? "on" : ""}
                 onClick={() => setAudFilter(k)}
-                style={audFilter === k ? { background: AUD_META[k].color, borderColor: AUD_META[k].color, color: "#fff" } : {}}
+                style={{ "--cl-aud-color": AUD_META[k].color } as CSSProperties}
               >
-                <span className="cl-dot" style={{ background: AUD_META[k].color }} />
+                <span className="cl-dot" />
                 {AUD_META[k].label}
               </button>
             ))}
@@ -632,10 +633,11 @@ export function CampaignsAdminTab() {
                         key={c.id}
                         type="button"
                         className={"cl-row" + (c.id === sel?.id ? " on" : "")}
+                        style={{ "--cl-row-color": am.color, "--cl-row-ico-bg": am.color + "1f" } as CSSProperties}
                         onClick={() => { setSelId(c.id); }}
                       >
-                        <span className="cl-row__bar" style={{ background: am.color }} />
-                        <span className="cl-row__ico" style={{ background: am.color + "1f", color: am.color }}>●</span>
+                        <span className="cl-row__bar" />
+                        <span className="cl-row__ico">●</span>
                         <span className="cl-row__meta">
                           <b>{c.name}</b>
                           <i>{am.label} · {goalLabel(c.trigger_event)}</i>
@@ -659,7 +661,7 @@ export function CampaignsAdminTab() {
                       <h3 className="cl-detail__title">
                         {sel.name}
                         <span className={"cl-badge cl-badge--" + selStatus_.cls}>{selStatus_.label}</span>
-                        <span className="cl-aud-pill" style={{ background: selAud.color + "1f", color: selAud.color }}>{selAud.label}</span>
+                        <span className="cl-aud-pill" style={{ "--cl-pill-bg": selAud.color + "1f", "--cl-pill-fg": selAud.color } as CSSProperties}>{selAud.label}</span>
                       </h3>
                       <p className="cl-detail__desc">{sel.description || "—"}</p>
                       <p className="cl-detail__meta">
@@ -688,7 +690,7 @@ export function CampaignsAdminTab() {
                     </label>
                     <div className="cl-chans">
                       <div className="cl-chan">
-                        <span className="cl-chan__ico" style={{ background: "#eef6ff", color: "#1d4ed8" }}>⊞</span>
+                        <span className="cl-chan__ico cl-chan__ico--landing">⊞</span>
                         <div className="cl-chan__b">
                           <b>Public landing sayfası</b>
                           <code>app.buyerasistans.com.tr{landingPath(sel.audience_type)}</code>
@@ -698,7 +700,7 @@ export function CampaignsAdminTab() {
                         </span>
                       </div>
                       <div className="cl-chan">
-                        <span className="cl-chan__ico" style={{ background: selAud.color + "1f", color: selAud.color }}>●</span>
+                        <span className="cl-chan__ico" style={{ "--cl-chan-bg": selAud.color + "1f", "--cl-chan-fg": selAud.color } as CSSProperties}>●</span>
                         <div className="cl-chan__b">
                           <b>Hedef kitle paneli</b>
                           <span>{audiencePanel(sel.audience_type)}</span>
@@ -708,7 +710,7 @@ export function CampaignsAdminTab() {
                         </span>
                       </div>
                       <div className="cl-chan">
-                        <span className="cl-chan__ico" style={{ background: "#ecfdf5", color: "#047857" }}>◎</span>
+                        <span className="cl-chan__ico cl-chan__ico--links">◎</span>
                         <div className="cl-chan__b">
                           <b>Bağlı davet linkleri</b>
                           <span>{linkedLinks.length} link · {clNum(linkedLinks.reduce((s, l) => s + l.clicks, 0))} tıklama</span>
@@ -749,7 +751,7 @@ export function CampaignsAdminTab() {
                               <td>
                                 <div className="cl-prog">
                                   <div className="cl-prog__track">
-                                    <div className="cl-prog__bar" style={{ width: Math.min(100, p.progress_count * 10) + "%", background: selAud.color }} />
+                                    <div className="cl-prog__bar" style={{ "--cl-prog-w": Math.min(100, p.progress_count * 10) + "%", "--cl-prog-bg": selAud.color } as CSSProperties} />
                                   </div>
                                   <span>{p.progress_count} {selUnit}</span>
                                 </div>
@@ -838,7 +840,7 @@ export function CampaignsAdminTab() {
                   <div key={d.label} className="cl-bar-row">
                     <span className="cl-bar-row__lbl">{d.label}</span>
                     <div className="cl-bar-row__track">
-                      <div className="cl-bar-row__fill" style={{ width: (d.count / utmTotal * 100) + "%", background: d.color }} />
+                      <div className="cl-bar-row__fill" style={{ "--cl-bar-w": (d.count / utmTotal * 100) + "%", "--cl-bar-bg": d.color } as CSSProperties} />
                     </div>
                     <span className="cl-bar-row__n">{clNum(d.count)} <small>({Math.round(d.count / utmTotal * 100)}%)</small></span>
                   </div>
@@ -852,7 +854,7 @@ export function CampaignsAdminTab() {
                   <div key={it.label} className="cl-bar-row">
                     <span className="cl-bar-row__lbl">{it.label}</span>
                     <div className="cl-bar-row__track">
-                      <div className="cl-bar-row__fill" style={{ width: (it.count / intentMax * 100) + "%", background: it.color }} />
+                      <div className="cl-bar-row__fill" style={{ "--cl-bar-w": (it.count / intentMax * 100) + "%", "--cl-bar-bg": it.color } as CSSProperties} />
                     </div>
                     <span className="cl-bar-row__n">{clNum(it.count)}</span>
                   </div>
