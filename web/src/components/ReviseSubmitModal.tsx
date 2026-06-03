@@ -1,5 +1,7 @@
 // web/src/components/ReviseSubmitModal.tsx
 import { useState, useEffect } from "react";
+import type { CSSProperties } from "react";
+import "./ReviseSubmitModal.css";
 
 interface RevisionItem {
   quote_item_id: number;
@@ -101,57 +103,29 @@ export function ReviseSubmitModal({
 
   const totalProfitability = calculateTotalProfitability();
 
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        overflow: "auto",
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          borderRadius: "8px",
-          padding: "24px",
-          maxWidth: "800px",
-          width: "90%",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          margin: "20px auto",
-        }}
-      >
-        <h2 style={{ marginTop: 0, marginBottom: "16px" }}>Revize Teklif Gönder</h2>
+  const isBusy = isSubmitting || loading;
 
-        <div style={{ marginBottom: "16px", padding: "12px", background: "#f3f4f6", borderRadius: "4px" }}>
-          <p style={{ margin: 0, fontSize: "14px" }}>
+  return (
+    <div className="rsm-overlay">
+      <div className="rsm-modal">
+        <h2 className="rsm-title">Revize Teklif Gönder</h2>
+
+        <div className="rsm-supplier-box">
+          <p>
             <strong>Tedarikçi:</strong> {supplierQuoteName}
           </p>
         </div>
 
-        <div style={{ marginBottom: "16px", overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "13px",
-            }}
-          >
+        <div className="rsm-table-wrap">
+          <table className="rsm-table">
             <thead>
-              <tr style={{ background: "#f3f4f6", borderBottom: "1px solid #ddd" }}>
-                <th style={{ padding: "8px", textAlign: "left" }}>Kalem</th>
-                <th style={{ padding: "8px", textAlign: "right" }}>İlk Birim Fiyat</th>
-                <th style={{ padding: "8px", textAlign: "right" }}>Revize Birim Fiyat</th>
-                <th style={{ padding: "8px", textAlign: "right" }}>İlk Toplam</th>
-                <th style={{ padding: "8px", textAlign: "right" }}>Revize Toplam</th>
-                <th style={{ padding: "8px", textAlign: "right" }}>Tasarruf</th>
+              <tr>
+                <th>Kalem</th>
+                <th>İlk Birim Fiyat</th>
+                <th>Revize Birim Fiyat</th>
+                <th>İlk Toplam</th>
+                <th>Revize Toplam</th>
+                <th>Tasarruf</th>
               </tr>
             </thead>
             <tbody>
@@ -159,54 +133,38 @@ export function ReviseSubmitModal({
                 if (!item) return null;
                 const revised = revisedPrices[item.quote_item_id];
                 const savings = (item.original_total_price || 0) - (revised?.total_price || 0);
-                // quantity: item.original_total_price / item.original_unit_price (used internally in handlers)
+                const savingsColor = savings > 0 ? "#10b981" : savings < 0 ? "#ef4444" : "#666";
 
                 return (
-                  <tr key={item.quote_item_id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: "8px" }}>{item.item_description}</td>
-                    <td style={{ padding: "8px", textAlign: "right" }}>
+                  <tr key={item.quote_item_id}>
+                    <td>{item.item_description}</td>
+                    <td className="rsm-td--right">
                       ₺{item.original_unit_price.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}
                     </td>
-                    <td style={{ padding: "8px" }}>
+                    <td>
                       <input
                         type="number"
                         step="0.01"
                         value={revised?.unit_price || 0}
                         onChange={(e) => handleUnitPriceChange(item.quote_item_id, parseFloat(e.target.value) || 0)}
-                        style={{
-                          width: "100%",
-                          padding: "4px",
-                          border: "1px solid #ddd",
-                          borderRadius: "3px",
-                          textAlign: "right",
-                        }}
+                        className="rsm-price-input"
                       />
                     </td>
-                    <td style={{ padding: "8px", textAlign: "right" }}>
+                    <td className="rsm-td--right">
                       ₺{item.original_total_price.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}
                     </td>
-                    <td style={{ padding: "8px" }}>
+                    <td>
                       <input
                         type="number"
                         step="0.01"
                         value={revised?.total_price || 0}
                         onChange={(e) => handleTotalPriceChange(item.quote_item_id, parseFloat(e.target.value) || 0)}
-                        style={{
-                          width: "100%",
-                          padding: "4px",
-                          border: "1px solid #ddd",
-                          borderRadius: "3px",
-                          textAlign: "right",
-                        }}
+                        className="rsm-price-input"
                       />
                     </td>
                     <td
-                      style={{
-                        padding: "8px",
-                        textAlign: "right",
-                        color: savings > 0 ? "#10b981" : savings < 0 ? "#ef4444" : "#666",
-                        fontWeight: 600,
-                      }}
+                      className="rsm-savings-cell"
+                      style={{ "--rsm-savings-color": savingsColor } as CSSProperties}
                     >
                       {savings > 0 ? "+" : ""}₺{savings.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}
                     </td>
@@ -217,58 +175,23 @@ export function ReviseSubmitModal({
           </table>
         </div>
 
-        <div
-          style={{
-            padding: "12px",
-            background: totalProfitability > 0 ? "#ecfdf5" : "#fef2f2",
-            borderRadius: "4px",
-            marginBottom: "16px",
-            textAlign: "right",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "14px",
-              fontWeight: 600,
-              color: totalProfitability > 0 ? "#10b981" : "#ef4444",
-            }}
-          >
+        <div className={`rsm-total-box${totalProfitability > 0 ? " rsm-total-box--positive" : ""}`}>
+          <span className={`rsm-total-amount${totalProfitability > 0 ? " rsm-total-amount--positive" : ""}`}>
             Toplam Tasarruf: {totalProfitability > 0 ? "+" : ""}₺
             {Math.abs(totalProfitability).toLocaleString("tr-TR", { maximumFractionDigits: 2 })}
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            disabled={isSubmitting || loading}
-            style={{
-              padding: "8px 16px",
-              background: "#e5e7eb",
-              color: "#1f2937",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-          >
+        <div className="rsm-footer">
+          <button onClick={onClose} disabled={isBusy} className="rsm-cancel-btn">
             İptal
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || loading}
-            style={{
-              padding: "8px 16px",
-              background: "#10b981",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: isSubmitting || loading ? "wait" : "pointer",
-              fontSize: "14px",
-              opacity: isSubmitting || loading ? 0.6 : 1,
-            }}
+            disabled={isBusy}
+            className={`rsm-submit-btn${isBusy ? " rsm-submit-btn--busy" : ""}`}
           >
-            {isSubmitting || loading ? "Gönderiliyor..." : "Revize Teklif Gönder"}
+            {isBusy ? "Gönderiliyor..." : "Revize Teklif Gönder"}
           </button>
         </div>
       </div>
