@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import PersonnelDetailModal from "../../components/PersonnelDetailModal";
 import { PersonnelCreateModal } from "../../components/PersonnelCreateModal";
 import { PageHeader, Section, StatCard } from "./AdminTabContent";
@@ -525,13 +526,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
     return (
       <>
         <div className="pe-detail__hd">
-          <span className="pe-av pe-av--lg" style={{ background: color }}>{personInit(fullName)}</span>
+          <span className="pe-av pe-av--lg" style={{ "--pe-color": color } as CSSProperties}>{personInit(fullName)}</span>
           <div className="pe-detail__info">
             <h3 className="pe-detail__title">
               {fullName}
               {" "}
               <span className="pe-srole-badge">{sysRoleLabel}</span>
-              <span className="pe-type-pill" style={{ background: SEG_COLORS[segment] + "1f", color: SEG_COLORS[segment] }}>
+              <span className="pe-type-pill" style={{ "--pill-bg": SEG_COLORS[segment] + "1f", "--pill-fg": SEG_COLORS[segment] } as CSSProperties}>
                 {SEG_LABELS[segment]}
               </span>
               {!isActive && <span className="pe-badge pe-badge--off">Pasif</span>}
@@ -640,13 +641,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
     return (
       <>
         <div className="pe-detail__hd">
-          <span className="pe-av pe-av--lg" style={{ background: SEG_COLORS.supplier }}>{personInit(name)}</span>
+          <span className="pe-av pe-av--lg pe-av--supplier">{personInit(name)}</span>
           <div className="pe-detail__info">
             <h3 className="pe-detail__title">
               {name}
               {" "}
               <span className="pe-srole-badge">Tedarikçi Kullanıcısı</span>
-              <span className="pe-type-pill" style={{ background: "#b4530915", color: "#b45309" }}>Tedarikçi</span>
+              <span className="pe-type-pill pe-type-pill--supplier">Tedarikçi</span>
               {!isActive && <span className="pe-badge pe-badge--off">Pasif</span>}
             </h3>
             <div className="pe-detail__meta">
@@ -825,21 +826,22 @@ export function PersonnelTab(props: PersonnelTabProps) {
                 return (
                   <div key={itemKey}>
                     {showHeader && (
-                      <div className="pe-grouphd" style={{ color: SEG_COLORS[segment] }}>
-                        <span style={{ background: SEG_COLORS[segment] }} />
+                      <div className="pe-grouphd" style={{ "--pe-color": SEG_COLORS[segment] } as CSSProperties}>
+                        <span />
                         {item.group}
                       </div>
                     )}
                     <button
                       type="button"
                       className={"pe-row" + (isSelected ? " on" : "") + (!isActive ? " pe-row--off" : "")}
+                      style={{ "--pe-color": color } as CSSProperties}
                       onClick={() => {
                         if (item.kind === "tenant") { setSelPersonId(item.person.id); setSelSupUserKey(null); }
                         else { setSelSupUserKey({ supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }
                       }}
                     >
-                      <span className="pe-row__bar" style={{ background: color }} />
-                      <span className="pe-av" style={{ background: color }}>{personInit(name)}</span>
+                      <span className="pe-row__bar" />
+                      <span className="pe-av">{personInit(name)}</span>
                       <span className="pe-row__meta">
                         <b>
                           {name}

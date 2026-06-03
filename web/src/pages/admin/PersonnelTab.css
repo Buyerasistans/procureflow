@@ -217,12 +217,20 @@
   padding: 6px 12px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--pf-slate-500);
+  color: var(--pe-color, var(--pf-slate-500));
   background: var(--pf-gray-50);
   border-bottom: 1px solid var(--pf-border-color);
   display: flex;
   align-items: center;
   gap: 6px;
+}
+.pe-grouphd span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  background: var(--pe-color);
 }
 
 .pe-grouphd__dot {
@@ -269,6 +277,7 @@
   min-height: 40px;
   border-radius: 0 2px 2px 0;
   flex-shrink: 0;
+  background: var(--pe-color);
 }
 
 .pe-row__meta {
@@ -309,7 +318,9 @@
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
+  background: var(--pe-color, #94a3b8);
 }
+.pe-av--supplier { --pe-color: #b45309; }
 
 .pe-av--lg {
   width: 40px;
@@ -432,10 +443,11 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
-  background: var(--pf-gray-100, #f1f5f9);
-  color: var(--pf-slate-600);
+  background: var(--pill-bg, var(--pf-gray-100, #f1f5f9));
+  color: var(--pill-fg, var(--pf-slate-600));
   white-space: nowrap;
 }
+.pe-type-pill--supplier { --pill-bg: #b4530915; --pill-fg: #b45309; }
 
 /* ── Detail badges ── */
 .pe-badge--off {
