@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import PublicBrandLogo from "./PublicBrandLogo";
+import "./WorkspaceHeroCard.css";
 
 interface WorkspaceHeroCardProps {
   title: string;
@@ -41,80 +43,48 @@ export default function WorkspaceHeroCard({
   heroMutedTextColor,
   compact = true,
 }: WorkspaceHeroCardProps) {
+  const cardVars: CSSProperties = {
+    "--whc-accent": accentGradient,
+    ...(heroTextColor && { "--whc-hero-color": heroTextColor }),
+    ...(heroMutedTextColor && { "--whc-muted": heroMutedTextColor }),
+    ...(headerBgColor && { "--whc-header-bg": headerBgColor }),
+    ...(headerTextColor && { "--whc-header-color": headerTextColor }),
+    ...(footerBgColor && { "--whc-footer-bg": footerBgColor }),
+    ...(footerTextColor && { "--whc-footer-color": footerTextColor }),
+  } as CSSProperties;
+
   return (
-    <section
-      style={{
-        marginBottom: 20,
-        borderRadius: 22,
-        overflow: "hidden",
-        border: "1px solid rgba(15, 23, 42, 0.08)",
-        background: "white",
-        boxShadow: "0 14px 30px rgba(15, 23, 42, 0.12)",
-      }}
-    >
+    <section className="whc-card" style={cardVars}>
       {(topNotice || headerInfo || headerBgColor || headerTextColor) ? (
-        <div style={{ padding: "8px 14px", background: headerBgColor || "#0f172acc", color: headerTextColor || "#f8fafc", fontSize: 12, fontWeight: 700, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div className="whc-header-bar">
           <span>{topNotice || "Ust bilgi alani"}</span>
           <span>{headerInfo || "Header bilgi alani"}</span>
         </div>
       ) : null}
-      <section
-        style={{
-        minHeight: compact ? 78 : 96,
-        padding: compact ? "14px 22px" : "16px 24px",
-        background: accentGradient,
-        color: heroTextColor || "#f8fafc",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-      }}
-    >
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          border: "1px solid rgba(255,255,255,0.18)",
-          borderRadius: 14,
-          padding: "8px 10px",
-          width: "fit-content",
-          background: "rgba(10, 30, 26, 0.22)",
-          flexShrink: 0,
-        }}
-      >
-        <PublicBrandLogo height={26} maxWidth={145} invert />
-      </div>
-
-      <div style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 2.2,
-            textTransform: "uppercase",
-              color: heroMutedTextColor || "#d1fae5",
-            marginBottom: 2,
-          }}
-        >
-          {eyebrow}
+      <section className={`whc-hero${compact ? " whc-hero--compact" : ""}`}>
+        <div className="whc-logo-wrap">
+          <PublicBrandLogo height={26} maxWidth={145} invert />
         </div>
-          <h2 style={{ margin: 0, fontSize: compact ? 28 : 32, lineHeight: 1.02, fontWeight: 900, color: heroTextColor || "#f8fafc" }}>{title}</h2>
-          {subtitle ? <div style={{ marginTop: 2, fontSize: 14, color: heroMutedTextColor || "#e2e8f0" }}>{subtitle}</div> : null}
-      </div>
 
-      <div style={{ textAlign: "right", minWidth: 112, flexShrink: 0 }}>
-          <div style={{ fontSize: 11, color: heroMutedTextColor || "rgba(255,255,255,0.72)", marginBottom: 2 }}>{welcomeLabel}</div>
-          <div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: heroTextColor || "#f8fafc" }}>{rightTitle || userName || "-"}</div>
-        {userEmail ? (
-            <div style={{ marginTop: 2, fontSize: 11, color: heroMutedTextColor || "#c7d2fe", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userEmail}</div>
-        ) : null}
-      </div>
+        <div className="whc-center">
+          <div className="whc-eyebrow">{eyebrow}</div>
+          <h2 className="whc-title">{title}</h2>
+          {subtitle ? <div className="whc-subtitle">{subtitle}</div> : null}
+        </div>
+
+        <div className="whc-right">
+          <div className="whc-welcome-label">{welcomeLabel}</div>
+          <div className="whc-name">{rightTitle || userName || "-"}</div>
+          {userEmail ? (
+            <div className="whc-email">{userEmail}</div>
+          ) : null}
+        </div>
       </section>
-        {(footerInfo || footerBgColor || footerTextColor) ? (
-          <div style={{ padding: "8px 14px", background: footerBgColor || "#0f172a99", color: footerTextColor || "#e2e8f0", fontSize: 12, fontWeight: 700 }}>
-            {footerInfo || "Footer bilgi alani"}
-          </div>
-        ) : null}
-      </section>
+      {(footerInfo || footerBgColor || footerTextColor) ? (
+        <div className="whc-footer-bar">
+          {footerInfo || "Footer bilgi alani"}
+        </div>
+      ) : null}
+    </section>
   );
 }

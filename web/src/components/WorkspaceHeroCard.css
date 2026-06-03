@@ -1,0 +1,103 @@
+/* WorkspaceHeroCard — whc-* namespace */
+.whc-card {
+  margin-bottom: 20px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: white;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+}
+.whc-header-bar {
+  padding: 8px 14px;
+  background: var(--whc-header-bg, #0f172acc);
+  color: var(--whc-header-color, #f8fafc);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.whc-hero {
+  min-height: 96px;
+  padding: 16px 24px;
+  background: var(--whc-accent);
+  color: var(--whc-hero-color, #f8fafc);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.whc-hero--compact {
+  min-height: 78px;
+  padding: 14px 22px;
+}
+.whc-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 8px 10px;
+  width: fit-content;
+  background: rgba(10, 30, 26, 0.22);
+  flex-shrink: 0;
+}
+.whc-center {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+.whc-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--whc-muted, #d1fae5);
+  margin-bottom: 2px;
+}
+.whc-title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.02;
+  font-weight: 900;
+  color: var(--whc-hero-color, #f8fafc);
+}
+.whc-hero--compact .whc-title {
+  font-size: 28px;
+}
+.whc-subtitle {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--whc-muted, #e2e8f0);
+}
+.whc-right {
+  text-align: right;
+  min-width: 112px;
+  flex-shrink: 0;
+}
+.whc-welcome-label {
+  font-size: 11px;
+  color: var(--whc-muted, rgba(255, 255, 255, 0.72));
+  margin-bottom: 2px;
+}
+.whc-name {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--whc-hero-color, #f8fafc);
+}
+.whc-email {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--whc-muted, #c7d2fe);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.whc-footer-bar {
+  padding: 8px 14px;
+  background: var(--whc-footer-bg, #0f172a99);
+  color: var(--whc-footer-color, #e2e8f0);
+  font-size: 12px;
+  font-weight: 700;
+}
