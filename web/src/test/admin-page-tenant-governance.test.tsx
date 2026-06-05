@@ -465,6 +465,9 @@ vi.mock("../services/admin.service", () => ({
     retried: true,
     error_message: null,
   }),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 const mockedUpdateTenantSupportWorkflow = vi.mocked(updateTenantSupportWorkflow);

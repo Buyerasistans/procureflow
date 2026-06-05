@@ -21,6 +21,9 @@ vi.mock("../services/project.service", () => ({
 
 vi.mock("../services/admin.service", () => ({
   getCompanies: (...args: unknown[]) => mockGetCompanies(...args),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 vi.mock("../lib/token", () => ({

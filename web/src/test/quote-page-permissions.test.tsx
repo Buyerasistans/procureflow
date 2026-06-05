@@ -50,6 +50,9 @@ vi.mock("../services/admin.service", () => ({
   getTenantUsers: (...args: unknown[]) => mockGetTenantUsers(...args),
   getUserCompanyAssignments: (...args: unknown[]) => mockGetUserCompanyAssignments(...args),
   getWorkspacePanelConfig: vi.fn().mockResolvedValue({ profiles: [] }),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 vi.mock("../services/settings.service", () => ({

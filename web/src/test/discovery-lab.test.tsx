@@ -19,6 +19,9 @@ vi.mock('../services/admin.service', () => ({
       updated_at: '2026-04-15T10:00:00Z',
     },
   ]),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 vi.mock('../lib/token', () => ({
