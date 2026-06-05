@@ -111,6 +111,9 @@ class Supplier(Base):
     quotes: Mapped[list["SupplierQuote"]] = relationship(
         "SupplierQuote", back_populates="supplier", cascade="all, delete-orphan"
     )
+    marketing_plans: Mapped[list["SupplierMarketingPlan"]] = relationship(
+        "SupplierMarketingPlan", back_populates="supplier", cascade="all, delete-orphan"
+    )
 
     @property
     def source_type(self) -> str:
@@ -162,6 +165,54 @@ class Supplier(Base):
             if normalized and normalized.casefold() not in seen:
                 values.append(normalized)
         return values
+
+
+class SupplierMarketingPlan(Base):
+    """Tedarikçi Pazarlama Planı — tedarikçinin hedef kitlesi ve kampanya pozisyonu."""
+
+    __tablename__ = "supplier_marketing_plans"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    supplier_id: Mapped[int] = mapped_column(
+        ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    headline: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    categories_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    target_segments_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    campaign_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    visibility: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="draft", index=True
+    )  # draft | active | paused
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    valid_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    valid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, onupdate=datetime.now)
+
+    supplier: Mapped["Supplier"] = relationship("Supplier", back_populates="marketing_plans")
+
+    @property
+    def categories(self) -> list[str]:
+        if not self.categories_json:
+            return []
+        try:
+            v = json.loads(self.categories_json)
+            return v if isinstance(v, list) else []
+        except (TypeError, ValueError):
+            return []
+
+    @property
+    def target_segments(self) -> list[str]:
+        if not self.target_segments_json:
+            return []
+        try:
+            v = json.loads(self.target_segments_json)
+            return v if isinstance(v, list) else []
+        except (TypeError, ValueError):
+            return []
 
 
 class SupplierUser(Base):

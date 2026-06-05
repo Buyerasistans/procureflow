@@ -19,6 +19,7 @@ import {
 import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
 import { CategorySelectionModal } from "../components/CategorySelectionModal";
+import { SupplierMarketingPlansSection } from "../components/SupplierMarketingPlansSection";
 import "./AdminSupplierDetailPage.css";
 
 const BANKS = [
@@ -43,7 +44,7 @@ type GuaranteeEditState = {
   status: string;
 };
 
-type SectionKey = "invoice" | "payment" | "users" | "guarantees";
+type SectionKey = "invoice" | "payment" | "users" | "guarantees" | "marketing";
 
 type UserDraft = { name: string; email: string; phone: string };
 
@@ -147,6 +148,7 @@ export default function AdminSupplierDetailPage() {
     users: true,
     guarantees: true,
     payment: true,
+    marketing: false,
   });
 
   const cityNames = useMemo(() => getCityNames(), []);
@@ -895,6 +897,16 @@ export default function AdminSupplierDetailPage() {
               </button>
             </div>
           </>
+        )}
+      </section>
+
+      <section>
+        <button type="button" className="asd-section-hdr" onClick={() => toggleSection("marketing")}>
+          <h3>Pazarlama Planları</h3>
+          <span className="asd-section-hdr__arrow">{sectionArrow(openSections.marketing)}</span>
+        </button>
+        {openSections.marketing && detail && (
+          <SupplierMarketingPlansSection supplierId={detail.supplier.id} canEdit={true} />
         )}
       </section>
 

@@ -13,6 +13,7 @@ from .quote_status_log import QuoteStatusLog
 from .quote_approval import QuoteApproval
 from .supplier import (
     Supplier,
+    SupplierMarketingPlan,
     SupplierUser,
     SupplierQuote,
     SupplierQuoteItem,

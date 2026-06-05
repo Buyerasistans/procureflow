@@ -39,6 +39,7 @@ from api.core.authz import (
 )
 from api.models import (
     Supplier,
+    SupplierMarketingPlan,
     SupplierUser,
     User,
     ProjectSupplier,
@@ -4624,3 +4625,176 @@ def update_dual_role_status(
         "supplier_id": supplier_id,
         "linked_tenant_id": supplier.linked_tenant_id,
     }
+
+
+# ── Pazarlama Planları ──────────────────────────────────────────────────────
+
+from pydantic import BaseModel as _PydanticBase
+
+class MarketingPlanIn(_PydanticBase):
+    headline: str
+    description: str | None = None
+    categories: list[str] = []
+    target_segments: list[str] = []
+    campaign_id: int | None = None
+    visibility: str = "draft"
+    is_featured: bool = False
+    valid_from: str | None = None
+    valid_until: str | None = None
+
+
+class MarketingPlanOut(_PydanticBase):
+    id: int
+    supplier_id: int
+    headline: str
+    description: str | None
+    categories: list[str]
+    target_segments: list[str]
+    campaign_id: int | None
+    visibility: str
+    is_featured: bool
+    valid_from: str | None
+    valid_until: str | None
+    created_at: str
+    updated_at: str | None
+
+    model_config = {"from_attributes": True}
+
+
+def _plan_to_out(plan: SupplierMarketingPlan) -> MarketingPlanOut:
+    return MarketingPlanOut(
+        id=plan.id,
+        supplier_id=plan.supplier_id,
+        headline=plan.headline,
+        description=plan.description,
+        categories=plan.categories,
+        target_segments=plan.target_segments,
+        campaign_id=plan.campaign_id,
+        visibility=plan.visibility,
+        is_featured=plan.is_featured,
+        valid_from=plan.valid_from.isoformat() if plan.valid_from else None,
+        valid_until=plan.valid_until.isoformat() if plan.valid_until else None,
+        created_at=plan.created_at.isoformat(),
+        updated_at=plan.updated_at.isoformat() if plan.updated_at else None,
+    )
+
+
+@router.get("/{supplier_id}/marketing-plans", response_model=list[MarketingPlanOut])
+def list_marketing_plans(
+    supplier_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    supplier = db.get(Supplier, supplier_id)
+    if supplier is None:
+        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı.")
+    plans = (
+        db.query(SupplierMarketingPlan)
+        .filter(SupplierMarketingPlan.supplier_id == supplier_id)
+        .order_by(SupplierMarketingPlan.created_at.desc())
+        .all()
+    )
+    return [_plan_to_out(p) for p in plans]
+
+
+@router.post("/{supplier_id}/marketing-plans", response_model=MarketingPlanOut, status_code=201)
+def create_marketing_plan(
+    supplier_id: int,
+    payload: MarketingPlanIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    supplier = db.get(Supplier, supplier_id)
+    if supplier is None:
+        raise HTTPException(status_code=404, detail="Tedarikçi bulunamadı.")
+    if not is_admin_like(current_user):
+        raise HTTPException(status_code=403, detail="Yetki gereklidir.")
+
+    import json as _json
+    from datetime import datetime as _dt
+
+    def _parse_dt(v: str | None):
+        if not v:
+            return None
+        try:
+            return _dt.fromisoformat(v)
+        except (ValueError, TypeError):
+            return None
+
+    plan = SupplierMarketingPlan(
+        supplier_id=supplier_id,
+        headline=payload.headline,
+        description=payload.description,
+        categories_json=_json.dumps(payload.categories, ensure_ascii=False),
+        target_segments_json=_json.dumps(payload.target_segments, ensure_ascii=False),
+        campaign_id=payload.campaign_id,
+        visibility=payload.visibility,
+        is_featured=payload.is_featured,
+        valid_from=_parse_dt(payload.valid_from),
+        valid_until=_parse_dt(payload.valid_until),
+    )
+    db.add(plan)
+    db.commit()
+    db.refresh(plan)
+    return _plan_to_out(plan)
+
+
+@router.put("/{supplier_id}/marketing-plans/{plan_id}", response_model=MarketingPlanOut)
+def update_marketing_plan(
+    supplier_id: int,
+    plan_id: int,
+    payload: MarketingPlanIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not is_admin_like(current_user):
+        raise HTTPException(status_code=403, detail="Yetki gereklidir.")
+    plan = db.query(SupplierMarketingPlan).filter(
+        SupplierMarketingPlan.id == plan_id,
+        SupplierMarketingPlan.supplier_id == supplier_id,
+    ).first()
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Pazarlama planı bulunamadı.")
+
+    import json as _json
+
+    def _parse_dt(v: str | None):
+        if not v:
+            return None
+        try:
+            from datetime import datetime as _dt
+            return _dt.fromisoformat(v)
+        except (ValueError, TypeError):
+            return None
+
+    plan.headline = payload.headline
+    plan.description = payload.description
+    plan.categories_json = _json.dumps(payload.categories, ensure_ascii=False)
+    plan.target_segments_json = _json.dumps(payload.target_segments, ensure_ascii=False)
+    plan.campaign_id = payload.campaign_id
+    plan.visibility = payload.visibility
+    plan.is_featured = payload.is_featured
+    plan.valid_from = _parse_dt(payload.valid_from)
+    plan.valid_until = _parse_dt(payload.valid_until)
+    db.commit()
+    db.refresh(plan)
+    return _plan_to_out(plan)
+
+
+@router.delete("/{supplier_id}/marketing-plans/{plan_id}", status_code=204)
+def delete_marketing_plan(
+    supplier_id: int,
+    plan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not is_admin_like(current_user):
+        raise HTTPException(status_code=403, detail="Yetki gereklidir.")
+    plan = db.query(SupplierMarketingPlan).filter(
+        SupplierMarketingPlan.id == plan_id,
+        SupplierMarketingPlan.supplier_id == supplier_id,
+    ).first()
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Pazarlama planı bulunamadı.")
+    db.delete(plan)
+    db.commit()
