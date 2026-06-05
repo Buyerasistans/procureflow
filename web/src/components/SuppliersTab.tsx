@@ -593,7 +593,15 @@ export function SuppliersTab() {
                     )}
                   </div>
                 </td>
-                <td>{supplier.company_name}</td>
+                <td>
+                  <div>{supplier.company_name}</div>
+                  {supplier.dual_role_status === "active" && supplier.linked_tenant_id && (
+                    <span className="su-dual-badge">Stratejik Partner</span>
+                  )}
+                  {supplier.dual_role_status === "pending" && supplier.linked_tenant_id && (
+                    <span className="su-dual-badge su-dual-badge--pending">Partner Başvurusu</span>
+                  )}
+                </td>
                 <td>
                   <div>{supplier.email}</div>
                   <div className={`su-src-badge ${supplier.source_type === "platform_network" ? "su-src-badge--platform" : "su-src-badge--private"}`}>

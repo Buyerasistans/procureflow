@@ -31,6 +31,8 @@ export interface Supplier {
   is_verified: boolean;
   created_at: string;
   updated_at?: string;
+  linked_tenant_id?: number | null;
+  dual_role_status?: "pending" | "active" | "rejected" | null;
   users?: SupplierUser[];
   quotes?: SupplierQuote[];
 }

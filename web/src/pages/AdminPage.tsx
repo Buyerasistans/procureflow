@@ -1254,7 +1254,7 @@ export default function AdminPage() {
   const canAccessRoleCatalog = canManageRoleCatalog(user);
   const canViewPlatformGovernance = isPlatformStaff || isSuperAdminUser(user);
   const canViewPackagesTab = isSuperAdminUser(user);
-  const canViewSupplierProfileTab = isTenantAdminUser(user) && !canViewPlatformGovernance;
+  const canViewSupplierProfileTab = (isTenantAdminUser(user) || user?.business_role === "satinalma_direktoru") && !canViewPlatformGovernance;
   const canViewKariyerYonetimiTab = isSuperAdminUser(user) || isIkAdminUser(user);
   const canViewSettingsTab = canAccessProcurementSettings(user);
   const showSettingsWorkspaceLinks = !canViewPlatformGovernance && (canViewSettingsTab || isChannelUser);

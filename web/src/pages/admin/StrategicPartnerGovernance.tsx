@@ -199,7 +199,7 @@ export default function StrategicPartnerGovernance(props: Props) {
 
       {detailRow && (
         <PartnerDrawer
-          row={detailRow} planOptions={planOptions} loadDetail={loadDetail}
+          row={detailRow} loadDetail={loadDetail}
           onClose={() => setDetailId(null)}
           onChangePlan={() => setModal({ kind: "plan", ids: [detailRow.id] })}
           onCrossLink={onCrossLink}
@@ -260,13 +260,25 @@ function PartnerRows({ p, open, selected, originMeta, onToggle, onSelect, onOpen
         <td>{p.subs.length > 0 ? <button className="spg-toggle" onClick={onToggle} aria-expanded={open} aria-label="Alt firmalar">{open ? "▾" : "▸"}</button> : <button className="spg-toggle" onClick={onOpenDetail} aria-label="Detay">›</button>}</td>
       </tr>
 
-      {open && p.origin !== "direct" && (
+      {open && (p.origin !== "direct" || p.dualRole) && (
         <tr className="spg-noterow"><td colSpan={9}>
-          <div className={"spg-note spg-note--" + p.origin}>
-            <b>{originMeta.label}.</b>{p.origin === "channel" && p.originChannel ? " " + p.originChannel + " getirdi." : " Havuzdan stratejik partnerliğe geçiş."}
-            {p.origin === "supplier" && <button className="spg-notelink" onClick={() => onCrossLink("platform_suppliers", p.id)}>Havuz kaydını aç →</button>}
-            {p.origin === "channel" && <button className="spg-notelink" onClick={() => onCrossLink("channel_partners", p.id)}>İş ortağını gör →</button>}
-          </div>
+          {p.origin !== "direct" && (
+            <div className={"spg-note spg-note--" + p.origin}>
+              <b>{originMeta.label}.</b>{p.origin === "channel" && p.originChannel ? " " + p.originChannel + " getirdi." : " Havuzdan stratejik partnerliğe geçiş."}
+              {p.origin === "supplier" && <button type="button" className="spg-notelink" onClick={() => onCrossLink("platform_suppliers", p.id)}>Tedarikçi profilini gör →</button>}
+              {p.origin === "channel" && <button type="button" className="spg-notelink" onClick={() => onCrossLink("channel_partners", p.id)}>İş ortağını gör →</button>}
+            </div>
+          )}
+          {p.dualRole && p.origin !== "supplier" && (
+            <div className={"spg-note spg-note--dualrole spg-note--dualrole-" + p.dualRole}>
+              {p.dualRole === "active"
+                ? <><b>Aktif çift rol.</b> Bu firma aynı zamanda platform tedarikçisi olarak kayıtlı ve aktif.</>
+                : <><b>Çift rol başvurusu beklemede.</b> Tedarikçi portal erişimi henüz onaylanmadı.</>}
+              <button type="button" className="spg-notelink" onClick={() => onCrossLink("platform_suppliers", p.id)}>
+                Tedarikçi profilini gör →
+              </button>
+            </div>
+          )}
         </td></tr>
       )}
 
@@ -297,8 +309,8 @@ function HealthBar({ value }: { value: number }) {
   );
 }
 
-function PartnerDrawer({ row, planOptions, loadDetail, onClose, onChangePlan, onCrossLink }: {
-  row: PartnerRow; planOptions: { code: string; name: string; monthlyPrice: number }[];
+function PartnerDrawer({ row, loadDetail, onClose, onChangePlan, onCrossLink }: {
+  row: PartnerRow;
   loadDetail?: (id: number) => Promise<PartnerDetailData>;
   onClose: () => void; onChangePlan: () => void; onCrossLink: (k: string, id?: number) => void;
 }) {
@@ -363,6 +375,19 @@ function PartnerDrawer({ row, planOptions, loadDetail, onClose, onChangePlan, on
             </div>
             <button className="spg-dlink" onClick={() => onCrossLink("support_tickets", row.id)}>Destek geçmişi →</button>
           </Section>
+
+          {row.dualRole && (
+            <Section title={"Tedarikçi Portalı · " + (row.dualRole === "active" ? "Aktif Çift Rol" : "Başvuru Beklemede")}>
+              <div className="spg-facts">
+                <Fact k="Çift rol durumu" v={row.dualRole === "active" ? "Aktif" : "Beklemede"} alert={row.dualRole === "pending"} />
+              </div>
+              <div className="spg-dlinkrow">
+                <button type="button" className="spg-dlink" onClick={() => onCrossLink("platform_suppliers", row.id)}>
+                  Tedarikçi profilini gör →
+                </button>
+              </div>
+            </Section>
+          )}
 
           <Section title={"Alt firmalar (" + row.subs.length + ")"}>
             {row.subs.length === 0 ? <div className="spg-dempty">Alt firma yok.</div>

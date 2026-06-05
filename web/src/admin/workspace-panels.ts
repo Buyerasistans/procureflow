@@ -237,7 +237,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Tenant sahipliği, organizasyon omurgası ve yönetsel operasyonlar için ayrı panel profili.",
       hero_title: "Stratejik Partner Admin Paneli",
       hero_description: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
-      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings"],
+      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("admin"),
     },
     {
@@ -249,7 +249,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Geleneksel tenant admin çalışma alanı; ekip üyesi, rol ve operasyon sekmeleri bu profilde toplanıyor.",
       hero_title: "Admin Paneli - Tenant Yönetim Alanı",
       hero_description: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
-      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings"],
+      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("admin"),
     },
     {
@@ -261,7 +261,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Stratejik partner admin rolü için firma, ekip, proje ve tedarikçi yönetim alanı.",
       hero_title: "Stratejik Partner Admin Paneli",
       hero_description: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını stratejik partner olarak yönetin.",
-      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings"],
+      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("partner_admin"),
     },
     {
@@ -309,7 +309,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Satın alma direktörü için organizasyon genel bakışı, onay yönetimi ve raporlama alanı.",
       hero_title: "Satın Alma Direktörü Paneli",
       hero_description: "Organizasyon yapısını, ekip operasyonlarını, onay akışlarını ve performans raporlarını direktör perspektifinden yönetin.",
-      allowed_tabs: ["panel_home", "companies", "personnel", "projects", "suppliers", "approvals", "reports"],
+      allowed_tabs: ["panel_home", "companies", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports"],
       quick_links: [
         { label: "Onay Akışları", href: "/admin?tab=approvals", description: "Bekleyen onayları ve satın alma taleplerinizi yönetin." },
         { label: "Projeler", href: "/admin?tab=projects", description: "Aktif projelerin durumunu direktör bakışıyla takip edin." },
