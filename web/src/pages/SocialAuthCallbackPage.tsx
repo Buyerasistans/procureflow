@@ -7,51 +7,54 @@ import "./SocialAuthCallbackPage.css";
 type PageState = "loading" | "error";
 
 const ERROR_LABELS: Record<string, string> = {
-  not_configured:    "Bu giriş yöntemi henüz yapılandırılmamış.",
-  access_denied:     "Giriş izni reddedildi.",
-  token_failed:      "Kimlik doğrulama başarısız oldu.",
-  invalid_profile:   "Profil bilgileri alınamadı.",
-  server_error:      "Sunucu hatası oluştu. Lütfen tekrar deneyin.",
+  access_denied:           "Giriş izni reddedildi.",
+  not_configured:          "Bu giriş yöntemi henüz yapılandırılmamış.",
+  token_failed:            "Kimlik doğrulama başarısız oldu.",
+  invalid_profile:         "Profil bilgileri alınamadı.",
+  server_error:            "Sunucu hatası oluştu. Lütfen tekrar deneyin.",
   invalid_or_expired_code: "Oturum kodu süresi doldu. Lütfen tekrar giriş yapın.",
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1").replace(/\/$/, "");
+
+interface ExchangeResponse {
+  access_token: string;
+  refresh_token: string;
+  is_new: boolean;
+  mode: string;
+}
 
 export default function SocialAuthCallbackPage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<PageState>("loading");
+  const [pageState, setPageState] = useState<PageState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code       = params.get("code");
-    const error      = params.get("error");
-    const isNewUser  = params.get("new_user") === "1";
-    const mode       = params.get("mode") ?? "";
+    const code = params.get("code");
+    const err  = params.get("err");
 
-    if (error || !code) {
-      setErrorMsg(ERROR_LABELS[error ?? ""] ?? "Giriş başarısız oldu.");
-      setState("error");
+    if (err || !code) {
+      setErrorMsg(ERROR_LABELS[err ?? ""] ?? "Giriş başarısız oldu.");
+      setPageState("error");
       return;
     }
 
-    // Remove code from browser history immediately
+    // Remove code from browser history immediately — it is single-use
     window.history.replaceState({}, "", window.location.pathname);
 
-    fetch(`${API_BASE}/auth/social/exchange?code=${encodeURIComponent(code)}`, {
-      method: "POST",
-    })
+    fetch(`${API_BASE}/auth/social/exchange?code=${encodeURIComponent(code)}`, { method: "POST" })
       .then(async (res) => {
         if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
+          const body = await res.json().catch(() => ({})) as { detail?: string };
           throw new Error(body?.detail ?? "exchange_failed");
         }
-        return res.json() as Promise<{ access_token: string; refresh_token: string }>;
+        return res.json() as Promise<ExchangeResponse>;
       })
-      .then(({ access_token, refresh_token }) => {
+      .then(({ access_token, refresh_token, is_new, mode }) => {
         setTokens(access_token, refresh_token);
 
-        if (isNewUser) {
+        if (is_new) {
           if (mode === "candidate") {
             navigate(`${POST_REGISTER_REDIRECT.candidate}?welcome=1`, { replace: true });
             return;
@@ -66,14 +69,14 @@ export default function SocialAuthCallbackPage() {
 
         navigate("/app", { replace: true });
       })
-      .catch((err: Error) => {
-        const key = err.message in ERROR_LABELS ? err.message : "";
+      .catch((ex: Error) => {
+        const key = ex.message in ERROR_LABELS ? ex.message : "";
         setErrorMsg(ERROR_LABELS[key] ?? "Giriş başarısız oldu.");
-        setState("error");
+        setPageState("error");
       });
   }, [navigate]);
 
-  if (state === "error") {
+  if (pageState === "error") {
     return (
       <div className="sac-error">
         <span className="sac-error__icon">⚠️</span>

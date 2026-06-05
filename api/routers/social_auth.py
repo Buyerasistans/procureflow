@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 import secrets
@@ -43,27 +42,31 @@ _LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 _LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 _LINKEDIN_USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
 
-# Short-lived one-time stores — sensitive data never goes into redirect URLs
+# ── Short-lived one-time store ───────────────────────────────────────────────
+# Sensitive data is never written to redirect URLs.  All values that must
+# cross the browser-redirect boundary are stored here and retrieved via a
+# random nonce that carries no user-supplied information.
+
 _TEMP_STORE: dict[str, tuple[dict, float]] = {}
 _TEMP_STORE_LOCK = threading.Lock()
 _TEMP_TTL = 120.0  # seconds
 
 
 def _temp_put(payload: dict) -> str:
-    code = secrets.token_urlsafe(32)
+    nonce = secrets.token_urlsafe(32)
     expiry = time.monotonic() + _TEMP_TTL
     with _TEMP_STORE_LOCK:
         now = time.monotonic()
-        expired = [k for k, (_, exp) in _TEMP_STORE.items() if exp < now]
-        for k in expired:
+        stale = [k for k, (_, exp) in _TEMP_STORE.items() if exp < now]
+        for k in stale:
             del _TEMP_STORE[k]
-        _TEMP_STORE[code] = (payload, expiry)
-    return code
+        _TEMP_STORE[nonce] = (payload, expiry)
+    return nonce
 
 
-def _temp_pop(code: str) -> dict | None:
+def _temp_pop(nonce: str) -> dict | None:
     with _TEMP_STORE_LOCK:
-        entry = _TEMP_STORE.pop(code, None)
+        entry = _TEMP_STORE.pop(nonce, None)
     if entry is None:
         return None
     payload, expiry = entry
@@ -72,44 +75,22 @@ def _temp_pop(code: str) -> dict | None:
     return payload
 
 
-def _store_temp_tokens(tokens: dict) -> str:
-    return _temp_put({"type": "tokens", **tokens})
+# ── Mode allowlist ───────────────────────────────────────────────────────────
 
-
-def _consume_temp_tokens(code: str) -> dict | None:
-    payload = _temp_pop(code)
-    if payload is None or payload.get("type") != "tokens":
-        return None
-    return {k: v for k, v in payload.items() if k != "type"}
-
-
-# All valid mode values — anything else is rejected and replaced with "login"
 _VALID_MODES = frozenset({
     "login", "candidate", "employer",
     "channel_preview", "supplier_preview", "strategic_preview",
 })
 
-# All valid error codes passed to the frontend
-_VALID_ERROR_CODES = frozenset({
-    "access_denied", "not_configured", "token_failed",
-    "invalid_profile", "server_error",
-})
-
-# Modes that trigger B2B prefill (no account creation)
-_B2B_PREVIEW_MODES = {"channel_preview", "supplier_preview", "strategic_preview"}
-
-# B2B prefill landing routes (values are hardcoded paths, not user-controlled)
-_B2B_LANDING = {
-    "channel_preview": "/is-ortagi-basvuru",
-    "supplier_preview": "/supplier/register",
-    "strategic_preview": "/employer/register",
-}
+# Modes that route to B2B registration pages instead of creating a session
+_B2B_PREVIEW_MODES = frozenset({"channel_preview", "supplier_preview", "strategic_preview"})
 
 
-def _sanitize_mode(mode: str) -> str:
-    """Return mode only if it is a known-safe value; otherwise fall back to login."""
-    return mode if mode in _VALID_MODES else "login"
+def _sanitize_mode(raw: str) -> str:
+    return raw if raw in _VALID_MODES else "login"
 
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _google_redirect_uri() -> str:
     return f"{_API_URL}/api/v1/auth/social/google/callback"
@@ -119,22 +100,8 @@ def _linkedin_redirect_uri() -> str:
     return f"{_API_URL}/api/v1/auth/social/linkedin/callback"
 
 
-def _callback_error(error: str) -> RedirectResponse:
-    safe = error if error in _VALID_ERROR_CODES else "server_error"
-    return RedirectResponse(f"{_FRONTEND_URL}/auth/social/callback?error={safe}")
-
-
-def _encode_state(mode: str) -> str:
-    payload = json.dumps({"mode": mode}).encode()
-    return base64.urlsafe_b64encode(payload).decode()
-
-
-def _decode_state(state: str) -> dict:
-    try:
-        padded = state + "=" * (-len(state) % 4)
-        return json.loads(base64.urlsafe_b64decode(padded).decode())
-    except Exception:
-        return {}
+# Fixed callback base — never contains user-supplied data
+_CALLBACK_BASE = f"{_FRONTEND_URL}/auth/social/callback"
 
 
 def _create_session(db: Session, user: User) -> dict[str, str]:
@@ -201,40 +168,58 @@ def _find_or_create_social_user(
 
 
 def _b2b_prefill_redirect(mode: str, full_name: str, email: str, picture: str) -> RedirectResponse:
-    landing = _B2B_LANDING.get(mode, "/")
-    code = _temp_put({"type": "prefill", "name": full_name, "email": email, "picture": picture})
-    return RedirectResponse(f"{_FRONTEND_URL}{landing}?prefill_code={code}&mode={mode}")
+    # Landing path is chosen via explicit if/elif so no user-derived value
+    # ever flows into the redirect URL — only the random nonce does.
+    if mode == "channel_preview":
+        landing = "/is-ortagi-basvuru"
+    elif mode == "supplier_preview":
+        landing = "/supplier/register"
+    else:
+        landing = "/employer/register"
+    nonce = _temp_put({
+        "type": "prefill",
+        "name": full_name,
+        "email": email,
+        "picture": picture,
+        "mode": mode,
+    })
+    return RedirectResponse(f"{_FRONTEND_URL}{landing}?prefill_code={nonce}")
 
 
-# ── One-time code exchange — frontend POSTs this to get actual tokens ─────────
+# ── One-time exchange endpoints ───────────────────────────────────────────────
 
 @router.post("/exchange")
 def exchange_social_code(code: str):
-    tokens = _consume_temp_tokens(code)
-    if not tokens:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="invalid_or_expired_code",
-        )
-    return tokens
+    """Frontend POSTs the one-time nonce to receive session tokens."""
+    payload = _temp_pop(code)
+    if payload is None or payload.get("type") != "tokens":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid_or_expired_code")
+    return {
+        "access_token": payload["access_token"],
+        "refresh_token": payload["refresh_token"],
+        "is_new": payload.get("is_new", False),
+        "mode": payload.get("mode", "login"),
+    }
 
 
 @router.get("/prefill")
 def get_social_prefill(code: str):
+    """Frontend GETs the one-time nonce to receive B2B prefill data."""
     payload = _temp_pop(code)
     if payload is None or payload.get("type") != "prefill":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="invalid_or_expired_code",
-        )
-    return {"name": payload.get("name", ""), "email": payload.get("email", ""), "picture": payload.get("picture", "")}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid_or_expired_code")
+    return {
+        "name": payload.get("name", ""),
+        "email": payload.get("email", ""),
+        "picture": payload.get("picture", ""),
+        "mode": payload.get("mode", ""),
+    }
 
 
-# ── Provider status (read-only, no auth required) ────────────────────────────
+# ── Provider status (read-only) ───────────────────────────────────────────────
 
 @router.get("/providers")
 def get_social_providers():
-    """Hangi sosyal giriş sağlayıcılarının yapılandırıldığını döner."""
     return {
         "google": bool(_GOOGLE_CLIENT_ID),
         "linkedin": bool(_LINKEDIN_CLIENT_ID),
@@ -246,16 +231,19 @@ def get_social_providers():
 @router.get("/google/start")
 def google_start(mode: str = "login"):
     if not _GOOGLE_CLIENT_ID:
-        return _callback_error("not_configured")
-    state = _encode_state(_sanitize_mode(mode))
-    params = "&".join([
-        f"client_id={_GOOGLE_CLIENT_ID}",
-        f"redirect_uri={urllib.parse.quote(_google_redirect_uri(), safe='')}",
-        "response_type=code",
-        "scope=openid%20email%20profile",
-        "access_type=offline",
-        f"state={state}",
-    ])
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=not_configured")
+    # Store mode in the temp store; the OAuth state carries only a random nonce.
+    # This ensures no user-supplied value flows into the redirect URL.
+    safe_mode = _sanitize_mode(mode)
+    state_nonce = _temp_put({"type": "oauth_state", "mode": safe_mode})
+    params = urllib.parse.urlencode({
+        "client_id": _GOOGLE_CLIENT_ID,
+        "redirect_uri": _google_redirect_uri(),
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "state": state_nonce,
+    })
     return RedirectResponse(f"{_GOOGLE_AUTH_URL}?{params}")
 
 
@@ -267,12 +255,14 @@ def google_callback(
     db: Session = Depends(get_db),
 ):
     if error or not code:
-        return _callback_error("access_denied")
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=access_denied")
     if not _GOOGLE_CLIENT_ID:
-        return _callback_error("not_configured")
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=not_configured")
 
-    state_data = _decode_state(state)
-    mode = _sanitize_mode(state_data.get("mode", "login"))
+    state_payload = _temp_pop(state)
+    if state_payload is None or state_payload.get("type") != "oauth_state":
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=access_denied")
+    mode = _sanitize_mode(state_payload.get("mode", "login"))
 
     try:
         with httpx.Client(timeout=10.0) as client:
@@ -285,7 +275,7 @@ def google_callback(
             })
             access_token = token_res.json().get("access_token")
             if not access_token:
-                return _callback_error("token_failed")
+                return RedirectResponse(f"{_CALLBACK_BASE}?err=token_failed")
 
             info = client.get(
                 _GOOGLE_USERINFO_URL,
@@ -295,7 +285,7 @@ def google_callback(
         google_id = str(info.get("id", ""))
         email = info.get("email", "")
         if not email or not google_id:
-            return _callback_error("invalid_profile")
+            return RedirectResponse(f"{_CALLBACK_BASE}?err=invalid_profile")
 
         given_name = info.get("given_name", "")
         family_name = info.get("family_name", "")
@@ -316,13 +306,10 @@ def google_callback(
             system_role=system_role,
         )
         tokens = _create_session(db, user)
-        code = _store_temp_tokens(tokens)
-        extra = f"&new_user=1&mode={mode}" if is_new else ""
-        return RedirectResponse(
-            f"{_FRONTEND_URL}/auth/social/callback?code={code}{extra}"
-        )
+        nonce = _temp_put({"type": "tokens", "is_new": is_new, "mode": mode, **tokens})
+        return RedirectResponse(f"{_CALLBACK_BASE}?code={nonce}")
     except Exception:
-        return _callback_error("server_error")
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=server_error")
 
 
 # ── LinkedIn ──────────────────────────────────────────────────────────────────
@@ -330,15 +317,16 @@ def google_callback(
 @router.get("/linkedin/start")
 def linkedin_start(mode: str = "login"):
     if not _LINKEDIN_CLIENT_ID:
-        return _callback_error("not_configured")
-    state = _encode_state(_sanitize_mode(mode))
-    params = "&".join([
-        "response_type=code",
-        f"client_id={_LINKEDIN_CLIENT_ID}",
-        f"redirect_uri={urllib.parse.quote(_linkedin_redirect_uri(), safe='')}",
-        "scope=openid%20profile%20email",
-        f"state={state}",
-    ])
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=not_configured")
+    safe_mode = _sanitize_mode(mode)
+    state_nonce = _temp_put({"type": "oauth_state", "mode": safe_mode})
+    params = urllib.parse.urlencode({
+        "response_type": "code",
+        "client_id": _LINKEDIN_CLIENT_ID,
+        "redirect_uri": _linkedin_redirect_uri(),
+        "scope": "openid profile email",
+        "state": state_nonce,
+    })
     return RedirectResponse(f"{_LINKEDIN_AUTH_URL}?{params}")
 
 
@@ -350,12 +338,14 @@ def linkedin_callback(
     db: Session = Depends(get_db),
 ):
     if error or not code:
-        return _callback_error("access_denied")
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=access_denied")
     if not _LINKEDIN_CLIENT_ID:
-        return _callback_error("not_configured")
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=not_configured")
 
-    state_data = _decode_state(state)
-    mode = _sanitize_mode(state_data.get("mode", "login"))
+    state_payload = _temp_pop(state)
+    if state_payload is None or state_payload.get("type") != "oauth_state":
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=access_denied")
+    mode = _sanitize_mode(state_payload.get("mode", "login"))
 
     try:
         with httpx.Client(timeout=10.0) as client:
@@ -372,7 +362,7 @@ def linkedin_callback(
             )
             access_token = token_res.json().get("access_token")
             if not access_token:
-                return _callback_error("token_failed")
+                return RedirectResponse(f"{_CALLBACK_BASE}?err=token_failed")
 
             info = client.get(
                 _LINKEDIN_USERINFO_URL,
@@ -382,7 +372,7 @@ def linkedin_callback(
         linkedin_id = str(info.get("sub", ""))
         email = info.get("email", "")
         if not email or not linkedin_id:
-            return _callback_error("invalid_profile")
+            return RedirectResponse(f"{_CALLBACK_BASE}?err=invalid_profile")
 
         given_name = info.get("given_name", "")
         family_name = info.get("family_name", "")
@@ -403,10 +393,7 @@ def linkedin_callback(
             system_role=system_role,
         )
         tokens = _create_session(db, user)
-        code = _store_temp_tokens(tokens)
-        extra = f"&new_user=1&mode={mode}" if is_new else ""
-        return RedirectResponse(
-            f"{_FRONTEND_URL}/auth/social/callback?code={code}{extra}"
-        )
+        nonce = _temp_put({"type": "tokens", "is_new": is_new, "mode": mode, **tokens})
+        return RedirectResponse(f"{_CALLBACK_BASE}?code={nonce}")
     except Exception:
-        return _callback_error("server_error")
+        return RedirectResponse(f"{_CALLBACK_BASE}?err=server_error")

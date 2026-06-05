@@ -52,10 +52,12 @@
   overflow: hidden;
 }
 
-.app-layout__sb-ws-av img {
+.app-layout__sb-ws-logo-bg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .app-layout__sb-ws-fallback {
@@ -340,7 +342,9 @@
   width: 40px;
   height: 40px;
   border-radius: 14px;
-  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.18);
   flex-shrink: 0;
 }

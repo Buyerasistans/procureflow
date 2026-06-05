@@ -281,7 +281,12 @@ export default function AppLayout() {
               </div>
               <div className="app-layout__workspace-row">
                 {logoUrl ? (
-                  <img src={logoUrl} alt={workspaceName} className="app-layout__workspace-logo" />
+                  <div
+                    className="app-layout__workspace-logo"
+                    style={{ backgroundImage: `url(${JSON.stringify(logoUrl)})` }}
+                    role="img"
+                    aria-label={workspaceName}
+                  />
                 ) : (
                   <div className="app-layout__workspace-fallback">
                     {workspaceName.slice(0, 2).toUpperCase()}
@@ -426,10 +431,16 @@ export default function AppLayout() {
 
         <div className="app-layout__sb-workspace">
           <div className="app-layout__sb-ws-av">
-            {logoUrl
-              ? <img src={logoUrl} alt={workspaceName} />
-              : <div className="app-layout__sb-ws-fallback">{workspaceName.slice(0, 2).toUpperCase()}</div>
-            }
+            {logoUrl ? (
+              <div
+                className="app-layout__sb-ws-logo-bg"
+                style={{ backgroundImage: `url(${JSON.stringify(logoUrl)})` }}
+                role="img"
+                aria-label={workspaceName}
+              />
+            ) : (
+              <div className="app-layout__sb-ws-fallback">{workspaceName.slice(0, 2).toUpperCase()}</div>
+            )}
           </div>
           <div className="app-layout__sb-ws-info">
             <div className="app-layout__sb-ws-name">{workspaceName}</div>
