@@ -3,18 +3,19 @@ import { useSettings } from "../hooks/useSettings";
 import { AdvancedSettingsTab } from "./AdvancedSettingsTab";
 import { DemoDataTab } from "./DemoDataTab";
 import PremiumFeaturePurchasePanel from "./PremiumFeaturePurchasePanel";
+import { DualRoleAddonPanel } from "./DualRoleAddonPanel";
 import type { SettingsUpdatePayload } from "../services/settings.service";
 import { getQuotePriceRules, updateQuotePriceRules, type QuotePriceRules } from "../services/admin.service";
 import { getMyTenantPremiumPurchaseContext, type TenantPremiumPurchaseContext } from "../services/payment.service";
 import { useAuth } from "../hooks/useAuth";
-import { canManageTenantIdentitySettings, getUserScopeType, isSuperAdminUser, isTenantOwnerUser } from "../auth/permissions";
+import { canManageTenantIdentitySettings, getUserScopeType, isSuperAdminUser, isTenantAdminUser, isTenantOwnerUser } from "../auth/permissions";
 import { PageHeader } from "../pages/admin/AdminTabContent";
 import "./SettingsTab.css";
 
 type SettingsGroupCode =
   | "basic" | "price_rules" | "email" | "email_accounts"
   | "logging" | "backup" | "notifications" | "brand" | "channel_brand"
-  | "premium" | "demo";
+  | "premium" | "supplier_portal" | "demo";
 
 interface SettingsGroup {
   code: SettingsGroupCode;
@@ -34,6 +35,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
   { code: "brand",          label: "Marka & Kimlik",          icon: "🎨", desc: "Partner logo, renk, görünen ad" },
   { code: "channel_brand",  label: "Kanal Markalama",         icon: "🚀", desc: "İş ortağı portalı görünüm + mailbox" },
   { code: "premium",        label: "Premium Özellikler",      icon: "⭐", desc: "Partner başına feature aktivasyonu" },
+  { code: "supplier_portal", label: "Tedarikçi Portalı",      icon: "🔗", desc: "Çift rol yeteneği — tedarikçi portal başvurusu" },
   { code: "demo",           label: "Demo Verileri",           icon: "📊", desc: "Örnek veri yükle / temizle" },
 ];
 
@@ -198,6 +200,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
   const isTenantOwner = isTenantOwnerUser(user);
   const canEditTenantIdentity = canManageTenantIdentitySettings(user);
   const isSuperAdmin = isSuperAdminUser(user);
+  const canViewSupplierPortal = (isTenantAdminUser(user) || isTenantOwner || user?.business_role === "satinalma_direktoru") && !isSuperAdmin;
 
   const defaultGroup: SettingsGroupCode = isChannelWorkspace ? "email" : "basic";
   const [activeGroup, setActiveGroup] = useState<SettingsGroupCode>(defaultGroup);
@@ -343,7 +346,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
             />
           </div>
           <div className="st-sidebar__list">
-            {SETTINGS_GROUPS.map((g) => (
+            {SETTINGS_GROUPS.filter((g) => g.code !== "supplier_portal" || canViewSupplierPortal).map((g) => (
               <button
                 key={g.code}
                 type="button"
@@ -587,6 +590,12 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
           {activeGroup === "email" && <div className="st-embedded"><AdvancedSettingsTab /></div>}
 
           {/* ── Demo Verileri ───────────────────────────────────── */}
+          {activeGroup === "supplier_portal" && canViewSupplierPortal && (
+            <div className="st-fields">
+              <DualRoleAddonPanel />
+            </div>
+          )}
+
           {activeGroup === "demo" && <div className="st-embedded"><DemoDataTab /></div>}
 
           {/* ── Premium Özellikler ──────────────────────────────── */}
