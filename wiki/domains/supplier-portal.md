@@ -1,7 +1,7 @@
 ---
 title: Supplier Portal Domain
 owned_by: backend+frontend
-last_verified_at: 2026-05-21
+last_verified_at: 2026-06-05
 confidence: 0.75
 stale_after_days: 14
 source_files:

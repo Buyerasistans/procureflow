@@ -175,6 +175,8 @@ pyyaml==6.0.3
     # via
     #   pre-commit
     #   uvicorn
+qrcode==8.0.0
+    # via -r requirements.in
 rsa==4.9.1
     # via python-jose
 ruff==0.15.8

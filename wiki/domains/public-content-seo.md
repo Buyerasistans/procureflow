@@ -1,7 +1,7 @@
 ---
 title: Public Content & SEO Domain
 owned_by: growth+frontend
-last_verified_at: 2026-05-21
+last_verified_at: 2026-06-05
 confidence: 0.72
 stale_after_days: 21
 source_files:
