@@ -3847,7 +3847,7 @@ export default function AdminPage() {
     setTelemetryPulseTarget({
       quoteId: selectedFocusTelemetryTarget.quoteId,
       section: selectedFocusTelemetryTarget.section,
-        reason: `Telemetry seçimi bu bölümü hedefledi: ${getQuoteInsightSectionLabel(selectedFocusTelemetryTarget.section)}`,
+        reason: `Telemetry secimi bu bolumu hedefledi: ${getQuoteInsightSectionLabel(selectedFocusTelemetryTarget.section)}`,
     });
     if (focusTelemetryPulseTimeoutRef.current) {
       window.clearTimeout(focusTelemetryPulseTimeoutRef.current);
@@ -5991,7 +5991,7 @@ export default function AdminPage() {
                         ) : null}
                         {selectedFocusTelemetryTarget?.quoteId === audit.quote_id ? (
                           <span className="admin-page__pill-chip admin-page__pill-chip--blue">
-                            Telemetry Seçimi
+                            Telemetry Secimi
                           </span>
                         ) : null}
                         {replayChainTargetQuoteId === audit.quote_id ? (
