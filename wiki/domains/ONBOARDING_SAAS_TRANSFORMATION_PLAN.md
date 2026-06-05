@@ -1,3 +1,13 @@
+---
+title: 3-Tier Onboarding SaaS Transformation Plan
+owned_by: backend+frontend
+last_verified_at: 2026-06-05
+confidence: 0.75
+stale_after_days: 90
+source_files:
+  - api/routers/onboarding_router.py
+  - web/src/pages/ProfilePage.tsx
+---
 # 3-Tier Onboarding & SaaS Transformation Plan
 
 **Tamamlama Tarihi:** 17 Nisan 2026  

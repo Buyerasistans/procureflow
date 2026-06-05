@@ -1,4 +1,15 @@
-﻿# Is Ortagi Network Workflow (V1)
+---
+title: Is Ortagi Network Workflow
+owned_by: backend+frontend
+last_verified_at: 2026-06-05
+confidence: 0.75
+stale_after_days: 90
+source_files:
+  - api/routers/auth.py
+  - api/models/user.py
+  - web/src/pages/ChannelPartnerRegisterPage.tsx
+---
+# Is Ortagi Network Workflow (V1)
 
 Bu dosya, is ortagi profil donusumu ve network komisyon sisteminin tek kaynak
 is akisi dosyasidir.

@@ -147,6 +147,8 @@ pygments==2.19.2
     # via pytest
 pynacl==1.6.2
     # via paramiko
+pyotp==2.9.0
+    # via -r requirements.in
 pyparsing==3.3.2
     # via ezdxf
 pytest==8.4.2

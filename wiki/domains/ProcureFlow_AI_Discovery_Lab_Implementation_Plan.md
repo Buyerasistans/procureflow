@@ -1,3 +1,13 @@
+---
+title: ProcureFlow AI Discovery Lab Implementation Plan
+owned_by: backend+ai
+last_verified_at: 2026-06-05
+confidence: 0.80
+stale_after_days: 90
+source_files:
+  - api/routers/ai_lab.py
+  - web/src/pages/admin/DiscoveryLabOperationsTab.tsx
+---
 # ProcureFlow AI Kesif Laboratuvari Uygulama Plani
 
 Bu dokuman, mimari projelerin yuklenmesi, CAD metadata ozutlemesi,

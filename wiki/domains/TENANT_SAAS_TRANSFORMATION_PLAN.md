@@ -1,3 +1,14 @@
+---
+title: ProcureFlow Tenant SaaS Transformation Plan
+owned_by: backend+product
+last_verified_at: 2026-06-05
+confidence: 0.80
+stale_after_days: 90
+source_files:
+  - api/routers/admin_deployment.py
+  - api/models/user.py
+  - web/src/pages/AdminPage.tsx
+---
 # ProcureFlow Stratejik Partner SaaS Donusum Plani
 
 Bu dokuman, ProcureFlow'un Buyera Asistans altinda calisan cok kiracili

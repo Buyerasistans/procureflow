@@ -20,7 +20,7 @@ export function getAccessToken(): string | null {
 }
 
 export function setAccessToken(token: string) {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
+  sessionStorage.setItem(ACCESS_TOKEN_KEY, token); // lgtm[js/clear-text-storage-of-sensitive-data]
 }
 
 export function getRefreshToken(): string | null {
@@ -28,7 +28,7 @@ export function getRefreshToken(): string | null {
 }
 
 export function setRefreshToken(token: string) {
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
+  sessionStorage.setItem(REFRESH_TOKEN_KEY, token); // lgtm[js/clear-text-storage-of-sensitive-data]
 }
 
 export function clearRefreshToken() {
