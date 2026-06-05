@@ -69,8 +69,12 @@ export default function AppLayout() {
   const logoUrl = (() => {
     const raw = user?.organization_logo_url?.trim();
     if (!raw) return null;
-    if (/^https?:\/\//i.test(raw) || raw.startsWith("/")) return raw;
-    return null;
+    try {
+      const parsed = new URL(raw);
+      return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : null;
+    } catch {
+      return null;
+    }
   })();
 
   function handleLogout() {

@@ -8,8 +8,6 @@ import SocialLoginButtons from "../components/SocialLoginButtons";
 import SocialRegisterLayout from "../components/SocialRegisterLayout";
 import "./EmployerRegisterPage.css";
 
-const USER_KEY = "pf_user";
-
 const BRAND_FEATURES = [
   { text: "Google veya LinkedIn ile hızlı kayıt — 30 saniye" },
   { text: "İlk ilanınızı dakikalar içinde yayınlayın" },
@@ -63,9 +61,6 @@ export default function EmployerRegisterPage() {
       );
       setAccessToken(data.accessToken);
       setRefreshToken(data.refreshToken);
-      if (data.user) {
-        sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
-      }
       navigate(POST_REGISTER_REDIRECT.employer, { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kayıt sırasında bir sorun oluştu.");

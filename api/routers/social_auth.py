@@ -83,15 +83,32 @@ def _consume_temp_tokens(code: str) -> dict | None:
     return {k: v for k, v in payload.items() if k != "type"}
 
 
+# All valid mode values — anything else is rejected and replaced with "login"
+_VALID_MODES = frozenset({
+    "login", "candidate", "employer",
+    "channel_preview", "supplier_preview", "strategic_preview",
+})
+
+# All valid error codes passed to the frontend
+_VALID_ERROR_CODES = frozenset({
+    "access_denied", "not_configured", "token_failed",
+    "invalid_profile", "server_error",
+})
+
 # Modes that trigger B2B prefill (no account creation)
 _B2B_PREVIEW_MODES = {"channel_preview", "supplier_preview", "strategic_preview"}
 
-# B2B prefill landing routes
+# B2B prefill landing routes (values are hardcoded paths, not user-controlled)
 _B2B_LANDING = {
     "channel_preview": "/is-ortagi-basvuru",
     "supplier_preview": "/supplier/register",
     "strategic_preview": "/employer/register",
 }
+
+
+def _sanitize_mode(mode: str) -> str:
+    """Return mode only if it is a known-safe value; otherwise fall back to login."""
+    return mode if mode in _VALID_MODES else "login"
 
 
 def _google_redirect_uri() -> str:
@@ -103,7 +120,8 @@ def _linkedin_redirect_uri() -> str:
 
 
 def _callback_error(error: str) -> RedirectResponse:
-    return RedirectResponse(f"{_FRONTEND_URL}/auth/social/callback?error={error}")
+    safe = error if error in _VALID_ERROR_CODES else "server_error"
+    return RedirectResponse(f"{_FRONTEND_URL}/auth/social/callback?error={safe}")
 
 
 def _encode_state(mode: str) -> str:
@@ -229,7 +247,7 @@ def get_social_providers():
 def google_start(mode: str = "login"):
     if not _GOOGLE_CLIENT_ID:
         return _callback_error("not_configured")
-    state = _encode_state(mode)
+    state = _encode_state(_sanitize_mode(mode))
     params = "&".join([
         f"client_id={_GOOGLE_CLIENT_ID}",
         f"redirect_uri={urllib.parse.quote(_google_redirect_uri(), safe='')}",
@@ -254,7 +272,7 @@ def google_callback(
         return _callback_error("not_configured")
 
     state_data = _decode_state(state)
-    mode = state_data.get("mode", "login")
+    mode = _sanitize_mode(state_data.get("mode", "login"))
 
     try:
         with httpx.Client(timeout=10.0) as client:
@@ -313,7 +331,7 @@ def google_callback(
 def linkedin_start(mode: str = "login"):
     if not _LINKEDIN_CLIENT_ID:
         return _callback_error("not_configured")
-    state = _encode_state(mode)
+    state = _encode_state(_sanitize_mode(mode))
     params = "&".join([
         "response_type=code",
         f"client_id={_LINKEDIN_CLIENT_ID}",
@@ -337,7 +355,7 @@ def linkedin_callback(
         return _callback_error("not_configured")
 
     state_data = _decode_state(state)
-    mode = state_data.get("mode", "login")
+    mode = _sanitize_mode(state_data.get("mode", "login"))
 
     try:
         with httpx.Client(timeout=10.0) as client:
