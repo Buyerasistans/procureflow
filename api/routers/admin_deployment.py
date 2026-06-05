@@ -63,7 +63,7 @@ def _make_sse_stream(svc: DeploymentService, coro):
     async def event_generator():
         yield f"data: {json.dumps({'type': 'start'})}\n\n"
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         last_log_count = 0
 
         def run_in_thread():
@@ -406,11 +406,12 @@ async def test_connection(hosting_config: HostingConfig) -> SystemSetupResponse:
     return await DeploymentService().test_connection(hosting_config)
 
 
-@router.post("/setup", response_model=SystemSetupResponse)
-async def setup_system() -> SystemSetupResponse:
+@router.post("/setup")
+async def setup_system():
     """Yerel sistem kurulumunu çalıştırır. Sadece local."""
     _require_local_env()
-    return await DeploymentService().setup_system()
+    svc = DeploymentService()
+    return _make_sse_stream(svc, svc.setup_system())
 
 
 @router.post("/deploy")
@@ -461,8 +462,13 @@ async def smart_reload(hosting_config: HostingConfig):
     return _make_sse_stream(svc, svc.smart_reload(hosting_config))
 
 
-@router.post("/refresh-zip", response_model=SystemSetupResponse)
-async def refresh_zip() -> SystemSetupResponse:
+@router.post("/refresh-zip")
+async def refresh_zip():
     """ZIP dosyasını yeniler. Sadece local."""
     _require_local_env()
-    return DeploymentService().refresh_zip()
+    svc = DeploymentService()
+
+    async def _coro():
+        return svc.refresh_zip()
+
+    return _make_sse_stream(svc, _coro())

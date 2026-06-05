@@ -28,6 +28,8 @@ from .routers.onboarding_router import router as onboarding_router
 from .routers.onboarding_saas import router as onboarding_saas_router
 from .routers.channel import router as channel_router
 from .routers.campaign_admin import router as campaign_admin_router
+from .routers.public_campaigns import router as public_campaigns_router
+from .routers.social_auth import router as social_auth_router
 from .routers.payment import router as payment_router
 from .routers.payment_admin import router as payment_admin_router
 from .routers.public_assets import router as public_assets_router
@@ -155,6 +157,8 @@ app.include_router(onboarding_router, prefix="/api/v1")
 app.include_router(onboarding_saas_router, prefix="/api/v1")
 app.include_router(channel_router, prefix="/api/v1")
 app.include_router(campaign_admin_router, prefix="/api/v1")
+app.include_router(public_campaigns_router, prefix="/api/v1")
+app.include_router(social_auth_router, prefix="/api/v1")
 app.include_router(payment_router, prefix="/api/v1")
 app.include_router(payment_admin_router, prefix="/api/v1")
 app.include_router(public_assets_router)

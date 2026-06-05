@@ -81,6 +81,18 @@ class User(Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
+    # Social login
+    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
+    linkedin_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
+    social_login_only: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # 2FA
+    totp_secret: Mapped[str | None] = mapped_column(Text, nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Notifications
+    login_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     # Faz B: 4-scope mimari genişlemesi
     scope_type: Mapped[str | None] = mapped_column(
         String(20),

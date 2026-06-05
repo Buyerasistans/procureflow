@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
 
 from api.core.time import utcnow
@@ -24,6 +25,21 @@ def list_campaign_programs(db: Session) -> list[CampaignProgram]:
             selectinload(CampaignProgram.grants),
         )
         .order_by(CampaignProgram.created_at.desc(), CampaignProgram.id.desc())
+        .all()
+    )
+
+
+def list_public_campaigns(db: Session) -> list[CampaignProgram]:
+    now = utcnow()
+    return (
+        db.query(CampaignProgram)
+        .filter(
+            CampaignProgram.status == "active",
+            CampaignProgram.is_public == True,  # noqa: E712
+            or_(CampaignProgram.starts_at == None, CampaignProgram.starts_at <= now),  # noqa: E711
+            or_(CampaignProgram.ends_at == None, CampaignProgram.ends_at >= now),  # noqa: E711
+        )
+        .order_by(CampaignProgram.created_at.desc())
         .all()
     )
 
