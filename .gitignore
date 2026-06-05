@@ -174,3 +174,22 @@ tools/agent/**
 !tools/agent/orchestrator.ps1
 !tools/agent/prompts/
 !tools/agent/prompts/**
+
+# ============================================
+# Design handoffs & local archives (NEVER COMMIT)
+# ============================================
+Obsidian_Kasa/
+claude_code_handoff/
+design_handoff_*/
+localhost-aktarim/
+artifacts/
+*.zip
+zip*/
+
+# ============================================
+# Gate test scripts & artifacts (local only)
+# ============================================
+tools/gate-artifacts/
+tools/atomik*.mjs
+tools/public_nav_gate.mjs
+tools/responsive_gate.mjs
