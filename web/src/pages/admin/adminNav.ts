@@ -68,6 +68,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { key: "departments", label: "Departmanlar", icon: "grid" },
       { key: "personnel", label: "Ekip Üyeleri", icon: "users" },
       { key: "projects", label: "Projeler", icon: "folder" },
+      { key: "suppliers", label: "Tedarikçiler", icon: "supplier" },
       { key: "approvals", label: "Onay Akışları", icon: "check" },
     ],
   },
