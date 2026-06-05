@@ -41,6 +41,8 @@ export function OnboardingStudioTab({
   searchParams,
   renderAdminFocusBanner,
   navigateAdminTab,
+  handleStartOnboardingTemplate,
+  handleCreateDraftTenant,
   tenantGovernanceSuppliers,
   formatOnboardingApprovalStatus,
   formatOnboardingPaymentStatus,
@@ -59,7 +61,7 @@ export function OnboardingStudioTab({
   // Approved/fully-onboarded cards start collapsed
   const [expandedCards, setExpandedCards] = useState<Set<number>>(() => {
     const initialExpanded = new Set<number>();
-    s.recent_memberships.forEach((tenant) => {
+    (s?.recent_memberships ?? []).forEach((tenant) => {
       const approvalStatus = String(tenant.onboarding_approval_status || "").toLowerCase();
       if (approvalStatus !== "approved") {
         initialExpanded.add(tenant.id);
@@ -119,6 +121,28 @@ export function OnboardingStudioTab({
         <StatCard label="Onaylandı" value={s.approved_membership_count} accent="green" sub="Aktivasyon tamamlandı" />
       </div>
 
+      {/* ── Kurulum Iskeleti ──────────────────────────────────── */}
+      <div className="osTab__panel">
+        <div className="osTab__panelTitle">Yeni Stratejik Partner Kurulum Iskeleti</div>
+        <div className="osTab__metricRow">
+          <span className="osTab__metricLabel">Toplam Stratejik Partner Portfoyu</span>
+          <span className="osTab__metricNum">{s.tenant_count}</span>
+        </div>
+        <div className="osTab__stepList">
+          {["1. Plan Secimi", "2. Admin Aktivasyon E-postasi", "3. Ilk Admin Aktivasyonu", "4. Branding ve Onboarding"].map((step) => (
+            <div key={step} className="osTab__stepItem">{step}</div>
+          ))}
+        </div>
+        <div className="osTab__quickButtons">
+          <button type="button" className="osTab__btn" onClick={() => handleStartOnboardingTemplate("starter")}>
+            Stratejik Partner Formuna Tasla
+          </button>
+          <button type="button" className="osTab__btn osTab__btn--ghost" onClick={() => void handleCreateDraftTenant("starter")}>
+            Taslak Stratejik Partner Olustur
+          </button>
+        </div>
+      </div>
+
       {/* ── Metric strip (legacy — detay satırları) ────────────── */}
       <div className="osTab__metrics">
         {[
@@ -142,7 +166,7 @@ export function OnboardingStudioTab({
       {searchParams.get("onboardingPlanFocus") ? (
         renderAdminFocusBanner({
           eyebrow: "Admin Focus",
-          title: `Onboarding odağı: ${String(searchParams.get("onboardingPlanFocus") || "").toUpperCase()} planı`,
+          title: `Onboarding odagi: ${String(searchParams.get("onboardingPlanFocus") || "").toUpperCase()} plani`,
           detail: "Seçilen onboarding planına ait kartlar öncelikli olarak vurgulaniyor.",
           tone: "blue",
           sourceLabel: "Onboarding deep-link",
@@ -472,14 +496,14 @@ export function OnboardingStudioTab({
         {/* RFQ readiness */}
         <div className="osTab__panel">
           <div className="osTab__panelHead">
-            <div className="osTab__eyebrow osTab__eyebrow--violet">RFQ Geçiş Hazırlığı</div>
+            <div className="osTab__eyebrow osTab__eyebrow--violet">RFQ Gecis Hazirligi</div>
             <div className="osTab__panelTitle">Veri tutarlılığı</div>
           </div>
 
           <div className={`osTab__readinessBanner osTab__readinessBanner--${s.rfq_readiness.transition_ready ? "ready" : "blocked"}`}>
             {s.rfq_readiness.transition_ready
-              ? "Stratejik Partner RFQ geçişi için kritik blokaj görünmüyor"
-              : "Stratejik Partner RFQ geçişi öncesi veri düzeltme gerekli"}
+              ? "Stratejik Partner RFQ gecisi icin kritik blokaj gorunmuyor"
+              : "Stratejik Partner RFQ gecisi oncesi veri duzeltme gerekli"}
           </div>
 
           <div className="osTab__rfqNotes">
@@ -512,11 +536,11 @@ export function OnboardingStudioTab({
             <div className="osTab__eyebrow osTab__eyebrow--teal osTab__subLabel">Tedarikçi Kaynak Dengesi</div>
             <div className="osTab__supplierGrid">
               <div className="osTab__supplierCard osTab__supplierCard--blue">
-                <div className="osTab__supplierLabel">Özel Tedarikçi</div>
+                <div className="osTab__supplierLabel">Ozel Tedarikci</div>
                 <div className="osTab__supplierValue">{s.supplier_mix.private_count}</div>
               </div>
               <div className="osTab__supplierCard osTab__supplierCard--violet">
-                <div className="osTab__supplierLabel">Platform Ağı</div>
+                <div className="osTab__supplierLabel">Platform Agi</div>
                 <div className="osTab__supplierValue">{s.supplier_mix.platform_network_count}</div>
               </div>
             </div>

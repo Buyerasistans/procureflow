@@ -271,7 +271,7 @@ function formatAdminFocusTimestamp(value?: number | null) {
 }
 
 function getQuoteInsightSectionLabel(section: "status-history" | "full-audit-trail") {
-  return section === "status-history" ? "Durum Geçmişi" : "Denetim İzi";
+  return section === "status-history" ? "Durum Gecmisi" : "Denetim Izi";
 }
 
 type BillingInvoiceStatusBucket = "open" | "paid" | "other";
@@ -1001,15 +1001,15 @@ export default function AdminPage() {
   const { user } = useAuth();
   const { locale } = useLocale();
   const tAdmin = usePublicTranslations("admin_tabs", locale, {
-    panel_home: "Panel Ana Sayfa",
+    panel_home: "Super Admin Paneli",
     platform_operations: "Platform Operasyonları",
-    discovery_lab_operations: "Discovery Lab Operasyonları",
+    discovery_lab_operations: "Discovery Lab Operasyonlari",
     onboarding_studio: "Kurulum Stüdyosu",
-    tenant_governance: "Stratejik Partner Yönetimi",
+    tenant_governance: "Stratejik Partner Yonetimi",
     packages: "Paket ve Kullanım",
     deployment: "Yayınlama",
     platform_analytics: "Platform Analitikleri",
-    platform_suppliers: "Platform Tedarikçi Havuzu",
+    platform_suppliers: "Platform Tedarikci Havuzu",
     public_pricing: "Genel Fiyatlandırma",
     campaigns: "Kampanyalar ve Landing",
     commission_admin: "Komisyon Yönetimi",
@@ -1263,16 +1263,9 @@ export default function AdminPage() {
   const workspaceName = user?.organization_name || user?.platform_name || "Buyera Asistans";
   const mergedWorkspacePanelConfig = useMemo(() => mergeWorkspacePanelConfig(workspacePanelConfig), [workspacePanelConfig]);
   const activeWorkspacePanelProfile = useMemo(() => resolveWorkspacePanelProfile(user, mergedWorkspacePanelConfig), [mergedWorkspacePanelConfig, user]);
-  const isRoleManagementOnly = canAccessRoleCatalog && !canAccessAdminWorkspace;
+  const isRoleManagementOnly = canAccessRoleCatalog && !canAccessAdminWorkspace && !isSuperAdminUser(user) && !isTenantAdminUser(user);
   const canOpenWorkspacePanel = (!isRoleManagementOnly && canAccessWorkspacePanel(user)) || Boolean(activeWorkspacePanelProfile);
   const workspacePanelQuickLinks = useMemo(() => getWorkspacePanelQuickLinks(activeWorkspacePanelProfile), [activeWorkspacePanelProfile]);
-
-  useEffect(() => {
-    if (activeTab !== "tenant_governance") return;
-    if (!canViewPlatformGovernance) return;
-    if (canEditTenantGovernance) return;
-    setIsTenantFormModalOpen(true);
-  }, [activeTab, canViewPlatformGovernance, canEditTenantGovernance]);
 
   const telemetryPresetUserKey = buildFocusTelemetryPresetUserKey(user?.email, user?.id);
   const platformOpsDefaultOwner = user?.full_name || user?.email || workspaceName;
@@ -1901,7 +1894,7 @@ export default function AdminPage() {
       },
       {
         key: "transition",
-        label: transitionReason === "-" ? "Gerekçe yok" : "Gerekçe var",
+        label: transitionReason === "-" ? "Gerekce yok" : "Gerekce var",
         detail: `Transition reason: ${transitionReason}`,
         tone: transitionReason === "-" ? "gray" : "blue",
       },
@@ -1960,13 +1953,13 @@ export default function AdminPage() {
     const projectFocusName = searchParams.get("projectFocusName");
     const onboardingPlanFocus = searchParams.get("onboardingPlanFocus");
     if (tenantFocusName) {
-      events.push({ id: "platform-overview-tenant", label: "Platform Genel Bakışı Odagi", detail: `Stratejik Partner odagi: ${tenantFocusName}`, source: "platform-overview", createdAt: now });
+      events.push({ id: "platform-overview-tenant", label: "Platform Genel Bakisi Odagi", detail: `Stratejik Partner odagi: ${tenantFocusName}`, source: "platform-overview", createdAt: now });
     }
     if (projectFocusName) {
-      events.push({ id: "platform-overview-project", label: "Platform Genel Bakışı Odagi", detail: `Proje odagi: ${projectFocusName}`, source: "platform-overview", createdAt: now - 1 });
+      events.push({ id: "platform-overview-project", label: "Platform Genel Bakisi Odagi", detail: `Proje odagi: ${projectFocusName}`, source: "platform-overview", createdAt: now - 1 });
     }
     if (onboardingPlanFocus) {
-      events.push({ id: "platform-overview-onboarding", label: "Platform Genel Bakışı Odagi", detail: `Onboarding planı: ${String(onboardingPlanFocus).toUpperCase()}`, source: "platform-overview", createdAt: now - 2 });
+      events.push({ id: "platform-overview-onboarding", label: "Platform Genel Bakisi Odagi", detail: `Onboarding planı: ${String(onboardingPlanFocus).toUpperCase()}`, source: "platform-overview", createdAt: now - 2 });
     }
     if (tenantGovernanceFocus?.tenantId != null || tenantGovernanceFocus?.tenantName) {
       events.push({
@@ -3447,11 +3440,13 @@ export default function AdminPage() {
           console.warn("Admin governance partial load failure", message);
         }
       }
+      if (canViewPackagesTab) {
+        setSubscriptionCatalog(subscriptionData as SubscriptionCatalogSnapshot | null);
+      }
       if (canAccessAdminWorkspace) {
         const normalizedPremiumFeatureCatalog = Array.isArray(premiumFeatureResponse)
           ? premiumFeatureResponse
           : [];
-        setSubscriptionCatalog(subscriptionData as SubscriptionCatalogSnapshot | null);
         setPublicPricingConfig(publicPricingResponse as PublicPricingConfig | null);
         setPremiumFeatureCatalog(normalizedPremiumFeatureCatalog as Array<{ id: number; code: string; name: string; description?: string | null; monthly_price?: number | null }>);
       }
@@ -3499,7 +3494,7 @@ export default function AdminPage() {
     const tenantFocusName = searchParams.get("tenantFocusName");
     const projectFocusName = searchParams.get("projectFocusName");
     const telemetrySnapshot = buildFocusTelemetryFilterSnapshot(searchParams);
-    if (resolvedTab && (tabConfigs.some((item) => item.key === resolvedTab) || resolvedTab === "profile")) {
+    if (resolvedTab && (tabConfigs.some((item) => item.key === resolvedTab) || resolvedTab === "profile" || resolvedTab === "platform_overview")) {
       setActiveTab(resolvedTab as AdminTabKey);
     } else if (isRoleManagementOnly) {
       setActiveTab("roles");
@@ -4027,7 +4022,7 @@ export default function AdminPage() {
   function handleStartOnboardingTemplate(planCode: string) {
     const presets: Record<string, { legalName: string; brandName: string; city: string; adminEmail: string }> = {
       starter: {
-        legalName: "Starter Müşteri Ltd.",
+        legalName: "Starter Musteri Ltd.",
         brandName: "Starter Workspace",
         city: "Istanbul",
         adminEmail: "owner@starter.test",
@@ -4823,7 +4818,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {activeTab === "platform_overview" && canViewPlatformGovernance && (
+      {(activeTab === "platform_overview" || activeTab === "panel_home") && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
             eyebrow: "Yönetici Odağı",
@@ -4838,10 +4833,10 @@ export default function AdminPage() {
                 ? "Discovery Lab izleme kartları seçili proje bağlamına göre okunuyor."
                 : "Onboarding odağı platform genel bakış seviyesinde korunuyor.",
             tone: "amber",
-            sourceLabel: "Platform genel bakış bağlantısı",
+            sourceLabel: "Platform genel bakis baglantisi",
             timestamp: Date.now(),
             actions: [
-              searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
+              searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
               searchParams.get("projectFocusName") ? { label: "Discovery Lab'a Git", onClick: () => navigateAdminTab("discovery_lab_operations", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
               searchParams.get("projectFocusName") ? { label: "Projelere Git", onClick: () => navigateAdminTab("projects", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
               searchParams.get("onboardingPlanFocus") ? { label: "Onboarding'e Git", onClick: () => navigateAdminTab("onboarding_studio", { onboardingPlanFocus: searchParams.get("onboardingPlanFocus") || "" }) } : undefined,
@@ -5002,7 +4997,7 @@ export default function AdminPage() {
             </div>
 
             <div ref={focusTelemetryPanelRef} className="admin-page__panel-card admin-page__panel-card--stacked">
-              <div className="admin-page__panel-eyebrow">Yönetici Odak Telemetrisi</div>
+              <div className="admin-page__panel-eyebrow">Yonetici Odak Telemetrisi</div>
               <div className="admin-page__panel-title">Paylaşılan focus olay listesi</div>
               <div className="admin-page__link-description">Platform genel bakış, filtre odakları ve geri yükleme davranışları tek listede toplanır.</div>
               <div className="admin-page__wrap-row">
@@ -5015,22 +5010,22 @@ export default function AdminPage() {
               <div className="admin-page__form-row">
                 <label className="admin-page__field admin-page__field--wide">
                   Preset Adı
-                  <input aria-label="Telemetry Preset Adı" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="örnek: Merkez Replay" className="admin-page__control" />
+                  <input aria-label="Telemetry Preset Adi" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="örnek: Merkez Replay" className="admin-page__control" />
                 </label>
                 <button type="button" onClick={saveFocusTelemetryPreset} className="admin-page__pill-button">
                   Preset Kaydet
                 </button>
                 <button type="button" onClick={exportFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--blue">
-                  Preset Paketi Hazırla
+                  Preset Paketi Hazirla
                 </button>
                 <button type="button" onClick={importFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--violet">
-                  Preset Paketini İçe Aktar
+                  Preset Paketini Ice Aktar
                 </button>
                 {focusTelemetryPresets.map((preset) => (
                   <div key={preset.id} className="admin-page__chip-row">
                     {focusTelemetryEditingPresetId === preset.id ? (
                       <>
-                        <input aria-label={`Preset Yeniden Adlandır ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
+                        <input aria-label={`Preset Yeniden Adlandir ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
                         <button type="button" onClick={() => commitFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--blue">
                           Kaydet
                         </button>
@@ -5041,7 +5036,7 @@ export default function AdminPage() {
                       </button>
                     )}
                     <button type="button" onClick={() => startFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--amber">
-                      Yeniden Adlandır
+                      Yeniden Adlandir
                     </button>
                     <button type="button" onClick={() => deleteFocusTelemetryPreset(preset.id)} className="admin-page__pill-button admin-page__pill-button--red">
                       Preseti Sil
@@ -5108,7 +5103,7 @@ export default function AdminPage() {
                   <span className="admin-page__tag-chip">Disa Aktarim Zamani: {previewFocusTelemetryPresetPackage.exportedAtLabel}</span>
                   <span className="admin-page__tag-chip">Calisma Alani: {previewFocusTelemetryPresetPackage.sourceWorkspaceLabel}</span>
                   <span className="admin-page__tag-chip">Operator: {previewFocusTelemetryPresetPackage.operatorLabel}</span>
-                  <span className="admin-page__tag-chip">Özet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
+                  <span className="admin-page__tag-chip">Ozet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
                   <span className="admin-page__tag-chip">Kayit: {previewFocusTelemetryPresetPackage.acceptedCount}/{previewFocusTelemetryPresetPackage.presetCount}</span>
                   <span className="admin-page__tag-chip">Cakisma: {previewFocusTelemetryPresetPackage.conflictCount}</span>
                 </div>
@@ -5193,6 +5188,7 @@ export default function AdminPage() {
                         type="button"
                         onClick={() => setFocusTelemetryActionHistoryFilter(item.key as "all" | "export" | "preset" | "navigation")}
                         className={`admin-page__pill-button admin-page__pill-button--sm ${focusTelemetryActionHistoryFilter === item.key ? "admin-page__pill-button--active-blue" : ""}`}
+                        style={focusTelemetryActionHistoryFilter === item.key ? { background: "rgb(239, 246, 255)" } : undefined}
                       >
                         {item.label}
                       </button>
@@ -5251,7 +5247,7 @@ export default function AdminPage() {
                     if (!eventTarget.currentTarget.contains(nextFocused)) {
                       setIsFocusTelemetryReturnPaused(false);
                     }
-                  }} className={`admin-page__event-card ${
+                  }} style={focusTelemetryReturnedEventId === event.id ? { transform: "scale(1.01)" } : undefined} className={`admin-page__event-card ${
                     focusTelemetrySelectedEventId === event.id
                       ? "admin-page__event-card--selected"
                       : replayChainTargetQuoteId != null && event.targetQuoteId === replayChainTargetQuoteId
@@ -5333,7 +5329,7 @@ export default function AdminPage() {
                   Telemetry Export Hazirla
                 </button>
                 <button type="button" onClick={exportFocusTelemetryCsv} className="admin-page__pill-button">
-                  CSV Özet Hazırla
+                  CSV Ozet Hazirla
                 </button>
                 <button type="button" onClick={() => {
                   void copyFocusTelemetryText(focusTelemetryExport)
@@ -5560,7 +5556,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {activeTab === "panel_home" && canViewPlatformGovernance && (() => {
+      {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (() => {
         const _scope = String(user?.scope_type || "").toLowerCase();
         const _bRole = String(user?.business_role || user?.role || "").toLowerCase();
         const isChannel = _scope === "channel" || _bRole === "channel_owner" || _bRole === "channel_agent";
@@ -5681,7 +5677,7 @@ export default function AdminPage() {
             <StatCard label="Quote Hazır" value={discoveryLabSummary.quote_ready_sessions} accent="green" />
             <StatCard label="Kilitli Oturum" value={discoveryLabSummary.locked_sessions} accent="warn" />
             <StatCard label="Aktif Proje" value={discoveryLabSummary.active_project_count} accent="violet" />
-            <StatCard label="Toplam Audit" value={discoveryLabSummary.answer_audit_count} />
+            <StatCard label="Audit Kaydi" value={discoveryLabSummary.answer_audit_count} />
           </div>
         </div>
       )}
@@ -5690,7 +5686,7 @@ export default function AdminPage() {
         <section className="admin-page__grid">
           <div className="admin-page__panel-card admin-page__panel-card--stacked">
             <div className="admin-page__discovery-title">Discovery Lab Operasyon Masası</div>
-            <div className="admin-page__large-heading">Answer audit ve RFQ bağlantı merkezi</div>
+            <div className="admin-page__large-heading">Answer audit ve RFQ baglanti merkezi</div>
             <div className="admin-page__plain-muted">Stratejik Partner, proje, kullanıcı ve karar kırılımı ile Discovery Lab cevaplarını ve oluşan RFQ bağlantılarını izleyin.</div>
             {showRestoredQuoteToast && restoredQuoteInsight ? (
               <div
@@ -5713,7 +5709,7 @@ export default function AdminPage() {
               >
                 <div className="admin-page__restore-toast-content">
                   <div className="admin-page__restore-toast-title">Geri Dönüş Restore</div>
-                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} içinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odağı geri yüklendi.</div>
+                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} icinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odagi geri yuklendi.</div>
                   <progress data-testid="restored-quote-toast-progress" className="admin-page__wide-progress" value={restoredQuoteToastProgress} max={100} />
                 </div>
                 <div className="admin-page__wrap-row">
@@ -5722,7 +5718,7 @@ export default function AdminPage() {
                     onClick={jumpToRestoredQuoteCard}
                     className="admin-page__ghost-button"
                   >
-                    RFQ #{restoredQuoteInsight.quoteId} Odağına Git
+                    RFQ #{restoredQuoteInsight.quoteId} Odagina Git
                   </button>
                   <button
                     type="button"
@@ -5739,9 +5735,9 @@ export default function AdminPage() {
           <div className="admin-page__compact-metric-grid">
             {[
               { label: "Toplam Audit", value: discoveryLabSummary.answer_audit_count, note: "Kayıt altına alınan tüm cevaplar", tone: "blue" },
-              { label: "RFQ Bağlı Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile çaprazlanan cevaplar", tone: "navy" },
-              { label: "Stratejik Partner Bağlı Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner bağlamına çözülmüş kayıtlar", tone: "teal" },
-              { label: "İnceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri dönüş gerektiren cevaplar", tone: "amber" },
+              { label: "RFQ Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile caprazlanan cevaplar", tone: "navy" },
+              { label: "Stratejik Partner Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner baglamina cozulmus kayitlar", tone: "teal" },
+              { label: "Inceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri donus gerektiren cevaplar", tone: "amber" },
             ].map((card) => (
               <div key={card.label} className={`admin-page__overview-card admin-page__tone--${card.tone}`}>
                 <div className="admin-page__overview-label">{card.label}</div>
@@ -5832,7 +5828,7 @@ export default function AdminPage() {
                 ))}
                 {filteredRestoredQuoteDebugEvents.length === 0 ? (
                   <div className="admin-page__empty-state">
-                    Seçili filtre için debug olayı bulunmuyor.
+                    Secili filtre icin debug olayi bulunmuyor.
                   </div>
                 ) : null}
               </div>
@@ -5883,14 +5879,14 @@ export default function AdminPage() {
                   className="admin-page__control"
                 />
                 <input
-                  aria-label="Discovery Lab Kullanıcı Filtresi"
+                  aria-label="Discovery Lab Kullanici Filtresi"
                   value={discoveryLabUserQuery}
                   onChange={(event) => setDiscoveryLabUserQuery(event.target.value)}
                   placeholder="Kullanıcı ara"
                   className="admin-page__control"
                 />
                 <input
-                  aria-label="Discovery Lab Kayıt Arama"
+                  aria-label="Discovery Lab Kayit Arama"
                   value={discoveryLabSearch}
                   onChange={(event) => setDiscoveryLabSearch(event.target.value)}
                   placeholder="Kayıt ara"
@@ -5905,7 +5901,7 @@ export default function AdminPage() {
                     onClick={() => setDiscoveryLabAuditDecisionFilter(decision)}
                     className={`admin-page__pill-button admin-page__pill-button--sm ${discoveryLabAuditDecisionFilter === decision ? "admin-page__pill-button--active-teal" : ""}`}
                   >
-                    {decision === "all" ? "Tüm Kararlar" : decision === "needs_review" ? "İnceleme" : decision === "approved" ? "Onaylandı" : "Göz Ardı"}
+                    {decision === "all" ? "Tum Kararlar" : decision === "needs_review" ? "Inceleme" : decision === "approved" ? "Onaylandi" : "Goz Ardi"}
                   </button>
                 ))}
                 <button
@@ -5919,18 +5915,18 @@ export default function AdminPage() {
                   }}
                   className="admin-page__pill-button admin-page__pill-button--sm"
                 >
-                  Son 7 Gün
+                  Son 7 Gun
                 </button>
               </div>
             </div>
             <div className="admin-page__space-between-row">
               <div>
-                <div className="admin-page__discovery-title">Filtrelenmiş Audit Kayıtları</div>
-                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bağlı detay listesi</div>
+                <div className="admin-page__discovery-title">Filtrelenmis Audit Kayitlari</div>
+                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bagli detay listesi</div>
                 {restoredQuoteInsight ? renderAdminFocusBanner({
                   eyebrow: "Admin Focus",
-                  title: `Admin geri dönüş odağı: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
-                  detail: `Geri dönüş odağı geçici olarak listenin üstüne taşındı: RFQ #${restoredQuoteInsight.quoteId} - replay hedefi ${getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}`,
+                  title: `Admin geri donus odagi: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
+                  detail: `Geri donus odagi gecici olarak listenin ustune tasindi: RFQ #${restoredQuoteInsight.quoteId} - replay hedefi ${getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}`,
                   tone: restoredQuoteInsight.section === "status-history" ? "blue" : "violet",
                   sourceLabel: "Quote return",
                   timestamp: filteredRestoredQuoteDebugEvents[0]?.createdAt || Date.now(),
@@ -6040,7 +6036,7 @@ export default function AdminPage() {
                           onClick={() => openTenantGovernanceTab(audit.tenant_id, audit.tenant_name)}
                           className="admin-page__audit-button admin-page__audit-button--teal"
                         >
-                          Stratejik Partner Yönetimine Git
+                          Stratejik Partner Yonetimine Git
                         </button>
                       ) : null}
                       {audit.project_id ? (
@@ -6049,7 +6045,7 @@ export default function AdminPage() {
                           onClick={() => openProjectsTab(audit.project_name)}
                           className="admin-page__audit-button admin-page__audit-button--indigo"
                         >
-                          Proje Akışını Aç
+                          Proje Akisini Ac
                         </button>
                       ) : null}
                     </div>
@@ -6061,23 +6057,23 @@ export default function AdminPage() {
                             RFQ #{audit.quote_id}
                           </a>
                           <a href={`/quotes/${audit.quote_id}/comparison?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--violet">
-                            RFQ Karşılaştırma
+                            RFQ Karsilastirma
                           </a>
                           <a href={`/quotes/${audit.quote_id}/edit?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--amber">
-                            RFQ Akışına Git
+                            RFQ Akisina Git
                           </a>
                           <a href={`/quotes/${audit.quote_id}?insight=status-history&${buildAdminReturnQuery(audit, "status-history")}`} className="admin-page__audit-link admin-page__audit-link--soft-blue">
-                            RFQ Durum Geçmişi
+                            RFQ Durum Gecmisi
                           </a>
                           <a href={`/quotes/${audit.quote_id}?insight=full-audit-trail&${buildAdminReturnQuery(audit, "full-audit-trail")}`} className="admin-page__audit-link admin-page__audit-link--soft-violet">
-                            RFQ Denetim İzi Sayfası
+                            RFQ Denetim Izi Sayfasi
                           </a>
                           <button
                             type="button"
                             onClick={() => toggleDiscoveryQuoteInsights(audit.quote_id!)}
                             className="admin-page__audit-button admin-page__audit-button--slate"
                           >
-                            {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Geçmişini Gizle" : "RFQ Geçmişini Aç"}
+                            {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Gecmisini Gizle" : "RFQ Gecmisini Ac"}
                           </button>
                         </div>
                       ) : (
@@ -6094,13 +6090,13 @@ export default function AdminPage() {
                         ) : null}
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
                           <div className={`admin-page__insight-focus ${restoredQuoteInsight.section === "status-history" ? "admin-page__insight-focus--blue" : "admin-page__insight-focus--violet"}`}>
-                            <span>Admin geri dönüş odağı: {restoredQuoteInsight.section === "status-history" ? "RFQ durum geçmişi" : "RFQ denetim izi"}</span>
+                            <span>Admin geri donus odagi: {restoredQuoteInsight.section === "status-history" ? "RFQ durum gecmisi" : "RFQ denetim izi"}</span>
                             <button
                               type="button"
                               onClick={clearRestoredQuoteInsight}
                               className={`admin-page__mini-pill-button ${restoredQuoteInsight.section === "status-history" ? "admin-page__mini-pill-button--blue" : "admin-page__mini-pill-button--violet"}`}
                             >
-                              Odağı Temizle
+                              Odagi Temizle
                             </button>
                           </div>
                         ) : null}
@@ -6190,6 +6186,11 @@ export default function AdminPage() {
                             ref={(node) => {
                               discoveryQuoteAuditTrailRefs.current[audit.quote_id!] = node;
                             }}
+                            style={
+                              telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail"
+                                ? { transform: "scale(1.02)" }
+                                : undefined
+                            }
                             className={`admin-page__quote-insight-section ${
                               telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail"
                                 ? "admin-page__quote-insight-section--pulse-violet"
@@ -6229,7 +6230,7 @@ export default function AdminPage() {
                             </div>
                             {discoveryQuoteAuditTrailById[audit.quote_id].summary ? (
                               <div className="admin-page__wrap-row">
-                                <span className="admin-page__text-xs-body">Durum değişikliği: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
+                                <span className="admin-page__text-xs-body">Durum Degisikligi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
                                 <span className="admin-page__text-xs-body">Onay seviyesi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.approval_levels ?? 0}</span>
                                 <span className="admin-page__text-xs-body">Tedarikçi yanıtı: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.suppliers_responded ?? 0}</span>
                               </div>

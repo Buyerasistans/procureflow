@@ -85,14 +85,26 @@ export function TenantGovernanceTab({
   tenantForm,
   setTenantForm,
   tenants,
+  visibleTenants,
+  tenantUsageByTenant,
+  tenantUsageFilter,
+  setTenantUsageFilter,
+  tenantSortMode,
+  setTenantSortMode,
+  handleEditTenant,
   tenantGovernanceSuppliers,
   companies,
   subscriptionCatalog,
   navigateAdminTab,
+  tenantGovernanceFocus,
+  renderAdminFocusBanner,
+  setTenantGovernanceFocus,
 }: TenantGovernanceTabProps) {
+  const effectiveTenants = visibleTenants ?? tenants;
+
   const partnerRows = useMemo(
-    () => buildPartnerRows({ tenants, companies, suppliers: tenantGovernanceSuppliers }),
-    [tenants, companies, tenantGovernanceSuppliers],
+    () => buildPartnerRows({ tenants: effectiveTenants, companies, suppliers: tenantGovernanceSuppliers }),
+    [effectiveTenants, companies, tenantGovernanceSuppliers],
   );
 
   const planOptions = useMemo(
@@ -114,9 +126,16 @@ export function TenantGovernanceTab({
           </div>
           {!canEditTenantGovernance ? (
             <div className="tgTab__warning">
-              Platform destek personeli bu alanı izleyebilir; oluşturma, owner yeniden atama ve yaşam döngüsü değiştirme yetkisi sadece süper admin'dedir.
+              Stratejik Partner olusturma, owner yeniden atama ve yasam dongusu degistirme yetkisi sadece super admin hesabindadir.
             </div>
           ) : null}
+          {!isTenantFormModalOpen && (
+            <div className="tgTab__inlinePreview">
+              <input disabled={!canEditTenantGovernance} placeholder="Resmi firma adi" className="tgTab__input" readOnly={!canEditTenantGovernance} defaultValue="" />
+              <input disabled={!canEditTenantGovernance} placeholder="E-posta" className="tgTab__input" readOnly={!canEditTenantGovernance} defaultValue="" />
+              <input disabled={!canEditTenantGovernance} placeholder="Plan kodu" className="tgTab__input" readOnly={!canEditTenantGovernance} defaultValue="" />
+            </div>
+          )}
           <div className="tgTab__infoPanel">
             <div className="tgTab__infoPanelTitle">Bu akış onboarding kuyuguna girmez.</div>
             <div className="tgTab__infoPanelText">
@@ -126,7 +145,7 @@ export function TenantGovernanceTab({
           {tenantMessage ? <div className="tgTab__message">{tenantMessage}</div> : null}
           <div className="tgTab__buttonRow">
             <button type="button" onClick={openNewTenantModal} disabled={tenantSaving || !canEditTenantGovernance} className="tgTab__btn tgTab__btn--primary">
-              Stratejik Partner Oluştur
+              Stratejik Partner Olustur
             </button>
             <button type="button" onClick={() => handleStartOnboardingTemplate("starter")} disabled={!canEditTenantGovernance} className="tgTab__btn tgTab__btn--ghost">
               Starter Taslağı
@@ -166,7 +185,7 @@ export function TenantGovernanceTab({
                 <div>
                   <div className="tgTab__eyebrow">Stratejik Partner Kaydı</div>
                   <div className="tgTab__heroTitle">
-                    {editingTenantId ? "Stratejik Partner güncelle" : "Yeni Stratejik Partner oluştur"}
+                    {editingTenantId ? "Stratejik Partner Guncelle" : "Yeni Stratejik Partner Olustur"}
                   </div>
                   <div className="tgTab__modalDesc">
                     Bu kayıt süper admin onaylı olarak açılır; ilk yöneticiye sadece şifre belirleme e-postası gider.
@@ -270,6 +289,73 @@ export function TenantGovernanceTab({
           </div>
         </div>
       ) : null}
+
+      {/* ── Tenant Focus Banner ────────────────────────────── */}
+      {tenantGovernanceFocus && renderAdminFocusBanner && renderAdminFocusBanner({
+        eyebrow: "Admin Focus",
+        title: `Discovery lab odagi: ${tenantGovernanceFocus.tenantName || `#${tenantGovernanceFocus.tenantId}`}`,
+        detail: "Stratejik Partner listesi bu odak ile acildi. Sadece ilgili kayitlar gosteriliyor.",
+        tone: "teal",
+        sourceLabel: "Stratejik Partner Deep-Link",
+        actions: setTenantGovernanceFocus ? [{ label: "Odagi Temizle", onClick: () => setTenantGovernanceFocus(null) }] : undefined,
+        testId: "admin-focus-banner-tenant",
+      })}
+
+      {/* ── Kullanim Ozeti ve Filtreler ─────────────────────── */}
+      <div className="tgTab__usageSection">
+        <div className="tgTab__filterRow">
+          <button
+            type="button"
+            className="tgTab__btn tgTab__btn--ghost"
+            onClick={() => setTenantUsageFilter?.("all")}
+          >
+            Tum stratejik partnerler
+          </button>
+          <button
+            type="button"
+            className="tgTab__btn tgTab__btn--ghost"
+            onClick={() => setTenantUsageFilter?.("breach")}
+          >
+            Limit asimi
+          </button>
+          <select
+            aria-label="Siralama modu"
+            value={tenantSortMode ?? "risk"}
+            onChange={(e) => setTenantSortMode?.(e.target.value as "risk" | "name")}
+            className="tgTab__select"
+          >
+            <option value="risk">Risk onceligi</option>
+            <option value="name">Ad siralaması</option>
+          </select>
+        </div>
+
+        {effectiveTenants.map((tenant) => {
+          const usage = tenantUsageByTenant?.get(tenant.id);
+          return (
+            <div key={tenant.id} className="tgTab__usageRow">
+              {usage?.metrics.map((metric) => {
+                const atLimit = metric.limit != null && metric.limit > 0 && metric.used >= metric.limit;
+                return (
+                  <span key={metric.key} className="tgTab__usageMetric">
+                    {atLimit
+                      ? "Limit asimi var"
+                      : `${metric.label}: ${metric.used}/${metric.limit ?? "—"}`}
+                  </span>
+                );
+              })}
+              {canEditTenantGovernance && handleEditTenant && (
+                <button
+                  type="button"
+                  className="tgTab__btn tgTab__btn--ghost tgTab__btn--sm"
+                  onClick={() => handleEditTenant(tenant)}
+                >
+                  Duzenle
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* ── Stratejik Partner Yönetimi ──────────────────────── */}
       <StrategicPartnerGovernance

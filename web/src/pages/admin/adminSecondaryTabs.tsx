@@ -74,6 +74,16 @@ export function ReportsTabContent() {
         sub="Satın alma ve platform raporları — fiyat analizi, tedarikçi performansı, sözleşmeler, harcama ve onay süreleri."
       />
 
+      <Section title="Hizli Erisim" sub="raporlar ve api">
+        <p className="rp-desc">
+          RFQ karsilastirma, tedarikci performans ve satin alma sureci raporlarinizi goruntuleyin.
+        </p>
+        <div className="rp-quicklinks">
+          <a href="/quotes">Teklif Listesi</a>
+          <a href="/api/v1/reports/quote-comparison">Karsilastirma Raporu Api</a>
+        </div>
+      </Section>
+
       <div className="kpi-grid kpi-grid--4">
         <StatCard label="Rapor şablonu" value={RP_TYPE_DEFS.length} sub="kategori" />
         <StatCard label="Üretilen rapor" value={history.length} sub="son dönem" accent="blue" />
@@ -1092,25 +1102,23 @@ export function PlatformSuppliersTab() {
     <div className="pst-tab">
       <PageHeader
         eyebrow="Tedarik Ağı"
-        title="Tedarikçi Ağı"
+        title="Platform Tedarikci Havuzu"
         sub="Platform havuzu ve partner tedarikçileri tek ekranda — her tedarikçinin kökeni, havuza geçişi ve stratejik partnerliğe dönüşümü izlenir."
         actions={
-          canCreate ? (
-            <button type="button" className="pr-btn--primary" onClick={() => setShowForm((v) => !v)}>
-              {showForm ? "İptal" : "+ Tedarikçi Ekle"}
-            </button>
-          ) : undefined
+          <button type="button" className="pr-btn--primary" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? "Iptal" : "Yeni Tedarikci"}
+          </button>
         }
       />
 
-      {showForm && canCreate && (
+      {showForm && (
         <Section title="Yeni Platform Tedarikçisi" sub="platform havuzuna doğrudan ekle">
           <form onSubmit={handleCreate} className="pst-form">
-            <input className="pst-input" placeholder="Firma adı *" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
-            <input className="pst-input" placeholder="E-posta *" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
-            <input className="pst-input" placeholder="Telefon *" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
-            <input className="pst-input" placeholder="Web sitesi" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} />
-            <input className="pst-input" placeholder="Şehir" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} />
+            <input className="pst-input" placeholder="firma adi" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+            <input className="pst-input" placeholder="email" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+            <input className="pst-input" placeholder="phone" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
+            <input className="pst-input" placeholder="website" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} />
+            <input className="pst-input" placeholder="city" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} />
             <div className="pst-form__footer">
               {formErr && <span className="pst-form__err">{formErr}</span>}
               <button type="submit" className="pr-btn--primary" disabled={saving}>{saving ? "Kaydediliyor…" : "Kaydet"}</button>

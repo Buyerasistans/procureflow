@@ -282,7 +282,7 @@ export function PlatformOperationsTab({
             sourceLabel: "Platform operasyonlari filtresi",
             timestamp: nowMs,
             actions: [
-              { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
+              { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
               { label: "Kuyruga Git", onClick: jumpToPlatformOpsFocusTarget },
               {
                 label: "Filtreyi Temizle",
@@ -303,7 +303,7 @@ export function PlatformOperationsTab({
           Bu alan, onboarding takibi ve owner atama kuyrugu dahil olmak uzere platform ekibinin Stratejik Partner kayitlarini takip
           etmesi, onceliklendirmesi ve dogru aksiyona yonlenmesi icin hazirlandi.
         </div>
-        <div className="platform-operations-tab__link-note">Stratejik Partner Yönetimine Git</div>
+        <div className="platform-operations-tab__link-note">Stratejik Partner Yonetimine Git</div>
         <div className="platform-operations-tab__meta">Operasyon Sahibi • Destek Durumu • Son Temas • Destek Notu</div>
 
         {!hasAnyVisiblePartner ? (

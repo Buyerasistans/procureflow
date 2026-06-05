@@ -43,6 +43,11 @@ vi.mock("../lib/token", () => ({
   getAccessToken: () => "token",
 }));
 
+vi.mock("../auth/permissions", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, canAccessAdminSurface: () => false };
+});
+
 vi.mock("../services/quote.service", () => ({
   getQuotes: vi.fn().mockResolvedValue({
     items: [],
@@ -433,6 +438,7 @@ vi.mock("../services/admin.service", () => ({
     onboarding_queue_count: 1,
     owner_pending_count: 0,
     branding_pending_count: 1,
+    recent_memberships: [],
     rfq_readiness: {
       quotes_missing_tenant: 0,
       approvals_quote_tenant_mismatch: 0,
@@ -808,6 +814,7 @@ describe("AdminPage tenant governance permissions", () => {
       onboarding_queue_count: 1,
       owner_pending_count: 0,
       branding_pending_count: 1,
+      recent_memberships: [],
       rfq_readiness: {
         quotes_missing_tenant: 0,
         approvals_quote_tenant_mismatch: 0,

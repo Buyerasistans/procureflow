@@ -114,6 +114,7 @@ export default function StrategicPartnerGovernance(props: Props) {
 
   return (
     <div className="spg-root">
+      <div className="spg-heading">Stratejik Partner Portfoyu</div>
       {/* KPI'lar */}
       <div className="spg-kpis">
         <KpiCard label="Stratejik partner" value={rows.length} sub="ana firma (holding)" accent="blue" />

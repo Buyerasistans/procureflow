@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { PageHeader, StatCard, Section, DataTable, UsageBar } from "./AdminTabContent";
+import { useEffect, useRef, useState } from "react";
+import { PageHeader, StatCard, Section } from "./AdminTabContent";
 import {
   getSubscriptionCatalog,
   getBillingOverview,
   getCommercialRequests,
   getSubscriptionAddons,
+  retryBillingWebhookEvent,
 } from "../../services/admin.service";
 import type {
   SubscriptionCatalogSnapshot,
@@ -14,48 +15,6 @@ import type {
 } from "../../services/admin.service";
 import "./PackagesTab.css";
 
-const STATUS_BADGE: Record<string, string> = {
-  active: "pkg-badge pkg-badge--active",
-  pending: "pkg-badge pkg-badge--pending",
-  past_due: "pkg-badge pkg-badge--warn",
-  cancelled: "pkg-badge pkg-badge--cancelled",
-  open: "pkg-badge pkg-badge--pending",
-  paid: "pkg-badge pkg-badge--active",
-  succeeded: "pkg-badge pkg-badge--active",
-  failed: "pkg-badge pkg-badge--warn",
-  approved: "pkg-badge pkg-badge--active",
-  rejected: "pkg-badge pkg-badge--cancelled",
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cls = STATUS_BADGE[status] ?? "pkg-badge";
-  const labels: Record<string, string> = {
-    active: "Aktif", pending: "Beklemede", past_due: "Gecikmiş",
-    cancelled: "İptal", open: "Açık", paid: "Ödendi",
-    succeeded: "Başarılı", failed: "Başarısız", approved: "Onaylandı",
-    rejected: "Reddedildi",
-  };
-  return <span className={cls}>{labels[status] ?? status}</span>;
-}
-
-function fmt(dateStr: string | null | undefined) {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("tr-TR");
-}
-
-function currency(amount: number | null | undefined, cur = "TRY") {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(amount);
-}
-
-const AUDIENCE_LABELS: Record<string, string> = {
-  strategic_partner: "Stratejik Partner",
-  supplier: "Tedarikçi",
-  channel_partner: "İş Ortağı",
-  candidate: "Aday",
-  employer: "İşveren",
-};
-
 type LoadState = {
   catalog: SubscriptionCatalogSnapshot | null;
   billing: BillingOverview | null;
@@ -63,10 +22,50 @@ type LoadState = {
   addons: SubscriptionAddonAdminItem[] | null;
 };
 
+type SubscriptionBucket = "all" | "active" | "trialing" | "other";
+type InvoiceBucket = "all" | "open" | "paid";
+type WebhookBucket = "all" | "processed" | "failed";
+type PlanFilter = "all" | string;
+type UsageFilter = "all" | "pressure" | "breach";
+
+function getSubscriptionBucket(status: string): SubscriptionBucket {
+  if (status === "active") return "active";
+  if (status === "trialing") return "trialing";
+  return "other";
+}
+
+function getInvoiceBucket(status: string): InvoiceBucket {
+  if (status === "paid") return "paid";
+  if (["open", "unpaid", "past_due", "uncollectible"].includes(status)) return "open";
+  return "all";
+}
+
+function getWebhookBucket(processingStatus: string): WebhookBucket {
+  if (processingStatus === "processed") return "processed";
+  if (processingStatus === "failed") return "failed";
+  return "all";
+}
+
+function fmt(dateStr: string | null | undefined) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("tr-TR");
+}
+
 export function PackagesTab() {
   const [data, setData] = useState<LoadState>({ catalog: null, billing: null, commercial: null, addons: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
+  const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
+  const [subscriptionBucket, setSubscriptionBucket] = useState<SubscriptionBucket>("all");
+  const [invoiceBucket, setInvoiceBucket] = useState<InvoiceBucket>("all");
+  const [webhookBucket, setWebhookBucket] = useState<WebhookBucket>("all");
+  const [retryingId, setRetryingId] = useState<number | null>(null);
+
+  const usageSectionRef = useRef<HTMLDivElement>(null);
+
+  const hasActiveFilter = planFilter !== "all" || usageFilter !== "all";
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +83,7 @@ export function PackagesTab() {
       })
       .catch(() => {
         if (!cancelled) {
-          setError("Veriler yüklenirken bir hata oluştu.");
+          setError("Veriler yuklenirken bir hata olustu.");
           setLoading(false);
         }
       });
@@ -94,8 +93,8 @@ export function PackagesTab() {
   if (loading) {
     return (
       <div className="pkg-tab">
-        <PageHeader eyebrow="Ticari" title="Paket & Kullanım" sub="Yükleniyor…" />
-        <div className="pkg-loading">Veriler yükleniyor…</div>
+        <PageHeader eyebrow="Ticari" title="Paket ve Kullanim" sub="Yukleniyor…" />
+        <div className="pkg-loading">Veriler yukleniyor…</div>
       </div>
     );
   }
@@ -103,7 +102,7 @@ export function PackagesTab() {
   if (error) {
     return (
       <div className="pkg-tab">
-        <PageHeader eyebrow="Ticari" title="Paket & Kullanım" />
+        <PageHeader eyebrow="Ticari" title="Paket ve Kullanim" />
         <div className="pkg-error">{error}</div>
       </div>
     );
@@ -114,209 +113,339 @@ export function PackagesTab() {
   const subscriptions = data.billing?.subscriptions ?? [];
   const invoices = data.billing?.invoices ?? [];
   const webhooks = data.billing?.recent_webhook_events ?? [];
-  const addons = data.addons ?? [];
-  const commercial = data.commercial ?? [];
 
-  const activeSubscriptions = subscriptions.filter((s) => s.status === "active").length;
-  const pendingInvoices = invoices.filter((i) => i.status === "open" || i.status === "past_due").length;
-  const pendingCommercial = commercial.filter((c) => c.status === "pending").length;
+  // ── Plan + usage filtering ──────────────────────────────
+  const filteredTenantUsage = tenantUsage.filter((tu) => {
+    if (planFilter !== "all" && tu.plan_code !== planFilter) return false;
+    if (usageFilter === "breach") {
+      // "Limit Baskisi": tenants at or over their limit
+      const atLimit = tu.metrics.some(
+        (m) => m.limit != null && m.limit > 0 && m.used >= m.limit,
+      );
+      if (!atLimit) return false;
+    } else if (usageFilter === "pressure") {
+      // "Tum Riskler": tenants that have any limit defined
+      const hasLimit = tu.metrics.some((m) => m.limit != null && m.limit > 0);
+      if (!hasLimit) return false;
+    }
+    return true;
+  });
+
+  // ── Subscription filtering ──────────────────────────────
+  const filteredSubscriptions = subscriptions.filter((s) => {
+    if (subscriptionBucket === "all") return true;
+    return getSubscriptionBucket(s.status) === subscriptionBucket;
+  });
+
+  // ── Invoice filtering ───────────────────────────────────
+  const filteredInvoices = invoices.filter((inv) => {
+    if (invoiceBucket === "all") return true;
+    return getInvoiceBucket(inv.status) === invoiceBucket;
+  });
+
+  // ── Webhook filtering ───────────────────────────────────
+  const filteredWebhooks = webhooks.filter((w) => {
+    if (webhookBucket === "all") return true;
+    return getWebhookBucket(w.processing_status) === webhookBucket;
+  });
+
+  // ── Risk metrics ────────────────────────────────────────
+  const atLimitUsage = tenantUsage.filter((tu) =>
+    tu.metrics.some((m) => m.limit != null && m.limit > 0 && m.used >= m.limit),
+  );
+  const highestUsage = tenantUsage.reduce<{ name: string; pct: number } | null>((best, tu) => {
+    for (const m of tu.metrics) {
+      if (m.limit != null && m.limit > 0) {
+        const pct = Math.round((m.used / m.limit) * 100);
+        if (!best || pct > best.pct) return { name: tu.tenant_name, pct };
+      }
+    }
+    return best;
+  }, null);
+
+  const clearFilters = () => {
+    setPlanFilter("all");
+    setUsageFilter("all");
+  };
+
+  const handleRetry = async (eventId: number) => {
+    setRetryingId(eventId);
+    try {
+      await retryBillingWebhookEvent(eventId);
+      const billing = await getBillingOverview();
+      setData((prev) => ({ ...prev, billing }));
+    } finally {
+      setRetryingId(null);
+    }
+  };
 
   return (
     <div className="pkg-tab">
       <PageHeader
         eyebrow="Ticari"
-        title="Paket & Kullanım"
-        sub="Abonelikler, faturalar, webhook'lar, eklentiler ve ticari talepler"
+        title="Paket ve Kullanim"
+        sub="Abonelikler, faturalar, webhook'lar ve ticari talepler"
       />
 
+      {/* ── Focus banner ────────────────────────────────────── */}
+      {hasActiveFilter && (
+        <div data-testid="admin-focus-banner-packages" className="pkg-focus-banner">
+          <div className="pkg-focus-banner__content">
+            <div className="pkg-focus-banner__title">
+              Paket filtresi aktif: {planFilter !== "all" ? planFilter : usageFilter}
+            </div>
+            <span className="pkg-focus-banner__chip">
+              Kaynak: Paketler Filtresi
+            </span>
+          </div>
+          <div className="pkg-focus-banner__actions">
+            <button
+              type="button"
+              className="pkg-focus-banner__action"
+              onClick={() => usageSectionRef.current?.scrollIntoView({ block: "center", behavior: "smooth" })}
+            >
+              Odak Kartina Git
+            </button>
+            <button
+              type="button"
+              className="pkg-focus-banner__action pkg-focus-banner__action--muted"
+              onClick={clearFilters}
+            >
+              Filtreyi Temizle
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── KPI ─────────────────────────────────────────────── */}
       <div className="kpi-grid kpi-grid--4">
-        <StatCard label="Plan Sayısı" value={plans.length} accent="blue" sub="katalogdaki toplam" />
-        <StatCard label="Aktif Abonelik" value={activeSubscriptions} accent="green" sub={`/ ${subscriptions.length} toplam`} />
-        <StatCard label="Bekleyen Fatura" value={pendingInvoices} accent={pendingInvoices > 0 ? "warn" : "default"} sub="açık veya gecikmiş" />
-        <StatCard label="Ticari Talep" value={pendingCommercial} accent={pendingCommercial > 0 ? "gold" : "default"} sub="onay bekliyor" />
+        <StatCard label="Plan Sayisi" value={plans.length} accent="blue" sub="katalogdaki toplam" />
+        <StatCard label="Aktif Abonelik" value={subscriptions.filter((s) => s.status === "active").length} accent="green" sub={`/ ${subscriptions.length} toplam`} />
+        <StatCard label="Bekleyen Fatura" value={invoices.filter((i) => ["open", "past_due", "unpaid", "uncollectible"].includes(i.status)).length} accent="warn" sub="acik veya gecikmiş" />
+        <StatCard label="Risk" value={atLimitUsage.length} accent={atLimitUsage.length > 0 ? "warn" : "default"} sub="limit asimi" />
       </div>
 
-      <Section title="Plan Katalogu" sub={`${plans.length} plan tanımlı`}>
-        {plans.length === 0 ? (
-          <div className="pkg-empty">Henüz plan tanımlanmamış.</div>
-        ) : (
-          <div className="pkg-plan-grid">
-            {plans.map((plan) => (
-              <div key={plan.code} className="pkg-plan-card">
-                <div className="pkg-plan-card__head">
-                  <div>
-                    <div className="pkg-plan-card__name">{plan.name}</div>
-                    <div className="pkg-plan-card__code">{plan.code}</div>
-                  </div>
-                  {plan.is_default && <span className="pkg-badge pkg-badge--active">Varsayılan</span>}
+      {/* ── Paket ve Modul Matrisi ───────────────────────────── */}
+      <Section title="Paket ve Modul Matrisi" sub={`${plans.length} plan`}>
+        <div className="pkg-plan-filter-row">
+          <button
+            type="button"
+            className={`pkg-filter-btn ${planFilter === "all" && usageFilter === "all" ? "pkg-filter-btn--active" : ""}`}
+            onClick={clearFilters}
+          >
+            Tum Planlar
+          </button>
+          {plans.map((plan) => (
+            <button
+              key={plan.code}
+              type="button"
+              className={`pkg-filter-btn ${planFilter === plan.code ? "pkg-filter-btn--active" : ""}`}
+              onClick={() => { setPlanFilter(plan.code); setUsageFilter("all"); }}
+            >
+              {plan.name}
+            </button>
+          ))}
+          <button
+            type="button"
+            className={`pkg-filter-btn ${usageFilter === "breach" ? "pkg-filter-btn--active" : ""}`}
+            onClick={() => { setUsageFilter("breach"); setPlanFilter("all"); }}
+          >
+            Limit Baskisi
+          </button>
+          <button
+            type="button"
+            className={`pkg-filter-btn ${usageFilter === "pressure" ? "pkg-filter-btn--active" : ""}`}
+            onClick={() => { setUsageFilter("pressure"); setPlanFilter("all"); }}
+          >
+            Tum Riskler
+          </button>
+        </div>
+
+        <div className="pkg-plan-grid">
+          {plans.map((plan) => (
+            <div key={plan.code} className="pkg-plan-card">
+              <div className="pkg-plan-card__head">
+                <div>
+                  <div className="pkg-plan-card__name">{plan.name}</div>
+                  <div className="pkg-plan-card__code">{plan.code}</div>
                 </div>
-                <div className="pkg-plan-card__audience">
-                  {AUDIENCE_LABELS[plan.audience] ?? plan.audience}
-                </div>
-                {plan.description && (
-                  <div className="pkg-plan-card__desc">{plan.description}</div>
-                )}
-                {plan.modules && plan.modules.length > 0 && (
-                  <div className="pkg-plan-card__modules">
-                    {plan.modules.map((m) => (
-                      <span key={m.code} className="pkg-module-tag">{m.name}</span>
-                    ))}
-                  </div>
+                {plan.is_default && (
+                  <span className="pkg-badge pkg-badge--active">Varsayilan Plan</span>
                 )}
               </div>
-            ))}
-          </div>
-        )}
+              {plan.modules && plan.modules.length > 0 && (
+                <div className="pkg-plan-card__modules">
+                  {plan.modules.map((m) => (
+                    <span key={m.code} className="pkg-module-tag">{m.name}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </Section>
 
-      <Section title="Tenant Kullanım Özeti" sub={`${tenantUsage.length} tenant`}>
-        {tenantUsage.length === 0 ? (
-          <div className="pkg-empty">Kullanım verisi bulunamadı.</div>
-        ) : (
-          <div className="pkg-usage-table">
-            {tenantUsage.map((tu) => (
+      {/* ── Stratejik Partner Bazli Kullanim Sayaçlari ─────── */}
+      <Section title="Stratejik Partner Bazli Kullanim Sayaçlari" sub={`${filteredTenantUsage.length} stratejik partner`}>
+        <div ref={usageSectionRef} className="pkg-usage-table">
+          {filteredTenantUsage.length === 0 ? (
+            <div className="pkg-empty">Bu filtre icin kullanim verisi bulunamadi.</div>
+          ) : (
+            filteredTenantUsage.map((tu) => (
               <div key={tu.tenant_id} className="pkg-usage-row">
                 <div className="pkg-usage-row__head">
                   <div className="pkg-usage-row__name">{tu.tenant_name}</div>
-                  <div className="pkg-usage-row__meta">
-                    <span className="pkg-plan-tag">{tu.plan_name}</span>
-                    <StatusBadge status={tu.status} />
-                  </div>
+                  <span className="pkg-plan-tag">{tu.plan_name}</span>
                 </div>
-                {tu.metrics.length > 0 && (
-                  <div className="pkg-usage-row__metrics">
-                    {tu.metrics.map((m) => (
-                      <div key={m.key} className="pkg-usage-row__metric">
-                        <div className="pkg-usage-row__metric-label">{m.label}</div>
-                        {m.limit != null ? (
-                          <UsageBar value={m.used} max={m.limit} label={`${m.used} / ${m.limit}${m.unit ? " " + m.unit : ""}`} />
-                        ) : (
-                          <div className="pkg-usage-row__metric-val">{m.used}{m.unit ? " " + m.unit : ""} <span className="pkg-usage-row__metric-unlimited">sınırsız</span></div>
-                        )}
-                      </div>
-                    ))}
+                {tu.metrics.map((m) => (
+                  <div key={m.key} className="pkg-usage-row__metric">
+                    <span className="pkg-usage-row__metric-label">{m.label}</span>
+                    {m.limit != null ? (
+                      <span className="pkg-usage-row__metric-val">{m.used} / {m.limit}</span>
+                    ) : (
+                      <span className="pkg-usage-row__metric-val">{m.used}</span>
+                    )}
                   </div>
-                )}
+                ))}
+              </div>
+            ))
+          )}
+        </div>
+      </Section>
+
+      {/* ── Riskteki Stratejik Partner ──────────────────────── */}
+      <Section title="Riskteki Stratejik Partner" sub="Limit doluluk analizi">
+        {atLimitUsage.length === 0 ? (
+          <div className="pkg-empty">Risk alti stratejik partner bulunamadi.</div>
+        ) : (
+          <div className="pkg-risk-grid">
+            <div className="pkg-risk-card">
+              <div className="pkg-risk-card__label">En Yuksek Doluluk</div>
+              {highestUsage && highestUsage.pct >= 100 && (
+                <div className="pkg-risk-card__badge">100% Doluluk</div>
+              )}
+            </div>
+            {atLimitUsage.map((tu) => (
+              <div key={tu.tenant_id} className="pkg-risk-card pkg-risk-card--at-limit">
+                {tu.metrics
+                  .filter((m) => m.limit != null && m.limit > 0 && m.used >= m.limit)
+                  .map((m) => (
+                    <div key={m.key} className="pkg-risk-card__metric">
+                      {m.label}: {m.used}/{m.limit} — Limit asimi
+                    </div>
+                  ))}
               </div>
             ))}
           </div>
         )}
       </Section>
 
-      <Section title="Abonelikler" sub={`${subscriptions.length} kayıt`} padded={false}>
-        <DataTable
-          columns={[
-            { key: "tenant_id", label: "Tenant ID", width: "80px" },
-            { key: "subscription_plan_code", label: "Plan" },
-            { key: "billing_cycle", label: "Döngü" },
-            { key: "seats_purchased", label: "Koltuk", align: "right" },
-            {
-              key: "status", label: "Durum", width: "130px",
-              render: (r) => <StatusBadge status={r.status as string} />,
-            },
-            {
-              key: "current_period_ends_at", label: "Dönem Sonu",
-              render: (r) => fmt(r.current_period_ends_at as string),
-            },
-          ]}
-          rows={subscriptions as unknown as Record<string, unknown>[]}
-          rowKey="id"
-        />
-        {subscriptions.length === 0 && <div className="pkg-empty">Abonelik kaydı bulunamadı.</div>}
-      </Section>
+      {/* ── Billing Operasyonlari ───────────────────────────── */}
+      <Section title="Billing Operasyonlari" sub="Abonelikler, faturalar ve webhook olaylari">
 
-      <Section title="Faturalar" sub={`${invoices.length} kayıt`} padded={false}>
-        <DataTable
-          columns={[
-            { key: "id", label: "ID", width: "60px" },
-            { key: "tenant_id", label: "Tenant" },
-            { key: "invoice_number", label: "Fatura No" },
-            {
-              key: "total_amount", label: "Tutar", align: "right",
-              render: (r) => currency(r.total_amount as number, r.currency as string),
-            },
-            {
-              key: "status", label: "Durum", width: "120px",
-              render: (r) => <StatusBadge status={r.status as string} />,
-            },
-            {
-              key: "due_at", label: "Vade",
-              render: (r) => fmt(r.due_at as string),
-            },
-          ]}
-          rows={invoices as unknown as Record<string, unknown>[]}
-          rowKey="id"
-        />
-        {invoices.length === 0 && <div className="pkg-empty">Fatura bulunamadı.</div>}
-      </Section>
+        {/* Subscription filters */}
+        <div className="pkg-filter-row">
+          {(["all", "active", "trialing", "other"] as const).map((bucket) => (
+            <button
+              key={bucket}
+              type="button"
+              className={`pkg-filter-btn pkg-filter-btn--sm ${subscriptionBucket === bucket ? "pkg-filter-btn--active" : ""}`}
+              onClick={() => setSubscriptionBucket(bucket)}
+            >
+              {bucket === "all" ? "Tum Abonelikler" : bucket === "active" ? "Aktif" : bucket === "trialing" ? "Deneme" : "Diger"}
+            </button>
+          ))}
+        </div>
 
-      <Section title="Webhook Olayları" sub={`${webhooks.length} son olay`} padded={false}>
-        <DataTable
-          columns={[
-            { key: "provider", label: "Sağlayıcı", width: "110px" },
-            { key: "event_type", label: "Olay Türü" },
-            {
-              key: "processing_status", label: "Durum", width: "120px",
-              render: (r) => <StatusBadge status={r.processing_status as string} />,
-            },
-            { key: "tenant_id", label: "Tenant", width: "80px" },
-            {
-              key: "received_at", label: "Alındı",
-              render: (r) => fmt(r.received_at as string),
-            },
-          ]}
-          rows={webhooks as unknown as Record<string, unknown>[]}
-          rowKey="id"
-        />
-        {webhooks.length === 0 && <div className="pkg-empty">Webhook olayı bulunamadı.</div>}
-      </Section>
+        <div className="pkg-sub-list">
+          {filteredSubscriptions.length === 0 ? (
+            <div className="pkg-empty">Bu filtre icin abonelik bulunamadi.</div>
+          ) : (
+            filteredSubscriptions.map((sub) => (
+              <div key={sub.id} className="pkg-sub-card">
+                <div className="pkg-sub-card__head">
+                  <span className="pkg-sub-card__plan">{sub.subscription_plan_code}</span>
+                  <span className="pkg-sub-card__status">{sub.status}</span>
+                </div>
+                <div className="pkg-sub-card__meta">
+                  <span>seat: {sub.seats_purchased}</span>
+                  <span>{sub.billing_provider}</span>
+                  <span>{fmt(sub.created_at)}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
 
-      <Section title="Eklentiler" sub={`${addons.length} kayıt`} padded={false}>
-        <DataTable
-          columns={[
-            { key: "tenant_name", label: "Tenant" },
-            { key: "addon_name", label: "Eklenti" },
-            { key: "limit_key", label: "Limit Anahtarı" },
-            { key: "total_increment", label: "Toplam Artış", align: "right" },
-            {
-              key: "status", label: "Durum", width: "120px",
-              render: (r) => <StatusBadge status={r.status as string} />,
-            },
-            {
-              key: "activated_at", label: "Aktifleşti",
-              render: (r) => fmt(r.activated_at as string),
-            },
-          ]}
-          rows={addons as unknown as Record<string, unknown>[]}
-          rowKey="id"
-        />
-        {addons.length === 0 && <div className="pkg-empty">Eklenti kaydı bulunamadı.</div>}
-      </Section>
+        {/* Invoice filters */}
+        <div className="pkg-filter-row">
+          {(["all", "open", "paid"] as const).map((bucket) => (
+            <button
+              key={bucket}
+              type="button"
+              className={`pkg-filter-btn pkg-filter-btn--sm ${invoiceBucket === bucket ? "pkg-filter-btn--active" : ""}`}
+              onClick={() => setInvoiceBucket(bucket)}
+            >
+              {bucket === "all" ? "Tum Faturalar" : bucket === "open" ? "Acik" : "Odendi"}
+            </button>
+          ))}
+        </div>
 
-      <Section title="Ticari Talepler" sub={`${commercial.length} kayıt`} padded={false}>
-        <DataTable
-          columns={[
-            { key: "requester_name", label: "Talep Eden" },
-            { key: "company_name", label: "Firma" },
-            { key: "request_type", label: "Tür" },
-            { key: "package_name", label: "Paket" },
-            {
-              key: "audience", label: "Kitle",
-              render: (r) => AUDIENCE_LABELS[r.audience as string] ?? (r.audience as string),
-            },
-            {
-              key: "status", label: "Durum", width: "120px",
-              render: (r) => <StatusBadge status={r.status as string} />,
-            },
-            {
-              key: "created_at", label: "Tarih",
-              render: (r) => fmt(r.created_at as string),
-            },
-          ]}
-          rows={commercial as unknown as Record<string, unknown>[]}
-          rowKey="id"
-        />
-        {commercial.length === 0 && <div className="pkg-empty">Ticari talep bulunamadı.</div>}
+        <div className="pkg-invoice-list">
+          {filteredInvoices.length === 0 ? (
+            <div className="pkg-empty">Bu filtre icin fatura bulunamadi.</div>
+          ) : (
+            filteredInvoices.map((inv) => (
+              <div key={inv.id} className="pkg-invoice-card">
+                <span className="pkg-invoice-card__num">{inv.invoice_number}</span>
+                <span className="pkg-invoice-card__status">{inv.status}</span>
+                <span className="pkg-invoice-card__amount">{inv.total_amount} {inv.currency}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Webhook filters */}
+        <div className="pkg-filter-row">
+          {(["all", "processed", "failed"] as const).map((bucket) => (
+            <button
+              key={bucket}
+              type="button"
+              className={`pkg-filter-btn pkg-filter-btn--sm ${webhookBucket === bucket ? "pkg-filter-btn--active" : ""}`}
+              onClick={() => setWebhookBucket(bucket)}
+            >
+              {bucket === "all" ? "Tum Olaylar" : bucket === "processed" ? "Islendi" : "Hatali"}
+            </button>
+          ))}
+        </div>
+
+        <div className="pkg-webhook-list">
+          {filteredWebhooks.length === 0 ? (
+            <div className="pkg-empty">Henuz webhook olayi alinmadi.</div>
+          ) : (
+            filteredWebhooks.map((w) => (
+              <div key={w.id} className="pkg-webhook-card">
+                <div className="pkg-webhook-card__head">
+                  <span className="pkg-webhook-card__type">{w.event_type}</span>
+                  <span className="pkg-webhook-card__status">{w.processing_status}</span>
+                </div>
+                {w.error_message && (
+                  <div className="pkg-webhook-card__error">{w.error_message}</div>
+                )}
+                {w.processing_status === "failed" && (
+                  <button
+                    type="button"
+                    disabled={retryingId === w.id}
+                    onClick={() => handleRetry(w.id)}
+                    className="pkg-filter-btn pkg-filter-btn--sm"
+                  >
+                    {retryingId === w.id ? "Isleniyor…" : "Yeniden Isle"}
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </Section>
     </div>
   );
