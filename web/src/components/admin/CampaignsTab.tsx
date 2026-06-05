@@ -20,10 +20,13 @@ import "./CampaignsTab.css";
 // ── Display metadata ──────────────────────────────────────────────────────────
 
 const AUD_META: Record<string, { label: string; color: string; desc: string }> = {
-  strategic: { label: "Stratejik Partner", color: "#1d4ed8", desc: "Üyelik, partner getirme, abonelik avantajları" },
-  supplier:  { label: "Tedarikçi",         color: "#be123c", desc: "Havuza geçiş, tedarikçi getirme, teklif aktivitesi" },
-  channel:   { label: "İş Ortağı",         color: "#047857", desc: "Tedarikçi / stratejik partner getirme, komisyon" },
-  career:    { label: "Kariyer & Yetenek", color: "#7c3aed", desc: "İlan hakkı, proje bazlı personel" },
+  strategic:  { label: "Stratejik Partner", color: "#1d4ed8", desc: "Üyelik, partner getirme, abonelik avantajları" },
+  supplier:   { label: "Tedarikçi",         color: "#be123c", desc: "Havuza geçiş, tedarikçi getirme, teklif aktivitesi" },
+  channel:    { label: "İş Ortağı",         color: "#047857", desc: "Tedarikçi / stratejik partner getirme, komisyon" },
+  career:     { label: "Kariyer & Yetenek", color: "#7c3aed", desc: "İlan hakkı, proje bazlı personel" },
+  partner:    { label: "Partner (Genel)",   color: "#0e7490", desc: "Stratejik partner odaklı genel kampanya" },
+  dual_role:  { label: "Çift Rol",          color: "#9333ea", desc: "Hem stratejik partner hem tedarikçi olan firmalar" },
+  cross_sell: { label: "Çapraz Satış",      color: "#b45309", desc: "Partner üzerinden tedarikçi veya ters yönlü çapraz fırsat" },
 };
 
 const GOAL_META: Record<string, { label: string; unit: string }> = {
@@ -39,10 +42,13 @@ const GOAL_META: Record<string, { label: string; unit: string }> = {
 };
 
 const GOAL_BY_AUD: Record<string, string[]> = {
-  strategic: ["partner_signup", "partner_referral_activated"],
-  supplier:  ["pool_join", "supplier_referral_activated", "quote_submissions"],
-  channel:   ["channel_supplier_referral", "mixed_referral"],
-  career:    ["job_posts", "talent_hire"],
+  strategic:  ["partner_signup", "partner_referral_activated"],
+  supplier:   ["pool_join", "supplier_referral_activated", "quote_submissions"],
+  channel:    ["channel_supplier_referral", "mixed_referral"],
+  career:     ["job_posts", "talent_hire"],
+  partner:    ["partner_signup", "partner_referral_activated"],
+  dual_role:  ["supplier_referral_activated", "quote_submissions", "partner_referral_activated"],
+  cross_sell: ["mixed_referral", "supplier_referral_activated", "partner_referral_activated"],
 };
 
 const REWARD_LABEL: Record<string, string> = {
@@ -60,10 +66,13 @@ const REWARD_LABEL: Record<string, string> = {
 };
 
 const REWARD_BY_AUD: Record<string, string[]> = {
-  strategic: ["discount_percent", "free_months", "commission_bonus", "job_post_credits", "talent_discount"],
-  supplier:  ["quote_bonus", "special_list_access", "strategic_quote_access", "project_visibility", "pool_priority"],
-  channel:   ["commission_bonus", "project_visibility", "permission_override", "strategic_quote_access"],
-  career:    ["job_post_credits", "talent_discount", "discount_percent", "permission_override"],
+  strategic:  ["discount_percent", "free_months", "commission_bonus", "job_post_credits", "talent_discount"],
+  supplier:   ["quote_bonus", "special_list_access", "strategic_quote_access", "project_visibility", "pool_priority"],
+  channel:    ["commission_bonus", "project_visibility", "permission_override", "strategic_quote_access"],
+  career:     ["job_post_credits", "talent_discount", "discount_percent", "permission_override"],
+  partner:    ["discount_percent", "free_months", "commission_bonus"],
+  dual_role:  ["quote_bonus", "special_list_access", "discount_percent", "free_months", "strategic_quote_access"],
+  cross_sell: ["commission_bonus", "quote_bonus", "project_visibility", "special_list_access"],
 };
 
 const CAMP_STATUS: Record<string, { label: string; cls: string }> = {
@@ -132,14 +141,18 @@ function campStatusMeta(status: string): { label: string; cls: string } {
 function landingPath(aud: string): string {
   const MAP: Record<string, string> = {
     strategic: "strategic", supplier: "supplier", channel: "partner", career: "career",
+    partner: "partner", dual_role: "dual-role", cross_sell: "cross-sell",
   };
   return "/landing/" + (MAP[aud] ?? aud);
 }
 
 function audiencePanel(aud: string): string {
-  if (aud === "strategic") return "Stratejik partner paneli · Üyelik & Avantajlar";
-  if (aud === "supplier")  return "Tedarikçi portalı · Kampanyalar sekmesi";
-  if (aud === "channel")   return "İş ortağı paneli · /profile/campaigns";
+  if (aud === "strategic")  return "Stratejik partner paneli · Üyelik & Avantajlar";
+  if (aud === "supplier")   return "Tedarikçi portalı · Kampanyalar sekmesi";
+  if (aud === "channel")    return "İş ortağı paneli · /profile/campaigns";
+  if (aud === "partner")    return "Partner paneli · Genel kampanya";
+  if (aud === "dual_role")  return "Çift rol firması · Tedarikçi + Partner kampanyası";
+  if (aud === "cross_sell") return "Çapraz satış · Partner ↔ Tedarikçi";
   return "Stratejik partner paneli · Kariyer & İlanlar";
 }
 
