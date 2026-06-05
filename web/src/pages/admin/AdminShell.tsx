@@ -33,9 +33,10 @@ import {
 } from "lucide-react";
 import type { AuthUser } from "../../context/auth-types";
 import { isSuperAdminUser, getUserDisplayRoleLabel } from "../../auth/permissions";
+import { defaultAccentColorForBusinessRole } from "../../admin/workspace-panels";
+import PanelTopHeader from "./PanelTopHeader";
 import { ADMIN_NAV_GROUPS, navLabelForKey } from "./adminNav";
 import type { AdminNavItem } from "./adminNav";
-import PublicBrandLogo from "../../components/PublicBrandLogo";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { getMailCenterAccounts } from "../../services/mail-center.service";
 import { useAuth } from "../../hooks/useAuth";
@@ -55,10 +56,10 @@ type NmCfg = {
 
 // ─── Mock notifications (TODO: replace with API) ─────────────
 const SHELL_NOTIFS_INIT = [
-  { id: 1, icon: "studio",  color: "#b45309", title: "9 kurulum kuyruğunda",  desc: "Onboarding tamamlanmamış partnerler", time: "5 dk",  read: false },
-  { id: 2, icon: "partner", color: "#1d4ed8", title: "Yeni üyelik başvurusu", desc: "Stratejik partner 001 onay bekliyor",  time: "22 dk", read: false },
-  { id: 3, icon: "help",    color: "#be123c", title: "2 destek SLA riski",    desc: "Yanıt süresi aşılmak üzere",          time: "1 sa",  read: false },
-  { id: 4, icon: "wallet",  color: "#047857", title: "18 komisyon ödemesi",   desc: "Onay bekleyen hak edişler",           time: "3 sa",  read: true  },
+  { id: 1, icon: "studio",  color: "#b45309", title: "9 kurulum kuyruğunda",  desc: "Onboarding tamamlanmamış partnerler", time: "5 dk",  read: false, target: "onboarding_studio"  },
+  { id: 2, icon: "partner", color: "#1d4ed8", title: "Yeni üyelik başvurusu", desc: "Stratejik partner 001 onay bekliyor",  time: "22 dk", read: false, target: "tenant_governance"  },
+  { id: 3, icon: "help",    color: "#be123c", title: "2 destek SLA riski",    desc: "Yanıt süresi aşılmak üzere",          time: "1 sa",  read: false, target: "support_tickets"    },
+  { id: 4, icon: "wallet",  color: "#047857", title: "18 komisyon ödemesi",   desc: "Onay bekleyen hak edişler",           time: "3 sa",  read: true,  target: "commission_admin"   },
 ];
 
 function readNavCfg(): NmCfg | null {
@@ -91,6 +92,7 @@ type AdminShellProps = {
   user: AuthUser | null;
   children: ReactNode;
   tabKeys?: string[];
+  accentColor?: string | null;
 };
 
 // ─── Icon renderer ────────────────────────────────────────────
@@ -137,6 +139,16 @@ function Layers16() {
   );
 }
 
+function darkenHex(hex: string, amount: number): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return hex;
+  const d = (c: number) => Math.max(0, Math.floor(c * (1 - amount)));
+  const r = d(parseInt(h.slice(0, 2), 16));
+  const g = d(parseInt(h.slice(2, 4), 16));
+  const b = d(parseInt(h.slice(4, 6), 16));
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
 function userInitials(user: AuthUser | null): string {
   if (!user) return "SA";
   const name = user.full_name?.trim() || user.email;
@@ -146,7 +158,7 @@ function userInitials(user: AuthUser | null): string {
 }
 
 // ─── Component ───────────────────────────────────────────────
-export default function AdminShell({ activeKey, onNavigate, user, children, tabKeys }: AdminShellProps) {
+export default function AdminShell({ activeKey, onNavigate, user, children, tabKeys, accentColor }: AdminShellProps) {
   const activeLabel = navLabelForKey(activeKey);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -174,6 +186,16 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
   const isSuperAdmin = isSuperAdminUser(user);
   const roleLabel    = getUserDisplayRoleLabel(user) || (isSuperAdmin ? "Platform Süper Admin" : "Admin");
   const navRole      = resolveNavRole(user, isSuperAdmin);
+
+  const sidebarGradient = (() => {
+    const color = isSuperAdmin
+      ? "#3A4F86"
+      : (accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || ""));
+    if (!color || color === "#64748b") return undefined;
+    const mid = darkenHex(color, 0.12);
+    const deep = darkenHex(color, 0.28);
+    return `linear-gradient(180deg, ${color} 0%, ${mid} 55%, ${deep} 100%)`;
+  })();
   const layoutMode   = navCfg?.layoutMode ?? "single";
   const menuStyle    = navCfg?.menuStyle  ?? "expanded";
 
@@ -209,7 +231,7 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
     navigate("/login", { replace: true });
     setMenuOpen(false);
   }
-  function handleProfileClick()  { navigate("/profile"); setMenuOpen(false); }
+  function handleProfileClick()  { onNavigate("profile"); setMenuOpen(false); }
   function handleSettingsClick() { onNavigate("settings"); setMenuOpen(false); }
   function openMail(accountId?: number) {
     setMailPopupAccountId(accountId ?? mailAccounts[0]?.id ?? null);
@@ -286,10 +308,16 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
     <>
     <div className={`as-wrap${layoutMode !== "single" ? ` as-wrap--${layoutMode}` : ""}`}>
 
+      {/* ── PANEL TOP HEADER (full-width) ── */}
+      <PanelTopHeader
+        panelTitle={isSuperAdmin ? "Platform Süper Admin Paneli" : `${roleLabel} Paneli`}
+        userName={user?.full_name ?? "Süper Admin"}
+        accentBackground={sidebarGradient}
+      />
+
       {/* ── TOP NAV (dual / top modes) ── */}
       {showTopNav && (
         <nav className="as-topnav" aria-label="Üst navigasyon">
-          <div className="as-topnav__brand">BA</div>
           {topGroups.map((g) => (
             <div key={g.label} className="as-topnav__group">
               <button type="button" className="as-topnav__group-hd">
@@ -321,12 +349,8 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
         {/* ── SIDEBAR ── */}
         {showSidebar && (
-        <aside className="as-sidebar">
+        <aside className="as-sidebar" style={sidebarGradient ? { background: sidebarGradient } : undefined}>
           <div className="as-brand">
-            <div className="as-brand-row">
-              <PublicBrandLogo height={26} maxWidth={130} invert />
-              {isSuperAdmin && <span className="as-brand-tag">SÜPER ADMİN</span>}
-            </div>
             <div className="as-tenant">
               <div className="as-tenant-avatar">{userInitials(user)}</div>
               <div>
@@ -443,7 +467,11 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
                           key={n.id}
                           type="button"
                           className={`as-notif-item${n.read ? "" : " as-notif-item--unread"}`}
-                          onClick={() => setNotifs((arr) => arr.map((x) => x.id === n.id ? { ...x, read: true } : x))}
+                          onClick={() => {
+                            setNotifs((arr) => arr.map((x) => x.id === n.id ? { ...x, read: true } : x));
+                            onNavigate(n.target);
+                            setNotifOpen(false);
+                          }}
                         >
                           <span className="as-notif-item__ico" style={{ "--nc": n.color } as React.CSSProperties}>
                             <NavIcon name={n.icon} />
@@ -540,16 +568,6 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
               </div>
             </div>
           </header>
-
-          <div className="as-perm-bar">
-            <button
-              type="button"
-              className="as-perm-bar__btn"
-              onClick={() => onNavigate("roles")}
-            >
-              Rol &amp; İzin Matrisi
-            </button>
-          </div>
 
           <div className="as-page">
             {children}

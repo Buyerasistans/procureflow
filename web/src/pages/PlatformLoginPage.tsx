@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import TurnstileWidget from "../components/TurnstileWidget";
 import "./PlatformLoginPage.css";
 
 export default function PlatformLoginPage() {
@@ -14,14 +15,16 @@ export default function PlatformLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
     setError(null);
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, captchaToken);
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
@@ -39,7 +42,7 @@ export default function PlatformLoginPage() {
         <div className="plp-card">
           <div className="plp-brand">
             <div className="plp-brand-content">
-              <PublicBrandLogo height={44} maxWidth={220} />
+              <PublicBrandLogo height={32} maxWidth={200} invert />
               <h1 className="plp-brand-h1">Kurumsal satın alma çalışma alanı</h1>
               <p className="plp-brand-lead">
                 Platform yöneticileri ve super admin kullanıcıları giriş sonrasında merkezi platform arayüzü üzerinden tüm kiracılara ve çalışma alanlarına erişir.
@@ -85,6 +88,8 @@ export default function PlatformLoginPage() {
                     className="plp-input"
                   />
                 </label>
+
+                <TurnstileWidget onSuccess={setCaptchaToken} />
 
                 {error && <div className="plp-error">{error}</div>}
 

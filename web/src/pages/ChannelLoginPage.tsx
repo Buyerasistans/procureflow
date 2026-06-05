@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import TurnstileWidget from "../components/TurnstileWidget";
 import "./ChannelLoginPage.css";
 
 export default function ChannelLoginPage() {
@@ -14,14 +16,16 @@ export default function ChannelLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
     setError(null);
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, captchaToken);
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
@@ -39,7 +43,7 @@ export default function ChannelLoginPage() {
         <div className="clp-card">
           <div className="clp-brand">
             <div className="clp-brand-content">
-              <PublicBrandLogo height={44} maxWidth={220} />
+              <PublicBrandLogo height={32} maxWidth={200} invert />
               <h1 className="clp-brand-h1">İş Ortağı Programı</h1>
               <p className="clp-brand-lead">
                 İş ortakları bu alandan giriş yaparak lead, portföy ve hakediş
@@ -57,6 +61,8 @@ export default function ChannelLoginPage() {
                   İş ortağı hesabı olan kullanıcılar bu ekran üzerinden ilgili ortaklık paneline erişir.
                 </p>
               </div>
+
+              <SocialLoginButtons />
 
               <form onSubmit={onSubmit} className="clp-form">
                 <label className="clp-label">
@@ -86,6 +92,8 @@ export default function ChannelLoginPage() {
                     className="clp-input"
                   />
                 </label>
+
+                <TurnstileWidget onSuccess={setCaptchaToken} />
 
                 {error && <div className="clp-error">{error}</div>}
 

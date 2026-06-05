@@ -1,0 +1,69 @@
+/* DemoRequestForm.css — namespace: drf-* */
+.drf-root {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.drf-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 14px;
+}
+
+.drf-form {
+  display: grid;
+  gap: 10px;
+}
+
+.drf-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.drf-input:focus {
+  outline: 2px solid #93c5fd;
+  border-color: transparent;
+}
+
+.drf-error {
+  font-size: 13px;
+  color: #be123c;
+  padding: 8px 12px;
+  background: #fff1f2;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+}
+
+.drf-btn {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--drf-accent, #134E37);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.drf-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.drf-btn:not(:disabled):hover { opacity: 0.88; }
+
+.drf-sent {
+  padding: 16px 18px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 14px;
+  font-size: 14px;
+  color: #065f46;
+  line-height: 1.6;
+}

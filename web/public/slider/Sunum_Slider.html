@@ -219,7 +219,7 @@
                 </div>
                 <h1 class="hero-title">Veriden <span>Güce.</span><br>Tedarikten <span>Zekaya.</span></h1>
                 <p class="slide-desc mt-4 max-w-xl mx-auto text-center">İnşaat, tersane ve ağır sanayi devleri için tasarlanmış; mühendisliği, satın almayı ve stratejik ortaklığı tek bir yapay zeka çekirdeğinde birleştiren ekosistem.</p>
-                <button class="gold-btn mx-auto mt-4" onclick="if(window.top!==window){window.top.location.href='/onboarding';}else{nextSlide();}">Hemen Başla <i class="fa-solid fa-arrow-right"></i></button>
+                <a href="/login" target="_top" class="gold-btn mx-auto mt-4" style="text-decoration:none;">Hemen Başla <i class="fa-solid fa-arrow-right"></i></a>
             </div>
             <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 50% 50%, rgba(212,175,55,0.12) 0%, rgba(17,42,37,1) 65%); z-index: 1;"></div>
         </div>
@@ -286,7 +286,7 @@
                 <h3 class="slide-subtitle">Birlikte İnşa Ediyoruz</h3>
                 <p class="slide-desc">Tüm teknik pürüzler çözüldü, fiyatlar AI ile optimize edildi. Geriye kalan tek şey sağlam bir partnerliğe imza atmak.</p>
                 <p class="highlight-desc"><i class="fa-solid fa-shield-halved text-[#D4AF37] mr-2"></i> Şeffaf veriyle en doğru kararı verin, Satın Alma Emrini (PO) dijital olarak mühürleyin.</p>
-                <a href="/onboarding" class="gold-btn mt-4" style="text-decoration:none;"><i class="fa-solid fa-file-signature"></i> Hemen Başla</a>
+                <a href="/login" target="_top" class="gold-btn mt-4" style="text-decoration:none;"><i class="fa-solid fa-file-signature"></i> Hemen Başla</a>
             </div>
             <div class="content-right">
                 <img class="bleed-img" src="https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=1000&auto=format&fit=crop" alt="[Kurumsal Anlaşma]">
@@ -395,6 +395,18 @@
     // Sayfa yüklendiğinde otomatik geçişi başlat
     resetTimer();
     updateSlides(); // İlk bar animasyonunu tetiklemek için
+
+    // Responsive ölçekleme — iframe ve küçük ekranlar için
+    function fitPresentation() {
+        const container = document.querySelector('.presentation-container');
+        const scaleX = window.innerWidth / 1024;
+        const scaleY = window.innerHeight / 576;
+        const scale = Math.min(scaleX, scaleY, 1);
+        container.style.transform = 'scale(' + scale + ')';
+        container.style.transformOrigin = 'center center';
+    }
+    window.addEventListener('resize', fitPresentation);
+    fitPresentation();
 
 </script>
 

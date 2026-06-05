@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
@@ -6,7 +5,6 @@ import "./LoginPage.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [showRegisterOptions, setShowRegisterOptions] = useState(false);
 
   return (
     <div className="login-page">
@@ -14,7 +12,7 @@ export default function LoginPage() {
       <div className="login-page__shell">
         <div className="login-page__card">
           <div className="login-page__logo-row">
-            <PublicBrandLogo height={42} maxWidth={220} />
+            <PublicBrandLogo height={52} maxWidth={220} />
           </div>
 
           <h1 className="login-page__title">Giriş Tipinizi Seçin</h1>
@@ -57,54 +55,31 @@ export default function LoginPage() {
           </p>
 
           <div className="login-page__kariyer-grid">
-            <button
-              type="button"
-              onClick={() => navigate("/isveren-giris")}
-              className="login-page__entry-button login-page__entry-button--employer"
-            >
-              🏢 İşveren Girişi
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/strategic-partner-login")}
-              className="login-page__entry-button login-page__entry-button--candidate"
-            >
-              🎯 İş Arıyorum Girişi
-            </button>
-          </div>
-
-          {!showRegisterOptions ? (
-            <button
-              type="button"
-              className="login-page__register-cta"
-              onClick={() => setShowRegisterOptions(true)}
-            >
-              Üye Ol →
-            </button>
-          ) : (
-            <div className="login-page__register-options">
-              <p className="login-page__register-options-title">Ne için üye olmak istiyorsunuz?</p>
-              <div className="login-page__register-grid">
-                <a href="/employer/register" className="login-page__register-btn login-page__register-btn--employer">
-                  <span className="login-page__register-btn-icon">🏢</span>
-                  <span className="login-page__register-btn-label">İşveren Kaydı</span>
-                  <span className="login-page__register-btn-sub">İş ilanı yayınlamak istiyorum</span>
-                </a>
-                <a href="/candidate/register" className="login-page__register-btn login-page__register-btn--candidate">
-                  <span className="login-page__register-btn-icon">🎯</span>
-                  <span className="login-page__register-btn-label">Kariyer Kaydı</span>
-                  <span className="login-page__register-btn-sub">Satın alma kariyeri arıyorum</span>
-                </a>
-              </div>
+            <div className="login-page__kariyer-col">
               <button
                 type="button"
-                className="login-page__register-cancel"
-                onClick={() => setShowRegisterOptions(false)}
+                onClick={() => navigate("/isveren-giris")}
+                className="login-page__entry-button login-page__entry-button--employer"
               >
-                Vazgeç
+                🏢 İşveren Girişi
               </button>
+              <a href="/employer/register" className="login-page__inline-register">
+                Üye Ol →
+              </a>
             </div>
-          )}
+            <div className="login-page__kariyer-col">
+              <button
+                type="button"
+                onClick={() => navigate("/is-arayan-giris")}
+                className="login-page__entry-button login-page__entry-button--candidate"
+              >
+                🎯 İş Arıyorum Girişi
+              </button>
+              <a href="/candidate/register" className="login-page__inline-register">
+                Üye Ol →
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

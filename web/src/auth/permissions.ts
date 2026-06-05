@@ -895,6 +895,7 @@ export function getUserScopeType(user: PermissionContext | null | undefined): st
 export function getScopeLabel(scopeType: string): string {
   const labels: Record<string, string> = {
     platform: "Platform",
+    partner: "Stratejik Partner",
     tenant: "Kiracı",
     supplier: "Tedarikçi",
     channel: "Kanal",

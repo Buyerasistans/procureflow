@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import TurnstileWidget from "../components/TurnstileWidget";
 import "./IsverenGirisPage.css";
 
 export default function IsverenGirisPage() {
@@ -14,13 +16,15 @@ export default function IsverenGirisPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
     setError(null);
     setSubmitting(true);
     try {
-      await login(email, password);
+      await login(email, password, captchaToken);
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/admin", { replace: true });
     } catch (err) {
@@ -38,7 +42,7 @@ export default function IsverenGirisPage() {
           {/* Sol — Employer branding */}
           <div className="igp-brand">
             <div className="igp-brand-content">
-              <PublicBrandLogo height={44} maxWidth={220} />
+              <PublicBrandLogo height={32} maxWidth={200} invert />
               <h1 className="igp-brand-h1">İşveren Girişi</h1>
               <p className="igp-brand-lead">
                 Satın alma ve tedarik zinciri profesyonellerine yönelik iş ilanlarınızı yayınlayın.
@@ -72,6 +76,8 @@ export default function IsverenGirisPage() {
                 </p>
               </div>
 
+              <SocialLoginButtons />
+
               <form onSubmit={onSubmit} className="igp-form">
                 <label className="igp-label">
                   <span className="igp-label-text">E-posta</span>
@@ -100,6 +106,8 @@ export default function IsverenGirisPage() {
                     className="igp-input"
                   />
                 </label>
+
+                <TurnstileWidget onSuccess={setCaptchaToken} />
 
                 {error && <div className="igp-error">{error}</div>}
 

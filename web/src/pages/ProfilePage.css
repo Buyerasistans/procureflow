@@ -210,6 +210,25 @@
 .prp-status--active   { color: #10b981; }
 .prp-status--inactive { color: #ef4444; }
 
+/* ── Contact links ── */
+.prp-contact-link {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.12s;
+}
+
+.prp-contact-link:hover { color: #1e3a8a; text-decoration: underline; }
+
+.prp-contact-link--wa { color: #16a34a; }
+.prp-contact-link--wa:hover { color: #15803d; }
+
+.prp-phone-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* ── Password section static / hint ── */
 .prp-form-hint {
   font-size: 12px;

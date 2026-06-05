@@ -35,7 +35,18 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
   }, []);
 
   const updateProfile = useCallback(
-    async (data: { full_name?: string; work_email?: string | null }) => {
+    async (data: {
+      full_name?: string;
+      work_email?: string | null;
+      personal_phone?: string | null;
+      company_phone?: string | null;
+      company_phone_short?: string | null;
+      address?: string | null;
+      hide_location?: boolean;
+      share_on_whatsapp?: boolean;
+      photo?: string | null;
+      login_notifications?: boolean;
+    }) => {
       try {
         setLoading(true);
         setError(null);

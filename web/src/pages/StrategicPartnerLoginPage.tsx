@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import TurnstileWidget from "../components/TurnstileWidget";
 import "./StrategicPartnerLoginPage.css";
 
 export default function StrategicPartnerLoginPage() {
@@ -14,14 +16,16 @@ export default function StrategicPartnerLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
     setError(null);
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, captchaToken);
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
@@ -39,7 +43,7 @@ export default function StrategicPartnerLoginPage() {
         <div className="splp-card">
           <div className="splp-brand">
             <div className="splp-brand-content">
-              <PublicBrandLogo height={44} maxWidth={220} />
+              <PublicBrandLogo height={32} maxWidth={200} invert />
               <h1 className="splp-brand-h1">Stratejik Partner Yönetimi</h1>
               <p className="splp-brand-lead">
                 Stratejik partnerleri yönetir, kendi tenant alanlarına erişir; kültür, altyapı, satış kanalları ve platform deneyimi bütünlüğünü kontrol ederiz.
@@ -56,6 +60,8 @@ export default function StrategicPartnerLoginPage() {
                   Stratejik partnerler bu ekran üzerinden yönetim paneline erişir ve kendi çalışma alanlarını kontrol eder.
                 </p>
               </div>
+
+              <SocialLoginButtons />
 
               <form onSubmit={onSubmit} className="splp-form">
                 <label className="splp-label">
@@ -85,6 +91,8 @@ export default function StrategicPartnerLoginPage() {
                     className="splp-input"
                   />
                 </label>
+
+                <TurnstileWidget onSuccess={setCaptchaToken} />
 
                 {error && <div className="splp-error">{error}</div>}
 

@@ -7,9 +7,20 @@ export interface UserProfile {
   work_email?: string | null;
   full_name: string;
   role: string;
+  system_role: string;
   is_active: boolean;
-  department_id?: number;
+  tenant_id?: number | null;
+  department_id?: number | null;
   approval_limit: number;
+  photo?: string | null;
+  personal_phone?: string | null;
+  company_phone?: string | null;
+  company_phone_short?: string | null;
+  address?: string | null;
+  hide_location?: boolean;
+  share_on_whatsapp?: boolean;
+  totp_enabled?: boolean;
+  login_notifications?: boolean;
 }
 
 export interface ChangePasswordRequest {
@@ -20,6 +31,25 @@ export interface ChangePasswordRequest {
 export interface ProfileUpdate {
   full_name?: string;
   work_email?: string | null;
+  personal_phone?: string | null;
+  company_phone?: string | null;
+  company_phone_short?: string | null;
+  address?: string | null;
+  hide_location?: boolean;
+  share_on_whatsapp?: boolean;
+  photo?: string | null;
+  login_notifications?: boolean;
+}
+
+export interface SessionInfo {
+  id: number;
+  created_at: string | null;
+  expires_at: string;
+}
+
+export interface TwoFaSetupResult {
+  secret: string;
+  qr_data_url: string;
 }
 
 export interface ChannelProfileSummary {
@@ -469,5 +499,37 @@ export interface PublicReferralInfo {
 
 export async function getPublicReferralInfo(linkCode: string): Promise<PublicReferralInfo> {
   const res = await http.get<PublicReferralInfo>(`/channel/public/r/${linkCode}`);
+  return res.data;
+}
+
+// ---------------------------------------------------------------------------
+// Sessions
+// ---------------------------------------------------------------------------
+
+export async function getMySessions(): Promise<SessionInfo[]> {
+  const res = await http.get<SessionInfo[]>("/users/sessions");
+  return res.data;
+}
+
+export async function revokeSession(sessionId: number): Promise<void> {
+  await http.delete(`/users/sessions/${sessionId}`);
+}
+
+// ---------------------------------------------------------------------------
+// 2FA
+// ---------------------------------------------------------------------------
+
+export async function setup2FA(): Promise<TwoFaSetupResult> {
+  const res = await http.post<TwoFaSetupResult>("/users/2fa/setup");
+  return res.data;
+}
+
+export async function verify2FA(code: string): Promise<{ enabled: boolean }> {
+  const res = await http.post<{ enabled: boolean }>("/users/2fa/verify", { code });
+  return res.data;
+}
+
+export async function disable2FA(): Promise<{ enabled: boolean }> {
+  const res = await http.delete<{ enabled: boolean }>("/users/2fa/disable");
   return res.data;
 }

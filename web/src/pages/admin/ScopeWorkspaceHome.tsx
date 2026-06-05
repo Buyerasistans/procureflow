@@ -59,6 +59,7 @@ type Props = {
   onReviewRequest: (requestId: number, decision: "approved" | "rejected") => Promise<void>;
   hideBottomSections?: boolean;
   hideTopSummarySection?: boolean;
+  hideHero?: boolean;
 };
 
 type MetricGroup = {
@@ -98,6 +99,7 @@ export function ScopeWorkspaceHome({
   onReviewRequest,
   hideBottomSections = false,
   hideTopSummarySection = false,
+  hideHero = false,
 }: Props) {
   const scope = getUserScopeType(user);
   const mainTitle = title.split(" • ")[0];
@@ -180,24 +182,26 @@ export function ScopeWorkspaceHome({
           </div>
         ) : null}
 
-        <div className="scope-workspace-home__hero">
-          <div className="scope-workspace-home__logo-frame">
-            <PublicBrandLogo height={26} maxWidth={90} invert />
-          </div>
+        {!hideHero && (
+          <div className="scope-workspace-home__hero">
+            <div className="scope-workspace-home__logo-frame">
+              <PublicBrandLogo height={26} maxWidth={90} invert />
+            </div>
 
-          <div className="scope-workspace-home__hero-copy">
-            <div className="scope-workspace-home__eyebrow">{getScopeLabel(scope)} Yönetim Alanı</div>
-            <div className="scope-workspace-home__title">{mainTitle}</div>
-            <div className="scope-workspace-home__role-label">{currentUserRoleLabel}</div>
-            {description ? <div className="scope-workspace-home__description">{description}</div> : null}
-          </div>
+            <div className="scope-workspace-home__hero-copy">
+              <div className="scope-workspace-home__eyebrow">{getScopeLabel(scope)} Yönetim Alanı</div>
+              <div className="scope-workspace-home__title">{mainTitle}</div>
+              <div className="scope-workspace-home__role-label">{currentUserRoleLabel}</div>
+              {description ? <div className="scope-workspace-home__description">{description}</div> : null}
+            </div>
 
-          <div className="scope-workspace-home__user-block">
-            <div className="scope-workspace-home__user-caption">Hoş geldiniz</div>
-            <div className="scope-workspace-home__user-name">{user?.full_name || user?.email || "-"}</div>
-            <div className="scope-workspace-home__user-email">{user?.email || ""}</div>
+            <div className="scope-workspace-home__user-block">
+              <div className="scope-workspace-home__user-caption">Hoş geldiniz</div>
+              <div className="scope-workspace-home__user-name">{user?.full_name || user?.email || "-"}</div>
+              <div className="scope-workspace-home__user-email">{user?.email || ""}</div>
+            </div>
           </div>
-        </div>
+        )}
 
         {!hideTopSummarySection ? (
           <div className="scope-workspace-home__summary">

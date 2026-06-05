@@ -1,4 +1,32 @@
 .talent-page { padding: 24px; max-width: 840px; margin: 0 auto; }
+
+.talent-page__welcome-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #1e3a8a;
+  line-height: 1.5;
+}
+
+.talent-page__welcome-banner__content { flex: 1; }
+
+.talent-page__welcome-banner__close {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
 .talent-page__title { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0 0 20px 0; }
 .talent-page__error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
 .talent-page__success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }

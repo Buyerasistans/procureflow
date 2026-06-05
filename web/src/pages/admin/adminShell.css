@@ -2,6 +2,7 @@
 /* Prototip: claude_code_handoff/prototype/Super Admin Paneli.html */
 
 :root {
+  --as-pth: 72px; /* panel-top-header height (single mode) */
   --as-bg:       #2a3f67;
   --as-bg-deep:  #1f3052;
   --as-bg-tint:  #34487a;
@@ -13,7 +14,7 @@
 .as-shell {
   display: grid;
   grid-template-columns: 264px 1fr;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--as-pth));
   background: #f4f5f2;
 }
 
@@ -23,8 +24,8 @@
   color: var(--as-text);
   padding: 18px 14px 24px;
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--as-pth);
+  height: calc(100vh - var(--as-pth));
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -203,7 +204,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--as-pth));
 }
 
 /* ── TOPBAR ── */
@@ -215,7 +216,7 @@
   align-items: center;
   gap: 16px;
   position: sticky;
-  top: 0;
+  top: var(--as-pth);
   z-index: 5;
   flex-shrink: 0;
 }
@@ -425,36 +426,97 @@
   display: block;
 }
 
-/* ── PERMISSION BAR ── */
-.as-perm-bar {
+/* ── PANEL TOP HEADER (full-width sticky bar) ── */
+.as-panel-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "brand center welcome";
+  align-items: center;
+  gap: 16px;
+  padding: 10px 32px;
+  background: linear-gradient(135deg, #3A4F86 0%, #33446f 60%, #2b3a5e 100%);
+  border-radius: 0;
+  margin: 0;
+  box-shadow: 0 2px 16px rgba(31, 48, 82, .25);
+  color: #fff;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+}
+.as-panel-top__brand {
+  grid-area: brand;
+  justify-self: start;
+  flex-shrink: 0;
   display: flex;
-  justify-content: flex-end;
-  padding: 6px 16px;
-  background: #f5f3ff;
-  border-bottom: 1px solid #ede9fe;
+  align-items: center;
+}
+.as-panel-top__center {
+  grid-area: center;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.as-panel-top__title {
+  margin: 0;
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #fff;
+  white-space: nowrap;
+}
+.as-panel-top__ver {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
-.as-perm-bar__btn {
-  background: #7c3aed;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 12px;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 0.3px;
-  transition: background 0.12s;
+.as-panel-top__welcome {
+  grid-area: welcome;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-shrink: 0;
 }
-.as-perm-bar__btn:hover { background: #6d28d9; }
+.as-panel-top__hi {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .75);
+}
+.as-panel-top__name {
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 900;
+  font-size: 17px;
+  color: #fff;
+  margin-top: 1px;
+  white-space: nowrap;
+}
 
 /* ── PAGE CONTENT ── */
 .as-page {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: clip;
+  min-width: 0;
+  max-width: 100%;
 }
+
 
 /* Dar ekran — sidebar ikon rayına iner */
 @media (max-width: 1024px) {
@@ -516,6 +578,10 @@
   .as-user-meta {
     display: none;
   }
+
+  .as-panel-top { padding: 10px 20px; }
+  .as-panel-top__title { font-size: 17px; }
+  .as-panel-top__ver { display: none; }
 }
 
 /* ── LANGUAGE SWITCHER — light topbar override ── */
@@ -697,11 +763,14 @@
   background: #fef2f2;
 }
 
-/* ── OVERLAY ── */
+/* ── OVERLAY ──
+   z-index must be BELOW .as-topbar (z-index:5) so topbar popovers remain clickable.
+   The topbar creates a stacking context; anything at z-index ≥ 5 in the root context
+   will paint over it and block clicks. */
 .as-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 4;
   background: transparent;
 }
 
@@ -716,14 +785,15 @@
 .as-topnav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 0 16px;
   height: 46px;
   background: linear-gradient(90deg, #2a3f67 0%, #1f3052 100%);
   flex-shrink: 0;
   position: sticky;
-  top: 0;
-  z-index: 20;
+  top: var(--as-pth);
+  z-index: 9;
 }
 .as-topnav__brand {
   font-size: 13px;
@@ -798,6 +868,25 @@
 .as-topnav__item--locked { opacity: 0.55; cursor: not-allowed; }
 .as-topnav__ico { display: flex; align-items: center; color: var(--as-accent); }
 .as-topnav__lock { font-size: 10px; margin-left: auto; }
+
+/* ── dual / top-nav mode: topnav (46px) sits between panel-top and content ── */
+.as-wrap--top .as-sidebar,
+.as-wrap--dual .as-sidebar {
+  top: calc(var(--as-pth) + 46px);
+  height: calc(100vh - var(--as-pth) - 46px);
+}
+.as-wrap--top .as-shell,
+.as-wrap--dual .as-shell {
+  min-height: calc(100vh - var(--as-pth) - 46px);
+}
+.as-wrap--top .as-main,
+.as-wrap--dual .as-main {
+  min-height: calc(100vh - var(--as-pth) - 46px);
+}
+.as-wrap--top .as-topbar,
+.as-wrap--dual .as-topbar {
+  top: calc(var(--as-pth) + 46px);
+}
 
 /* shell without sidebar */
 .as-shell--nav-top {
@@ -954,4 +1043,30 @@
   height: 1px;
   background: #f1f5f9;
   margin: 4px 8px;
+}
+
+/* ── ≤760px: panel-top 2-row layout ───────────────────────── */
+@media (max-width: 760px) {
+  :root { --as-pth: 110px; }
+
+  .as-panel-top {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "brand welcome"
+      "center center";
+    padding: 10px 16px;
+    gap: 8px 12px;
+  }
+  .as-panel-top__center  { justify-self: start; }
+  .as-panel-top__title   { font-size: 16px; white-space: normal; }
+  .as-panel-top__ver     { display: none; }
+  .as-panel-top__name    { font-size: 14px; }
+
+  .as-topnav {
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .as-topnav::-webkit-scrollbar { display: none; }
 }

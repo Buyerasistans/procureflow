@@ -16,7 +16,7 @@ import "./ProjectsTab.css";
 // Helpers
 // ---------------------------------------------------------------------------
 
-const PR_COLORS = ["#1d4ed8", "#be123c", "#7c3aed", "#047857", "#b45309", "#0e7490", "#64748b"];
+const PR_COLORS = ["#1d4ed8", "#7c3aed", "#047857", "#b45309", "#0e7490", "#6366f1", "#64748b"];
 
 function prColor(companyId?: number): string {
   if (!companyId) return "#64748b";
@@ -351,37 +351,35 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
                 </div>
               </div>
 
-              <div className="split-1-1">
-                <Section title="Künye & bütçe" sub="proje bilgileri">
-                  <div className="pr-facts">
-                    <div className="pr-fact"><span>Proje kodu</span><b className="nh-mono">{sel.code}</b></div>
-                    <div className="pr-fact"><span>Tip</span><b>{selTypeMeta.label}</b></div>
-                    <div className="pr-fact"><span>Bütçe</span><b>{prMoney(sel.budget)}</b></div>
-                    <div className="pr-fact"><span>Sahibi firma</span><b>{getCompanyName(sel.company_id)}</b></div>
-                    <div className="pr-fact"><span>Durum</span><b>{sel.is_active ? "Aktif" : "Pasif"}</b></div>
-                    <div className="pr-fact"><span>Dosyalar</span><b>{sel.project_files?.length ?? 0} belge</b></div>
-                  </div>
-                </Section>
+              <Section title="Künye & bütçe" sub="proje bilgileri">
+                <div className="pr-facts">
+                  <div className="pr-fact"><span>Proje kodu</span><b className="nh-mono">{sel.code}</b></div>
+                  <div className="pr-fact"><span>Tip</span><b>{selTypeMeta.label}</b></div>
+                  <div className="pr-fact"><span>Bütçe</span><b>{prMoney(sel.budget)}</b></div>
+                  <div className="pr-fact"><span>Sahibi firma</span><b>{getCompanyName(sel.company_id)}</b></div>
+                  <div className="pr-fact"><span>Durum</span><b>{sel.is_active ? "Aktif" : "Pasif"}</b></div>
+                  <div className="pr-fact"><span>Dosyalar</span><b>{sel.project_files?.length ?? 0} belge</b></div>
+                </div>
+              </Section>
 
-                <Section title="Saha yetkilisi" sub="proje yöneticisi (sahada)">
-                  {sel.manager_name ? (
-                    <div className="pr-contact">
-                      <span className="nh-av pr-av pr-av--lg">
-                        {prInitials(sel.manager_name)}
-                      </span>
-                      <div className="pr-contact__b">
-                        <b>{sel.manager_name}</b>
-                        <span>Saha / Proje Yöneticisi</span>
-                        {sel.manager_phone && (
-                          <a href={`tel:${sel.manager_phone}`}>{sel.manager_phone}</a>
-                        )}
-                      </div>
+              <Section title="Saha yetkilisi" sub="proje yöneticisi (sahada)">
+                {sel.manager_name ? (
+                  <div className="pr-contact">
+                    <span className="nh-av pr-av pr-av--lg">
+                      {prInitials(sel.manager_name)}
+                    </span>
+                    <div className="pr-contact__b">
+                      <b>{sel.manager_name}</b>
+                      <span>Saha / Proje Yöneticisi</span>
+                      {sel.manager_phone && (
+                        <a href={`tel:${sel.manager_phone}`}>{sel.manager_phone}</a>
+                      )}
                     </div>
-                  ) : (
-                    <p className="nh-mut">Yetkili atanmamış.</p>
-                  )}
-                </Section>
-              </div>
+                  </div>
+                ) : (
+                  <p className="nh-mut">Yetkili atanmamış.</p>
+                )}
+              </Section>
 
               <Section title="Satınalma yetkilileri" sub="proje yetkili ekibi">
                 {!sel.personnel || sel.personnel.length === 0 ? (

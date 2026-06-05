@@ -64,6 +64,8 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       "top_nav.public.suppliers": { href: "/tedarikciler", label: copy.suppliers },
       "top_nav.public.strategic": { href: "/stratejik-ortaklik", label: copy.strategic },
       "top_nav.public.partner_program": { href: "/is-ortagi-programi", label: copy.partnerProgram },
+      "top_nav.public.job_listings": { href: "/is-ilanlari", label: "İş İlanları" },
+      "top_nav.public.candidates": { href: "/is-arayanlar", label: "Aday Havuzu" },
       "top_nav.public.employer_register": { href: "/employer/register", label: "İşveren Kaydı" },
       "top_nav.public.candidate_register": { href: "/candidate/register", label: "İş Arıyorum" },
     }
@@ -73,6 +75,8 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       "top_nav.public.suppliers": { href: "/suppliers", label: copy.suppliers },
       "top_nav.public.strategic": { href: "/strategic-partner", label: copy.strategic },
       "top_nav.public.partner_program": { href: "/partner-program", label: copy.partnerProgram },
+      "top_nav.public.job_listings": { href: "/is-ilanlari", label: "Job Listings" },
+      "top_nav.public.candidates": { href: "/is-arayanlar", label: "Candidate Pool" },
       "top_nav.public.employer_register": { href: "/employer/register", label: "For Employers" },
       "top_nav.public.candidate_register": { href: "/candidate/register", label: "Find Jobs" },
     };
@@ -166,33 +170,15 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
 
         {/* Sag CTA butonlari */}
         <div ref={loginContainerRef} className="nb-cta-wrap">
-          {variant === "supplier" ? (
-            <a
-              href="/supplier/login"
-              className="nb-cta-btn"
-              style={{ "--nb-cta-bg": BRAND_COLORS.supplier.ctaBg, "--nb-cta-text": BRAND_COLORS.supplier.ctaText } as CSSProperties}
-            >
-              {copy.supplierLogin}
-            </a>
-          ) : variant === "channel" ? (
-            <a
-              href="/channel/login"
-              className="nb-cta-btn"
-              style={{ "--nb-cta-bg": BRAND_COLORS.channel.ctaBg, "--nb-cta-text": BRAND_COLORS.channel.ctaText } as CSSProperties}
-            >
-              {copy.partnerLogin}
-            </a>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSystemLoginClick}
-              className="nb-cta-btn nb-cta-btn--system"
-              style={{ "--nb-cta-bg": BRAND_COLORS.strategic.ctaBg, "--nb-cta-text": BRAND_COLORS.strategic.ctaText } as CSSProperties}
-            >
-              <span>{isTurkish ? "Sisteme" : "System"}</span>
-              <span>{isTurkish ? "Giriş" : "Login"}</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleSystemLoginClick}
+            className="nb-cta-btn nb-cta-btn--system"
+            style={{ "--nb-cta-bg": BRAND_COLORS.strategic.ctaBg, "--nb-cta-text": BRAND_COLORS.strategic.ctaText } as CSSProperties}
+          >
+            <span>{isTurkish ? "Sisteme" : "System"}</span>
+            <span>{isTurkish ? "Giriş" : "Login"}</span>
+          </button>
           <LanguageSwitcher compact />
 
           {showLoginPopup && (
@@ -208,10 +194,10 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
                   {isTurkish ? "İşveren & Kariyer" : "Employer & Career"}
                 </div>
                 <div className="nb-popup__grid-6">
-                  <a href="/login" className="nb-popup-btn nb-popup-btn--employer">
+                  <a href="/isveren-giris" className="nb-popup-btn nb-popup-btn--employer">
                     {isTurkish ? "İşveren Giriş" : "Employer Login"}
                   </a>
-                  <a href="/login" className="nb-popup-btn nb-popup-btn--jobseeker">
+                  <a href="/is-arayan-giris" className="nb-popup-btn nb-popup-btn--jobseeker">
                     {isTurkish ? "İş Arıyorum Giriş" : "Job Seeker Login"}
                   </a>
                 </div>

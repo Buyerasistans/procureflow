@@ -53,11 +53,12 @@
   gap: 0;
 }
 .nb-popup {
-  position: fixed;
-  top: 70px;
-  right: 16px;
-  width: 340px;
-  max-width: calc(100vw - 32px);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 260px;
+  box-sizing: border-box;
   background: #ffffff;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
@@ -73,6 +74,7 @@
 .nb-popup-btn {
   display: block;
   width: 100%;
+  box-sizing: border-box;
   text-align: center;
   border-radius: 8px;
   text-decoration: none;
@@ -80,16 +82,18 @@
   font-weight: 700;
   font-size: 13px;
   line-height: 1.25;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.nb-popup-btn--strategic { background: #21453d; color: #fff; }
-.nb-popup-btn--supplier  { background: #0284c7; color: #fff; }
-.nb-popup-btn--channel   { background: #f59e0b; color: #2f1a0d; }
-.nb-popup-btn--employer  { background: #059669; color: #fff; }
-.nb-popup-btn--jobseeker { background: #0284c7; color: #fff; }
+.nb-popup-btn--strategic { background: #134E37; color: #fff; }
+.nb-popup-btn--supplier  { background: #0E7490; color: #fff; }
+.nb-popup-btn--channel   { background: #7C2D12; color: #fff; }
+.nb-popup-btn--employer  { background: #5B21B6; color: #fff; }
+.nb-popup-btn--jobseeker { background: #9F1239; color: #fff; }
 .nb-popup__close-btn {
   width: 100%;
+  box-sizing: border-box;
   margin-top: 10px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -151,4 +155,18 @@
 
 .public-nav-cta__line {
   display: block;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .nb-nav                   { padding: 0 14px; }
+  .nb-nav-link              { display: none; }
+  .public-nav-cta--career   { display: none; }
+}
+
+@media (max-width: 480px) {
+  .nb-popup {
+    width: min(calc(100vw - 28px), 260px);
+    right: -6px;
+  }
 }

@@ -58,6 +58,7 @@ export interface WorkspacePanelProfile {
   hero_text_color?: string | null;
   hero_muted_text_color?: string | null;
   allow_user_self_customization?: boolean | null;
+  restricted_customization_sections?: string[] | null;
   menu_style?: "pill" | "accordion" | "drawer" | "tabs" | null;
   allowed_tabs: string[];
   quick_links: Array<{

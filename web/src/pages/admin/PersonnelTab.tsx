@@ -135,6 +135,19 @@ export function PersonnelTab(props: PersonnelTabProps) {
     }
   }, []);
 
+  const openSupplierPanel = useCallback(async (supUser: AdminSupplierUserListItem) => {
+    setOpeningPanelId(supUser.id);
+    try {
+      const res = await http.post<{ access_token: string; user: Record<string, unknown> }>(`/auth/impersonate-supplier/${supUser.id}`);
+      const { access_token } = res.data;
+      window.open(`/view-as-supplier#t=${access_token}`, "_blank", "noopener,noreferrer");
+    } catch {
+      setNotice({ type: "error", text: "Panel açılamadı. Lütfen tekrar deneyin." });
+    } finally {
+      setOpeningPanelId(null);
+    }
+  }, []);
+
   const normalizeTrText = useCallback((value?: string | null): string => {
     if (!value) return "";
     const input = String(value);
@@ -663,6 +676,34 @@ export function PersonnelTab(props: PersonnelTabProps) {
             >
               {loadingPersonId === supUser.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
             </button>
+            <button
+              type="button"
+              className="pe-act-btn"
+              disabled={loadingPersonId === supUser.id}
+              onClick={() => {
+                setDetailPersonnel({
+                  id: supUser.id,
+                  email: supUser.email,
+                  full_name: supUser.name,
+                  role: "satinalmaci",
+                  approval_limit: 0,
+                  is_active: supUser.is_active !== false,
+                  personal_phone: supUser.phone ?? null,
+                });
+              }}
+            >
+              Detay
+            </button>
+            {canOpenPanel && (
+              <button
+                type="button"
+                className="pe-act-btn pe-act-btn--teal"
+                disabled={openingPanelId === supUser.id}
+                onClick={() => { void openSupplierPanel(supUser); }}
+              >
+                {openingPanelId === supUser.id ? "Açılıyor…" : "Paneli Aç ↗"}
+              </button>
+            )}
             {!readOnly && (
               <>
                 <button
@@ -750,26 +791,28 @@ export function PersonnelTab(props: PersonnelTabProps) {
         </div>
       )}
 
-      <div className="pe-seg-tabs">
-        {(isChannelUser
-          ? [{ key: "channel" as PersonnelSegment, label: `Kanal Ekibi (${channelPersonnel.length})` }]
-          : [
-              { key: "portal" as PersonnelSegment,   label: `Portal (${portalPersonnel.length})` },
-              { key: "partner" as PersonnelSegment,  label: `Stratejik Partner (${strategicPartnerPersonnel.length})` },
-              { key: "channel" as PersonnelSegment,  label: `İş Ortağı (${channelPersonnel.length})` },
-              { key: "supplier" as PersonnelSegment, label: `Tedarikçi (${supplierGroups.reduce((s, g) => s + g.users.length, 0)})` },
-            ]
-        ).map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={"pe-seg-btn" + (segment === item.key ? " pe-seg-btn--active" : "")}
-            onClick={() => changeSegment(item.key)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
+      {canOpenPanel && (
+        <div className="pe-seg-tabs">
+          {(isChannelUser
+            ? [{ key: "channel" as PersonnelSegment, label: `Kanal Ekibi (${channelPersonnel.length})` }]
+            : [
+                { key: "portal" as PersonnelSegment,   label: `Portal (${portalPersonnel.length})` },
+                { key: "partner" as PersonnelSegment,  label: `Stratejik Partner (${strategicPartnerPersonnel.length})` },
+                { key: "channel" as PersonnelSegment,  label: `İş Ortağı (${channelPersonnel.length})` },
+                { key: "supplier" as PersonnelSegment, label: `Tedarikçi (${supplierGroups.reduce((s, g) => s + g.users.length, 0)})` },
+              ]
+          ).map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={"pe-seg-btn" + (segment === item.key ? " pe-seg-btn--active" : "")}
+              onClick={() => changeSegment(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="pe-toolbar">
         {(["all", "active", "passive"] as const).map((f) => (

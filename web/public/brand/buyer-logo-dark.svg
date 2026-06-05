@@ -1,0 +1,10 @@
+<svg viewBox="10 5 335 90" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <rect x="25" y="15" width="10" height="70" rx="4" fill="#D4AF37"/>
+    <path d="M39 20h10l20 14-20 14H39l20-14z" fill="#ffffff"/>
+    <path d="M39 52h10l20 14-20 14H39l20-14z" fill="#D4AF37"/>
+    <text x="80" y="48" font-family="'Segoe UI', Arial Black, sans-serif" font-weight="900" font-size="38" fill="#ffffff" letter-spacing="2">BUYER</text>
+    <text x="80" y="80" font-family="'Segoe UI', Arial Black, sans-serif" font-weight="900" font-size="38" fill="#D4AF37">AS</text>
+    <path d="M140 54h9v26h-9zm4.5 2l3 3-3 3-3-3z" fill="#D4AF37" fill-rule="evenodd"/>
+    <text x="152" y="80" font-family="'Segoe UI', Arial Black, sans-serif" font-weight="900" font-size="38" fill="#D4AF37">STANS</text>
+    <path d="M294 68l10 10 20-24" fill="none" stroke="#50C878" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

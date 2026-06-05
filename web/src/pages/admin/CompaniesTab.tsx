@@ -18,6 +18,7 @@ interface CompaniesTabProps {
   channelUsers?: TenantUser[];
   personnel?: TenantUser[];
   tenants?: Tenant[];
+  visibleSegments?: CompanySegment[];
 }
 
 type EntityModalState = {
@@ -53,6 +54,7 @@ export function CompaniesTab({
   channelUsers = [],
   personnel = [],
   tenants = [],
+  visibleSegments,
 }: CompaniesTabProps) {
   const PLATFORM_SUPER_ADMIN_EMAIL = "superadmin@buyerasistans.com.tr";
   const PLATFORM_SUPER_ADMIN_LABEL = "Platform Super Admin - superadmin@buyerasistans.com.tr";
@@ -62,10 +64,11 @@ export function CompaniesTab({
     if (typeof window !== "undefined") {
       const stored = window.sessionStorage.getItem("procureflow.companies.segment");
       if (stored === "portal" || stored === "partner" || stored === "supplier" || stored === "channel") {
-        return stored as CompanySegment;
+        const storedSeg = stored as CompanySegment;
+        if (!visibleSegments || visibleSegments.includes(storedSeg)) return storedSeg;
       }
     }
-    return "portal";
+    return visibleSegments?.[0] ?? "portal";
   });
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "passive">("all");
   const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -280,12 +283,14 @@ export function CompaniesTab({
     }
   };
 
-  const segmentTabs: { key: CompanySegment; label: string }[] = [
+  const segmentTabs: { key: CompanySegment; label: string }[] = ([
     { key: "portal",   label: `Portal Ana Firmalar (${segmentCounts.portal})` },
     { key: "partner",  label: `Stratejik Partner (${segmentCounts.partner})` },
     { key: "supplier", label: `Tedarikçi (${segmentCounts.supplier})` },
     { key: "channel",  label: `İş Ortağı (${segmentCounts.channel})` },
-  ];
+  ] as { key: CompanySegment; label: string }[]).filter(
+    (t) => !visibleSegments || visibleSegments.includes(t.key)
+  );
 
   // ── Partner list: group by tenant ──────────────────────────────────────────
   const partnerGrouped = useMemo(() => {

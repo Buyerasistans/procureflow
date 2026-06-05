@@ -97,6 +97,7 @@ type OperationAction = Exclude<OperationType, null>;
 type OperationCard = {
   op: OperationAction;
   label: string;
+  seqLabel?: string;
   description: string;
   icon: string;
 };
@@ -122,25 +123,18 @@ const STEP_LABELS: Record<string, string> = {
   "db-migrate": "🗄️ DB Migrasyon",
 };
 
-const STATUS_COLORS: Record<LogStatus, string> = {
-  info: "text-slate-500",
-  success: "text-emerald-500",
-  error: "text-rose-500",
-  warning: "text-amber-500",
-};
-
-const STATUS_BG: Record<LogStatus, string> = {
-  info: "bg-slate-100 border border-slate-200",
-  success: "bg-emerald-50 border border-emerald-200",
-  error: "bg-rose-50 border border-rose-200",
-  warning: "bg-amber-50 border border-amber-200",
-};
-
 const STATUS_ICONS: Record<LogStatus, string> = {
   info: "·",
   success: "✓",
   error: "✗",
   warning: "⚠",
+};
+
+const STATUS_CSS: Record<LogStatus, string> = {
+  info: "log--info",
+  success: "log--ok",
+  error: "log--err",
+  warning: "log--run",
 };
 
 const OPERATION_LABELS: Record<string, string> = {
@@ -192,27 +186,29 @@ const OPERATION_CARDS: OperationCard[] = [
   },
   {
     op: "reload",
-    label: "Siteyi Yenile",
-    description: "Uzak servisi yeniden başlatır.",
+    label: "Servisi Yeniden Başlat",
+    description: "Uygulamayı tam yeniden başlatır.",
     icon: "🔄",
   },
   {
     op: "smart-reload",
-    label: "Hızlı Yenile",
-    description: "Sadece hızlı yenileme.",
+    label: "Hızlı Güncelle",
+    description: "Yeniden başlatmadan kod yeniler.",
     icon: "⚡",
+  },
+  {
+    op: "db-migrate",
+    label: "DB Migrasyonu",
+    description: "Uzak DB şemasını günceller.",
+    icon: "🔀",
+    seqLabel: "1 · önce",
   },
   {
     op: "db-sync",
     label: "Yerel DB → Hosting",
     description: "Yerel veritabanını gönderir.",
     icon: "🗄️",
-  },
-  {
-    op: "db-migrate",
-    label: "DB Migrasyonu",
-    description: "Uzak DB şemasını günceller.",
-    icon: "🧩",
+    seqLabel: "2 · sonra",
   },
 ];
 
@@ -236,6 +232,7 @@ const CLEAR_STEPS = ["connect", "clear"];
 
 const SUMMARY_ITEMS: Array<{
   label: string;
+  group: "hazirlik" | "yayin" | "veritabani";
   key:
     | "setupResult"
     | "refreshZipResult"
@@ -246,14 +243,14 @@ const SUMMARY_ITEMS: Array<{
     | "dbSyncResult"
     | "dbMigrResult";
 }> = [
-  { label: "İlk Kurulum", key: "setupResult" },
-  { label: "ZIP Yenile", key: "refreshZipResult" },
-  { label: "Dosyaları Sil", key: "clearResult" },
-  { label: "Deploy", key: "deployResult" },
-  { label: "Site Yenileme", key: "reloadResult" },
-  { label: "Hızlı Yenileme", key: "smartReloadResult" },
-  { label: "DB Eşitleme", key: "dbSyncResult" },
-  { label: "DB Migrasyonu", key: "dbMigrResult" },
+  { label: "İlk Kurulum",            group: "hazirlik",    key: "setupResult" },
+  { label: "ZIP Yenile",             group: "hazirlik",    key: "refreshZipResult" },
+  { label: "Dosyaları Sil",          group: "hazirlik",    key: "clearResult" },
+  { label: "Deploy",                 group: "yayin",       key: "deployResult" },
+  { label: "Servisi Yeniden Başlat", group: "yayin",       key: "reloadResult" },
+  { label: "Hızlı Güncelle",         group: "yayin",       key: "smartReloadResult" },
+  { label: "DB Migrasyonu",          group: "veritabani",  key: "dbMigrResult" },
+  { label: "Yerel DB → Hosting",     group: "veritabani",  key: "dbSyncResult" },
 ];
 
 function getStepList(op: OperationType): string[] {
@@ -303,35 +300,6 @@ async function resolveAdminAccessToken(): Promise<string | null> {
   }
 }
 
-const PROGRESS_WIDTH_CLASSES: Record<number, string> = {
-  0: "w-0",
-  5: "w-[5%]",
-  10: "w-[10%]",
-  15: "w-[15%]",
-  20: "w-[20%]",
-  25: "w-[25%]",
-  30: "w-[30%]",
-  35: "w-[35%]",
-  40: "w-[40%]",
-  45: "w-[45%]",
-  50: "w-[50%]",
-  55: "w-[55%]",
-  60: "w-[60%]",
-  65: "w-[65%]",
-  70: "w-[70%]",
-  75: "w-[75%]",
-  80: "w-[80%]",
-  85: "w-[85%]",
-  90: "w-[90%]",
-  95: "w-[95%]",
-  100: "w-full",
-};
-
-function getProgressWidthClass(progress: number) {
-  const bucket = Math.max(0, Math.min(100, Math.round(progress / 5) * 5));
-  return PROGRESS_WIDTH_CLASSES[bucket] ?? "w-0";
-}
-
 // ─── YARDIMCI BİLEŞENLER ──────────────────────────────────────────────────────
 
 function ElapsedTimer({ isRunning }: { isRunning: boolean }) {
@@ -359,8 +327,8 @@ function ElapsedTimer({ isRunning }: { isRunning: boolean }) {
   if (!isRunning) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700">
-      <span className="inline-block h-2 w-2 animate-ping rounded-full bg-sky-500" />
+    <div className="elapsed-timer">
+      <span className="elapsed-timer__dot" />
       <span ref={labelRef}>İşlem sürüyor... 0s</span>
     </div>
   );
@@ -389,13 +357,11 @@ function ActivityPulse({
     lastMessage.length > 70 ? lastMessage.slice(0, 70) + "…" : lastMessage;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <span className="inline-block h-3 w-3 animate-pulse rounded-full bg-emerald-500 shrink-0" />
-      <div className="flex flex-col">
-        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-          Aktif İşlem{dots}
-        </span>
-        <span className="text-sm font-medium text-slate-700">
+    <div className="activity-pulse">
+      <span className="activity-pulse__dot" />
+      <div>
+        <span className="activity-pulse__label">Aktif İşlem{dots}</span>
+        <span className="activity-pulse__msg">
           {shortMsg || "Sunucu yanıtı bekleniyor..."}
         </span>
       </div>
@@ -407,41 +373,23 @@ function LogLine({ log }: { log: DeploymentLog }) {
   const messageText = typeof log.message === "string" ? log.message : "";
   const isSeparator =
     messageText.startsWith("═") || messageText.startsWith("─");
-  
+
   if (isSeparator) {
-    return <div className="my-2 border-t border-slate-200" />;
+    return <div className="log-sep" />;
   }
 
   return (
-    <div
-      className={`flex flex-col gap-1 rounded-xl p-3 mb-2 shadow-sm ${
-        STATUS_BG[log.status]
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <span
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-white ${
-            STATUS_COLORS[log.status]
-          }`}
-        >
-          {STATUS_ICONS[log.status]}
-        </span>
-        <span className="text-xs font-medium text-slate-500">
-          {formatTime(log.timestamp)}
-        </span>
+    <div className={`log ${STATUS_CSS[log.status]}`}>
+      <div className="log__hd">
+        <span className="log__ic">{STATUS_ICONS[log.status]}</span>
+        <span className="log__ts">{formatTime(log.timestamp)}</span>
         {log.step && (
-          <span className="rounded-md bg-white/60 px-2 py-0.5 text-xs font-bold text-slate-600 shadow-sm">
+          <span className="log__step">
             {STEP_LABELS[log.step] || log.step}
           </span>
         )}
       </div>
-      <div
-        className={`ml-7 whitespace-pre-wrap break-words text-sm font-mono leading-relaxed ${
-          STATUS_COLORS[log.status]
-        }`}
-      >
-        {messageText}
-      </div>
+      <div className="log__msg">{messageText}</div>
     </div>
   );
 }
@@ -460,50 +408,56 @@ function ProgressBar({
 
   const doneCount = steps.filter((s) => completedSteps.has(s)).length;
   const pct = Math.round((doneCount / steps.length) * 100);
+  const pctToUse = isRunning && pct === 0 ? 5 : Math.max(pct, isRunning ? 5 : 0);
 
   return (
-    <div className="space-y-3 w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-      <div className="flex items-center justify-between text-sm font-bold text-slate-700">
-        <span>
+    <div className="progress">
+      <div className="progress__hd">
+        <span
+          className={
+            isRunning
+              ? "progress__label--running"
+              : doneCount === steps.length
+              ? "progress__label--done"
+              : "progress__label--idle"
+          }
+        >
           {isRunning ? (
-            <span className="flex items-center gap-2 text-sky-600">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-sky-500" />
+            <>
+              <span className="progress__pulse" />
               {OPERATION_LABELS[operation]} yürütülüyor...
-            </span>
+            </>
           ) : doneCount === steps.length ? (
-            <span className="text-emerald-600">✓ İşlem Tamamlandı</span>
+            "✓ İşlem Tamamlandı"
           ) : (
-            <span>İşlem Bekliyor</span>
+            "İşlem Bekliyor"
           )}
         </span>
-        <span className="rounded-md bg-slate-100 px-2 py-1 text-slate-600">
-          {pct}%
-        </span>
+        <span className="progress__pct">{pct}%</span>
       </div>
 
-      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 inset-shadow-sm">
+      <div className="progress__track">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${
-            isRunning ? "bg-sky-500" : "bg-emerald-500"
-          } ${getProgressWidthClass(
-            isRunning && pct === 0 ? 5 : Math.max(pct, isRunning ? 5 : 0),
-          )}`}
+          className={`progress__bar ${
+            isRunning ? "progress__bar--running" : "progress__bar--done"
+          }`}
+          style={{ ["--bar-fill" as string]: `${pctToUse}%` }}
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 pt-1">
+      <div className="progress__chips">
         {steps.map((step) => {
           const done = completedSteps.has(step);
           const active = isRunning && !done;
           return (
             <span
               key={step}
-              className={`rounded-md px-2.5 py-1 text-xs font-bold transition-colors shadow-sm ${
+              className={`progress__chip ${
                 done
-                  ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                  ? "progress__chip--done"
                   : active
-                  ? "bg-sky-100 text-sky-700 border border-sky-200 animate-pulse"
-                  : "bg-slate-100 text-slate-500 border border-slate-200"
+                  ? "progress__chip--active"
+                  : "progress__chip--idle"
               }`}
             >
               {done ? "✓ " : ""}
@@ -525,11 +479,9 @@ function SummaryCard({
 }) {
   if (!result) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-        <div className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </div>
-        <div className="text-sm font-medium text-slate-400 italic flex items-center gap-2">
+      <div className="sum">
+        <div className="sum__label">{label}</div>
+        <div className="sum__state sum__state--idle">
           <span>⏳</span> Çalıştırılmadı
         </div>
       </div>
@@ -541,31 +493,16 @@ function SummaryCard({
   const errors = Array.isArray(result.errors) ? result.errors : [];
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-xl border p-4 shadow-sm transition-all ${
-        isSuccess
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-rose-200 bg-rose-50"
-      }`}
-    >
-      <div className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-        {label}
-      </div>
-      <div
-        className={`text-sm font-bold flex items-center gap-2 ${
-          isSuccess ? "text-emerald-700" : "text-rose-700"
-        }`}
-      >
+    <div className={`sum ${isSuccess ? "sum--ok" : "sum--err"}`}>
+      <div className="sum__label">{label}</div>
+      <div className={`sum__state ${isSuccess ? "sum__state--ok" : "sum__state--err"}`}>
         <span>{isSuccess ? "✅" : "❌"}</span>
         <span>{summaryText.split("\n")[0] || "Durum bilgisi yok"}</span>
       </div>
       {errors.length > 0 && (
-        <ul className="mt-3 space-y-1">
+        <ul className="sum__errs">
           {errors.slice(0, 3).map((error, i) => (
-            <li
-              key={i}
-              className="rounded-md bg-white/80 px-2 py-1 text-xs font-medium text-rose-600 border border-rose-100"
-            >
+            <li key={i} className="sum__err-item">
               • {String(error ?? "").slice(0, 100)}
             </li>
           ))}
@@ -575,7 +512,6 @@ function SummaryCard({
   );
 }
 
-// ── SÜPER ADMİN STİLİ YENİ BUTON ──
 function OperationButton({
   card,
   isRunning,
@@ -596,50 +532,21 @@ function OperationButton({
       type="button"
       onClick={() => onClick(card.op)}
       disabled={isDisabled}
-      className={`
-        flex w-full items-center justify-between gap-4 rounded-full border px-6 py-4 shadow-sm transition-all duration-200
-        disabled:cursor-not-allowed disabled:opacity-50
-        ${
-          isActive
-            ? "border-sky-400 bg-sky-50 ring-2 ring-sky-100 shadow-md"
-            : isDone
-            ? "border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
-            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 hover:shadow-md"
-        }
-      `}
+      className={`op${isActive ? " op--active" : isDone ? " op--done" : ""}`}
     >
-      <div className="flex items-center gap-4">
-        <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl shadow-inner border ${
-            isActive
-              ? "bg-white border-sky-200"
-              : isDone
-              ? "bg-white border-emerald-200"
-              : "bg-slate-100 border-slate-200"
-          }`}
-        >
-          {isActive ? <span className="animate-spin block">⚙️</span> : card.icon}
-        </span>
-        <span
-          className={`text-base font-bold tracking-wide ${
-            isActive
-              ? "text-sky-800"
-              : isDone
-              ? "text-emerald-800"
-              : "text-slate-700"
-          }`}
-        >
-          {card.label}
-        </span>
+      <span className="op__ic">
+        {isActive ? <span className="dep-spin">⚙️</span> : card.icon}
+      </span>
+      <div className="op__info">
+        <div className="op__txt-row">
+          <span className="op__txt">{card.label}</span>
+          {card.seqLabel && <span className="op__seq">{card.seqLabel}</span>}
+        </div>
+        <span className="op__desc">{card.description}</span>
       </div>
-
-      <div className="flex items-center">
-        {isActive && (
-          <span className="flex h-3 w-3 animate-ping rounded-full bg-sky-500" />
-        )}
-        {isDone && (
-          <span className="text-xl font-black text-emerald-500">✓</span>
-        )}
+      <div className="op__go">
+        {isActive && <span className="op__go--ping" />}
+        {isDone && <span className="op__go--check">✓</span>}
       </div>
     </button>
   );
@@ -661,14 +568,13 @@ function ConfigField({
   className?: string;
 }) {
   return (
-    <div className={`flex flex-col space-y-1.5 ${className}`}>
-      <label className="text-xs font-bold text-slate-600 pl-1">{label}</label>
+    <div className={`field${className ? " " + className : ""}`}>
+      <label>{label}</label>
       <input
         type={type}
         placeholder={placeholder}
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
       />
     </div>
   );
@@ -684,7 +590,7 @@ export function DeploymentPanel() {
     host_ip: "213.238.191.177",
     username: "root",
     password: "",
-    ssh_key_path: "/home/user/.ssh/id_rsa",
+    ssh_key_path: "",
     remote_path: "/var/www/vhosts/buyerasistans.com.tr/httpdocs",
     port: 22,
     local_db_host: "",
@@ -717,19 +623,30 @@ export function DeploymentPanel() {
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
   const [saveResult, setSaveResult] = useState<string | null>(null);
+  const [configOpen, setConfigOpen] = useState(false);
 
   const methodErrorCountRef = useRef(0);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const termBodyRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const apiUrl = normalizeDeploymentApiBaseUrl(
     import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL
   );
 
-  // Otomatik scroll
+  // Otomatik scroll — kullanıcı yukarı kaydırdıysa durur
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolledRef.current) {
+      logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [streamLogs]);
+
+  const handleTermScroll = useCallback(() => {
+    const el = termBodyRef.current;
+    if (!el) return;
+    userScrolledRef.current = el.scrollHeight - el.scrollTop - el.clientHeight > 60;
+  }, []);
 
   // Config yükle
   const fetchHostingConfig = useCallback(async () => {
@@ -761,7 +678,7 @@ export function DeploymentPanel() {
         host_ip: stripQ(data.host_ip, prev.host_ip),
         username: stripQ(data.username, prev.username),
         password: stripQ(data.password, prev.password ?? ""),
-        ssh_key_path: stripQ(data.ssh_key_path, prev.ssh_key_path ?? ""),
+        ssh_key_path: stripQ(data.ssh_key_path, ""),
         remote_path: stripQ(data.remote_path, prev.remote_path),
         port:
           typeof data.port === "number" && Number.isFinite(data.port)
@@ -862,6 +779,7 @@ export function DeploymentPanel() {
 
       abortRef.current?.abort();
       abortRef.current = new AbortController();
+      userScrolledRef.current = false;
       setActiveOp(op);
       setIsRunning(true);
       setStreamLogs([]);
@@ -878,9 +796,9 @@ export function DeploymentPanel() {
         "db-migrate": `${apiUrl}/admin/deployment/db-migration`,
       };
       const url = endpointMap[op];
-      const isSSE = needsHostingConfig;
       const targetsToRun = needsHostingConfig ? selectedTargets : [deploymentTarget];
       let allSuccess = true;
+      let lastDoneResult: SystemSetupResponse | null = null;
 
       try {
         for (const targetKey of targetsToRun) {
@@ -914,63 +832,61 @@ export function DeploymentPanel() {
             continue;
           }
 
-          if (isSSE) {
-            const reader = res.body?.getReader();
-            if (!reader) continue;
-            const decoder = new TextDecoder();
-            let buffer = "";
-            let targetSuccess = true;
-            let done = false;
-            while (!done) {
-              const { done: streamDone, value } = await reader.read();
-              if (streamDone) break;
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop() ?? "";
-              for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-                const raw = line.slice(6).trim();
-                if (!raw) continue;
-                let parsed: Record<string, unknown>;
-                try { parsed = JSON.parse(raw); } catch { continue; }
-                if (parsed.type === "log") {
-                  const log = parsed as unknown as DeploymentLog;
-                  setStreamLogs((prev) => [...prev, log]);
-                  if (log.status === "success" && log.step) setCompletedSteps((prev) => new Set([...prev, log.step as string]));
-                } else if (parsed.type === "done") {
-                  targetSuccess = Boolean(parsed.success);
-                  if (!targetSuccess) allSuccess = false;
-                  done = true;
-                  break;
-                } else if (parsed.type === "error") {
-                  targetSuccess = false;
-                  allSuccess = false;
-                  setStreamLogs((prev) => [...prev, { timestamp: new Date().toISOString(), status: "error", message: String(parsed.message ?? "Bilinmeyen hata"), step: "system" }]);
-                  done = true;
-                  break;
-                }
+          const reader = res.body?.getReader();
+          if (!reader) continue;
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let targetSuccess = true;
+          let done = false;
+          while (!done) {
+            const { done: streamDone, value } = await reader.read();
+            if (streamDone) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const raw = line.slice(6).trim();
+              if (!raw) continue;
+              let parsed: Record<string, unknown>;
+              try { parsed = JSON.parse(raw); } catch { continue; }
+              if (parsed.type === "log") {
+                const log = parsed as unknown as DeploymentLog;
+                setStreamLogs((prev) => [...prev, log]);
+                if (log.status === "success" && log.step) setCompletedSteps((prev) => new Set([...prev, log.step as string]));
+              } else if (parsed.type === "done") {
+                targetSuccess = Boolean(parsed.success);
+                if (!targetSuccess) allSuccess = false;
+                lastDoneResult = {
+                  success: targetSuccess,
+                  logs: [],
+                  summary: String(parsed.summary ?? ""),
+                  errors: Array.isArray(parsed.errors) ? (parsed.errors as unknown[]).map(String) : [],
+                };
+                done = true;
+                break;
+              } else if (parsed.type === "error") {
+                targetSuccess = false;
+                allSuccess = false;
+                setStreamLogs((prev) => [...prev, { timestamp: new Date().toISOString(), status: "error", message: String(parsed.message ?? "Bilinmeyen hata"), step: "system" }]);
+                done = true;
+                break;
               }
             }
-            setStreamLogs((prev) => [...prev, { timestamp: new Date().toISOString(), status: targetSuccess ? "success" : "error", message: `${targetDef?.domain || "genel"}: ${targetSuccess ? "tamamlandi" : "hata ile tamamlandi"}`, step: "system" }]);
-          } else {
-            const result = (await res.json()) as SystemSetupResponse;
-            if (!result.success) allSuccess = false;
-            for (const log of result.logs ?? []) {
-              setStreamLogs((prev) => [...prev, log]);
-              if (log.status === "success" && log.step) setCompletedSteps((prev) => new Set([...prev, log.step as string]));
-            }
-            if (op === "setup") setSetupResult(result);
-            if (op === "refresh-zip") setRefreshZipResult(result);
           }
+          setStreamLogs((prev) => [...prev, { timestamp: new Date().toISOString(), status: targetSuccess ? "success" : "error", message: `${targetDef?.domain || "genel"}: ${targetSuccess ? "tamamlandi" : "hata ile tamamlandi"}`, step: "system" }]);
         }
 
-        const summary: SystemSetupResponse = { success: allSuccess, logs: [], errors: allSuccess ? [] : ["Bir veya daha fazla hedefte hata var."], summary: allSuccess ? "Tüm seçili hedeflerde işlem tamamlandı." : "Bazı hedeflerde hata oluştu." };
-        if (op === "clear") setClearResult(summary);
-        if (op === "deploy") setDeployResult(summary);
-        if (op === "reload") setReloadResult(summary);
-        if (op === "smart-reload") setSmartReloadResult(summary);
-        if (op === "db-sync") setDbSyncResult(summary);
-        if (op === "db-migrate") setDbMigrResult(summary);
+        const genericSummary: SystemSetupResponse = { success: allSuccess, logs: [], errors: allSuccess ? [] : ["Bir veya daha fazla hedefte hata var."], summary: allSuccess ? "Tüm seçili hedeflerde işlem tamamlandı." : "Bazı hedeflerde hata oluştu." };
+        const opResult = (targetsToRun.length === 1 && lastDoneResult) ? { ...lastDoneResult, success: allSuccess } : genericSummary;
+        if (op === "setup") setSetupResult(opResult);
+        if (op === "refresh-zip") setRefreshZipResult(opResult);
+        if (op === "clear") setClearResult(opResult);
+        if (op === "deploy") setDeployResult(opResult);
+        if (op === "reload") setReloadResult(opResult);
+        if (op === "smart-reload") setSmartReloadResult(opResult);
+        if (op === "db-sync") setDbSyncResult(opResult);
+        if (op === "db-migrate") setDbMigrResult(opResult);
         if (allSuccess) setCompletedSteps(new Set(getStepList(op)));
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -1039,8 +955,8 @@ export function DeploymentPanel() {
       if (!res.ok) {
         throw new Error(extractErrorMessage(data, res.statusText));
       }
-      setHostingConfig((prev) => ({ ...prev, ...data }));
       setSaveResult("Ayarlar .env dosyasına başarıyla kaydedildi.");
+      await fetchHostingConfig();
     } catch (err) {
       setConfigError(
         err instanceof Error ? err.message : "Kaydetme sırasında bir hata oluştu"
@@ -1142,46 +1058,82 @@ export function DeploymentPanel() {
     streamLogs.length > 0 ? streamLogs[streamLogs.length - 1].message : "";
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-left">
-      <div className="max-w-[1400px] mx-auto space-y-8">
-        
-        {/* Üst Başlık (Hero) */}
-        <div className="bg-slate-900 rounded-[32px] p-8 md:p-10 text-white shadow-xl bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="flex h-3 w-3 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
-            </span>
-            <span className="text-sky-400 font-bold uppercase tracking-widest text-xs">
-              Sistem Yönetimi
-            </span>
+    <div className="dep">
+      <div className="dep__inner">
+
+        {/* ── Hero ── */}
+        <div className="dep-hero">
+          <div className="dep-hero__meta">
+            <div className="dep-badge">
+              <span className="dep-badge__dot" />
+              SİSTEM YÖNETİMİ
+            </div>
+            <div className="dep-lh-badge">
+              <span className="dep-lh-badge__dot" />
+              <span className="dep-lh-badge__label">LOCALHOST</span>
+            </div>
+            <div className="dep-lh-sub">Yalnızca süper admin · yerel ortam</div>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black mb-4">
-            🚀 Deployment Control Center
-          </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl leading-relaxed">
-            Projenin yerel geliştirme ortamından sunucuya aktarılması, veri tabanı eşitlemeleri ve siber operasyonları bu ekrandan yönetilir.
-          </p>
+          <h1>Deployment Control Center</h1>
         </div>
 
-        {/* ── İKİLİ IZGARA DÜZENİ ── */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* SOL KOLON: Operasyon Butonları */}
-          <div className="w-full lg:w-1/3 xl:w-1/4 flex-shrink-0">
-            <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-200">
-              <div className="mb-6 border-b border-slate-100 pb-4">
-                <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                  <span className="text-2xl">⚙️</span> Modüller
-                </h2>
-                <p className="text-sm text-slate-500 font-medium mt-1">
-                  Sıralı veya bağımsız çalıştırın.
-                </p>
-              </div>
+        {/* ── Modüller ── */}
+        <div className="card card--pad">
+          <div className="card__hd">
+            <h2 className="card__title">⚙️ Modüller</h2>
+            <p className="card__sub">Sıralı veya bağımsız çalıştırın.</p>
+          </div>
 
-              {/* BUTON LİSTESİ */}
-              <div className="flex flex-col gap-4">
-                {OPERATION_CARDS.map((card) => (
+          <div className="dep-modules">
+            <div className="dep-mod-group">
+              <div className="dep-mod-group__hd">
+                <span className="dep-mod-group__num">1</span>
+                Hazırlık
+              </div>
+              <div className="dep-mod-group__btns">
+                {OPERATION_CARDS.filter((c) =>
+                  ["setup", "refresh-zip", "clear"].includes(c.op)
+                ).map((card) => (
+                  <OperationButton
+                    key={card.op}
+                    card={card}
+                    isRunning={isRunning}
+                    activeOp={activeOp}
+                    onClick={runOperation}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="dep-mod-group">
+              <div className="dep-mod-group__hd">
+                <span className="dep-mod-group__num">2</span>
+                Yayın
+              </div>
+              <div className="dep-mod-group__btns">
+                {OPERATION_CARDS.filter((c) =>
+                  ["deploy", "reload", "smart-reload"].includes(c.op)
+                ).map((card) => (
+                  <OperationButton
+                    key={card.op}
+                    card={card}
+                    isRunning={isRunning}
+                    activeOp={activeOp}
+                    onClick={runOperation}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="dep-mod-group">
+              <div className="dep-mod-group__hd">
+                <span className="dep-mod-group__num">3</span>
+                Veritabanı
+              </div>
+              <div className="dep-mod-group__btns">
+                {OPERATION_CARDS.filter((c) =>
+                  ["db-migrate", "db-sync"].includes(c.op)
+                ).map((card) => (
                   <OperationButton
                     key={card.op}
                     card={card}
@@ -1193,280 +1145,311 @@ export function DeploymentPanel() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* SAĞ KOLON: Sistem Konfigürasyonu (Form Kutucukları) */}
-          <div className="w-full lg:w-2/3 xl:w-3/4">
-            <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-sm border border-slate-200">
-              
-              <div className="mb-8 flex flex-col gap-2 border-b border-slate-100 pb-5">
-                <h2 className="text-2xl font-black text-slate-800">
-                  🔧 Sistem Konfigürasyonu
-                </h2>
-                <p className="text-sm text-slate-500 font-medium">
-                  Aşağıdaki veriler sunucu bağlantısını sağlar ve <span className="bg-slate-100 px-2 py-1 rounded text-slate-700 font-mono">api/.env</span> dosyasından okunur.
-                </p>
-              </div>
+        {/* ── Sistem Konfigürasyonu ── */}
+        <div className="card card--pad">
 
+              <button
+                type="button"
+                className={`cfg-hd cfg-hd--collapsible${configOpen ? " cfg-hd--open" : ""}`}
+                onClick={() => setConfigOpen((o) => !o)}
+              >
+                <div className="cfg-hd__left">
+                  <h2>🔧 Sistem Konfigürasyonu</h2>
+                  {!configOpen && (
+                    <p>
+                      Aşağıdaki veriler sunucu bağlantısını sağlar ve{" "}
+                      <code>api/.env</code> dosyasından okunur.
+                    </p>
+                  )}
+                </div>
+                <div className="cfg-hd__right">
+                  {!configOpen && <span className="cfg-hd__hint">Düzenlemek için aç</span>}
+                  <svg
+                    className={`cfg-hd__chevron${configOpen ? " cfg-hd__chevron--open" : ""}`}
+                    width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.2"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </button>
+
+              {configOpen && (<>
               {/* Sunucu Ayarları */}
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-base font-black text-sky-600 flex items-center gap-3 mb-5">
-                    <span className="bg-sky-100 p-2 rounded-xl text-xl">🌐</span>{" "}
-                    Sunucu Ayarları
-                  </h3>
-                  <div className="mb-5">
-                    <label className="text-xs font-bold text-slate-600 pl-1">Deployment Hedef Domainleri</label>
-                    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {DEPLOYMENT_TARGETS.map((target) => {
-                        const checked = selectedTargets.includes(target.key);
-                        return (
-                          <label key={target.key} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${checked ? "border-sky-300 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-700"}`}>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => handleToggleDeploymentTarget(target.key)}
-                            />
-                            <span>{target.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      Isaretli domainlerde buton islemleri sira ile calisir. Alanlar birincil secili domaine gore otomatik doldurulur.
-                    </div>
-                    <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
-                      Domain Mode: localde pasif tutulur, <span className="font-black">Hostinge Gönder</span> adımında otomatik aktif edilir.
-                    </div>
+              <div className="cfg-section cfg-section--server">
+                <h3 className="cfg-section__title">
+                  <span className="cfg-section__ic">🌐</span>
+                  Sunucu Ayarları
+                </h3>
+
+                <div className="cfg-targets">
+                  <span className="cfg-targets__label">
+                    Deployment Hedef Domainleri
+                  </span>
+                  <div className="cfg-targets__grid">
+                    {DEPLOYMENT_TARGETS.map((target) => {
+                      const checked = selectedTargets.includes(target.key);
+                      return (
+                        <label
+                          key={target.key}
+                          className={`cfg-target${checked ? " cfg-target--checked" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() =>
+                              handleToggleDeploymentTarget(target.key)
+                            }
+                          />
+                          <span>{target.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ConfigField
-                      label="Domain"
-                      type="text"
-                      placeholder="buyerasistans.com.tr"
-                      value={hostingConfig.domain}
-                      onChange={(v) =>
-                        setHostingConfig((p) => ({ ...p, domain: v }))
-                      }
-                    />
-                    <ConfigField
-                      label="IP Adresi"
-                      type="text"
-                      placeholder="213.238.191.177"
-                      value={hostingConfig.host_ip}
-                      onChange={(v) =>
-                        setHostingConfig((p) => ({ ...p, host_ip: v }))
-                      }
-                    />
-                    <ConfigField
-                      label="SSH Kullanıcı"
-                      type="text"
-                      placeholder="root"
-                      value={hostingConfig.username}
-                      onChange={(v) =>
-                        setHostingConfig((p) => ({ ...p, username: v }))
-                      }
-                    />
-                    <ConfigField
-                      label="SSH Şifresi"
-                      type="password"
-                      placeholder="••••••••"
-                      value={hostingConfig.password || ""}
-                      onChange={(v) =>
-                        setHostingConfig((p) => ({ ...p, password: v }))
-                      }
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <ConfigField
-                        label="SSH Port"
-                        type="number"
-                        placeholder="22"
-                        value={hostingConfig.port}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            port: Number(v) || 22,
-                          }))
-                        }
-                      />
-                      <ConfigField
-                        label="SSH Key Yolu"
-                        type="text"
-                        placeholder="/home/user/.ssh/id_rsa"
-                        value={hostingConfig.ssh_key_path || ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            ssh_key_path: v,
-                          }))
-                        }
-                      />
-                    </div>
-                    <ConfigField
-                      label="Remote Path (Hedef Klasör)"
-                      type="text"
-                      placeholder="/var/www/vhosts/.../httpdocs"
-                      value={hostingConfig.remote_path}
-                      onChange={(v) =>
-                        setHostingConfig((p) => ({ ...p, remote_path: v }))
-                      }
-                    />
+                  <div className="cfg-target__note">
+                    Isaretli domainlerde buton islemleri sira ile calisir.
+                    Alanlar birincil secili domaine gore otomatik doldurulur.
+                  </div>
+                  <div className="cfg-target__info">
+                    Domain Mode: localde pasif tutulur,{" "}
+                    <strong>Hostinge Gönder</strong> adımında otomatik aktif edilir.
                   </div>
                 </div>
 
-                <div className="border-t border-slate-100 my-8"></div>
-
-                {/* Veritabanı Ayarları (Yan Yana) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Local DB */}
-                  <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-200 space-y-5">
-                    <h3 className="text-base font-black text-emerald-600 flex items-center gap-3">
-                      <span className="bg-emerald-100 p-2 rounded-xl text-xl">🗄️</span>{" "}
-                      Yerel DB (Opsiyonel)
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <ConfigField
-                        label="Host"
-                        type="text"
-                        placeholder="localhost"
-                        value={hostingConfig.local_db_host ?? ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            local_db_host: v,
-                          }))
-                        }
-                      />
-                      <ConfigField
-                        label="Port"
-                        type="number"
-                        placeholder="5432"
-                        value={hostingConfig.local_db_port ?? ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            local_db_port: v ? Number(v) || undefined : undefined,
-                          }))
-                        }
-                      />
-                    </div>
+                <div className="g2">
+                  <ConfigField
+                    label="Domain"
+                    type="text"
+                    placeholder="buyerasistans.com.tr"
+                    value={hostingConfig.domain}
+                    onChange={(v) =>
+                      setHostingConfig((p) => ({ ...p, domain: v }))
+                    }
+                  />
+                  <ConfigField
+                    label="IP Adresi"
+                    type="text"
+                    placeholder="213.238.191.177"
+                    value={hostingConfig.host_ip}
+                    onChange={(v) =>
+                      setHostingConfig((p) => ({ ...p, host_ip: v }))
+                    }
+                  />
+                  <ConfigField
+                    label="SSH Kullanıcı"
+                    type="text"
+                    placeholder="root"
+                    value={hostingConfig.username}
+                    onChange={(v) =>
+                      setHostingConfig((p) => ({ ...p, username: v }))
+                    }
+                  />
+                  <ConfigField
+                    label="SSH Şifresi"
+                    type="password"
+                    placeholder="••••••••"
+                    value={hostingConfig.password || ""}
+                    onChange={(v) =>
+                      setHostingConfig((p) => ({ ...p, password: v }))
+                    }
+                  />
+                  <div className="g2--sm">
                     <ConfigField
-                      label="DB Adı"
-                      type="text"
-                      placeholder="procureflow"
-                      value={hostingConfig.local_db_name ?? ""}
-                      onChange={(v) =>
-                        setHostingConfig((p) => ({ ...p, local_db_name: v }))
-                      }
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <ConfigField
-                        label="Kullanıcı"
-                        type="text"
-                        placeholder="postgres"
-                        value={hostingConfig.local_db_user ?? ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            local_db_user: v,
-                          }))
-                        }
-                      />
-                      <ConfigField
-                        label="Şifre"
-                        type="password"
-                        placeholder="••••••••"
-                        value={hostingConfig.local_db_password ?? ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            local_db_password: v,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {/* Remote DB */}
-                  <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-200 space-y-5">
-                    <h3 className="text-base font-black text-violet-600 flex items-center gap-3">
-                      <span className="bg-violet-100 p-2 rounded-xl text-xl">☁️</span>{" "}
-                      Uzak DB (Hosting)
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <ConfigField
-                        label="Host"
-                        type="text"
-                        placeholder="localhost"
-                        value={hostingConfig.remote_db_host ?? ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            remote_db_host: v,
-                          }))
-                        }
-                      />
-                      <ConfigField
-                        label="Port"
-                        type="number"
-                        placeholder="5432"
-                        value={hostingConfig.remote_db_port ?? ""}
-                        onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            remote_db_port: v ? Number(v) || undefined : undefined,
-                          }))
-                        }
-                      />
-                    </div>
-                    <ConfigField
-                      label="DB Adı"
-                      type="text"
-                      placeholder="admin_procureflow"
-                      value={hostingConfig.remote_db_name ?? ""}
+                      label="SSH Port"
+                      type="number"
+                      placeholder="22"
+                      value={hostingConfig.port}
                       onChange={(v) =>
                         setHostingConfig((p) => ({
                           ...p,
-                          remote_db_name: v,
+                          port: Number(v) || 22,
                         }))
                       }
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <ConfigField
+                      label="SSH Key Yolu"
+                      type="text"
+                      placeholder="/home/user/.ssh/id_rsa"
+                      value={hostingConfig.ssh_key_path || ""}
+                      onChange={(v) =>
+                        setHostingConfig((p) => ({ ...p, ssh_key_path: v }))
+                      }
+                    />
+                  </div>
+                  <ConfigField
+                    label="Remote Path (Hedef Klasör)"
+                    type="text"
+                    placeholder="/var/www/vhosts/.../httpdocs"
+                    value={hostingConfig.remote_path}
+                    onChange={(v) =>
+                      setHostingConfig((p) => ({ ...p, remote_path: v }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <hr className="cfg-divider" />
+
+              {/* Veritabanı Ayarları */}
+              <div className="cfg-db-grid">
+                <div className="cfg-db-box">
+                  <div className="cfg-section cfg-section--local">
+                    <h3 className="cfg-section__title">
+                      <span className="cfg-section__ic">🗄️</span>
+                      Yerel DB (Opsiyonel)
+                    </h3>
+                    <div className="cfg-db-fields">
+                      <div className="g2--sm">
+                        <ConfigField
+                          label="Host"
+                          type="text"
+                          placeholder="localhost"
+                          value={hostingConfig.local_db_host ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({ ...p, local_db_host: v }))
+                          }
+                        />
+                        <ConfigField
+                          label="Port"
+                          type="number"
+                          placeholder="5432"
+                          value={hostingConfig.local_db_port ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              local_db_port: v
+                                ? Number(v) || undefined
+                                : undefined,
+                            }))
+                          }
+                        />
+                      </div>
                       <ConfigField
-                        label="Kullanıcı"
+                        label="DB Adı"
                         type="text"
-                        placeholder="buyerasistans"
-                        value={hostingConfig.remote_db_user ?? ""}
+                        placeholder="procureflow"
+                        value={hostingConfig.local_db_name ?? ""}
                         onChange={(v) =>
-                          setHostingConfig((p) => ({
-                            ...p,
-                            remote_db_user: v,
-                          }))
+                          setHostingConfig((p) => ({ ...p, local_db_name: v }))
                         }
                       />
+                      <div className="g2--sm">
+                        <ConfigField
+                          label="Kullanıcı"
+                          type="text"
+                          placeholder="postgres"
+                          value={hostingConfig.local_db_user ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              local_db_user: v,
+                            }))
+                          }
+                        />
+                        <ConfigField
+                          label="Şifre"
+                          type="password"
+                          placeholder="••••••••"
+                          value={hostingConfig.local_db_password ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              local_db_password: v,
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cfg-db-box">
+                  <div className="cfg-section cfg-section--remote">
+                    <h3 className="cfg-section__title">
+                      <span className="cfg-section__ic">☁️</span>
+                      Uzak DB (Hosting)
+                    </h3>
+                    <div className="cfg-db-fields">
+                      <div className="g2--sm">
+                        <ConfigField
+                          label="Host"
+                          type="text"
+                          placeholder="localhost"
+                          value={hostingConfig.remote_db_host ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              remote_db_host: v,
+                            }))
+                          }
+                        />
+                        <ConfigField
+                          label="Port"
+                          type="number"
+                          placeholder="5432"
+                          value={hostingConfig.remote_db_port ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              remote_db_port: v
+                                ? Number(v) || undefined
+                                : undefined,
+                            }))
+                          }
+                        />
+                      </div>
                       <ConfigField
-                        label="Şifre"
-                        type="password"
-                        placeholder="••••••••"
-                        value={hostingConfig.remote_db_password ?? ""}
+                        label="DB Adı"
+                        type="text"
+                        placeholder="admin_procureflow"
+                        value={hostingConfig.remote_db_name ?? ""}
                         onChange={(v) =>
                           setHostingConfig((p) => ({
                             ...p,
-                            remote_db_password: v,
+                            remote_db_name: v,
                           }))
                         }
                       />
+                      <div className="g2--sm">
+                        <ConfigField
+                          label="Kullanıcı"
+                          type="text"
+                          placeholder="buyerasistans"
+                          value={hostingConfig.remote_db_user ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              remote_db_user: v,
+                            }))
+                          }
+                        />
+                        <ConfigField
+                          label="Şifre"
+                          type="password"
+                          placeholder="••••••••"
+                          value={hostingConfig.remote_db_password ?? ""}
+                          onChange={(v) =>
+                            setHostingConfig((p) => ({
+                              ...p,
+                              remote_db_password: v,
+                            }))
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* ── İstenen Altta Ortalanmış Aksiyon Butonları ── */}
-              <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col items-center">
-                <div className="flex flex-wrap justify-center gap-4">
+              {/* Aksiyon Butonları */}
+              <div className="cfg-actions">
+                <div className="cfg-actions__btns">
                   <button
                     type="button"
                     onClick={handleClearDeploymentState}
-                    className="px-8 py-3.5 rounded-full border border-slate-300 bg-white text-sm font-black text-slate-700 hover:bg-slate-50 hover:text-rose-600 shadow-sm transition-all duration-200"
+                    className="btn btn--ghost"
                   >
                     🗑️ Temizle
                   </button>
@@ -1474,7 +1457,7 @@ export function DeploymentPanel() {
                     type="button"
                     onClick={handleValidateConfig}
                     disabled={!hostingConfig.host_ip || isRunning}
-                    className="px-8 py-3.5 rounded-full bg-sky-100 text-sky-800 text-sm font-black hover:bg-sky-200 shadow-sm transition-all duration-200 disabled:opacity-50"
+                    className="btn btn--info"
                   >
                     🔌 Bağlantıyı Test Et
                   </button>
@@ -1482,61 +1465,68 @@ export function DeploymentPanel() {
                     type="button"
                     onClick={handleSaveConfig}
                     disabled={loadingConfig || !hostingConfig.host_ip}
-                    className="px-10 py-3.5 rounded-full bg-slate-900 text-white text-sm font-black hover:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50"
+                    className="btn btn--primary"
                   >
                     💾 Ayarları Kaydet
                   </button>
                 </div>
 
-                {/* Bildirimler */}
                 {loadingConfig && (
-                  <div className="mt-6 text-sm font-bold text-sky-600 bg-sky-50 px-6 py-3 rounded-xl border border-sky-100">
-                    Yükleniyor...
-                  </div>
+                  <div className="cfg-msg cfg-msg--loading">Yükleniyor...</div>
                 )}
                 {configError && (
-                  <div className="mt-6 text-sm font-bold text-rose-600 bg-rose-50 px-6 py-3 rounded-xl border border-rose-100">
-                    ❌ {configError}
-                  </div>
+                  <div className="cfg-msg cfg-msg--error">❌ {configError}</div>
                 )}
                 {saveResult && (
-                  <div className="mt-6 text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-xl border border-emerald-100">
-                    ✅ {saveResult}
-                  </div>
+                  <div className="cfg-msg cfg-msg--ok">✅ {saveResult}</div>
                 )}
               </div>
+              </>)}
+
             </div>
+
+        {/* ── Operasyon Özetleri ── */}
+        <div className="card card--pad">
+          <h2 className="sum-section-title">📊 Operasyon Özetleri</h2>
+          <div className="sum-col-grid">
+            {(
+              [
+                { key: "hazirlik",   label: "Hazırlık",   num: "1" },
+                { key: "yayin",      label: "Yayın",      num: "2" },
+                { key: "veritabani", label: "Veritabanı", num: "3" },
+              ] as const
+            ).map((grp) => (
+              <div key={grp.key} className="sum-col-group">
+                <div className="sum-col-group__hd">
+                  <span className="sum-col-group__num">{grp.num}</span>
+                  {grp.label}
+                </div>
+                <div className="sum-col-group__cards">
+                  {SUMMARY_ITEMS.filter((item) => item.group === grp.key).map(
+                    (item) => (
+                      <SummaryCard
+                        key={item.key}
+                        label={item.label}
+                        result={summaryState[item.key]}
+                      />
+                    )
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* ── AŞAĞI DOĞRU DEVAM EDENLER (Özetler ve Log Terminali) ── */}
-        <div className="grid grid-cols-1 gap-8 mt-4">
-          
-          {/* Geçmiş Akış Özetleri */}
-          <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-sm border border-slate-200">
-            <h2 className="text-xl font-black text-slate-800 border-b border-slate-100 pb-4 mb-6 flex items-center gap-2">
-              <span className="text-2xl">📊</span> Operasyon Özetleri
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {SUMMARY_ITEMS.map((item) => (
-                <SummaryCard
-                  key={item.key}
-                  label={item.label}
-                  result={summaryState[item.key]}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Canlı Log Paneli */}
-          <div className="bg-slate-900 rounded-[32px] p-6 md:p-8 shadow-xl border border-slate-800 flex flex-col min-h-[600px]">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-6 mb-6">
-              <h2 className="text-xl font-black text-white flex items-center gap-3">
-                <span className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">💻</span> 
+        {/* ── Terminal ── */}
+        <div className="term">
+          <div className="term__fixed">
+            <div className="term__hd">
+              <h2 className="term__title">
+                <span className="term__title-ic">💻</span>
                 Terminal: Canlı Akış
               </h2>
               {isRunning && (
-                <div className="flex items-center gap-4">
+                <div className="term__meta">
                   <ElapsedTimer isRunning={isRunning} />
                   <ActivityPulse
                     isRunning={isRunning}
@@ -1546,8 +1536,20 @@ export function DeploymentPanel() {
               )}
             </div>
 
+            {streamLogs.some((l) => l.status === "error") && (
+              <div className="term__err-banner">
+                <span>⚠️</span>
+                <span>
+                  {streamLogs.filter((l) => l.status === "error").length} hata —{" "}
+                  {String(
+                    streamLogs.find((l) => l.status === "error")?.message ?? ""
+                  ).slice(0, 90)}
+                </span>
+              </div>
+            )}
+
             {activeOp && (
-              <div className="mb-8">
+              <div className="term__progress">
                 <ProgressBar
                   operation={activeOp}
                   completedSteps={completedSteps}
@@ -1555,45 +1557,46 @@ export function DeploymentPanel() {
                 />
               </div>
             )}
-
-            <div className="flex-1 overflow-y-auto pr-4 space-y-3 custom-scrollbar">
-              {streamLogs.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-600 font-mono text-sm gap-4">
-                  <span className="text-5xl opacity-30">⌨️</span>
-                  <span>Sistem şu an beklemede. Herhangi bir operasyon başlatılmadı.</span>
-                </div>
-              ) : (
-                streamLogs.map((log, i) => <LogLine key={i} log={log} />)
-              )}
-              <div ref={logEndRef} className="h-8" />
-            </div>
-
-            {/* Hata Özeti */}
-            {!isRunning && streamLogs.some((l) => l.status === "error") && (
-              <div className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6">
-                <div className="mb-4 flex items-center gap-2 text-sm font-black text-rose-400">
-                  <span className="text-xl">⚠️</span> Hata Özeti (
-                  {streamLogs.filter((l) => l.status === "error").length} Hata)
-                </div>
-                <div className="max-h-40 space-y-2 overflow-y-auto custom-scrollbar">
-                  {streamLogs
-                    .filter((l) => l.status === "error")
-                    .map((l, i) => (
-                      <div
-                        key={i}
-                        className="font-mono text-sm text-rose-300 bg-rose-950/40 px-4 py-3 rounded-xl border border-rose-900/50"
-                      >
-                        • {String(l.message ?? "").slice(0, 200)}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
+
+          <div
+            className="term__body custom-scrollbar"
+            ref={termBodyRef}
+            onScroll={handleTermScroll}
+          >
+            {streamLogs.length === 0 ? (
+              <div className="term__empty">
+                <span className="term__empty-ic">⌨️</span>
+                <span>
+                  Sistem şu an beklemede. Herhangi bir operasyon başlatılmadı.
+                </span>
+              </div>
+            ) : (
+              streamLogs.map((log, i) => <LogLine key={i} log={log} />)
+            )}
+            <div ref={logEndRef} className="term__spacer" />
+          </div>
+
+          {!isRunning && streamLogs.some((l) => l.status === "error") && (
+            <div className="term__err-sum">
+              <div className="term__err-sum-title">
+                <span>⚠️</span> Hata Özeti (
+                {streamLogs.filter((l) => l.status === "error").length} Hata)
+              </div>
+              <div className="term__err-list custom-scrollbar">
+                {streamLogs
+                  .filter((l) => l.status === "error")
+                  .map((l, i) => (
+                    <div key={i} className="term__err-item">
+                      • {String(l.message ?? "").slice(0, 200)}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
-
     </div>
   );
 }

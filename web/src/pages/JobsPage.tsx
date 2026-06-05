@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import {
   applyToJob,
@@ -404,6 +404,9 @@ function JobCard({ job, canEmployer, canTalent, applyingJobId, updatingJobId, op
 
 export default function JobsPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const showWelcome = searchParams.get("welcome") === "1";
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const systemRole = user?.system_role ?? null;
   const canEmployer = isEmployerAdmin(systemRole);
   const canTalent = isTalentMember(systemRole);
@@ -534,6 +537,22 @@ export default function JobsPage() {
 
   return (
     <div className="jobs-page">
+      {showWelcome && !welcomeDismissed && (
+        <div className="jobs-page__welcome-banner">
+          <div className="jobs-page__welcome-banner__content">
+            <strong>Hesabınız oluşturuldu!</strong>
+            {" "}İlk ilanınızı yayınlayarak nitelikli adaylara ulaşmaya başlayın.
+          </div>
+          <button
+            type="button"
+            className="jobs-page__welcome-banner__close"
+            onClick={() => setWelcomeDismissed(true)}
+            aria-label="Kapat"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div className="jobs-page__header">
         <h1 className="jobs-page__title">
           {canEmployer && !canTalent ? "İş İlanları (İşveren)" : "İş İlanları"}

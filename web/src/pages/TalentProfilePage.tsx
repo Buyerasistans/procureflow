@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import {
   extractTalentError,
@@ -544,8 +545,11 @@ function ProfileView({ profile, onProfileUpdate }: ProfileViewProps) {
 // ---------------------------------------------------------------------------
 
 export default function TalentProfilePage() {
+  const [searchParams] = useSearchParams();
+  const showWelcome = searchParams.get("welcome") === "1";
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+
   const [profile, setProfile] = useState<TalentProfile | null>(null);
-  // null = loading, false = no profile, TalentProfile = loaded
   const [loadState, setLoadState] = useState<"loading" | "no_profile" | "loaded">("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -593,6 +597,22 @@ export default function TalentProfilePage() {
 
   return (
     <div className="talent-page">
+      {showWelcome && !welcomeDismissed && (
+        <div className="talent-page__welcome-banner">
+          <div className="talent-page__welcome-banner__content">
+            <strong>Hesabınız oluşturuldu!</strong>
+            {" "}Profilinizi tamamlayarak iş fırsatlarına erişmeye başlayın.
+          </div>
+          <button
+            type="button"
+            className="talent-page__welcome-banner__close"
+            onClick={() => setWelcomeDismissed(true)}
+            aria-label="Kapat"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <h1 className="talent-page__title">Talent Profilim</h1>
       {error && <div className="talent-page__error">{error}</div>}
 

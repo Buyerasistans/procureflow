@@ -696,6 +696,7 @@
 /* Quote tab wrapper */
 .pdp-quote-tab-wrap {
   margin-top: 20px;
+  overflow-x: auto;
 }
 
 /* Responsive */

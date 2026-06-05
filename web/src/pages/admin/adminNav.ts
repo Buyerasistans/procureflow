@@ -77,7 +77,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { key: "reports", label: "Raporlar", icon: "report" },
       // TODO(data): count'ı backend'den al
       { key: "support_tickets", label: "Destek Talepleri", icon: "help", count: 3 },
-      { key: "nav_management", label: "Navigasyon Yönetimi", icon: "sliders" },
       { key: "panel_designer", label: "Panel Tasarımı", icon: "palette" },
       { key: "settings", label: "Ayarlar", icon: "sliders" },
     ],

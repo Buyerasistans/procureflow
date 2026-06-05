@@ -4,8 +4,8 @@
 .igp-root {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(5, 150, 105, 0.25), transparent 32%),
-    linear-gradient(135deg, #ecfdf5 0%, #d1fae5 48%, #e0f2fe 100%);
+    radial-gradient(circle at top left, rgba(91, 33, 182, 0.10), transparent 30%),
+    linear-gradient(135deg, #faf7ff 0%, #f5f0ff 48%, #fdf4ff 100%);
 }
 
 /* ── Center wrapper ── */
@@ -37,7 +37,7 @@
   color: white;
   background:
     radial-gradient(circle at top right, rgba(167, 243, 208, 0.3), transparent 24%),
-    linear-gradient(135deg, #064e3b 0%, #065f46 52%, #047857 100%);
+    linear-gradient(135deg, #5B21B6 0%, #6d28d9 52%, #7c3aed 100%);
 }
 
 .igp-brand-content {
@@ -86,7 +86,7 @@
   font-weight: 800;
   letter-spacing: 2.2px;
   text-transform: uppercase;
-  color: #059669;
+  color: #5B21B6;
 }
 
 .igp-form-h2 {
@@ -132,7 +132,7 @@
   padding: 14px 18px;
   border-radius: 18px;
   border: none;
-  background: #059669;
+  background: #5B21B6;
   color: white;
   font-weight: 800;
   font-size: 14px;
@@ -153,8 +153,21 @@
   line-height: 1.6;
 }
 
-.igp-info-link { color: #059669; font-weight: 700; text-decoration: none; }
+.igp-info-link { color: #5B21B6; font-weight: 700; text-decoration: none; }
 
 /* ── Back link ── */
 .igp-back-row  { margin-top: 14px; text-align: center; }
 .igp-back-link { font-size: 13px; color: #64748b; text-decoration: none; }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .igp-card        { grid-template-columns: 1fr; }
+  .igp-brand       { padding: 40px 32px; min-height: 220px; }
+  .igp-brand-h1    { font-size: 32px; }
+  .igp-form-panel  { padding: 36px 32px; }
+}
+
+@media (max-width: 480px) {
+  .igp-center      { padding: 16px; }
+  .igp-form-panel  { padding: 28px 20px; }
+}

@@ -115,14 +115,17 @@ export async function registerUser(
   email: string,
   password: string,
   userType: "employer" | "candidate",
+  captchaToken?: string,
 ): Promise<LoginResponse> {
   try {
-    const res = await http.post<LoginApiResponse>("/auth/register", {
+    const body: Record<string, string> = {
       full_name: fullName,
       email,
       password,
       user_type: userType,
-    });
+    };
+    if (captchaToken) body.captcha_token = captchaToken;
+    const res = await http.post<LoginApiResponse>("/auth/register", body);
     const data = res.data;
 
     if (!data?.access_token || !data?.refresh_token) {

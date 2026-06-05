@@ -4,19 +4,16 @@ import { supplierLoginRequest } from "../services/auth.service";
 import { isSupplierLoggedIn } from "../lib/session";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import TurnstileWidget from "../components/TurnstileWidget";
 import "./SupplierPortalLoginPage.css";
-
-interface LoginError {
-  field?: string;
-  message: string;
-}
 
 export default function SupplierPortalLoginPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<LoginError | null>(null);
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (isSupplierLoggedIn()) {
@@ -33,92 +30,102 @@ export default function SupplierPortalLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess("");
 
-    if (!formData.email) {
-      setError({ field: "email", message: "E-posta gerekli" });
-      return;
-    }
-
-    if (!formData.password) {
-      setError({ field: "password", message: "Şifre gerekli" });
-      return;
-    }
+    if (!formData.email) { setError("E-posta gerekli"); return; }
+    if (!formData.password) { setError("Şifre gerekli"); return; }
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
 
     setLoading(true);
-
     try {
       await supplierLoginRequest(formData.email, formData.password);
-      setSuccess("Giriş başarılı! Yönlendiriliyorsunuz...");
       navigate("/supplier/dashboard", { replace: true });
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol ediniz.";
-      setError({ message: errorMessage });
+      setError(err instanceof Error ? err.message : "Giriş başarısız. Lütfen bilgilerinizi kontrol ediniz.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="spll-page">
+    <div className="spll-root">
       <NavBar variant="supplier" activePath="/supplier/login" />
-      <div className="spll-container">
-        <section className="spll-left">
-          <div>
-            <PublicBrandLogo height={44} maxWidth={220} marginBottom={24} invert />
-            <h1>Tedarikçi Portalı</h1>
-            <p>Tekliflerinizi yönetin, proje detaylarını görün ve sözleşme süreçlerini tek bir panelden takip edin.</p>
+      <div className="spll-center">
+        <div className="spll-card">
+          <div className="spll-brand">
+            <div className="spll-brand-content">
+              <PublicBrandLogo height={32} maxWidth={200} invert />
+              <h1 className="spll-brand-h1">Tedarikçi Portalı</h1>
+              <p className="spll-brand-lead">
+                Tekliflerinizi yönetin, proje detaylarını görün ve sözleşme süreçlerini tek bir panelden takip edin.
+              </p>
+              <ul className="spll-features">
+                <li className="spll-feature-item"><span className="spll-feature-check">✓</span> RFQ teklif yönetimi</li>
+                <li className="spll-feature-item"><span className="spll-feature-check">✓</span> Sözleşme süreçleri</li>
+                <li className="spll-feature-item"><span className="spll-feature-check">✓</span> Proje ve sipariş takibi</li>
+              </ul>
+            </div>
           </div>
-        </section>
 
-        <section className="spll-right">
-          <div className="spll-form-card">
-            <h2>Tedarikçi Girişi</h2>
-            <p>Tedarikçi hesabınızla giriş yaparak kendi tedarikçi panelinize erişin.</p>
+          <div className="spll-form-panel">
+            <div className="spll-form-inner">
+              <div className="spll-form-header">
+                <div className="spll-eyebrow">Tedarikçi girişi</div>
+                <h2 className="spll-form-h2">Hesabınla devam et</h2>
+                <p className="spll-form-desc">
+                  Tedarikçi hesabınızla giriş yaparak kendi tedarikçi panelinize erişin.
+                </p>
+              </div>
 
-            <form className="spll-form" onSubmit={handleSubmit}>
-              {error && <div className="spll-msg spll-msg--error">{error.message}</div>}
-              {success && <div className="spll-msg spll-msg--success">{success}</div>}
+              <SocialLoginButtons />
 
-              <label className="spll-label" htmlFor="email">
-                E-posta Adresi
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  className="spll-input"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="ornek@tedarikci.com"
-                  disabled={loading}
-                  required
-                />
-              </label>
+              <form onSubmit={handleSubmit} className="spll-form">
+                <label className="spll-label">
+                  <span className="spll-label-text">E-posta</span>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                    className="spll-input"
+                    placeholder="ornek@tedarikci.com"
+                  />
+                </label>
 
-              <label className="spll-label" htmlFor="password">
-                Şifre
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  className="spll-input"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  disabled={loading}
-                  required
-                />
-              </label>
+                <label className="spll-label">
+                  <span className="spll-label-text">Şifre</span>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                    className="spll-input"
+                    placeholder="••••••••"
+                  />
+                </label>
 
-              <button type="submit" className="spll-submit" disabled={loading}>
-                {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
-              </button>
-            </form>
+                <TurnstileWidget onSuccess={setCaptchaToken} />
+
+                {error && <div className="spll-error">{error}</div>}
+
+                <button type="submit" disabled={loading} className="spll-submit-btn">
+                  {loading ? "Giriş yapılıyor..." : "Giriş yap"}
+                </button>
+              </form>
+
+              <div className="spll-info-box">
+                Tedarikçi portal hesabınız varsa bu ekrandan giriş yapabilirsiniz.
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );

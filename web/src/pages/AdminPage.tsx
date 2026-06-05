@@ -1,10 +1,9 @@
 // PAGE: web/src/pages/AdminPage.tsx
 import { lazy, Suspense, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { DepartmentsTab } from "./admin/DepartmentsTab";
-import { PersonnelTab } from "./admin/PersonnelTab";
-import { CompaniesTab } from "./admin/CompaniesTab";
+// PersonnelTab and CompaniesTab are lazy-loaded below
 import { PackagesTab } from "./admin/PackagesTab";
-import { PlatformOperationsTab } from "./admin/PlatformOperationsTab";
+// PlatformOperationsTab is lazy-loaded below
 import { CommissionAdminTab } from "./admin/commission-admin-tab";
 import { SupportTicketAdminTab } from "../components/admin/SupportTicketAdminTab";
 import { ScopeWorkspaceHome } from "./admin/ScopeWorkspaceHome";
@@ -14,15 +13,11 @@ import type { AdminFocusBannerTone, AdminTabKey, TabConfig } from "./admin/admin
 import { useAuth } from "../hooks/useAuth";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import { canAccessAdminSurface, canAccessProcurementSettings, canAccessWorkspacePanel, canManageRoleCatalog, canManageTenantGovernance, getUserDisplayRoleLabel, isIkAdminUser, isPlatformStaffUser, isSuperAdminUser, isTenantAdminUser, resolveApprovalRoleLabel } from "../auth/permissions";
-import { ProjectsTab } from "../components/ProjectsTab";
-import { RoleDepartmentGovernanceTab } from "../components/admin/RoleDepartmentGovernanceTab";
-import { OnboardingStudioTab } from "./admin/OnboardingStudioTab";
+// ProjectsTab, RoleDepartmentGovernanceTab, OnboardingStudioTab are lazy-loaded below
 import { TenantGovernanceTab } from "./admin/TenantGovernanceTab";
-import { SuppliersTab } from "../components/SuppliersTab";
+// SuppliersTab is lazy-loaded below
 import { SupplierProfileTab } from "./admin/SupplierProfileTab";
-import { SettingsTab } from "../components/SettingsTab";
-import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
-import { ApprovalDashboard } from "../components/ApprovalDashboard";
+// SettingsTab, AdvancedSettingsTab, ApprovalDashboard are lazy-loaded below
 import { DataTable, PageHeader, Section, StatCard } from "./admin/AdminTabContent";
 
 import { getAccessToken } from "../lib/token";
@@ -73,6 +68,7 @@ import { useSearchParams } from "react-router-dom";
 import { QuoteStatusLabel, normalizeQuoteStatus } from "../types/quote.types";
 import { getQuote, getQuoteAuditTrail, getQuoteHistory, getQuotePendingApprovals, getQuotes, type Quote, type QuoteAuditTrail, type QuotePendingApproval, type StatusLog } from "../services/quote.service";
 import { getWorkspacePanelQuickLinks, mergeWorkspacePanelConfig, resolveWorkspacePanelProfile, WORKSPACE_PANEL_DATA_TABS, type WorkspacePanelTabKey } from "../admin/workspace-panels";
+import { SEGMENT_META, type SegmentKey } from "../admin/segment-colors";
 import { buildPolicyContext, resolveVisiblePanelTabKeys } from "../config/navigation-policy";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
@@ -783,6 +779,51 @@ const PanelDesignerTab = lazy(async () => ({
 const NavManagerTab = lazy(async () => ({
   default: (await import("./admin/NavManagerTab")).default,
 }));
+const AdminProfileTab = lazy(async () => {
+  const m = await import("./admin/AdminProfileTab");
+  return { default: m.AdminProfileTab };
+});
+
+const PersonnelTab = lazy(async () => {
+  const m = await import("./admin/PersonnelTab");
+  return { default: m.PersonnelTab };
+});
+const CompaniesTab = lazy(async () => {
+  const m = await import("./admin/CompaniesTab");
+  return { default: m.CompaniesTab };
+});
+const PlatformOperationsTab = lazy(async () => {
+  const m = await import("./admin/PlatformOperationsTab");
+  return { default: m.PlatformOperationsTab };
+});
+const OnboardingStudioTab = lazy(async () => {
+  const m = await import("./admin/OnboardingStudioTab");
+  return { default: m.OnboardingStudioTab };
+});
+const ProjectsTab = lazy(async () => {
+  const m = await import("../components/ProjectsTab");
+  return { default: m.ProjectsTab };
+});
+const RoleDepartmentGovernanceTab = lazy(async () => {
+  const m = await import("../components/admin/RoleDepartmentGovernanceTab");
+  return { default: m.RoleDepartmentGovernanceTab };
+});
+const SuppliersTab = lazy(async () => {
+  const m = await import("../components/SuppliersTab");
+  return { default: m.SuppliersTab };
+});
+const SettingsTab = lazy(async () => {
+  const m = await import("../components/SettingsTab");
+  return { default: m.SettingsTab };
+});
+const AdvancedSettingsTab = lazy(async () => {
+  const m = await import("../components/AdvancedSettingsTab");
+  return { default: m.AdvancedSettingsTab };
+});
+const ApprovalDashboard = lazy(async () => {
+  const m = await import("../components/ApprovalDashboard");
+  return { default: m.ApprovalDashboard };
+});
 
 // TODO(data): Phase B — panel_home mock data (replace with API when finans servisi hazır)
 const PH_OPS_QUEUE = [
@@ -812,11 +853,11 @@ const PH_PRIORITY_TENANTS = [
   { name: "OLİMPOS TEKNOLOJİ",        slug: "oli-mpos-teknoloji",                             tags: ["Marka kimliği eksik", "Destek: Çözüldü"] },
 ];
 
-const PH_ALERTS = [
-  { id: 1, level: "critical", title: "Doğan Otomotiv",     desc: "Churn risk · 14 gün hareketsiz · Kurumsal plan ₺14.900/ay",  cta: "Müşteri başarıyı uyar" },
-  { id: 2, level: "critical", title: "Polat Tekstil",       desc: "Vade aşımı · ₺4.990 + KDV · 2 gün",                          cta: "Tahsilat süreci başlat" },
-  { id: 3, level: "warning",  title: "Kurulum Kuyruğu",     desc: "Egem Makina · Bursa Otomasyon · 2 partner SLA içinde",        cta: "Stüdyoya git" },
-  { id: 4, level: "warning",  title: "Tetra Holding",       desc: "Sözleşme süresi 14 gün · yenileme süreci başlatılmalı",      cta: "Yenileme paketi gönder" },
+const PH_ALERTS: { id: number; level: string; title: string; desc: string; cta: string; aud: SegmentKey; firm: string }[] = [
+  { id: 1, level: "critical", title: "Doğan Otomotiv",  desc: "Churn risk · 14 gün hareketsiz · Kurumsal plan ₺14.900/ay", cta: "Müşteri başarıyı uyar",  aud: "strategic", firm: "Doğan Otomotiv A.Ş." },
+  { id: 2, level: "critical", title: "Polat Tekstil",   desc: "Vade aşımı · ₺4.990 + KDV · 2 gün",                         cta: "Tahsilat süreci başlat", aud: "strategic", firm: "Polat Tekstil Ltd." },
+  { id: 3, level: "warning",  title: "Kurulum Kuyruğu", desc: "Egem Makina · Bursa Otomasyon · 2 partner SLA içinde",       cta: "Stüdyoya git",           aud: "platform",  firm: "Platform Ops" },
+  { id: 4, level: "warning",  title: "Tetra Holding",   desc: "Sözleşme süresi 14 gün · yenileme süreci başlatılmalı",     cta: "Yenileme paketi gönder", aud: "strategic", firm: "Tetra Holding A.Ş." },
 ];
 
 const PH_MRR_SERIES = [
@@ -992,12 +1033,16 @@ export default function AdminPage() {
   const isChannelUser = String(user?.scope_type || "").toLowerCase() === "channel"
     || String(user?.business_role || user?.role || "").toLowerCase() === "channel_owner"
     || String(user?.business_role || user?.role || "").toLowerCase() === "channel_agent";
+  const isPartnerAdmin = String(user?.business_role || user?.role || "").toLowerCase() === "partner_admin"
+    || String(user?.scope_type || "").toLowerCase() === "partner";
 
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isUpgradeExtrasPage = location.pathname === "/admin/yukseltme-ekstra-ozellikler";
   const [activeTab, setActiveTab] = useState<AdminTabKey>("panel_home");
+  const activeTabRef = useRef<AdminTabKey>(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
   const [channelCatalogRefreshNonce, setChannelCatalogRefreshNonce] = useState(0);
   const [workspacePanelConfig, setWorkspacePanelConfig] = useState<WorkspacePanelConfig | null>(null);
   const [workspacePanelSaving, setWorkspacePanelSaving] = useState(false);
@@ -3205,6 +3250,9 @@ export default function AdminPage() {
   const showUpgradeExtrasWorkspace = Boolean(shouldLoadAdminWorkspaceData && isUpgradeExtrasPage && activeTab === "panel_home");
   const canUseSelfPanelDesigner = Boolean(activeWorkspacePanelProfile?.allow_user_self_customization);
 
+  const handleShellNavigate = useCallback((key: string) => navigateAdminTab(key as AdminTabKey), [navigateAdminTab]);
+  const shellTabKeys = useMemo(() => isSuperAdminUser(user) ? undefined : tabConfigs.map((t) => t.key), [user, tabConfigs]);
+
   const handleCreateRoleCatalogRequest = useCallback(async (payload: { name: string; description?: string }) => {
     try {
       if (typeof createRoleCatalogRequest !== "function") {
@@ -3306,7 +3354,7 @@ export default function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      const p1 = getTenantUsers();
+      const p1 = getTenantUsers().catch(() => [] as TenantUser[]);
       const p2 = getDepartments().catch(() => [] as Department[]);
       const p3 = getCompanies().catch(() => [] as Company[]);
       const p4 = getRoles().catch(() => [] as Role[]);
@@ -3344,7 +3392,7 @@ export default function AdminPage() {
             getOnboardingStudioSummary(),
           ])
         : Promise.resolve(null);
-      const p8 = canAccessAdminWorkspace ? getSubscriptionCatalog() : Promise.resolve(null);
+      const p8 = canViewPackagesTab ? getSubscriptionCatalog() : Promise.resolve(null);
       const p9 = typeof globalThis.fetch === "function" && typeof import.meta.env.VITE_API_URL === "string" && import.meta.env.VITE_API_URL.length > 0 && canAccessAdminWorkspace
         ? fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/public-pricing-config`, {
             headers: { Authorization: `Bearer ${getAccessToken() ?? ""}` },
@@ -3363,7 +3411,7 @@ export default function AdminPage() {
       const p12 = canAccessAdminWorkspace
         ? getQuotes(1, 1).then((response) => Number(response.total ?? response.count ?? 0)).catch(() => 0)
         : Promise.resolve(0);
-      const p13 = canViewPlatformGovernance && (activeTab === "platform_overview" || activeTab === "panel_home")
+      const p13 = canViewPlatformGovernance && (activeTabRef.current === "platform_overview" || activeTabRef.current === "panel_home")
         ? getQuotes(1, 100).then((response) => response.items || []).catch(() => [] as Quote[])
         : Promise.resolve([] as Quote[]);
       const [personnelData, deptData, companyData, rolesData, projectData, catalogRequestData, governanceResults, subscriptionData, publicPricingResponse, premiumFeatureResponse, billingData, quoteTotal, overviewQuoteItems] = await Promise.all([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]);
@@ -3429,7 +3477,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, canAccessAdminWorkspace, canAccessRoleCatalog, canViewPackagesTab, canViewPlatformGovernance, discoveryLabAuditDecisionFilter, discoveryLabDateFrom, discoveryLabDateTo, discoveryLabProjectQuery, discoveryLabSearch, discoveryLabStatusFilter, discoveryLabUserQuery, isRoleManagementOnly, loadCatalogRequestsSafe, shouldLoadAdminWorkspaceData]);
+  }, [canAccessAdminWorkspace, canAccessRoleCatalog, canViewPackagesTab, canViewPlatformGovernance, discoveryLabAuditDecisionFilter, discoveryLabDateFrom, discoveryLabDateTo, discoveryLabProjectQuery, discoveryLabSearch, discoveryLabStatusFilter, discoveryLabUserQuery, isRoleManagementOnly, loadCatalogRequestsSafe, shouldLoadAdminWorkspaceData]);
 
   const reloadPersonnel = useCallback(async (params?: TenantUsersQueryParams) => {
     try {
@@ -3451,7 +3499,7 @@ export default function AdminPage() {
     const tenantFocusName = searchParams.get("tenantFocusName");
     const projectFocusName = searchParams.get("projectFocusName");
     const telemetrySnapshot = buildFocusTelemetryFilterSnapshot(searchParams);
-    if (resolvedTab && tabConfigs.some((item) => item.key === resolvedTab)) {
+    if (resolvedTab && (tabConfigs.some((item) => item.key === resolvedTab) || resolvedTab === "profile")) {
       setActiveTab(resolvedTab as AdminTabKey);
     } else if (isRoleManagementOnly) {
       setActiveTab("roles");
@@ -4257,8 +4305,8 @@ export default function AdminPage() {
     <div className="admin-page">
       <ImpersonationBanner />
 
-      {/* ScopeWorkspaceHome - panel_home en uste */}
-      {activeTab === "panel_home" && (
+      {/* ScopeWorkspaceHome - panel_home en uste; platform adminler ph-page'i kullanir */}
+      {activeTab === "panel_home" && !canViewPlatformGovernance && (
         <section className="admin-page__section">
           {workspacePanelError ? (
             <div className="admin-page__notice admin-page__notice--error">
@@ -4267,6 +4315,7 @@ export default function AdminPage() {
           ) : null}
           <ScopeWorkspaceHome
             hideTopSummarySection
+            hideHero
             hideBottomSections={canViewPlatformGovernance}
             user={user}
             currentUserRoleLabel={currentUserRoleLabel}
@@ -4346,6 +4395,39 @@ export default function AdminPage() {
             {/* ── Platform Yönetim Alanı — audience cards + approval strip ── */}
             {isPlat && panelHomePlatformMetrics ? (
               <>
+                {/* ── Collapsible KPI strip (Finans & Sağlık — EN ÜSTE) ── */}
+                <div className={`ph-kpi-collapse${phKpiOpen ? " ph-kpi-collapse--open" : ""}`}>
+                  <button type="button" className="ph-kpi-collapse__toggle" onClick={() => setPhKpiOpen((c) => !c)}>
+                    <span className="ph-kpi-collapse__title">Finans &amp; Sağlık Özeti</span>
+                    <span className="ph-kpi-collapse__summary">
+                      <span>MRR <b>₺1.284K</b></span>
+                      <span>ARR <b>₺15.4M</b></span>
+                      <span>Partner <b>42</b></span>
+                      <span>Churn <b>%1.4</b></span>
+                      <span>SLA <b>%99.98</b></span>
+                    </span>
+                    <span className="ph-kpi-collapse__chevron">{phKpiOpen ? "▲" : "▼"}</span>
+                  </button>
+                  {phKpiOpen && (
+                    <div className="ph-kpi-grid">
+                      {[
+                        { label: "Aylık Tekrarlayan Gelir (MRR)", value: "₺1.284.500", delta: "+%12.3", accent: "blue" },
+                        { label: "Yıllık Gelir (ARR)",            value: "₺15.4M",     delta: "+%14.8", accent: "gold" },
+                        { label: "Aktif Partner",                  value: "42",          delta: "+4",     accent: "" },
+                        { label: "Churn (30 gün)",                 value: "%1.4",        delta: "▼ %0.3", accent: "green" },
+                        { label: "SLA Sağlık",                     value: "%99.98",      sub: "Son 30 gün · hedef ≥%99.9", accent: "green" },
+                      ].map((k) => (
+                        <div key={k.label} className={`ph-kpi-card${k.accent ? ` ph-kpi-card--${k.accent}` : ""}`}>
+                          <div className="ph-kpi-card__label">{k.label}</div>
+                          <div className="ph-kpi-card__value">{k.value}</div>
+                          {"delta" in k && k.delta && <div className="ph-kpi-card__delta">{k.delta}</div>}
+                          {"sub" in k && k.sub && <div className="ph-kpi-card__sub">{k.sub}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="ph-section">
                   <div className="ph-section__head">
                     <div>
@@ -4356,7 +4438,7 @@ export default function AdminPage() {
                   <div className="ph-aud-grid">
                     {([
                       {
-                        code: "strategic", label: "Stratejik Partner", color: "#1d4ed8", bg: "#eef4ff",
+                        code: "strategic", label: "Stratejik Partner", color: "#134E37", bg: "#ecfdf5",
                         subLabel: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
                         metrics: [
                           { k: "Firma",     v: panelHomePlatformMetrics.partnerCompanies },
@@ -4364,20 +4446,20 @@ export default function AdminPage() {
                           { k: "Proje",     v: panelHomePlatformMetrics.partnerProjects },
                           { k: "Aylık RFQ", v: panelHomePlatformMetrics.partnerQuotes },
                         ],
-                        ctaKey: "tenant_governance",
+                        ctaKey: "tenant_governance" as AdminTabKey,
                       },
                       {
-                        code: "supplier", label: "Tedarikçi", color: "#be123c", bg: "#fff1f1",
+                        code: "supplier", label: "Tedarikçi", color: "#0E7490", bg: "#ecfeff",
                         subLabel: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
                         metrics: [
                           { k: "Firma",             v: panelHomePlatformMetrics.supplierCompanies },
                           { k: "Yanıtlanan Teklif", v: panelHomePlatformMetrics.supplierRespondedQuotes },
                           { k: "Revize Teklif",     v: panelHomePlatformMetrics.supplierRevisedQuotes },
                         ],
-                        ctaKey: "platform_suppliers",
+                        ctaKey: "platform_suppliers" as AdminTabKey,
                       },
                       {
-                        code: "channel", label: "İş Ortağı", color: "#047857", bg: "#ecfdf5",
+                        code: "channel", label: "İş Ortağı", color: "#7C2D12", bg: "#fff7ed",
                         subLabel: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
                         metrics: [
                           { k: "Firma",      v: panelHomePlatformMetrics.channelCompanies },
@@ -4385,9 +4467,31 @@ export default function AdminPage() {
                           { k: "Proje",      v: panelHomePlatformMetrics.channelProjects },
                           { k: "Hak ediş",   v: panelHomePlatformMetrics.channelQuotes },
                         ],
-                        ctaKey: "channel_partners",
+                        ctaKey: "channel_partners" as AdminTabKey,
                       },
-                    ] as const).map((a) => (
+                      {
+                        code: "employer", label: "Personel Arayan", color: "#5B21B6", bg: "#fdf4ff",
+                        subLabel: `${(panelHomePlatformMetrics as Record<string, unknown>).employerActive as number ?? 6} aktif · ${(panelHomePlatformMetrics as Record<string, unknown>).employerPassive as number ?? 1} pasif`,
+                        metrics: [
+                          { k: "İşveren",      v: (panelHomePlatformMetrics as Record<string, unknown>).employerCompanies as number ?? 7 },
+                          { k: "Açık İlan",    v: (panelHomePlatformMetrics as Record<string, unknown>).openJobs as number ?? 18 },
+                          { k: "Başvuru",      v: (panelHomePlatformMetrics as Record<string, unknown>).applications as number ?? 142 },
+                          { k: "Görüntülenme", v: (panelHomePlatformMetrics as Record<string, unknown>).jobViews as string ?? "3.1K" },
+                        ],
+                        ctaKey: "kariyer_yonetimi" as AdminTabKey,
+                      },
+                      {
+                        code: "seeker", label: "İş Arayan", color: "#9F1239", bg: "#fff1f3",
+                        subLabel: `${(panelHomePlatformMetrics as Record<string, unknown>).seekerActive as number ?? 54} aktif · ${(panelHomePlatformMetrics as Record<string, unknown>).seekerPassive as number ?? 12} pasif`,
+                        metrics: [
+                          { k: "Aday",      v: (panelHomePlatformMetrics as Record<string, unknown>).candidates as number ?? 66 },
+                          { k: "Aktif CV",  v: (panelHomePlatformMetrics as Record<string, unknown>).activeCvs as number ?? 54 },
+                          { k: "Başvuru",   v: (panelHomePlatformMetrics as Record<string, unknown>).applications as number ?? 142 },
+                          { k: "Eşleşme",   v: (panelHomePlatformMetrics as Record<string, unknown>).matches as number ?? 23 },
+                        ],
+                        ctaKey: "talent_ecosystem" as AdminTabKey,
+                      },
+                    ]).map((a) => (
                       <div key={a.code} className="ph-aud-card" style={{ "--aud": a.color, "--aud-bg": a.bg } as React.CSSProperties}>
                         <div className="ph-aud-card__head">
                           <span className="ph-aud-card__title">{a.label}</span>
@@ -4425,39 +4529,6 @@ export default function AdminPage() {
                       </div>
                     ))}
                   </div>
-                </div>
-
-                {/* ── Collapsible KPI strip ── */}
-                <div className={`ph-kpi-collapse${phKpiOpen ? " ph-kpi-collapse--open" : ""}`}>
-                  <button type="button" className="ph-kpi-collapse__toggle" onClick={() => setPhKpiOpen((c) => !c)}>
-                    <span className="ph-kpi-collapse__title">Finans &amp; Sağlık Özeti</span>
-                    <span className="ph-kpi-collapse__summary">
-                      <span>MRR <b>₺1.284K</b></span>
-                      <span>ARR <b>₺15.4M</b></span>
-                      <span>Partner <b>42</b></span>
-                      <span>Churn <b>%1.4</b></span>
-                      <span>SLA <b>%99.98</b></span>
-                    </span>
-                    <span className="ph-kpi-collapse__chevron">{phKpiOpen ? "▲" : "▼"}</span>
-                  </button>
-                  {phKpiOpen && (
-                    <div className="ph-kpi-grid">
-                      {[
-                        { label: "Aylık Tekrarlayan Gelir (MRR)", value: "₺1.284.500", delta: "+%12.3", accent: "blue" },
-                        { label: "Yıllık Gelir (ARR)",            value: "₺15.4M",     delta: "+%14.8", accent: "gold" },
-                        { label: "Aktif Partner",                  value: "42",          delta: "+4",     accent: "" },
-                        { label: "Churn (30 gün)",                 value: "%1.4",        delta: "▼ %0.3", accent: "green" },
-                        { label: "SLA Sağlık",                     value: "%99.98",      sub: "Son 30 gün · hedef ≥%99.9", accent: "green" },
-                      ].map((k) => (
-                        <div key={k.label} className={`ph-kpi-card${k.accent ? ` ph-kpi-card--${k.accent}` : ""}`}>
-                          <div className="ph-kpi-card__label">{k.label}</div>
-                          <div className="ph-kpi-card__value">{k.value}</div>
-                          {"delta" in k && k.delta && <div className="ph-kpi-card__delta">{k.delta}</div>}
-                          {"sub" in k && k.sub && <div className="ph-kpi-card__sub">{k.sub}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* ── Operasyonel Uyarılar ── */}
@@ -4551,31 +4622,105 @@ export default function AdminPage() {
                       </div>
                       <div className="ph-legend">
                         <span className="ph-legend-dot ph-legend-dot--mrr" />MRR
+                        <span className="ph-legend-dot ph-legend-dot--net" style={{ marginLeft: 10, borderStyle: "dashed" }} />Net büyüme
                       </div>
                     </div>
                     <div className="ph-mrr-chart">
-                      <svg viewBox="0 0 480 120" className="ph-mrr-svg" preserveAspectRatio="none">
-                        {PH_MRR_SERIES.map((d, i) => {
-                          const maxMrr = 1284500;
-                          const barH = Math.round((d.mrr / maxMrr) * 100);
-                          const x = 2 + i * 40;
-                          return (
-                            <rect key={d.m} x={x} y={110 - barH} width={34} height={barH} rx={3}
-                              fill="#2563eb" opacity={i === PH_MRR_SERIES.length - 1 ? 1 : 0.5} />
-                          );
-                        })}
-                      </svg>
+                      {(() => {
+                        const W = 480; const H = 130; const PAD = 40;
+                        // Padded domain — shrinks dead space
+                        const rawMin = Math.min(...PH_MRR_SERIES.map((d) => d.mrr));
+                        const rawMax = Math.max(...PH_MRR_SERIES.map((d) => d.mrr));
+                        const rng = rawMax - rawMin;
+                        const domMin = rawMin - rng * 0.18;
+                        const domMax = rawMax + rng * 0.12;
+                        const yScale = (v: number) => 10 + ((domMax - v) / (domMax - domMin)) * (H - 26);
+                        const pts = PH_MRR_SERIES.map((d, i) => ({
+                          x: PAD + (i / (PH_MRR_SERIES.length - 1)) * (W - PAD - 6),
+                          y: yScale(d.mrr),
+                        }));
+                        // Catmull-Rom → cubic bezier smooth path
+                        const smoothPath = (arr: {x: number; y: number}[]) => {
+                          let d = `M${arr[0].x.toFixed(1)},${arr[0].y.toFixed(1)}`;
+                          for (let i = 0; i < arr.length - 1; i++) {
+                            const p0 = arr[Math.max(0, i - 1)];
+                            const p1 = arr[i]; const p2 = arr[i + 1];
+                            const p3 = arr[Math.min(arr.length - 1, i + 2)];
+                            const cp1x = p1.x + (p2.x - p0.x) / 6;
+                            const cp1y = p1.y + (p2.y - p0.y) / 6;
+                            const cp2x = p2.x - (p3.x - p1.x) / 6;
+                            const cp2y = p2.y - (p3.y - p1.y) / 6;
+                            d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+                          }
+                          return d;
+                        };
+                        const linePath = smoothPath(pts);
+                        const last = pts[pts.length - 1];
+                        const areaPath = `${linePath} L${last.x.toFixed(1)},${H - 8} L${pts[0].x.toFixed(1)},${H - 8} Z`;
+                        // Net growth on its own scale (last 6 months)
+                        const netVals = PH_NET_GROWTH_SERIES.map((d) => d.newMrr - d.churn);
+                        const netMin = Math.min(...netVals); const netMax = Math.max(...netVals);
+                        const netRng = netMax - netMin || 1;
+                        const netYScale = (v: number) => 10 + ((netMax + netRng * 0.1 - v) / (netRng * 1.3)) * (H - 26);
+                        const netPts = PH_NET_GROWTH_SERIES.map((d, i) => ({
+                          x: PAD + ((PH_MRR_SERIES.length - PH_NET_GROWTH_SERIES.length + i) / (PH_MRR_SERIES.length - 1)) * (W - PAD - 6),
+                          y: netYScale(d.newMrr - d.churn),
+                        }));
+                        const netLine = smoothPath(netPts);
+                        // 3 Y-axis ticks
+                        const t1 = domMin; const t2 = (domMin + domMax) / 2; const t3 = domMax;
+                        const ticks = [{ v: t1, y: yScale(t1) }, { v: t2, y: yScale(t2) }, { v: t3, y: yScale(t3) }];
+                        return (
+                          <svg viewBox={`0 0 ${W} ${H}`} className="ph-mrr-svg" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#3A4F86" stopOpacity="0.26" />
+                                <stop offset="100%" stopColor="#3A4F86" stopOpacity="0.02" />
+                              </linearGradient>
+                            </defs>
+                            {ticks.map(({ v, y }) => (
+                              <g key={v}>
+                                <line x1={PAD} y1={y} x2={W - 4} y2={y} stroke="#e2e8f0" strokeWidth="0.7" />
+                                <text x={PAD - 4} y={y + 3.5} fontSize="8" fill="#94a3b8" textAnchor="end">₺{Math.round(v / 1000)}K</text>
+                              </g>
+                            ))}
+                            <path d={areaPath} fill="url(#mrrGrad)" />
+                            <path d={linePath} fill="none" stroke="#3A4F86" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d={netLine} fill="none" stroke="#7C2D12" strokeWidth="1.6" strokeDasharray="5,3" strokeLinecap="round" strokeLinejoin="round" />
+                            <circle cx={last.x} cy={last.y} r="5" fill="#3A4F86" stroke="#fff" strokeWidth="2" />
+                            <rect x={last.x - 18} y={last.y - 18} width="36" height="13" rx="4" fill="#3A4F86" opacity="0.9" />
+                            <text x={last.x} y={last.y - 8} fontSize="8" fill="#fff" textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length - 1].mrr / 1000).toFixed(0)}K</text>
+                          </svg>
+                        );
+                      })()}
                       <div className="ph-mrr-labels">
                         {PH_MRR_SERIES.map((d) => (
                           <span key={d.m}>{d.m.slice(5)}</span>
                         ))}
                       </div>
                     </div>
+                    <p className="ph-chart-note ph-chart-note--compact">
+                      <b>——</b> Toplam MRR &nbsp;·&nbsp; <b style={{ borderBottom: "2px dashed #7C2D12" }}>- -</b> Net büyüme (yeni − churn) &nbsp;·&nbsp; ● Son ay balonu
+                    </p>
+                    <div className="ph-mrr-churn-bar">
+                      <div className="ph-mrr-churn-bar__row">
+                        <span className="ph-mrr-churn-bar__label ph-pos">Yeni +₺132K</span>
+                        <div className="ph-mrr-churn-bar__track">
+                          <div className="ph-mrr-churn-bar__fill ph-mrr-churn-bar__fill--new" style={{ width: "57%" }} />
+                        </div>
+                      </div>
+                      <div className="ph-mrr-churn-bar__row">
+                        <span className="ph-mrr-churn-bar__label ph-neg">Churn −₺99K</span>
+                        <div className="ph-mrr-churn-bar__track">
+                          <div className="ph-mrr-churn-bar__fill ph-mrr-churn-bar__fill--churn" style={{ width: "43%" }} />
+                        </div>
+                      </div>
+                    </div>
                     <div className="ph-mrr-stats">
-                      <div><span>Bu ay yeni</span><b className="ph-pos">+₺132.000</b></div>
-                      <div><span>Bu ay churn</span><b className="ph-neg">−₺99.500</b></div>
                       <div><span>Net büyüme</span><b className="ph-pos">+₺32.500</b></div>
                       <div><span>Büyüme oranı</span><b className="ph-pos">+%2.6</b></div>
+                      <div><span>Bu ay yeni</span><b className="ph-pos">+₺132.000</b></div>
+                      <div><span>Bu ay churn</span><b className="ph-neg">−₺99.500</b></div>
                     </div>
                   </div>
 
@@ -4588,16 +4733,25 @@ export default function AdminPage() {
                       <button type="button" className="ph-lnk">Tümünü gör →</button>
                     </div>
                     <div className="ph-alert-list">
-                      {PH_ALERTS.map((a) => (
-                        <div key={a.id} className={`ph-alert-row ph-alert-row--${a.level}`}>
-                          <div className="ph-alert-row__dot" />
-                          <div className="ph-alert-row__body">
-                            <div className="ph-alert-row__title">{a.title}</div>
-                            <div className="ph-alert-row__desc">{a.desc}</div>
+                      {PH_ALERTS.map((a) => {
+                        const seg = SEGMENT_META[a.aud] ?? SEGMENT_META.platform;
+                        return (
+                          <div key={a.id} className={`ph-alert-row ph-alert-row--${a.level}`}>
+                            <div className="ph-alert-row__dot" />
+                            <div className="ph-alert-row__body">
+                              <div className="ph-alert-row__top">
+                                <span className="ph-alert-row__firm">{a.firm}</span>
+                                <span className="ph-seg-chip" style={{ color: seg.color, background: seg.bg }}>
+                                  <span className="ph-seg-chip__dot" style={{ background: seg.color }} />{seg.label}
+                                </span>
+                              </div>
+                              <div className="ph-alert-row__subject">{a.title}</div>
+                              <div className="ph-alert-row__desc">{a.desc}</div>
+                              <button type="button" className="ph-alert-row__cta">{a.cta}</button>
+                            </div>
                           </div>
-                          <button type="button" className="ph-alert-row__cta">{a.cta}</button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -5303,21 +5457,45 @@ export default function AdminPage() {
                 </div>
               </div>
               <div className="ph-mrr-chart">
-                <svg viewBox="0 0 480 120" className="ph-mrr-svg" preserveAspectRatio="none">
-                  {PH_MRR_SERIES.map((d, i) => {
-                    const maxMrr = 1284500;
-                    const barH = Math.round((d.mrr / maxMrr) * 100);
-                    const x = 2 + i * 40;
-                    return (
-                      <rect key={d.m} x={x} y={110 - barH} width={34} height={barH} rx={3}
-                        fill="#2563eb" opacity={i === PH_MRR_SERIES.length - 1 ? 1 : 0.5} />
-                    );
-                  })}
-                </svg>
+                {(() => {
+                  const W = 480; const H = 120; const PAD = 36;
+                  const maxMrr = Math.max(...PH_MRR_SERIES.map((d) => d.mrr));
+                  const pts = PH_MRR_SERIES.map((d, i) => {
+                    const x = PAD + (i / (PH_MRR_SERIES.length - 1)) * (W - PAD - 8);
+                    const y = 8 + ((maxMrr - d.mrr) / maxMrr) * (H - 28);
+                    return { x, y, d };
+                  });
+                  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+                  const areaPath = `${linePath} L${pts[pts.length-1].x.toFixed(1)},${H-10} L${pts[0].x.toFixed(1)},${H-10} Z`;
+                  const last = pts[pts.length - 1];
+                  const tickVals = [0, Math.round(maxMrr / 2 / 1000), Math.round(maxMrr / 1000)];
+                  return (
+                    <svg viewBox={`0 0 ${W} ${H}`} className="ph-mrr-svg" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="mrrGrad2" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3A4F86" stopOpacity="0.22" />
+                          <stop offset="100%" stopColor="#3A4F86" stopOpacity="0.01" />
+                        </linearGradient>
+                      </defs>
+                      {tickVals.map((v, i) => {
+                        const y = i === 0 ? H - 10 : i === 1 ? H / 2 : 8;
+                        return <g key={v}><line x1={PAD} y1={y} x2={W-4} y2={y} stroke="#e2e8f0" strokeWidth="0.8" /><text x={PAD-4} y={y+4} fontSize="8" fill="#94a3b8" textAnchor="end">₺{v}K</text></g>;
+                      })}
+                      <path d={areaPath} fill="url(#mrrGrad2)" />
+                      <path d={linePath} fill="none" stroke="#3A4F86" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx={last.x} cy={last.y} r="5" fill="#3A4F86" stroke="#fff" strokeWidth="2" />
+                      <text x={last.x} y={last.y - 9} fontSize="8" fill="#3A4F86" textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length-1].mrr/1000).toFixed(0)}K</text>
+                    </svg>
+                  );
+                })()}
                 <div className="ph-mrr-labels">
                   {PH_MRR_SERIES.map((d) => <span key={d.m}>{d.m.slice(5)}</span>)}
                 </div>
               </div>
+              <p className="ph-chart-note">
+                <b>Düz çizgi (MRR):</b> aboneliklerden gelen toplam aylık tekrarlayan gelir.{" "}
+                Son aydaki balon güncel MRR değeridir.
+              </p>
             </div>
 
             <div className="ph-section">
@@ -6142,61 +6320,65 @@ export default function AdminPage() {
       )}
 
       {activeTab === "platform_operations" && canViewPlatformGovernance && (
-        <PlatformOperationsTab
-          activePlatformOpsFocusSummary={activePlatformOpsFocusSummary}
-          renderAdminFocusBanner={renderAdminFocusBanner}
-          navigateAdminTab={navigateAdminTab}
-          jumpToPlatformOpsFocusTarget={jumpToPlatformOpsFocusTarget}
-          setPlatformOpsStatusFilter={setPlatformOpsStatusFilter}
-          setPlatformOpsOwnerFilter={setPlatformOpsOwnerFilter}
-          platformOpsStatusSummary={platformOpsStatusSummary}
-          platformOpsStatusFilter={platformOpsStatusFilter}
-          platformOpsOwnerFilter={platformOpsOwnerFilter}
-          platformOpsOwnerOptions={platformOpsOwnerOptions}
-          visiblePlatformOpsQueues={visiblePlatformOpsQueues}
-          allTenants={tenants}
-          platformOpsQueueRefs={platformOpsQueueRefs}
-          platformOpsOwners={platformOpsOwners}
-          setPlatformOpsOwners={setPlatformOpsOwners}
-          platformOpsDefaultOwner={platformOpsDefaultOwner}
-          setPlatformOpsTouchedAt={setPlatformOpsTouchedAt}
-          platformOpsStatuses={platformOpsStatuses}
-          setPlatformOpsStatuses={setPlatformOpsStatuses}
-          formatPartnerLifecycleStatus={formatPartnerLifecycleStatus}
-          formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
-          platformOpsTouchedAt={platformOpsTouchedAt}
-          platformOpsNotes={platformOpsNotes}
-          setPlatformOpsNotes={setPlatformOpsNotes}
-          platformOpsResolutionReasons={platformOpsResolutionReasons}
-          setPlatformOpsResolutionReasons={setPlatformOpsResolutionReasons}
-          handleSavePlatformOpsNote={handleSavePlatformOpsNote}
-          platformOpsSavingTenantId={platformOpsSavingTenantId}
-          setActiveTab={setActiveTab}
-          canViewPackagesTab={canViewPackagesTab}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <PlatformOperationsTab
+            activePlatformOpsFocusSummary={activePlatformOpsFocusSummary}
+            renderAdminFocusBanner={renderAdminFocusBanner}
+            navigateAdminTab={navigateAdminTab}
+            jumpToPlatformOpsFocusTarget={jumpToPlatformOpsFocusTarget}
+            setPlatformOpsStatusFilter={setPlatformOpsStatusFilter}
+            setPlatformOpsOwnerFilter={setPlatformOpsOwnerFilter}
+            platformOpsStatusSummary={platformOpsStatusSummary}
+            platformOpsStatusFilter={platformOpsStatusFilter}
+            platformOpsOwnerFilter={platformOpsOwnerFilter}
+            platformOpsOwnerOptions={platformOpsOwnerOptions}
+            visiblePlatformOpsQueues={visiblePlatformOpsQueues}
+            allTenants={tenants}
+            platformOpsQueueRefs={platformOpsQueueRefs}
+            platformOpsOwners={platformOpsOwners}
+            setPlatformOpsOwners={setPlatformOpsOwners}
+            platformOpsDefaultOwner={platformOpsDefaultOwner}
+            setPlatformOpsTouchedAt={setPlatformOpsTouchedAt}
+            platformOpsStatuses={platformOpsStatuses}
+            setPlatformOpsStatuses={setPlatformOpsStatuses}
+            formatPartnerLifecycleStatus={formatPartnerLifecycleStatus}
+            formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
+            platformOpsTouchedAt={platformOpsTouchedAt}
+            platformOpsNotes={platformOpsNotes}
+            setPlatformOpsNotes={setPlatformOpsNotes}
+            platformOpsResolutionReasons={platformOpsResolutionReasons}
+            setPlatformOpsResolutionReasons={setPlatformOpsResolutionReasons}
+            handleSavePlatformOpsNote={handleSavePlatformOpsNote}
+            platformOpsSavingTenantId={platformOpsSavingTenantId}
+            setActiveTab={setActiveTab}
+            canViewPackagesTab={canViewPackagesTab}
+          />
+        </Suspense>
       )}
 
       {activeTab === "onboarding_studio" && canViewPlatformGovernance && (
-        <OnboardingStudioTab
-          onboardingStudioSummary={onboardingStudioSummary}
-          searchParams={searchParams}
-          renderAdminFocusBanner={renderAdminFocusBanner}
-          navigateAdminTab={navigateAdminTab}
-          handleStartOnboardingTemplate={handleStartOnboardingTemplate}
-          handleCreateDraftTenant={handleCreateDraftTenant}
-          tenantGovernanceSuppliers={tenantGovernanceSuppliers}
-          formatOnboardingApprovalStatus={formatOnboardingApprovalStatus}
-          formatOnboardingPaymentStatus={formatOnboardingPaymentStatus}
-          formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
-          formatActivationDeliveryStatus={formatActivationDeliveryStatus}
-          formatCategoryRequestStatus={formatCategoryRequestStatus}
-          onboardingMembershipActionTenantId={onboardingMembershipActionTenantId}
-          handleReviewTenantCategory={handleReviewTenantCategory}
-          handleVerifyOnboardingPayment={handleVerifyOnboardingPayment}
-          handleApproveOnboardingMembership={handleApproveOnboardingMembership}
-          handleRequestOnboardingInfo={handleRequestOnboardingInfo}
-          handleRejectOnboardingMembership={handleRejectOnboardingMembership}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <OnboardingStudioTab
+            onboardingStudioSummary={onboardingStudioSummary}
+            searchParams={searchParams}
+            renderAdminFocusBanner={renderAdminFocusBanner}
+            navigateAdminTab={navigateAdminTab}
+            handleStartOnboardingTemplate={handleStartOnboardingTemplate}
+            handleCreateDraftTenant={handleCreateDraftTenant}
+            tenantGovernanceSuppliers={tenantGovernanceSuppliers}
+            formatOnboardingApprovalStatus={formatOnboardingApprovalStatus}
+            formatOnboardingPaymentStatus={formatOnboardingPaymentStatus}
+            formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
+            formatActivationDeliveryStatus={formatActivationDeliveryStatus}
+            formatCategoryRequestStatus={formatCategoryRequestStatus}
+            onboardingMembershipActionTenantId={onboardingMembershipActionTenantId}
+            handleReviewTenantCategory={handleReviewTenantCategory}
+            handleVerifyOnboardingPayment={handleVerifyOnboardingPayment}
+            handleApproveOnboardingMembership={handleApproveOnboardingMembership}
+            handleRequestOnboardingInfo={handleRequestOnboardingInfo}
+            handleRejectOnboardingMembership={handleRejectOnboardingMembership}
+          />
+        </Suspense>
       )}
 
       {activeTab === "tenant_governance" && canViewPlatformGovernance && (
@@ -6254,16 +6436,18 @@ export default function AdminPage() {
       {error && <div className="admin-page__error-banner">{error}</div>}
 
       {activeTab === "personnel" && (
-        <PersonnelTab
-          personnel={isChannelUser ? channelTeamPersonnel : personnel}
-          roles={roles}
-          companies={companies}
-          tenants={tenants}
-          loadData={loadData}
-          reloadPersonnel={reloadPersonnel}
-          readOnly={isPlatformStaff}
-          isChannelUser={isChannelUser}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <PersonnelTab
+            personnel={isChannelUser ? channelTeamPersonnel : personnel}
+            roles={roles}
+            companies={companies}
+            tenants={tenants}
+            loadData={loadData}
+            reloadPersonnel={reloadPersonnel}
+            readOnly={isPlatformStaff}
+            isChannelUser={isChannelUser}
+          />
+        </Suspense>
       )}
 
       {/* Departments Tab */}
@@ -6313,24 +6497,27 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-          <CompaniesTab
-            companies={companies}
-            loadData={loadData}
-            readOnly={isPlatformStaff}
-            suppliers={tenantGovernanceSuppliers}
-            channelUsers={channelUsers}
-            personnel={personnel}
-            tenants={tenants}
-            handleDeleteCompany={async (id: number) => {
-              if (!confirm("Firmayı silmek istediğinize emin misiniz?")) return;
-              try {
-                await deleteCompany(id);
-                await loadData();
-              } catch (err) {
-                alert("Silme hatası: " + String(err));
-              }
-            }}
-          />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <CompaniesTab
+              companies={companies}
+              loadData={loadData}
+              readOnly={isPlatformStaff}
+              suppliers={tenantGovernanceSuppliers}
+              channelUsers={channelUsers}
+              personnel={personnel}
+              tenants={tenants}
+              visibleSegments={isPartnerAdmin ? ["partner"] : undefined}
+              handleDeleteCompany={async (id: number) => {
+                if (!confirm("Firmayı silmek istediğinize emin misiniz?")) return;
+                try {
+                  await deleteCompany(id);
+                  await loadData();
+                } catch (err) {
+                  alert("Silme hatası: " + String(err));
+                }
+              }}
+            />
+          </Suspense>
         </>
       )}
 
@@ -6358,14 +6545,16 @@ export default function AdminPage() {
               }}
             />
           )}
-          <RoleDepartmentGovernanceTab
-            key={`channel-governance-${channelCatalogRefreshNonce}`}
-            tenants={tenants}
-            canManage={canAccessRoleCatalog}
-            isSuperAdmin={isSuperAdminUser(user)}
-            currentUser={user}
-            suppliers={tenantGovernanceSuppliers}
-          />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <RoleDepartmentGovernanceTab
+              key={`channel-governance-${channelCatalogRefreshNonce}`}
+              tenants={tenants}
+              canManage={canAccessRoleCatalog}
+              isSuperAdmin={isSuperAdminUser(user)}
+              currentUser={user}
+              suppliers={tenantGovernanceSuppliers}
+            />
+          </Suspense>
         </section>
       )}
 
@@ -6384,7 +6573,9 @@ export default function AdminPage() {
               testId: "admin-focus-banner-project",
             })
           ) : null}
-          <ProjectsTab readOnly={isPlatformStaff} initialSearchTerm={searchParams.get("projectFocusName") || ""} />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <ProjectsTab readOnly={isPlatformStaff} initialSearchTerm={searchParams.get("projectFocusName") || ""} />
+          </Suspense>
         </section>
       )}
 
@@ -6396,7 +6587,9 @@ export default function AdminPage() {
       )}
 
       {activeTab === "suppliers" && (
-        <SuppliersTab />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <SuppliersTab />
+        </Suspense>
       )}
 
       {/* Supplier Profile Tab (Dual-Role) */}
@@ -6414,10 +6607,12 @@ export default function AdminPage() {
 
       {/* Approvals Tab */}
       {activeTab === "approvals" && (
-        <ApprovalDashboard
-          apiUrl={import.meta.env.VITE_API_URL || "http://localhost:8000"}
-          authToken={getAccessToken() || ""}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <ApprovalDashboard
+            apiUrl={import.meta.env.VITE_API_URL || "http://localhost:8000"}
+            authToken={getAccessToken() || ""}
+          />
+        </Suspense>
       )}
 
       {/* Navigasyon Yönetimi Tab */}
@@ -6428,7 +6623,11 @@ export default function AdminPage() {
       )}
 
       {/* Settings Tab */}
-      {activeTab === "settings" && <SettingsTab onNavigate={(tab) => navigateAdminTab(tab as AdminTabKey)} />}
+      {activeTab === "settings" && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <SettingsTab onNavigate={(tab) => navigateAdminTab(tab as AdminTabKey)} />
+        </Suspense>
+      )}
 
       {/* panel_designer: super admin → PanelDesignerTab; self-customizers → WorkspacePanelDesignerTab */}
       {activeTab === "panel_designer" && isSuperAdminUser(user) && (
@@ -6471,7 +6670,9 @@ export default function AdminPage() {
         )}
 
         {activeTab === "mail" && (
-          <AdvancedSettingsTab />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <AdvancedSettingsTab />
+          </Suspense>
         )}
 
         {/* Deployment Tab */}
@@ -6773,6 +6974,13 @@ export default function AdminPage() {
           </Suspense>
         )}
 
+      {/* Profile Tab */}
+      {activeTab === "profile" && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <AdminProfileTab />
+        </Suspense>
+      )}
+
       {showUpgradeExtrasWorkspace && (
         <UpgradeExtrasWorkspace
           searchParams={searchParams}
@@ -6794,9 +7002,9 @@ export default function AdminPage() {
     return (
       <AdminShell
         activeKey={activeTab}
-        onNavigate={(key) => navigateAdminTab(key as AdminTabKey)}
+        onNavigate={handleShellNavigate}
         user={user}
-        tabKeys={isSuperAdminUser(user) ? undefined : tabConfigs.map((t) => t.key)}
+        tabKeys={shellTabKeys}
       >
         {_adminNode}
       </AdminShell>

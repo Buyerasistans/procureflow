@@ -1,0 +1,305 @@
+/* RoleLandingPage.css — namespace: rlp-* */
+
+.rlp-root {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--rlp-bg, #f8fafc);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Hero ── */
+.rlp-hero {
+  padding: 64px 24px;
+  background: linear-gradient(135deg, var(--rlp-color, #134E37) 0%, color-mix(in srgb, var(--rlp-color, #134E37) 80%, black) 100%);
+}
+
+.rlp-hero-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  color: #fff;
+}
+
+.rlp-hero-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.rlp-hero-h1 {
+  margin: 0 0 24px;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.rlp-hero-ctas {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ── */
+.rlp-btn {
+  display: inline-block;
+  padding: 13px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.rlp-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.rlp-btn--primary {
+  background: #fff;
+  color: var(--rlp-color, #134E37);
+}
+
+.rlp-btn--ghost {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.rlp-btn--full {
+  display: block;
+  text-align: center;
+}
+
+/* ── Content area ── */
+.rlp-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── Dual role note ── */
+.rlp-dual-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #fff;
+  border: 1.5px solid var(--rlp-light, #a7f3d0);
+  border-radius: 16px;
+  padding: 16px 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.rlp-dual-note__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Section ── */
+.rlp-section {}
+
+.rlp-section-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* ── Reasons ── */
+.rlp-reasons {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rlp-reason-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.rlp-reason-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--rlp-bg, #ecfdf5);
+  color: var(--rlp-color, #134E37);
+  font-weight: 900;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+/* ── How steps ── */
+.rlp-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rlp-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.rlp-step-num {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--rlp-color, #134E37);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rlp-step-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.rlp-step-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+/* ── Plan note ── */
+.rlp-plan-note {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--rlp-bg, #ecfdf5);
+  border: 1px solid var(--rlp-light, #a7f3d0);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.rlp-plan-note__icon { font-size: 22px; flex-shrink: 0; }
+
+.rlp-plan-note__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #334155;
+}
+
+/* ── Bottom grid ── */
+.rlp-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+.rlp-cta-block {
+  background: var(--rlp-color, #134E37);
+  border-radius: 20px;
+  padding: 24px;
+  color: #fff;
+}
+
+.rlp-cta-block .rlp-section-title { color: #fff; }
+
+.rlp-cta-block__desc {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.85;
+}
+
+.rlp-cta-block .rlp-btn--primary {
+  background: #fff;
+  color: var(--rlp-color, #134E37);
+}
+
+.rlp-cta-block .rlp-btn--ghost {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── FAQ ── */
+.rlp-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rlp-faq-item {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.rlp-faq-q {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.rlp-faq-a {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+/* ── Footer ── */
+.rlp-footer {
+  padding: 18px 24px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.rlp-footer-link {
+  color: var(--rlp-color, #134E37);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .rlp-hero           { padding: 40px 16px; }
+  .rlp-hero-h1        { font-size: 28px; }
+  .rlp-content        { padding: 28px 16px 40px; }
+  .rlp-bottom-grid    { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .rlp-hero           { padding: 32px 14px; }
+  .rlp-hero-h1        { font-size: 22px; }
+}

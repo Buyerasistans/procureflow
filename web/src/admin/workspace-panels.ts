@@ -117,6 +117,14 @@ function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQ
       { label: "Talent Ekosistemi", href: "/admin/talent-ecosystem", description: "Talent ve aday kayıtlarını yönetin." },
     ];
   }
+  // ── Stratejik Partner Admin ───────────────────────────────────────────
+  if (businessRole === "partner_admin") {
+    return [
+      { label: "Firmalar", href: "/admin?tab=companies", description: "Tenant firmaları ve organizasyon yapısını yönetin." },
+      { label: "Ekip Üyeleri", href: "/admin?tab=personnel", description: "Kullanıcıları, rolleri ve ekip üyelerini yönetin." },
+      { label: "Projeler", href: "/admin?tab=projects", description: "Aktif projeler ve atamalar." },
+    ];
+  }
   // ── İşveren / Kariyer Rolleri ────────────────────────────────────────────
   if (businessRole === "employer_company_admin" || businessRole === "employer_recruiter") {
     return [
@@ -243,6 +251,18 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       hero_description: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
       allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("admin"),
+    },
+    {
+      business_role: "partner_admin",
+      system_role: "tenant_admin",
+      title: "Stratejik Partner Admin Paneli",
+      nav_label: "Partner Admin",
+      workspace_label: "Stratejik Partner Yönetim Alanı",
+      description: "Stratejik partner admin rolü için firma, ekip, proje ve tedarikçi yönetim alanı.",
+      hero_title: "Stratejik Partner Admin Paneli",
+      hero_description: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını stratejik partner olarak yönetin.",
+      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings"],
+      quick_links: defaultQuickLinksForBusinessRole("partner_admin"),
     },
     {
       business_role: "platform_support",
@@ -1014,6 +1034,7 @@ export const ACCENT_COLOR_PRESETS: Array<{ color: string; label: string }> = [
 export function defaultIconForBusinessRole(businessRole: string): string {
   const role = normalize(businessRole);
   if (role === "super_admin" || role === "platform_support" || role === "platform_operator") return "WEB";
+  if (role === "partner_admin") return "ORT";
   if (role === "admin") return "BIN";
   if (role === "manager" || role === "satinalma_direktoru") return "DOS";
   if (role === "channel_owner" || role === "channel_agent") return "ORT";
@@ -1023,12 +1044,25 @@ export function defaultIconForBusinessRole(businessRole: string): string {
 
 export function defaultAccentColorForBusinessRole(businessRole: string): string {
   const role = normalize(businessRole);
-  if (role === "super_admin" || role === "platform_support" || role === "platform_operator") return "#0f172a";
-  if (role === "admin") return "#2563eb";
-  if (role === "manager" || role === "satinalma_direktoru") return "#f59e0b";
-  if (role === "channel_owner" || role === "channel_agent") return "#6366f1";
-  if (role === "supplier_admin" || role === "supplier_user") return "#0d9488";
-  return "#64748b";
+  // Platform (Süper Admin / destek / operasyon / finans / İK admin) — slate
+  if (role === "super_admin" || role.startsWith("platform_") ||
+      role.startsWith("operasyon_") || role.startsWith("destek_") ||
+      role.startsWith("finans_") || role === "ik_admin") return "#3A4F86";
+  // Stratejik Partner (tenant) — koyu zümrüt
+  if (role === "partner_admin" || role === "admin" || role === "manager" ||
+      role.startsWith("satinalma")) return "#134E37";
+  // Tedarikçi — petrol
+  if (role === "supplier_admin" || role === "supplier_user" ||
+      role.startsWith("pazarlama")) return "#0E7490";
+  // İş Ortağı (Kanal) — koyu amber
+  if (role === "channel_owner" || role === "channel_agent" ||
+      role.startsWith("kanal")) return "#7C2D12";
+  // Personel Arayan (İşveren / İK) — violet
+  if (role === "employer_company_admin" || role === "employer_recruiter" ||
+      role === "hr_manager" || role === "hr_specialist") return "#5B21B6";
+  // İş Arayan (Aday) — şarap
+  if (role === "candidate" || role === "job_seeker") return "#9F1239";
+  return "#3A4F86";
 }
 
 export function resolvedIcon(profile: WorkspacePanelProfile | null): string {

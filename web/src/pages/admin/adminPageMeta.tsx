@@ -32,7 +32,8 @@ export type AdminTabKey =
   | "channel_partners"
   | "ai_lab"
   | "talent_ecosystem"
-  | "nav_management";
+  | "nav_management"
+  | "profile";
 
 export type TabConfig = {
   key: AdminTabKey;

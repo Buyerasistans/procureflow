@@ -17,12 +17,18 @@ interface DoneData {
 export default function ChannelPartnerRegisterPage() {
   const [searchParams] = useSearchParams();
   const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
+
+  // Social prefill — populated when arriving from OAuth B2B preview flow
+  const prefillName = searchParams.get("name") ?? "";
+  const prefillEmail = searchParams.get("email") ?? "";
+  const isPrefilled = searchParams.get("prefill") === "1";
+
   const [step, setStep] = useState<Step>("form");
   const [legalName, setLegalName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState(prefillName);
+  const [email, setEmail] = useState(prefillEmail);
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +86,12 @@ export default function ChannelPartnerRegisterPage() {
 
           {step === "form" && (
             <form onSubmit={handleSubmit}>
+              {isPrefilled && (
+                <div className="cpr-prefill-notice">
+                  Sosyal hesabınızdan bilgileriniz otomatik dolduruldu. Lütfen firma bilgilerini ekleyerek başvuruyu tamamlayın.
+                </div>
+              )}
+
               <div className="cpr-info-box">
                 <div className="cpr-info-row">
                   <span>[OK]</span>

@@ -515,6 +515,21 @@
   background: #fee2e2;
 }
 
+.pe-act-btn {
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-surface);
+  color: var(--pf-slate-600);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.pe-act-btn:hover { background: var(--pf-gray-50); }
+
 .pe-act-btn--teal {
   padding: 5px 12px;
   border-radius: 7px;

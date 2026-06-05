@@ -9,6 +9,7 @@ import { ProjectSuppliersModal } from "../components/ProjectSuppliersModal";
 import { isPlatformStaffUser } from "../auth/permissions";
 import { useAuth } from "../hooks/useAuth";
 import { getAccessToken } from "../lib/token";
+import AdminShell from "./admin/AdminShell";
 import "../styles/modal.css";
 import "./ProjectDetailPage.css";
 import type { Project, ProjectFile } from "../types/project";
@@ -319,6 +320,11 @@ export default function ProjectDetailPage() {
   };
 
   return (
+    <AdminShell
+      activeKey="projects"
+      onNavigate={(key) => navigate(`/admin?tab=${key}`)}
+      user={user}
+    >
     <div className="pdp-page">
       {fileActionError ? (
         <div className="pdp-file-error">
@@ -891,5 +897,6 @@ export default function ProjectDetailPage() {
         </div>
       )}
     </div>
+    </AdminShell>
   );
 }
