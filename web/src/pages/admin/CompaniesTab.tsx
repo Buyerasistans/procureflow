@@ -31,9 +31,9 @@ type EntityModalState = {
 function coLogo(name: string): string {
   return name
     .split(" ")
-    .filter((w) => /[A-Za-zÇĞİÖŞÜçğışöüa-z0-9]/.test(w))
+    .filter((w) => /[A-Za-zÇĞİÖŞÜçğışöü0-9]/.test(w))
     .slice(0, 2)
-    .map((w) => w[0])
+    .map((w) => w.charAt(0))
     .join("")
     .toUpperCase() || "?";
 }

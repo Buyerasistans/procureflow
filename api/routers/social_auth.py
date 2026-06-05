@@ -43,33 +43,44 @@ _LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 _LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 _LINKEDIN_USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
 
-# Short-lived one-time token store — tokens never go into redirect URLs
-_TEMP_TOKENS: dict[str, tuple[dict, float]] = {}
-_TEMP_TOKENS_LOCK = threading.Lock()
-_TEMP_TOKEN_TTL = 120.0  # seconds
+# Short-lived one-time stores — sensitive data never goes into redirect URLs
+_TEMP_STORE: dict[str, tuple[dict, float]] = {}
+_TEMP_STORE_LOCK = threading.Lock()
+_TEMP_TTL = 120.0  # seconds
 
 
-def _store_temp_tokens(tokens: dict) -> str:
+def _temp_put(payload: dict) -> str:
     code = secrets.token_urlsafe(32)
-    expiry = time.monotonic() + _TEMP_TOKEN_TTL
-    with _TEMP_TOKENS_LOCK:
+    expiry = time.monotonic() + _TEMP_TTL
+    with _TEMP_STORE_LOCK:
         now = time.monotonic()
-        expired = [k for k, (_, exp) in _TEMP_TOKENS.items() if exp < now]
+        expired = [k for k, (_, exp) in _TEMP_STORE.items() if exp < now]
         for k in expired:
-            del _TEMP_TOKENS[k]
-        _TEMP_TOKENS[code] = (tokens, expiry)
+            del _TEMP_STORE[k]
+        _TEMP_STORE[code] = (payload, expiry)
     return code
 
 
-def _consume_temp_tokens(code: str) -> dict | None:
-    with _TEMP_TOKENS_LOCK:
-        entry = _TEMP_TOKENS.pop(code, None)
+def _temp_pop(code: str) -> dict | None:
+    with _TEMP_STORE_LOCK:
+        entry = _TEMP_STORE.pop(code, None)
     if entry is None:
         return None
-    tokens, expiry = entry
+    payload, expiry = entry
     if time.monotonic() > expiry:
         return None
-    return tokens
+    return payload
+
+
+def _store_temp_tokens(tokens: dict) -> str:
+    return _temp_put({"type": "tokens", **tokens})
+
+
+def _consume_temp_tokens(code: str) -> dict | None:
+    payload = _temp_pop(code)
+    if payload is None or payload.get("type") != "tokens":
+        return None
+    return {k: v for k, v in payload.items() if k != "type"}
 
 
 # Modes that trigger B2B prefill (no account creation)
@@ -173,14 +184,8 @@ def _find_or_create_social_user(
 
 def _b2b_prefill_redirect(mode: str, full_name: str, email: str, picture: str) -> RedirectResponse:
     landing = _B2B_LANDING.get(mode, "/")
-    params = urllib.parse.urlencode({
-        "prefill": "1",
-        "mode": mode,
-        "name": full_name,
-        "email": email,
-        "picture": picture,
-    })
-    return RedirectResponse(f"{_FRONTEND_URL}{landing}?{params}")
+    code = _temp_put({"type": "prefill", "name": full_name, "email": email, "picture": picture})
+    return RedirectResponse(f"{_FRONTEND_URL}{landing}?prefill_code={code}&mode={mode}")
 
 
 # ── One-time code exchange — frontend POSTs this to get actual tokens ─────────
@@ -194,6 +199,17 @@ def exchange_social_code(code: str):
             detail="invalid_or_expired_code",
         )
     return tokens
+
+
+@router.get("/prefill")
+def get_social_prefill(code: str):
+    payload = _temp_pop(code)
+    if payload is None or payload.get("type") != "prefill":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_or_expired_code",
+        )
+    return {"name": payload.get("name", ""), "email": payload.get("email", ""), "picture": payload.get("picture", "")}
 
 
 # ── Provider status (read-only, no auth required) ────────────────────────────

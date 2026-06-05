@@ -47,6 +47,7 @@ export default function EmployerRegisterPage() {
 
     if (!form.full_name.trim()) { setError("Ad Soyad zorunludur."); return; }
     if (!form.email.trim()) { setError("E-posta zorunludur."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) { setError("Geçerli bir e-posta adresi girin."); return; }
     if (form.password.length < 8) { setError("Şifre en az 8 karakter olmalıdır."); return; }
     if (form.password !== form.confirm_password) { setError("Şifreler eşleşmiyor."); return; }
     if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }

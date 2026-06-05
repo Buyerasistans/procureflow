@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
@@ -17,22 +17,32 @@ interface DoneData {
 export default function ChannelPartnerRegisterPage() {
   const [searchParams] = useSearchParams();
   const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
-
-  // Social prefill — populated when arriving from OAuth B2B preview flow
-  const prefillName = searchParams.get("name") ?? "";
-  const prefillEmail = searchParams.get("email") ?? "";
-  const isPrefilled = searchParams.get("prefill") === "1";
+  const prefillCode = searchParams.get("prefill_code") ?? "";
 
   const [step, setStep] = useState<Step>("form");
   const [legalName, setLegalName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("");
-  const [fullName, setFullName] = useState(prefillName);
-  const [email, setEmail] = useState(prefillEmail);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [doneData, setDoneData] = useState<DoneData | null>(null);
+  const [isPrefilled, setIsPrefilled] = useState(false);
+
+  useEffect(() => {
+    if (!prefillCode) return;
+    window.history.replaceState({}, "", window.location.pathname + (referralCode ? `?ref=${referralCode}` : ""));
+    fetch(`${API_BASE}/api/v1/auth/social/prefill?code=${encodeURIComponent(prefillCode)}`)
+      .then((res) => res.ok ? res.json() : Promise.reject())
+      .then((data: { name: string; email: string }) => {
+        if (data.name) setFullName(data.name);
+        if (data.email) setEmail(data.email);
+        setIsPrefilled(true);
+      })
+      .catch(() => {/* prefill başarısız olursa form boş kalır */});
+  }, [prefillCode, referralCode]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

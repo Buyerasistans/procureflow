@@ -66,7 +66,12 @@ export default function AppLayout() {
   const [workspacePanelConfig, setWorkspacePanelConfig] = useState<WorkspacePanelConfig | null>(null);
   const workspaceName = user?.organization_name || user?.platform_name || "Buyera Asistans";
   const workspaceLabelFallback = getWorkspaceLabelFallback(user);
-  const logoUrl = user?.organization_logo_url;
+  const logoUrl = (() => {
+    const raw = user?.organization_logo_url?.trim();
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw) || raw.startsWith("/")) return raw;
+    return null;
+  })();
 
   function handleLogout() {
     logout();
