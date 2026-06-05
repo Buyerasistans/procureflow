@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/auth.service";
-import { setAccessToken, setRefreshToken } from "../lib/token";
 import { POST_REGISTER_REDIRECT } from "../config/register-redirect-policy";
 import TurnstileWidget from "../components/TurnstileWidget";
 import SocialLoginButtons from "../components/SocialLoginButtons";
@@ -52,15 +51,13 @@ export default function EmployerRegisterPage() {
 
     try {
       setLoading(true);
-      const data = await registerUser(
+      await registerUser(
         form.full_name.trim(),
         form.email.trim(),
         form.password,
         "employer",
         captchaToken,
       );
-      setAccessToken(data.accessToken);
-      setRefreshToken(data.refreshToken);
       navigate(POST_REGISTER_REDIRECT.employer, { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kayıt sırasında bir sorun oluştu.");

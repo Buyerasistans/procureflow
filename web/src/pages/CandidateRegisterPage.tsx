@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/auth.service";
-import { setAccessToken, setRefreshToken } from "../lib/token";
 import { POST_REGISTER_REDIRECT } from "../config/register-redirect-policy";
 import TurnstileWidget from "../components/TurnstileWidget";
 import SocialLoginButtons from "../components/SocialLoginButtons";
 import SocialRegisterLayout from "../components/SocialRegisterLayout";
 import "./CandidateRegisterPage.css";
-
-const USER_KEY = "pf_user";
 
 const BRAND_FEATURES = [
   { text: "Google veya LinkedIn ile saniyeler içinde kayıt" },
@@ -53,18 +50,13 @@ export default function CandidateRegisterPage() {
 
     try {
       setLoading(true);
-      const data = await registerUser(
+      await registerUser(
         form.full_name.trim(),
         form.email.trim(),
         form.password,
         "candidate",
         captchaToken,
       );
-      setAccessToken(data.accessToken);
-      setRefreshToken(data.refreshToken);
-      if (data.user) {
-        sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
-      }
       navigate(POST_REGISTER_REDIRECT.candidate, { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kayıt sırasında bir sorun oluştu.");
