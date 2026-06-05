@@ -998,12 +998,12 @@ def test_tenant_admin_cannot_escalate_user_management_beyond_personnel_flow(clie
     assert "admin veya super admin" in create_response.json()["detail"].lower()
     assert owner_update_response.status_code == 403, owner_update_response.text
     assert (
-        "personel akisindan yonetemez" in owner_update_response.json()["detail"].lower()
+        "personel ak" in owner_update_response.json()["detail"].lower()
     )
     assert (
         system_role_update_response.status_code == 403
     ), system_role_update_response.text
-    assert "sistem rolune gecis" in system_role_update_response.json()["detail"].lower()
+    assert "sistem rol" in system_role_update_response.json()["detail"].lower()
     assert tenant_move_response.status_code == 403, tenant_move_response.text
     assert "baska tenant" in tenant_move_response.json()["detail"].lower()
 

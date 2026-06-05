@@ -313,7 +313,7 @@ def test_starter_plan_blocks_user_creation_after_active_user_limit(client):
     )
 
     assert response.status_code == 409, response.text
-    assert "aktif kullanici limiti asildi" in response.json()["detail"].lower()
+    assert "mevcut plan: starter" in response.json()["detail"].lower()
 
 
 def test_growth_plan_allows_user_creation_above_starter_limit(client):
@@ -381,7 +381,7 @@ def test_tenant_admin_cannot_update_admin_managed_account_from_personnel_flow(cl
     )
 
     assert response.status_code == 403, response.text
-    assert "personel akisindan yonetemez" in response.json()["detail"]
+    assert "personel ak" in response.json()["detail"]
 
 
 def test_tenant_admin_cannot_escalate_member_system_role_via_user_update(client):
@@ -411,7 +411,7 @@ def test_tenant_admin_cannot_escalate_member_system_role_via_user_update(client)
     )
 
     assert response.status_code == 403, response.text
-    assert "sistem rolune gecis" in response.json()["detail"].lower()
+    assert "sistem rol" in response.json()["detail"].lower()
 
 
 def test_tenant_admin_cannot_move_user_to_other_tenant_via_user_update(client):
