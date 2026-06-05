@@ -2,11 +2,13 @@ import base64
 import json
 import os
 import secrets
+import threading
+import time
 import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -40,6 +42,35 @@ _LINKEDIN_CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET", "")
 _LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 _LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 _LINKEDIN_USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
+
+# Short-lived one-time token store — tokens never go into redirect URLs
+_TEMP_TOKENS: dict[str, tuple[dict, float]] = {}
+_TEMP_TOKENS_LOCK = threading.Lock()
+_TEMP_TOKEN_TTL = 120.0  # seconds
+
+
+def _store_temp_tokens(tokens: dict) -> str:
+    code = secrets.token_urlsafe(32)
+    expiry = time.monotonic() + _TEMP_TOKEN_TTL
+    with _TEMP_TOKENS_LOCK:
+        now = time.monotonic()
+        expired = [k for k, (_, exp) in _TEMP_TOKENS.items() if exp < now]
+        for k in expired:
+            del _TEMP_TOKENS[k]
+        _TEMP_TOKENS[code] = (tokens, expiry)
+    return code
+
+
+def _consume_temp_tokens(code: str) -> dict | None:
+    with _TEMP_TOKENS_LOCK:
+        entry = _TEMP_TOKENS.pop(code, None)
+    if entry is None:
+        return None
+    tokens, expiry = entry
+    if time.monotonic() > expiry:
+        return None
+    return tokens
+
 
 # Modes that trigger B2B prefill (no account creation)
 _B2B_PREVIEW_MODES = {"channel_preview", "supplier_preview", "strategic_preview"}
@@ -152,6 +183,19 @@ def _b2b_prefill_redirect(mode: str, full_name: str, email: str, picture: str) -
     return RedirectResponse(f"{_FRONTEND_URL}{landing}?{params}")
 
 
+# ── One-time code exchange — frontend POSTs this to get actual tokens ─────────
+
+@router.post("/exchange")
+def exchange_social_code(code: str):
+    tokens = _consume_temp_tokens(code)
+    if not tokens:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_or_expired_code",
+        )
+    return tokens
+
+
 # ── Provider status (read-only, no auth required) ────────────────────────────
 
 @router.get("/providers")
@@ -238,11 +282,10 @@ def google_callback(
             system_role=system_role,
         )
         tokens = _create_session(db, user)
+        code = _store_temp_tokens(tokens)
         extra = f"&new_user=1&mode={mode}" if is_new else ""
         return RedirectResponse(
-            f"{_FRONTEND_URL}/auth/social/callback"
-            f"?access_token={tokens['access_token']}"
-            f"&refresh_token={tokens['refresh_token']}{extra}"
+            f"{_FRONTEND_URL}/auth/social/callback?code={code}{extra}"
         )
     except Exception:
         return _callback_error("server_error")
@@ -326,11 +369,10 @@ def linkedin_callback(
             system_role=system_role,
         )
         tokens = _create_session(db, user)
+        code = _store_temp_tokens(tokens)
         extra = f"&new_user=1&mode={mode}" if is_new else ""
         return RedirectResponse(
-            f"{_FRONTEND_URL}/auth/social/callback"
-            f"?access_token={tokens['access_token']}"
-            f"&refresh_token={tokens['refresh_token']}{extra}"
+            f"{_FRONTEND_URL}/auth/social/callback?code={code}{extra}"
         )
     except Exception:
         return _callback_error("server_error")

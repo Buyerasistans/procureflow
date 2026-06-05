@@ -7,12 +7,15 @@ import "./SocialAuthCallbackPage.css";
 type PageState = "loading" | "error";
 
 const ERROR_LABELS: Record<string, string> = {
-  not_configured: "Bu giriş yöntemi henüz yapılandırılmamış.",
-  access_denied:  "Giriş izni reddedildi.",
-  token_failed:   "Kimlik doğrulama başarısız oldu.",
-  invalid_profile:"Profil bilgileri alınamadı.",
-  server_error:   "Sunucu hatası oluştu. Lütfen tekrar deneyin.",
+  not_configured:    "Bu giriş yöntemi henüz yapılandırılmamış.",
+  access_denied:     "Giriş izni reddedildi.",
+  token_failed:      "Kimlik doğrulama başarısız oldu.",
+  invalid_profile:   "Profil bilgileri alınamadı.",
+  server_error:      "Sunucu hatası oluştu. Lütfen tekrar deneyin.",
+  invalid_or_expired_code: "Oturum kodu süresi doldu. Lütfen tekrar giriş yapın.",
 };
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
 
 export default function SocialAuthCallbackPage() {
   const navigate = useNavigate();
@@ -21,34 +24,53 @@ export default function SocialAuthCallbackPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const accessToken  = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-    const error        = params.get("error");
-    const isNewUser    = params.get("new_user") === "1";
-    const mode         = params.get("mode") ?? "";
+    const code       = params.get("code");
+    const error      = params.get("error");
+    const isNewUser  = params.get("new_user") === "1";
+    const mode       = params.get("mode") ?? "";
 
-    if (error || !accessToken || !refreshToken) {
+    if (error || !code) {
       setErrorMsg(ERROR_LABELS[error ?? ""] ?? "Giriş başarısız oldu.");
       setState("error");
       return;
     }
 
-    setTokens(accessToken, refreshToken);
+    // Remove code from browser history immediately
+    window.history.replaceState({}, "", window.location.pathname);
 
-    if (isNewUser) {
-      if (mode === "candidate") {
-        navigate(`${POST_REGISTER_REDIRECT.candidate}?welcome=1`, { replace: true });
-        return;
-      }
-      if (mode === "employer") {
-        navigate(`${POST_REGISTER_REDIRECT.employer}?welcome=1`, { replace: true });
-        return;
-      }
-      navigate(getActivationRedirectPath(null), { replace: true });
-      return;
-    }
+    fetch(`${API_BASE}/auth/social/exchange?code=${encodeURIComponent(code)}`, {
+      method: "POST",
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.detail ?? "exchange_failed");
+        }
+        return res.json() as Promise<{ access_token: string; refresh_token: string }>;
+      })
+      .then(({ access_token, refresh_token }) => {
+        setTokens(access_token, refresh_token);
 
-    navigate("/app", { replace: true });
+        if (isNewUser) {
+          if (mode === "candidate") {
+            navigate(`${POST_REGISTER_REDIRECT.candidate}?welcome=1`, { replace: true });
+            return;
+          }
+          if (mode === "employer") {
+            navigate(`${POST_REGISTER_REDIRECT.employer}?welcome=1`, { replace: true });
+            return;
+          }
+          navigate(getActivationRedirectPath(null), { replace: true });
+          return;
+        }
+
+        navigate("/app", { replace: true });
+      })
+      .catch((err: Error) => {
+        const key = err.message in ERROR_LABELS ? err.message : "";
+        setErrorMsg(ERROR_LABELS[key] ?? "Giriş başarısız oldu.");
+        setState("error");
+      });
   }, [navigate]);
 
   if (state === "error") {

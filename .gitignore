@@ -163,6 +163,9 @@ local_backups/
 # agent runtime files
 tools/agent/SESSION_CONTEXT.md
 
+# Claude Code local config (never commit — contains local permissions)
+.claude/settings.local.json
+
 # --- Agent runtime policy ---
 # Default: ignore all agent runtime
 tools/agent/**
