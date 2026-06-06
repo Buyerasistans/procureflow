@@ -1075,3 +1075,77 @@
     gap: 3px;
   }
 }
+
+/* ── Denetim Kaydı tablosu ──────────────────────────── */
+.pcs-audit-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--pf-slate-200, #e2e8f0);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+.pcs-audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.pcs-audit-table thead {
+  background: var(--pf-slate-50, #f8fafc);
+}
+.pcs-audit-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--pf-slate-600, #475569);
+  border-bottom: 1px solid var(--pf-slate-200, #e2e8f0);
+  white-space: nowrap;
+}
+.pcs-audit-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--pf-slate-100, #f1f5f9);
+  vertical-align: top;
+}
+.pcs-audit-table tr:last-child td {
+  border-bottom: none;
+}
+.pcs-audit-email {
+  color: var(--pf-slate-700, #334155);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pcs-audit-date {
+  color: var(--pf-slate-500, #64748b);
+  white-space: nowrap;
+}
+.pcs-audit-seg {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: var(--pf-slate-100, #f1f5f9);
+  color: var(--pf-slate-700, #334155);
+  font-size: 11px;
+  font-weight: 600;
+}
+.pcs-audit-val pre {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-width: 260px;
+  color: var(--pf-slate-700, #334155);
+}
+.pcs-audit-val--old pre {
+  color: #b91c1c;
+}
+.pcs-audit-val--new pre {
+  color: #15803d;
+}
+@media (max-width: 640px) {
+  .pcs-audit-table th,
+  .pcs-audit-table td {
+    padding: 6px 8px;
+  }
+  .pcs-audit-val pre {
+    max-width: 140px;
+  }
+}

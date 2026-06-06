@@ -20,7 +20,12 @@
 
 /* ── SIDEBAR ── */
 .as-sidebar {
-  background: linear-gradient(180deg, #2a3f67 0%, #243758 60%, #1f3052 100%);
+  background: linear-gradient(
+    180deg,
+    var(--panel-accent, #2a3f67) 0%,
+    var(--panel-accent-dark, #1f3052) 55%,
+    var(--panel-accent-dark, #1f3052) 100%
+  );
   color: var(--as-text);
   padding: 18px 14px 24px;
   position: sticky;
@@ -434,7 +439,7 @@
   align-items: center;
   gap: 16px;
   padding: 10px 32px;
-  background: linear-gradient(135deg, var(--seg-platform) 0%, #33446f 60%, var(--seg-platform-dark) 100%);
+  background: linear-gradient(135deg, var(--panel-accent, var(--seg-platform, #3A4F86)) 0%, var(--panel-accent-dark, var(--seg-platform-dark, #2b3a5e)) 100%);
   border-radius: 0;
   margin: 0;
   box-shadow: 0 2px 16px rgba(31, 48, 82, .25);

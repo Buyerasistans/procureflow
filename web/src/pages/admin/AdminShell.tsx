@@ -35,6 +35,8 @@ import type { AuthUser } from "../../context/auth-types";
 import { isSuperAdminUser, getUserDisplayRoleLabel } from "../../auth/permissions";
 import { defaultAccentColorForBusinessRole } from "../../admin/workspace-panels";
 import { PANEL_COLORS } from "../../admin/panel-colors";
+import type { SegmentKey } from "../../admin/panel-colors";
+import { usePanelThemeLiveReload } from "../../hooks/usePanelThemeLiveReload";
 import PanelTopHeader from "./PanelTopHeader";
 import { ADMIN_NAV_GROUPS, navLabelForKey } from "./adminNav";
 import type { AdminNavItem } from "./adminNav";
@@ -69,6 +71,17 @@ function readNavCfg(): NmCfg | null {
     if (s) { const p = JSON.parse(s) as NmCfg; if (p?.items && p?.order) return p; }
   } catch { /* ignore */ }
   return null;
+}
+
+function resolveUserSegmentKey(user: AuthUser | null, superAdmin: boolean): SegmentKey {
+  if (superAdmin) return "platform";
+  const scope = String((user as { scope_type?: string } | null)?.scope_type ?? "").toLowerCase();
+  if (scope === "supplier") return "supplier";
+  if (scope === "channel") return "channel";
+  const biz = String(user?.business_role ?? user?.role ?? "").toLowerCase();
+  if (biz === "employer_company_admin" || biz === "employer_recruiter") return "employer";
+  if (biz === "candidate_user" || biz === "talent_member") return "seeker";
+  return "platform";
 }
 
 function resolveNavRole(user: AuthUser | null, superAdmin: boolean): string {
@@ -187,16 +200,14 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
   const isSuperAdmin = isSuperAdminUser(user);
   const roleLabel    = getUserDisplayRoleLabel(user) || (isSuperAdmin ? "Platform Süper Admin" : "Admin");
   const navRole      = resolveNavRole(user, isSuperAdmin);
+  const segmentKey   = resolveUserSegmentKey(user, isSuperAdmin);
 
-  const sidebarGradient = (() => {
-    const color = isSuperAdmin
-      ? PANEL_COLORS.platform.accent
-      : (accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || ""));
-    if (!color || color === "#64748b") return undefined;
-    const mid = darkenHex(color, 0.12);
-    const deep = darkenHex(color, 0.28);
-    return `linear-gradient(180deg, ${color} 0%, ${mid} 55%, ${deep} 100%)`;
-  })();
+  // Canlı renk tazeleme: panelthemechange → :root --seg-* güncellemesi
+  usePanelThemeLiveReload();
+
+  // accentColor prop'u opsiyonel override olarak korunur (legacy uyumluluk)
+  const _legacyAccentColor = accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || "");
+  void PANEL_COLORS; void _legacyAccentColor; // Faz 4: artık data-panel CSS var'ı kullanıyor
   const layoutMode   = navCfg?.layoutMode ?? "single";
   const menuStyle    = navCfg?.menuStyle  ?? "expanded";
 
@@ -307,13 +318,15 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
   return (
     <>
-    <div className={`as-wrap${layoutMode !== "single" ? ` as-wrap--${layoutMode}` : ""}`}>
+    <div
+      className={`as-wrap${layoutMode !== "single" ? ` as-wrap--${layoutMode}` : ""}`}
+      data-panel={segmentKey}
+    >
 
       {/* ── PANEL TOP HEADER (full-width) ── */}
       <PanelTopHeader
         panelTitle={isSuperAdmin ? "Platform Süper Admin Paneli" : `${roleLabel} Paneli`}
         userName={user?.full_name ?? "Süper Admin"}
-        accentBackground={sidebarGradient}
       />
 
       {/* ── TOP NAV (dual / top modes) ── */}
@@ -350,7 +363,7 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
         {/* ── SIDEBAR ── */}
         {showSidebar && (
-        <aside className="as-sidebar" style={sidebarGradient ? { background: sidebarGradient } : undefined}>
+        <aside className="as-sidebar">
           <div className="as-brand">
             <div className="as-tenant">
               <div className="as-tenant-avatar">{userInitials(user)}</div>

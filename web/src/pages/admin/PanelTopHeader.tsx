@@ -3,6 +3,7 @@ import PublicBrandLogo from "../../components/PublicBrandLogo";
 interface Props {
   panelTitle: string;
   userName: string;
+  /** Opsiyonel override: bu prop verilmezse CSS var(--panel-accent) devreye girer. */
   accentBackground?: string;
 }
 
@@ -11,6 +12,7 @@ export default function PanelTopHeader({ panelTitle, userName, accentBackground 
     <header
       className="as-panel-top"
       style={accentBackground ? { background: accentBackground } : undefined}
+      data-has-override={accentBackground ? "true" : undefined}
     >
       <div className="as-panel-top__brand">
         <PublicBrandLogo height={52} maxWidth={200} invert />

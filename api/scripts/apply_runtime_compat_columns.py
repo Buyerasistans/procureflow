@@ -142,6 +142,8 @@ STATEMENTS = [
     # Panel teması override kayıt tablosu — tek satırlık singleton (id=1)
     # CREATE TABLE IF NOT EXISTS: create_all tarafından oluşturulur; burada sadece seed INSERT.
     "INSERT INTO panel_theme_settings (id, segments_json, version) VALUES (1, '{}', 1) ON CONFLICT (id) DO NOTHING",
+    # Panel teması audit log tablosu — create_all tarafından oluşturulur, indeks ekle
+    "CREATE INDEX IF NOT EXISTS ix_panel_theme_audit_logs_changed_at ON panel_theme_audit_logs(changed_at DESC)",
     # Social login columns
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)",
     "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_id ON users(google_id)",

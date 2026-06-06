@@ -93,11 +93,22 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
 
   // ── Renk Şeması Durumu ────────────────────────────────────────────────────
   type ColorField = 'accent' | 'accentDark' | 'accentTint' | 'chipBg' | 'secondary' | 'onAccent';
+  type AuditLogEntry = {
+    id: number;
+    changedByEmail: string;
+    changedAt: string;
+    segmentKey: string;
+    oldValue: string | null;
+    newValue: string | null;
+  };
   const [colorDraft, setColorDraft] = useState<PanelThemeOverrides>({});
   const [colorLoadStatus, setColorLoadStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [canEditColors, setCanEditColors] = useState<boolean>(() => isSuperAdminUser(currentUser));
   const [colorSaveStatus, setColorSaveStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle');
   const [colorSaveMsg, setColorSaveMsg] = useState<string | null>(null);
+  const [auditEntries, setAuditEntries] = useState<AuditLogEntry[]>([]);
+  const [auditLoadStatus, setAuditLoadStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [auditRefreshKey, setAuditRefreshKey] = useState(0);
 
   const resolvedColors = useMemo(() => resolvePanelColors(colorDraft), [colorDraft]);
 
@@ -124,6 +135,30 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
     return () => controller.abort();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!canEditColors) return;
+    const controller = new AbortController();
+    const apiBase = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+    setAuditLoadStatus('loading');
+    fetch(`${apiBase}/api/v1/admin/panel-theme/audit`, {
+      headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<AuditLogEntry[]>;
+      })
+      .then((data) => {
+        setAuditEntries(data);
+        setAuditLoadStatus('done');
+      })
+      .catch((err: unknown) => {
+        if ((err as { name?: string }).name !== 'AbortError') setAuditLoadStatus('error');
+      });
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canEditColors, auditRefreshKey]);
 
   const selectedProfile = draft.profiles[selectedIndex] || null;
   const selectedMenuStyle = normalizeMenuStyle(selectedProfile?.menu_style);
@@ -637,6 +672,7 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
       publishPanelTheme(colorDraft);
       setColorSaveStatus('ok');
       setColorSaveMsg('Renk şeması kaydedildi ve yayınlandı.');
+      setAuditRefreshKey((k) => k + 1);
     } catch (e) {
       setColorSaveStatus('error');
       setColorSaveMsg(`Kayıt hatası: ${String(e)}`);
@@ -1666,6 +1702,58 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
           </>
         )}
       </div>
+
+      {/* ── Denetim Kaydı ─────────────────────────────────────────────────── */}
+      {canEditColors && (
+        <div className="wpd-card pcs-root">
+          <div className="wpd-eyebrow">Denetim Kaydı</div>
+          <div className="wpd-page-title">Renk Değişiklik Geçmişi</div>
+          <div className="wpd-page-copy">
+            Son 100 renk şeması değişikliği — kim · ne zaman · segment · eski → yeni.
+          </div>
+          {auditLoadStatus === 'loading' && (
+            <div className="wpd-empty">Yükleniyor…</div>
+          )}
+          {auditLoadStatus === 'error' && (
+            <div role="alert" className="wpd-alert-error">Denetim kaydı yüklenemedi.</div>
+          )}
+          {auditLoadStatus === 'done' && auditEntries.length === 0 && (
+            <div className="wpd-empty">Henüz kayıt yok.</div>
+          )}
+          {auditLoadStatus === 'done' && auditEntries.length > 0 && (
+            <div className="pcs-audit-wrap">
+              <table className="pcs-audit-table">
+                <thead>
+                  <tr>
+                    <th>Kim</th>
+                    <th>Ne Zaman</th>
+                    <th>Segment</th>
+                    <th>Eski Değer</th>
+                    <th>Yeni Değer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditEntries.map((entry) => (
+                    <tr key={entry.id}>
+                      <td className="pcs-audit-email">{entry.changedByEmail}</td>
+                      <td className="pcs-audit-date">
+                        {new Date(entry.changedAt).toLocaleString('tr-TR')}
+                      </td>
+                      <td><span className="pcs-audit-seg">{entry.segmentKey}</span></td>
+                      <td className="pcs-audit-val pcs-audit-val--old">
+                        <pre>{entry.oldValue ?? '—'}</pre>
+                      </td>
+                      <td className="pcs-audit-val pcs-audit-val--new">
+                        <pre>{entry.newValue ?? '—'}</pre>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

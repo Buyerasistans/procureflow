@@ -19,6 +19,7 @@ from api.core.authz import can_access_admin_surface, is_super_admin
 from api.core.deps import get_current_user, get_db
 from api.models import User
 from api.models.assignment import CompanyRole
+from api.models.panel_theme_audit_log import PanelThemeAuditLog
 from api.models.panel_theme_setting import PanelThemeSetting
 from api.models.role import Permission, Role
 
@@ -105,6 +106,15 @@ class PanelThemeResponse(BaseModel):
     updatedBy: str | None
     segments: dict[str, Any]
     canEdit: bool = True
+
+
+class AuditLogEntry(BaseModel):
+    id: int
+    changedByEmail: str
+    changedAt: str
+    segmentKey: str
+    oldValue: dict[str, Any] | None
+    newValue: dict[str, Any] | None
 
 
 # ---------------------------------------------------------------------------
@@ -255,6 +265,12 @@ def put_panel_theme(
 
     setting = _get_or_create_theme(db)
 
+    # Audit için eski değerleri oku
+    try:
+        old_segments: dict[str, dict] = json.loads(setting.segments_json)
+    except (json.JSONDecodeError, TypeError):
+        old_segments = {}
+
     # Override-only: None alanları hariç tut
     segments_dict: dict[str, dict] = {}
     for seg_key, override in body.segments.items():
@@ -262,12 +278,55 @@ def put_panel_theme(
         if seg_data:
             segments_dict[seg_key] = seg_data
 
+    # Audit log: her değişen segment için bir kayıt
+    changed_at = datetime.now(UTC)
+    user_email = current_user.email or ""
+    all_seg_keys = set(old_segments.keys()) | set(segments_dict.keys())
+    for seg_key in all_seg_keys:
+        old_val = old_segments.get(seg_key)
+        new_val = segments_dict.get(seg_key)
+        if old_val != new_val:
+            db.add(PanelThemeAuditLog(
+                changed_by_id=current_user.id,
+                changed_by_email=user_email,
+                changed_at=changed_at,
+                segment_key=seg_key,
+                old_value=json.dumps(old_val, ensure_ascii=False) if old_val is not None else None,
+                new_value=json.dumps(new_val, ensure_ascii=False) if new_val is not None else None,
+            ))
+
     setting.segments_json = json.dumps(segments_dict, ensure_ascii=False)
     setting.version += 1
     setting.updated_by_id = current_user.id
-    setting.updated_at = datetime.now(UTC)
+    setting.updated_at = changed_at
 
     db.commit()
     db.refresh(setting)
 
     return _build_response(setting, db)
+
+
+@router.get("/panel-theme/audit", response_model=list[AuditLogEntry])
+def get_panel_theme_audit(
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(_require_any_admin),
+):
+    """Son N panel teması değişikliğini döner. Her admin okuyabilir."""
+    logs = (
+        db.query(PanelThemeAuditLog)
+        .order_by(PanelThemeAuditLog.changed_at.desc())
+        .limit(max(1, min(limit, 500)))
+        .all()
+    )
+    return [
+        AuditLogEntry(
+            id=log.id,
+            changedByEmail=log.changed_by_email,
+            changedAt=log.changed_at.isoformat(),
+            segmentKey=log.segment_key,
+            oldValue=json.loads(log.old_value) if log.old_value else None,
+            newValue=json.loads(log.new_value) if log.new_value else None,
+        )
+        for log in logs
+    ]
