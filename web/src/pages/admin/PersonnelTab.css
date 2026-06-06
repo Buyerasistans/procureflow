@@ -93,8 +93,8 @@
 }
 
 .pe-seg-btn--active {
-  background: var(--pf-indigo-600, #4f46e5);
-  border-color: var(--pf-indigo-600, #4f46e5);
+  background: var(--seg-color, #4f46e5);
+  border-color: var(--seg-color, #4f46e5);
   color: #fff;
 }
 
@@ -791,6 +791,212 @@
 .pe-matrix-cell--no {
   color: var(--pf-slate-300);
   text-align: center;
+}
+
+/* ── Accordion list (replaces split pane) ── */
+.pe-list {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pe-list__hd {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pf-slate-500);
+  background: var(--pf-gray-50);
+  border-bottom: 1px solid var(--pf-border-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pe-list__hd span {
+  background: var(--pf-slate-200);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+}
+
+.pe-list__page-info {
+  margin-left: auto;
+  background: transparent !important;
+  color: var(--pf-slate-400);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 !important;
+}
+
+/* ── Accordion row wrapper ── */
+.pe-row-wrap {
+  border-bottom: 1px solid var(--pf-border-color);
+}
+
+.pe-row-wrap:last-child {
+  border-bottom: none;
+}
+
+/* ── Inline action bar (always visible) ── */
+.pe-row__inlineacts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 8px 52px;
+  background: var(--pf-gray-50);
+  border-top: 1px dashed var(--pf-border-color);
+  flex-wrap: wrap;
+}
+
+/* ── Chevron in row ── */
+.pe-row__chev {
+  font-size: 11px;
+  color: var(--pf-slate-400);
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+/* ── Expand area ── */
+.pe-expand {
+  padding: 16px 20px 20px;
+  background: var(--pf-surface);
+  border-top: 1px solid var(--pf-border-color);
+  display: grid;
+  gap: 16px;
+}
+
+/* ── Panel button ── */
+.pe-act-btn--panel {
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(8, 145, 178, 0.25);
+  background: #ecfeff;
+  color: #0891b2;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.pe-act-btn--panel:hover {
+  background: #cffafe;
+}
+
+.pe-act-btn--panel:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Segment-colored Detay button (colors set inline via style prop) ── */
+.pe-act-btn--detail {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.pe-act-btn--detail:hover {
+  opacity: 0.8;
+}
+
+/* ── Segment-colored Düzenle button (colors set inline via style prop) ── */
+.pe-act-btn--edit-seg {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.pe-act-btn--edit-seg:hover {
+  opacity: 0.85;
+}
+
+.pe-act-btn--edit-seg:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Pagination bar ── */
+.pe-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--pf-border-color);
+  background: var(--pf-gray-50);
+  flex-wrap: wrap;
+}
+
+.pe-pagination__info {
+  font-size: 12px;
+  color: var(--pf-slate-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pe-pagination__pages {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.pe-pagination__nav,
+.pe-pagination__num {
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-surface);
+  color: var(--pf-slate-600);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s;
+  min-width: 28px;
+  text-align: center;
+}
+
+.pe-pagination__nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pe-pagination__nav:not(:disabled):hover,
+.pe-pagination__num:hover {
+  background: var(--pf-gray-50);
+}
+
+.pe-pagination__num--active {
+  background: var(--pf-indigo-600, #4f46e5);
+  border-color: var(--pf-indigo-600, #4f46e5);
+  color: #fff;
+}
+
+.pe-pagination__num--active:hover {
+  background: var(--pf-indigo-700, #4338ca);
+}
+
+.pe-pagination__size {
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-surface);
+  color: var(--pf-slate-700);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* ── Responsive ── */

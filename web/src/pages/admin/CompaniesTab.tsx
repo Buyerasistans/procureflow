@@ -92,10 +92,20 @@ export function CompaniesTab({
   const [selId, setSelId] = useState<number | null>(null);
   const [q, setQ] = useState("");
 
+  const CO_PAGE_SIZE_KEY = "procureflow.companies.pageSize";
+  const CO_PAGE_SIZES = [25, 50, 100, 200];
+  const [coPageSize, setCoPageSize] = useState<number>(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem(CO_PAGE_SIZE_KEY) : null;
+    const n = stored ? parseInt(stored, 10) : NaN;
+    return CO_PAGE_SIZES.includes(n) ? n : 100;
+  });
+  const [coPage, setCoPage] = useState(0);
+
   const changeSegment = (next: CompanySegment) => {
     setSegment(next);
     setSelId(null);
     setQ("");
+    setCoPage(0);
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("procureflow.companies.segment", next);
     }
@@ -163,10 +173,11 @@ export function CompaniesTab({
     career:   careerCompanies.length,
   }), [portalCompanies.length, partnerCompanies.length, suppliers.length, channelCompanies.length, careerCompanies.length]);
 
-  // Reset expansion when segment changes
+  // Reset expansion + page when filters change
   useEffect(() => {
     setSelId(null);
-  }, [segment]);
+    setCoPage(0);
+  }, [segment, statusFilter, q]);
 
   const isDeletedPersonValue = (value?: string | null): boolean => {
     const normalized = String(value || "").trim().toLocaleLowerCase("tr");
@@ -340,6 +351,11 @@ export function CompaniesTab({
   }, [segment, filteredCompanies]);
 
   const listCount = segment === "supplier" ? filteredSuppliers.length : filteredCompanies.length;
+
+  const coTotalPages = Math.max(1, Math.ceil(listCount / coPageSize));
+  const coSafePage = Math.min(coPage, coTotalPages - 1);
+  const pagedFilteredCompanies = filteredCompanies.slice(coSafePage * coPageSize, (coSafePage + 1) * coPageSize);
+  const pagedFilteredSuppliers = filteredSuppliers.slice(coSafePage * coPageSize, (coSafePage + 1) * coPageSize);
 
   // ── Render helpers ──────────────────────────────────────────────────────────
 
@@ -538,6 +554,7 @@ export function CompaniesTab({
             type="button"
             aria-label={`Detay ${c.name}`}
             className="co-act-btn"
+            style={{ background: SEG_META[segment].color + "18", color: SEG_META[segment].color, border: `1px solid ${SEG_META[segment].color}35` }}
             onClick={() => openEntityModal("company", c.id, c.name, false)}
           >
             Detay
@@ -546,7 +563,8 @@ export function CompaniesTab({
             <button
               type="button"
               aria-label={`Duzenle ${c.name}`}
-              className="co-act-btn co-act-btn--edit"
+              className="co-act-btn"
+              style={{ background: SEG_META[segment].color, color: "#fff", border: `1px solid ${SEG_META[segment].color}` }}
               onClick={() => openEntityModal("company", c.id, c.name, true)}
             >
               Düzenle
@@ -622,6 +640,7 @@ export function CompaniesTab({
             type="button"
             aria-label={`Detay ${s.company_name}`}
             className="co-act-btn"
+            style={{ background: "#be123c18", color: "#be123c", border: "1px solid #be123c35" }}
             onClick={() => openEntityModal("supplier", s.id, s.company_name, false)}
           >
             Detay
@@ -639,7 +658,8 @@ export function CompaniesTab({
               <button
                 type="button"
                 aria-label={`Duzenle ${s.company_name}`}
-                className="co-act-btn co-act-btn--edit"
+                className="co-act-btn"
+                style={{ background: "#be123c", color: "#fff", border: "1px solid #be123c" }}
                 onClick={() => openEntityModal("supplier", s.id, s.company_name, true)}
               >
                 Düzenle
@@ -692,9 +712,10 @@ export function CompaniesTab({
   }
 
   function renderSupplierList() {
-    const platformSups = filteredSuppliers.filter((s) => s.tenant_id === null);
+    const sups = pagedFilteredSuppliers;
+    const platformSups = sups.filter((s) => s.tenant_id === null);
     const tenantMap = new Map<number, AdminSupplierListItem[]>();
-    filteredSuppliers.filter((s) => s.tenant_id !== null).forEach((s) => {
+    sups.filter((s) => s.tenant_id !== null).forEach((s) => {
       if (!tenantMap.has(s.tenant_id!)) tenantMap.set(s.tenant_id!, []);
       tenantMap.get(s.tenant_id!)!.push(s);
     });
@@ -785,6 +806,7 @@ export function CompaniesTab({
           <button
             key={tab.key}
             type="button"
+            style={segment === tab.key ? { "--seg-color": SEG_META[tab.key].color } as CSSProperties : {}}
             onClick={() => changeSegment(tab.key)}
             className={"cmp-segment-btn" + (segment === tab.key ? " cmp-segment-btn--active" : "")}
           >
@@ -819,6 +841,7 @@ export function CompaniesTab({
       <div className="co-list">
         <div className="co-pool__hd">
           {segment === "career" ? "Personel Arayan Firmalar" : "Firmalar"} <span>{listCount}</span>
+          {coTotalPages > 1 && <span className="co-page-info">{coSafePage + 1} / {coTotalPages} sayfa</span>}
         </div>
         <div className="co-pool__list">
           {listCount === 0 ? (
@@ -826,23 +849,73 @@ export function CompaniesTab({
           ) : segment === "supplier" ? (
             renderSupplierList()
           ) : segment === "partner" && partnerGrouped ? (
-            partnerGrouped.map((group) => {
-              const primary = group.find((c) => c.is_primary) ?? group[0];
-              const tenantLabel = resolveCompanyTenantLabel(primary) ?? primary.name;
-              return (
-                <div key={primary.tenant_id ?? primary.id}>
-                  <div className="co-grouphd" style={{ "--co-color": primary.color } as CSSProperties}>
-                    <span />
-                    {tenantLabel}
-                  </div>
-                  {group.map((c) => companyRow(c))}
-                </div>
+            (() => {
+              const pagedMap = new Map<string, Company[]>();
+              pagedFilteredCompanies.forEach((c) => {
+                const key = c.tenant_id != null ? `t${c.tenant_id}` : `c${c.id}`;
+                if (!pagedMap.has(key)) pagedMap.set(key, []);
+                pagedMap.get(key)!.push(c);
+              });
+              const pagedGroups = Array.from(pagedMap.values()).map((group) =>
+                [...group].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0)),
               );
-            })
+              return pagedGroups.map((group) => {
+                const primary = group.find((c) => c.is_primary) ?? group[0];
+                const tenantLabel = resolveCompanyTenantLabel(primary) ?? primary.name;
+                return (
+                  <div key={primary.tenant_id ?? primary.id}>
+                    <div className="co-grouphd" style={{ "--co-color": primary.color } as CSSProperties}>
+                      <span />
+                      {tenantLabel}
+                    </div>
+                    {group.map((c) => companyRow(c))}
+                  </div>
+                );
+              });
+            })()
           ) : (
-            filteredCompanies.map((c) => companyRow(c))
+            pagedFilteredCompanies.map((c) => companyRow(c))
           )}
         </div>
+
+        {coTotalPages > 1 && (
+          <div className="co-pagination">
+            <span className="co-pagination__info">
+              {coSafePage * coPageSize + 1}–{Math.min((coSafePage + 1) * coPageSize, listCount)} / {listCount}
+            </span>
+            <div className="co-pagination__pages">
+              <button type="button" className="co-pagination__nav" disabled={coSafePage === 0} onClick={() => setCoPage(0)}>«</button>
+              <button type="button" className="co-pagination__nav" disabled={coSafePage === 0} onClick={() => setCoPage((p) => Math.max(0, p - 1))}>‹</button>
+              {Array.from({ length: coTotalPages }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={"co-pagination__num" + (i === coSafePage ? " co-pagination__num--active" : "")}
+                  onClick={() => setCoPage(i)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button type="button" className="co-pagination__nav" disabled={coSafePage >= coTotalPages - 1} onClick={() => setCoPage((p) => Math.min(coTotalPages - 1, p + 1))}>›</button>
+              <button type="button" className="co-pagination__nav" disabled={coSafePage >= coTotalPages - 1} onClick={() => setCoPage(coTotalPages - 1)}>»</button>
+            </div>
+            <select
+              aria-label="Sayfa başına firma sayısı"
+              className="co-pagination__size"
+              value={coPageSize}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                setCoPageSize(n);
+                localStorage.setItem(CO_PAGE_SIZE_KEY, String(n));
+                setCoPage(0);
+              }}
+            >
+              {CO_PAGE_SIZES.map((n) => (
+                <option key={n} value={n}>{n} / sayfa</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <CompanyCreateModal

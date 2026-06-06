@@ -74,12 +74,8 @@ const SEG_COLORS: Record<PersonnelSegment, string> = {
   supplier: "#b45309",
 };
 
-const SEG_LABELS: Record<PersonnelSegment, string> = {
-  portal:   "Portal",
-  partner:  "Stratejik Partner",
-  channel:  "İş Ortağı",
-  supplier: "Tedarikçi",
-};
+const PAGE_SIZES = [25, 50, 100, 200];
+const PAGE_SIZE_KEY = "procureflow.personnel.pageSize";
 
 function personInit(fullName: string): string {
   return fullName.replace(/\(.*?\)/g, "").trim().split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
@@ -120,6 +116,12 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const [selPersonId, setSelPersonId] = useState<number | null>(null);
   const [selSupUserKey, setSelSupUserKey] = useState<{ supplierId: number; userId: number } | null>(null);
   const [q, setQ] = useState("");
+  const [pageSize, setPageSize] = useState<number>(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem(PAGE_SIZE_KEY) : null;
+    const n = stored ? parseInt(stored, 10) : NaN;
+    return PAGE_SIZES.includes(n) ? n : 100;
+  });
+  const [page, setPage] = useState(0);
 
   const openPersonnelPanel = useCallback(async (person: TenantUser) => {
     setOpeningPanelId(person.id);
@@ -370,6 +372,8 @@ export function PersonnelTab(props: PersonnelTabProps) {
     return () => { cancelled = true; };
   }, [segment, supplierReloadNonce, tab]);
 
+  useEffect(() => { setPage(0); }, [segment, tab, q]);
+
   const toStatus = useCallback((value: boolean): string => (value ? "Açık" : "Kapalı"), []);
 
   const exportMatrixAsCsv = useCallback(() => {
@@ -504,87 +508,23 @@ export function PersonnelTab(props: PersonnelTabProps) {
     });
   }, [flatList, ql]);
 
-  // Auto-select first visible item
-  useEffect(() => {
-    if (segment === "supplier") {
-      if (selSupUserKey !== null) return;
-      const first = visibleList[0];
-      if (first?.kind === "supplier") setSelSupUserKey({ supplierId: first.supplierId, userId: first.person.id });
-    } else {
-      if (selPersonId !== null) return;
-      const first = visibleList[0];
-      if (first?.kind === "tenant") setSelPersonId(first.person.id);
-    }
-  }, [segment, visibleList, selPersonId, selSupUserKey]);
+  const totalItems = visibleList.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const pagedItems = visibleList.slice(safePage * pageSize, (safePage + 1) * pageSize);
 
-  const selTenantPerson = useMemo(
-    () => segment !== "supplier"
-      ? (flatList.find((item): item is Extract<FlatItem, { kind: "tenant" }> => item.kind === "tenant" && item.person.id === selPersonId)?.person ?? null)
-      : null,
-    [segment, flatList, selPersonId],
-  );
-
-  const selSupGroup = selSupUserKey ? supplierGroups.find((g) => g.supplier.id === selSupUserKey.supplierId) : null;
-  const selSupUser = selSupGroup ? (selSupGroup.users.find((u) => u.id === selSupUserKey?.userId) ?? null) : null;
-
-  // ── Detail pane renderers ──────────────────────────────────────────────────
-  function tenantPersonDetail(person: DecoratedPersonnel) {
-    const fullName = normalizeTrText(person.full_name);
+  // ── Expand content renderers ──────────────────────────────────────────────
+  function personExpandContent(person: DecoratedPersonnel) {
     const roleLabel = normalizeTrText(getRoleLabel(person.role) || roles.find((r) => r.name === person.role)?.name || person.role || "-");
     const sysRoleLabel = getSystemRoleLabelForPerson(person);
-    const isActive = person.is_active !== false;
     const pendingInvite = person.invitation_accepted === false;
-    const color = (person.company_assignments ?? [])[0]?.company?.color ?? SEG_COLORS[segment];
     const companyName = person.primaryCompanyName !== "Firma Ataması Yok" ? person.primaryCompanyName : null;
 
     return (
       <>
-        <div className="pe-detail__hd">
-          <span className="pe-av pe-av--lg" style={{ "--pe-color": color } as CSSProperties}>{personInit(fullName)}</span>
-          <div className="pe-detail__info">
-            <h3 className="pe-detail__title">
-              {fullName}
-              {" "}
-              <span className="pe-srole-badge">{sysRoleLabel}</span>
-              <span className="pe-type-pill" style={{ "--pill-bg": SEG_COLORS[segment] + "1f", "--pill-fg": SEG_COLORS[segment] } as CSSProperties}>
-                {SEG_LABELS[segment]}
-              </span>
-              {!isActive && <span className="pe-badge pe-badge--off">Pasif</span>}
-              {pendingInvite && <span className="pe-badge pe-badge--inv">Davet bekliyor</span>}
-            </h3>
-            <div className="pe-detail__meta">
-              <span>{roleLabel}</span>
-              {companyName && <><span className="pe-sep">·</span><span>{companyName}</span></>}
-            </div>
-          </div>
-          <div className="pe-detail__acts">
-            <button
-              type="button"
-              disabled={readOnly || loadingPersonId === person.id}
-              className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
-              onClick={() => { void togglePersonnelActive(person, !isActive); }}
-            >
-              {loadingPersonId === person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
-            </button>
-            {canOpenPanel && (
-              <button
-                type="button"
-                className="pe-act-btn pe-act-btn--teal"
-                disabled={openingPanelId === person.id}
-                onClick={() => { void openPersonnelPanel(person); }}
-              >
-                {openingPanelId === person.id ? "Açılıyor…" : "Paneli Aç ↗"}
-              </button>
-            )}
-          </div>
-        </div>
-
         {pendingInvite && (
-          <div className="pe-invite-note">
-            📧 Davet henüz kabul edilmedi.
-          </div>
+          <div className="pe-invite-note">📧 Davet henüz kabul edilmedi.</div>
         )}
-
         <div className="split-1-1">
           <Section title="İletişim" sub="kişisel & kurumsal">
             <div className="pe-facts">
@@ -597,16 +537,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
           <Section title="Yetki & Onay" sub="rol profili">
             <div className="pe-facts">
               <div className="pe-fact"><span>Sistem rolü</span><b>{sysRoleLabel}</b></div>
+              <div className="pe-fact"><span>Operasyonel rol</span><b>{roleLabel}</b></div>
               {person.business_role && <div className="pe-fact"><span>İş rolü</span><b>{person.business_role}</b></div>}
-              <div className="pe-fact">
-                <span>Onay limiti</span>
-                <b>{fmtApprovalLimit(person.approval_limit)}</b>
-              </div>
+              <div className="pe-fact"><span>Onay limiti</span><b>{fmtApprovalLimit(person.approval_limit)}</b></div>
               {companyName && <div className="pe-fact"><span>Birincil firma</span><b>{companyName}</b></div>}
             </div>
           </Section>
         </div>
-
         {person.secondaryCompanyNames.length > 0 && (
           <Section title="Ayrıca yetkili" sub="diğer firma atamaları">
             <div className="pe-chips">
@@ -620,107 +557,28 @@ export function PersonnelTab(props: PersonnelTabProps) {
     );
   }
 
-  function supplierUserDetail(supUser: AdminSupplierUserListItem, supplier: AdminSupplierListItem) {
-    const name = normalizeTrText(supUser.name);
-    const isActive = supUser.is_active !== false;
+  function supplierExpandContent(supUser: AdminSupplierUserListItem, supplier: AdminSupplierListItem) {
     return (
-      <>
-        <div className="pe-detail__hd">
-          <span className="pe-av pe-av--lg pe-av--supplier">{personInit(name)}</span>
-          <div className="pe-detail__info">
-            <h3 className="pe-detail__title">
-              {name}
-              {" "}
-              <span className="pe-srole-badge">Tedarikçi Kullanıcısı</span>
-              <span className="pe-type-pill pe-type-pill--supplier">Tedarikçi</span>
-              {!isActive && <span className="pe-badge pe-badge--off">Pasif</span>}
-            </h3>
-            <div className="pe-detail__meta">
-              <span>{supplier.company_name}</span>
+      <div className="split-1-1">
+        <Section title="İletişim" sub="tedarikçi kullanıcısı">
+          <div className="pe-facts">
+            <div className="pe-fact"><span>E-posta</span><b>{supUser.email}</b></div>
+            {supUser.phone && <div className="pe-fact"><span>Telefon</span><b>{supUser.phone}</b></div>}
+            <div className="pe-fact"><span>Firma</span><b>{supplier.company_name}</b></div>
+            {supplier.city && <div className="pe-fact"><span>Şehir</span><b>{supplier.city}</b></div>}
+          </div>
+        </Section>
+        <Section title="Firma bilgisi" sub="tedarikçi profili">
+          <div className="pe-facts">
+            {supplier.category && <div className="pe-fact"><span>Kategori</span><b>{supplier.category}</b></div>}
+            {supplier.tenant_name && <div className="pe-fact"><span>Tenant</span><b>{supplier.tenant_name}</b></div>}
+            <div className="pe-fact">
+              <span>Özel liste</span>
+              <b>{supplier.special_listing_active ? "Aktif" : "Pasif"}</b>
             </div>
           </div>
-          <div className="pe-detail__acts">
-            <button
-              type="button"
-              disabled={readOnly || loadingPersonId === supUser.id}
-              className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
-              onClick={() => { void toggleSupplierUserActive(supplier.id, supUser, !isActive); }}
-            >
-              {loadingPersonId === supUser.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
-            </button>
-            <button
-              type="button"
-              className="pe-act-btn"
-              disabled={loadingPersonId === supUser.id}
-              onClick={() => {
-                setDetailPersonnel({
-                  id: supUser.id,
-                  email: supUser.email,
-                  full_name: supUser.name,
-                  role: "satinalmaci",
-                  approval_limit: 0,
-                  is_active: supUser.is_active !== false,
-                  personal_phone: supUser.phone ?? null,
-                });
-              }}
-            >
-              Detay
-            </button>
-            {canOpenPanel && (
-              <button
-                type="button"
-                className="pe-act-btn pe-act-btn--teal"
-                disabled={openingPanelId === supUser.id}
-                onClick={() => { void openSupplierPanel(supUser); }}
-              >
-                {openingPanelId === supUser.id ? "Açılıyor…" : "Paneli Aç ↗"}
-              </button>
-            )}
-            {!readOnly && (
-              <>
-                <button
-                  type="button"
-                  className="pe-act-btn pe-act-btn--edit"
-                  disabled={loadingPersonId === supUser.id}
-                  onClick={() => { void editSupplierUser(supplier.id, supUser); }}
-                >
-                  Düzenle
-                </button>
-                <button
-                  type="button"
-                  className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
-                  disabled={isActive || loadingPersonId === supUser.id}
-                  title={isActive ? "Silmek için önce pasife alın" : "Sil"}
-                  onClick={() => { void removeSupplierUser(supplier.id, supUser); }}
-                >
-                  Sil
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="split-1-1">
-          <Section title="İletişim" sub="tedarikçi kullanıcısı">
-            <div className="pe-facts">
-              <div className="pe-fact"><span>E-posta</span><b>{supUser.email}</b></div>
-              {supUser.phone && <div className="pe-fact"><span>Telefon</span><b>{supUser.phone}</b></div>}
-              <div className="pe-fact"><span>Firma</span><b>{supplier.company_name}</b></div>
-              {supplier.city && <div className="pe-fact"><span>Şehir</span><b>{supplier.city}</b></div>}
-            </div>
-          </Section>
-          <Section title="Firma bilgisi" sub="tedarikçi profili">
-            <div className="pe-facts">
-              {supplier.category && <div className="pe-fact"><span>Kategori</span><b>{supplier.category}</b></div>}
-              {supplier.tenant_name && <div className="pe-fact"><span>Tenant</span><b>{supplier.tenant_name}</b></div>}
-              <div className="pe-fact">
-                <span>Özel liste</span>
-                <b>{supplier.special_listing_active ? "Aktif" : "Pasif"}</b>
-              </div>
-            </div>
-          </Section>
-        </div>
-      </>
+        </Section>
+      </div>
     );
   }
 
@@ -777,6 +635,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
             <button
               key={item.key}
               type="button"
+              style={segment === item.key ? { "--seg-color": SEG_COLORS[item.key] } as CSSProperties : {}}
               className={"pe-seg-btn" + (segment === item.key ? " pe-seg-btn--active" : "")}
               onClick={() => changeSegment(item.key)}
             >
@@ -808,127 +667,240 @@ export function PersonnelTab(props: PersonnelTabProps) {
         </div>
       </div>
 
-      <div className="pe-split">
-        {/* ── List pane ── */}
-        <aside className="pe-pool">
-          <div className="pe-pool__hd">
-            Ekip <span>{visibleList.length}</span>
-          </div>
-          <div className="pe-pool__list">
-            {segment === "supplier" && supplierLoading ? (
-              <div className="pe-state">Yükleniyor…</div>
-            ) : segment === "supplier" && supplierError ? (
-              <div className="pe-state pe-state--error">{supplierError}</div>
-            ) : visibleList.length === 0 ? (
-              <div className="pe-state">Eşleşen üye yok.</div>
-            ) : (
-              visibleList.map((item, idx) => {
-                const prevGroup = idx > 0 ? visibleList[idx - 1].group : null;
-                const showHeader = item.group !== prevGroup;
-                const isSelected = item.kind === "tenant"
-                  ? item.person.id === selPersonId
-                  : selSupUserKey?.supplierId === item.supplierId && selSupUserKey?.userId === item.person.id;
-                const isActive = item.person.is_active !== false;
-                const name = item.kind === "tenant" ? normalizeTrText(item.person.full_name) : normalizeTrText(item.person.name);
-                const email = item.person.email ?? "";
-                const color = item.kind === "tenant"
-                  ? ((item.person.company_assignments ?? [])[0]?.company?.color ?? SEG_COLORS[segment])
-                  : SEG_COLORS.supplier;
-                const pendingInvite = item.kind === "tenant" && item.person.invitation_accepted === false;
-                const sysRoleLabel = item.kind === "tenant" ? getSystemRoleLabelForPerson(item.person) : "Tedarikçi";
-                const itemKey = item.kind === "tenant" ? `t-${item.person.id}` : `s-${item.supplierId}-${item.person.id}`;
+      <div className="pe-list">
+        <div className="pe-list__hd">
+          Ekip <span>{totalItems}</span>
+          {totalPages > 1 && <span className="pe-list__page-info">{safePage + 1} / {totalPages} sayfa</span>}
+        </div>
 
-                return (
-                  <div key={itemKey}>
-                    {showHeader && (
-                      <div className="pe-grouphd" style={{ "--pe-color": SEG_COLORS[segment] } as CSSProperties}>
-                        <span />
-                        {item.group}
-                      </div>
-                    )}
-                    <div className="pe-row-wrap">
+        {segment === "supplier" && supplierLoading ? (
+          <div className="pe-state">Yükleniyor…</div>
+        ) : segment === "supplier" && supplierError ? (
+          <div className="pe-state pe-state--error">{supplierError}</div>
+        ) : pagedItems.length === 0 ? (
+          <div className="pe-state">Eşleşen üye yok.</div>
+        ) : (
+          pagedItems.map((item, idx) => {
+            const actualIdx = safePage * pageSize + idx;
+            const prevItem = actualIdx > 0 ? visibleList[actualIdx - 1] : null;
+            const showHeader = item.group !== prevItem?.group;
+            const isExpanded = item.kind === "tenant"
+              ? item.person.id === selPersonId
+              : selSupUserKey?.supplierId === item.supplierId && selSupUserKey?.userId === item.person.id;
+            const isActive = item.person.is_active !== false;
+            const name = item.kind === "tenant" ? normalizeTrText(item.person.full_name) : normalizeTrText(item.person.name);
+            const email = item.person.email ?? "";
+            const color = item.kind === "tenant"
+              ? ((item.person.company_assignments ?? [])[0]?.company?.color ?? SEG_COLORS[segment])
+              : SEG_COLORS.supplier;
+            const pendingInvite = item.kind === "tenant" && item.person.invitation_accepted === false;
+            const sysRoleLabel = item.kind === "tenant" ? getSystemRoleLabelForPerson(item.person) : "Tedarikçi";
+            const itemKey = item.kind === "tenant" ? `t-${item.person.id}` : `s-${item.supplierId}-${item.person.id}`;
+            const segColor = SEG_COLORS[segment];
+
+            return (
+              <div key={itemKey}>
+                {showHeader && (
+                  <div className="pe-grouphd" style={{ "--pe-color": SEG_COLORS[segment] } as CSSProperties}>
+                    <span />
+                    {item.group}
+                  </div>
+                )}
+                <div className={"pe-row-wrap" + (isExpanded ? " pe-row-wrap--open" : "")}>
+                  <button
+                    type="button"
+                    className={"pe-row" + (isExpanded ? " on" : "") + (!isActive ? " pe-row--off" : "")}
+                    style={{ "--pe-color": color } as CSSProperties}
+                    aria-expanded={isExpanded ? "true" : "false"}
+                    onClick={() => {
+                      if (item.kind === "tenant") { setSelPersonId(isExpanded ? null : item.person.id); setSelSupUserKey(null); }
+                      else { setSelSupUserKey(isExpanded ? null : { supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }
+                    }}
+                  >
+                    <span className="pe-row__bar" />
+                    <span className="pe-av">{personInit(name)}</span>
+                    <span className="pe-row__meta">
+                      <b>
+                        {name}
+                        {pendingInvite && <span className="pe-tag pe-tag--inv">davet</span>}
+                        {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
+                      </b>
+                      <i>{email}</i>
+                    </span>
+                    <span className="pe-srole-sm">{sysRoleLabel}</span>
+                    <span className="pe-row__chev">{isExpanded ? "▴" : "▾"}</span>
+                  </button>
+
+                  <div className="pe-row__inlineacts">
+                    {canOpenPanel && item.kind === "tenant" && (
                       <button
                         type="button"
-                        className={"pe-row" + (isSelected ? " on" : "") + (!isActive ? " pe-row--off" : "")}
-                        style={{ "--pe-color": color } as CSSProperties}
+                        className="pe-act-btn pe-act-btn--panel"
+                        disabled={openingPanelId === item.person.id}
+                        onClick={() => { void openPersonnelPanel(item.person); }}
+                      >
+                        {openingPanelId === item.person.id ? "Açılıyor…" : "Paneli Aç ↗"}
+                      </button>
+                    )}
+                    {canOpenPanel && item.kind === "supplier" && (
+                      <button
+                        type="button"
+                        className="pe-act-btn pe-act-btn--panel"
+                        disabled={openingPanelId === item.person.id}
+                        onClick={() => { void openSupplierPanel(item.person); }}
+                      >
+                        {openingPanelId === item.person.id ? "Açılıyor…" : "Paneli Aç ↗"}
+                      </button>
+                    )}
+                    {item.kind === "tenant" ? (
+                      <button
+                        type="button"
+                        disabled={readOnly || loadingPersonId === item.person.id}
+                        className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
+                        onClick={() => { void togglePersonnelActive(item.person, !isActive); }}
+                      >
+                        {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={readOnly || loadingPersonId === item.person.id}
+                        className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
+                        onClick={() => { void toggleSupplierUserActive(item.supplierId, item.person, !isActive); }}
+                      >
+                        {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+                      </button>
+                    )}
+                    {item.kind === "tenant" ? (
+                      <button
+                        type="button"
+                        className="pe-act-btn pe-act-btn--detail"
+                        style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
+                        disabled={loadingPersonId === item.person.id}
+                        onClick={() => { void hydratePersonnel(item.person).then((h) => setDetailPersonnel(h)); }}
+                      >
+                        Detay
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="pe-act-btn pe-act-btn--detail"
+                        style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
+                        disabled={loadingPersonId === item.person.id}
                         onClick={() => {
-                          if (item.kind === "tenant") { setSelPersonId(item.person.id); setSelSupUserKey(null); }
-                          else { setSelSupUserKey({ supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }
+                          setDetailPersonnel({
+                            id: item.person.id,
+                            email: item.person.email,
+                            full_name: item.person.name,
+                            role: "satinalmaci",
+                            approval_limit: 0,
+                            is_active: item.person.is_active !== false,
+                            personal_phone: item.person.phone ?? null,
+                          });
                         }}
                       >
-                        <span className="pe-row__bar" />
-                        <span className="pe-av">{personInit(name)}</span>
-                        <span className="pe-row__meta">
-                          <b>
-                            {name}
-                            {pendingInvite && <span className="pe-tag pe-tag--inv">davet</span>}
-                            {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
-                          </b>
-                          <i>{email}</i>
-                        </span>
-                        <span className="pe-srole-sm">{sysRoleLabel}</span>
+                        Detay
                       </button>
-                      {item.kind === "tenant" && (
-                        <div className="pe-row__inlineacts">
-                          <button
-                            type="button"
-                            aria-label={`${name} Durum Kutusu`}
-                            disabled={readOnly || loadingPersonId === item.person.id}
-                            className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
-                            onClick={() => { void togglePersonnelActive(item.person, !isActive); }}
-                          >
-                            {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
-                          </button>
-                          <button
-                            type="button"
-                            className="pe-act-btn"
-                            disabled={loadingPersonId === item.person.id}
-                            onClick={() => { void hydratePersonnel(item.person).then((h) => setDetailPersonnel(h)); }}
-                          >
-                            Detay
-                          </button>
-                          {!readOnly && (
-                            <>
-                              <button
-                                type="button"
-                                className="pe-act-btn pe-act-btn--edit"
-                                disabled={loadingPersonId === item.person.id}
-                                onClick={() => { void hydratePersonnel(item.person).then((h) => setEditPersonnel(h)); }}
-                              >
-                                Düzenle
-                              </button>
-                              <button
-                                type="button"
-                                className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
-                                disabled={isActive || loadingPersonId === item.person.id}
-                                onClick={() => { void removePersonnel(item.person); }}
-                              >
-                                Sil
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {!readOnly && item.kind === "tenant" && (
+                      <button
+                        type="button"
+                        className="pe-act-btn pe-act-btn--edit-seg"
+                        style={{ background: segColor, color: "#fff", border: `1px solid ${segColor}` }}
+                        disabled={loadingPersonId === item.person.id}
+                        onClick={() => { void hydratePersonnel(item.person).then((h) => setEditPersonnel(h)); }}
+                      >
+                        Düzenle
+                      </button>
+                    )}
+                    {!readOnly && item.kind === "supplier" && (
+                      <button
+                        type="button"
+                        className="pe-act-btn pe-act-btn--edit-seg"
+                        style={{ background: segColor, color: "#fff", border: `1px solid ${segColor}` }}
+                        disabled={loadingPersonId === item.person.id}
+                        onClick={() => { void editSupplierUser(item.supplierId, item.person); }}
+                      >
+                        Düzenle
+                      </button>
+                    )}
+                    {!readOnly && item.kind === "tenant" && (
+                      <button
+                        type="button"
+                        className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
+                        disabled={isActive || loadingPersonId === item.person.id}
+                        onClick={() => { void removePersonnel(item.person); }}
+                      >
+                        Sil
+                      </button>
+                    )}
+                    {!readOnly && item.kind === "supplier" && (
+                      <button
+                        type="button"
+                        className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
+                        disabled={isActive || loadingPersonId === item.person.id}
+                        onClick={() => { void removeSupplierUser(item.supplierId, item.person); }}
+                      >
+                        Sil
+                      </button>
+                    )}
                   </div>
-                );
-              })
-            )}
-          </div>
-        </aside>
 
-        {/* ── Detail pane ── */}
-        <div className="pe-detail">
-          {segment !== "supplier" ? (
-            selTenantPerson
-              ? tenantPersonDetail(selTenantPerson)
-              : <div className="pe-state pe-state--pad">Listeden bir üye seçin.</div>
-          ) : (
-            selSupUser && selSupGroup
-              ? supplierUserDetail(selSupUser, selSupGroup.supplier)
-              : <div className="pe-state pe-state--pad">Listeden bir tedarikçi kullanıcısı seçin.</div>
-          )}
-        </div>
+                  {isExpanded && (
+                    <div className="pe-expand">
+                      {item.kind === "tenant"
+                        ? personExpandContent(item.person)
+                        : (() => {
+                            const sg = supplierGroups.find((g) => g.supplier.id === item.supplierId);
+                            return sg ? supplierExpandContent(item.person, sg.supplier) : null;
+                          })()
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+
+        {totalPages > 1 && (
+          <div className="pe-pagination">
+            <span className="pe-pagination__info">
+              {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, totalItems)} / {totalItems}
+            </span>
+            <div className="pe-pagination__pages">
+              <button type="button" className="pe-pagination__nav" disabled={safePage === 0} onClick={() => setPage(0)}>«</button>
+              <button type="button" className="pe-pagination__nav" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>‹</button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={"pe-pagination__num" + (i === safePage ? " pe-pagination__num--active" : "")}
+                  onClick={() => setPage(i)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button type="button" className="pe-pagination__nav" disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}>›</button>
+              <button type="button" className="pe-pagination__nav" disabled={safePage >= totalPages - 1} onClick={() => setPage(totalPages - 1)}>»</button>
+            </div>
+            <select
+              aria-label="Sayfa başına kayıt sayısı"
+              className="pe-pagination__size"
+              value={pageSize}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                setPageSize(n);
+                localStorage.setItem(PAGE_SIZE_KEY, String(n));
+                setPage(0);
+              }}
+            >
+              {PAGE_SIZES.map((n) => (
+                <option key={n} value={n}>{n} / sayfa</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* ── Role permission matrix ── */}
