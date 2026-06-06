@@ -86,6 +86,8 @@ from .onboarding_saas import (
 from .translation_cache import TranslationCacheEntry
 from .panel_theme_setting import PanelThemeSetting
 from .panel_theme_audit_log import PanelThemeAuditLog
+from .panel_profile import PanelProfile
+from .panel_profile_audit_log import PanelProfileAuditLog
 from .talent import (
     TalentProfile,
     ProcurementJob,

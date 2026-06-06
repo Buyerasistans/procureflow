@@ -45,6 +45,7 @@ from .routers.job_applications import router as job_applications_router
 from .routers.referral_tasks import router as referral_tasks_router
 from .routers.earnings import router as earnings_router
 from .routers.panel_theme_router import router as panel_theme_router
+from .routers.panel_profile_router import router as panel_profile_router
 
 try:
     from .routers.admin_deployment import router as admin_deployment_router
@@ -177,6 +178,7 @@ app.include_router(job_applications_router, prefix="/api/v1")
 app.include_router(referral_tasks_router, prefix="/api/v1")
 app.include_router(earnings_router, prefix="/api/v1")
 app.include_router(panel_theme_router, prefix="/api/v1")
+app.include_router(panel_profile_router, prefix="/api/v1")
 if admin_deployment_router is not None:
     app.include_router(admin_deployment_router, prefix="/api/v1")
 if mail_center_router is not None:

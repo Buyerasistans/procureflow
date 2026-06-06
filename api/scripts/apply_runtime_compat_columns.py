@@ -144,6 +144,12 @@ STATEMENTS = [
     "INSERT INTO panel_theme_settings (id, segments_json, version) VALUES (1, '{}', 1) ON CONFLICT (id) DO NOTHING",
     # Panel teması audit log tablosu — create_all tarafından oluşturulur, indeks ekle
     "CREATE INDEX IF NOT EXISTS ix_panel_theme_audit_logs_changed_at ON panel_theme_audit_logs(changed_at DESC)",
+    # Panel profil tablosu — rol-combo başına profil JSON + audit log
+    # (create_all ile oluşturulur; indeks + unique constraint burada güvence altına alınır)
+    "CREATE UNIQUE INDEX IF NOT EXISTS ix_panel_profiles_role ON panel_profiles(business_role, COALESCE(system_role, ''))",
+    "CREATE INDEX IF NOT EXISTS ix_panel_profiles_biz ON panel_profiles(business_role)",
+    "CREATE INDEX IF NOT EXISTS ix_panel_profile_audit_logs_at ON panel_profile_audit_logs(changed_at DESC)",
+    "CREATE INDEX IF NOT EXISTS ix_panel_profile_audit_logs_biz ON panel_profile_audit_logs(business_role)",
     # Social login columns
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)",
     "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_id ON users(google_id)",
