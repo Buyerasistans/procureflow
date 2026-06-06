@@ -86,11 +86,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.nb-popup-btn--strategic { background: #134E37; color: #fff; }
-.nb-popup-btn--supplier  { background: #0E7490; color: #fff; }
-.nb-popup-btn--channel   { background: #7C2D12; color: #fff; }
-.nb-popup-btn--employer  { background: #5B21B6; color: #fff; }
-.nb-popup-btn--jobseeker { background: #9F1239; color: #fff; }
+.nb-popup-btn--strategic { background: var(--seg-strategic); color: #fff; }
+.nb-popup-btn--supplier  { background: var(--seg-supplier);  color: #fff; }
+.nb-popup-btn--channel   { background: var(--seg-channel);   color: #fff; }
+.nb-popup-btn--employer  { background: var(--seg-employer);  color: #fff; }
+.nb-popup-btn--jobseeker { background: var(--seg-seeker);    color: #fff; }
 .nb-popup__close-btn {
   width: 100%;
   box-sizing: border-box;

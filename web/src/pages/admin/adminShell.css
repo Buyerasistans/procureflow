@@ -434,7 +434,7 @@
   align-items: center;
   gap: 16px;
   padding: 10px 32px;
-  background: linear-gradient(135deg, #3A4F86 0%, #33446f 60%, #2b3a5e 100%);
+  background: linear-gradient(135deg, var(--seg-platform) 0%, #33446f 60%, var(--seg-platform-dark) 100%);
   border-radius: 0;
   margin: 0;
   box-shadow: 0 2px 16px rgba(31, 48, 82, .25);

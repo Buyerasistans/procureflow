@@ -37,7 +37,7 @@
   color: white;
   background:
     radial-gradient(circle at top right, rgba(167, 243, 208, 0.3), transparent 24%),
-    linear-gradient(135deg, #5B21B6 0%, #6d28d9 52%, #7c3aed 100%);
+    linear-gradient(135deg, var(--seg-employer) 0%, #6d28d9 52%, #7c3aed 100%);
 }
 
 .igp-brand-content {
@@ -86,7 +86,7 @@
   font-weight: 800;
   letter-spacing: 2.2px;
   text-transform: uppercase;
-  color: #5B21B6;
+  color: var(--seg-employer);
 }
 
 .igp-form-h2 {
@@ -132,7 +132,7 @@
   padding: 14px 18px;
   border-radius: 18px;
   border: none;
-  background: #5B21B6;
+  background: var(--seg-employer);
   color: white;
   font-weight: 800;
   font-size: 14px;
@@ -153,7 +153,7 @@
   line-height: 1.6;
 }
 
-.igp-info-link { color: #5B21B6; font-weight: 700; text-decoration: none; }
+.igp-info-link { color: var(--seg-employer); font-weight: 700; text-decoration: none; }
 
 /* ── Back link ── */
 .igp-back-row  { margin-top: 14px; text-align: center; }

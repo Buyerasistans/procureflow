@@ -417,9 +417,9 @@
 
 /* ── Password button (primary blue) ── */
 .apt-btn--pwd {
-  background: #3A4F86;
+  background: var(--seg-platform);
   color: #fff;
-  border-color: #3A4F86;
+  border-color: var(--seg-platform);
 }
 .apt-btn--pwd:hover { background: #2f4070; border-color: #2f4070; }
 

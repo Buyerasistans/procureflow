@@ -1,5 +1,6 @@
 import type { AuthUser } from "../context/auth-types";
 import type { WorkspacePanelConfig, WorkspacePanelProfile } from "../services/admin.service";
+import { PANEL_COLORS } from "./panel-colors";
 
 export type WorkspacePanelTabKey =
   | "panel_home"
@@ -1095,25 +1096,26 @@ export function defaultIconForBusinessRole(businessRole: string): string {
 
 export function defaultAccentColorForBusinessRole(businessRole: string): string {
   const role = normalize(businessRole);
-  // Platform (Süper Admin / destek / operasyon / finans / İK admin) — slate
+  const C = PANEL_COLORS;
+  // Platform (Süper Admin / destek / operasyon / finans / İK admin)
   if (role === "super_admin" || role.startsWith("platform_") ||
       role.startsWith("operasyon_") || role.startsWith("destek_") ||
-      role.startsWith("finans_") || role === "ik_admin") return "#3A4F86";
-  // Stratejik Partner (tenant) — koyu zümrüt
+      role.startsWith("finans_") || role === "ik_admin") return C.platform.accent;
+  // Stratejik Partner (tenant)
   if (role === "partner_admin" || role === "admin" || role === "manager" ||
-      role.startsWith("satinalma")) return "#134E37";
-  // Tedarikçi — petrol
+      role.startsWith("satinalma")) return C.strategic.accent;
+  // Tedarikçi
   if (role === "supplier_admin" || role === "supplier_user" ||
-      role.startsWith("pazarlama")) return "#0E7490";
-  // İş Ortağı (Kanal) — koyu amber
+      role.startsWith("pazarlama")) return C.supplier.accent;
+  // İş Ortağı (Kanal)
   if (role === "channel_owner" || role === "channel_agent" ||
-      role.startsWith("kanal")) return "#7C2D12";
-  // Personel Arayan (İşveren / İK) — violet
+      role.startsWith("kanal")) return C.channel.accent;
+  // Personel Arayan (İşveren / İK)
   if (role === "employer_company_admin" || role === "employer_recruiter" ||
-      role === "hr_manager" || role === "hr_specialist") return "#5B21B6";
-  // İş Arayan (Aday) — şarap
-  if (role === "candidate" || role === "job_seeker") return "#9F1239";
-  return "#3A4F86";
+      role === "hr_manager" || role === "hr_specialist") return C.employer.accent;
+  // İş Arayan (Aday)
+  if (role === "candidate" || role === "job_seeker") return C.seeker.accent;
+  return C.platform.accent;
 }
 
 export function resolvedIcon(profile: WorkspacePanelProfile | null): string {

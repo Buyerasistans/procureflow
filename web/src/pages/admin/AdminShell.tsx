@@ -34,6 +34,7 @@ import {
 import type { AuthUser } from "../../context/auth-types";
 import { isSuperAdminUser, getUserDisplayRoleLabel } from "../../auth/permissions";
 import { defaultAccentColorForBusinessRole } from "../../admin/workspace-panels";
+import { PANEL_COLORS } from "../../admin/panel-colors";
 import PanelTopHeader from "./PanelTopHeader";
 import { ADMIN_NAV_GROUPS, navLabelForKey } from "./adminNav";
 import type { AdminNavItem } from "./adminNav";
@@ -189,7 +190,7 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
   const sidebarGradient = (() => {
     const color = isSuperAdmin
-      ? "#3A4F86"
+      ? PANEL_COLORS.platform.accent
       : (accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || ""));
     if (!color || color === "#64748b") return undefined;
     const mid = darkenHex(color, 0.12);

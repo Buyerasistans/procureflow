@@ -65,17 +65,17 @@
 
 .login-page__entry-button--strategic {
   color: #fff;
-  background: #134E37;
+  background: var(--seg-strategic);
 }
 
 .login-page__entry-button--supplier {
   color: #fff;
-  background: #0E7490;
+  background: var(--seg-supplier);
 }
 
 .login-page__entry-button--channel {
   color: #fff;
-  background: #7C2D12;
+  background: var(--seg-channel);
 }
 
 /* Divider */
@@ -140,12 +140,12 @@
 }
 
 .login-page__entry-button--employer {
-  background: #5B21B6;
+  background: var(--seg-employer);
   color: #fff;
 }
 
 .login-page__entry-button--candidate {
-  background: #9F1239;
+  background: var(--seg-seeker);
   color: #fff;
 }
 

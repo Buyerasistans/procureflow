@@ -243,6 +243,58 @@
   --reg-page-tint:   #f7f5ef;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   Panel Renk Sistemi — TEK KAYNAK (panel-colors.ts ile senkron)
+   Segment accent skalası + aktif panel değişkenleri.
+   Override akışı: applyPanelTheme() → panel kökünde inline ezer.
+   Yönetişim: Panel Tasarımı ekranı (Süper Admin + panel_design.edit).
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Marka çıpaları (segmentlerden bağımsız, sabit) ── */
+  --brand-forest:    #112a25;
+  --brand-gold:      #D4AF37;
+  --brand-gold-dark: #a9821f;
+  --brand-tick:      #50C878;
+  --brand-paper:     #f4f5f2;
+
+  /* ── Segment accent skalası (VARSAYILAN) ──
+     panel-colors.ts PANEL_COLORS ile birebir senkron.              */
+  --seg-platform:        #3A4F86;  --seg-platform-dark:   #2b3a5e;  --seg-platform-tint:   #eef1f8;
+  --seg-strategic:       #134E37;  --seg-strategic-dark:  #0e3a29;  --seg-strategic-tint:  #e4efe9;  --seg-strategic-2: #D4AF37;
+  --seg-supplier:        #0E7490;  --seg-supplier-dark:   #0c5e75;  --seg-supplier-tint:   #e0f2f7;
+  --seg-channel:         #7C2D12;  --seg-channel-dark:    #5e220e;  --seg-channel-tint:    #f4e7e1;
+  --seg-employer:        #5B21B6;  --seg-employer-dark:   #4a1a96;  --seg-employer-tint:   #ece6f9;
+  --seg-seeker:          #9F1239;  --seg-seeker-dark:     #7a0e2e;  --seg-seeker-tint:     #f8e7ec;
+  --seg-system:          #64748b;  --seg-system-dark:     #475569;  --seg-system-tint:     #f1f5f9;
+
+  /* ── Aktif panel accenti (varsayılan = platform) ──
+     Panel kökünde applyPanelTheme() veya [data-panel] tarafından override edilir. */
+  --panel-accent:       var(--seg-platform);
+  --panel-accent-dark:  var(--seg-platform-dark);
+  --panel-accent-tint:  var(--seg-platform-tint);
+  --panel-chip-bg:      var(--seg-platform-tint);
+  --panel-secondary:    var(--seg-platform);
+  --panel-on-accent:    #ffffff;
+}
+
+/* ── [data-panel] kapsamı: segment varsayılanını uygula ──────────────
+   API override varsa applyPanelTheme() bu değerleri inline ezer.     */
+[data-panel="platform"]  { --panel-accent: var(--seg-platform);  --panel-accent-dark: var(--seg-platform-dark);  --panel-accent-tint: var(--seg-platform-tint);  --panel-chip-bg: var(--seg-platform-tint);  --panel-secondary: var(--seg-platform);    }
+[data-panel="strategic"] { --panel-accent: var(--seg-strategic); --panel-accent-dark: var(--seg-strategic-dark); --panel-accent-tint: var(--seg-strategic-tint); --panel-chip-bg: #ecfdf5;                   --panel-secondary: var(--seg-strategic-2); }
+[data-panel="supplier"]  { --panel-accent: var(--seg-supplier);  --panel-accent-dark: var(--seg-supplier-dark);  --panel-accent-tint: var(--seg-supplier-tint);  --panel-chip-bg: #ecfeff;                   --panel-secondary: var(--seg-supplier);    }
+[data-panel="channel"]   { --panel-accent: var(--seg-channel);   --panel-accent-dark: var(--seg-channel-dark);   --panel-accent-tint: var(--seg-channel-tint);   --panel-chip-bg: #fff7ed;                   --panel-secondary: var(--seg-channel);     }
+[data-panel="employer"]  { --panel-accent: var(--seg-employer);  --panel-accent-dark: var(--seg-employer-dark);  --panel-accent-tint: var(--seg-employer-tint);  --panel-chip-bg: #fdf4ff;                   --panel-secondary: var(--seg-employer);    }
+[data-panel="seeker"]    { --panel-accent: var(--seg-seeker);    --panel-accent-dark: var(--seg-seeker-dark);    --panel-accent-tint: var(--seg-seeker-tint);    --panel-chip-bg: #fff1f3;                   --panel-secondary: var(--seg-seeker);      }
+[data-panel="system"]    { --panel-accent: var(--seg-system);    --panel-accent-dark: var(--seg-system-dark);    --panel-accent-tint: var(--seg-system-tint);    --panel-chip-bg: var(--seg-system-tint);    --panel-secondary: var(--seg-system);      }
+
+/* ── Stratejik Partner login/başlık 2-renk: forest + altın sağ-alt parıltı ── */
+[data-panel="strategic"] .as-panel-top,
+[data-panel="strategic"] .login-hero {
+  background:
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--panel-secondary) 55%, transparent), transparent 46%),
+    linear-gradient(135deg, var(--panel-accent) 0%, var(--panel-accent-dark) 100%);
+}
+
 /* ── Reduced Motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

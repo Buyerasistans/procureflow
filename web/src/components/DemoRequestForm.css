@@ -45,7 +45,7 @@
 .drf-btn {
   width: 100%;
   padding: 13px 16px;
-  background: var(--drf-accent, #134E37);
+  background: var(--drf-accent, var(--seg-strategic));
   color: #fff;
   border: none;
   border-radius: 12px;

@@ -38,7 +38,7 @@
 .dep-hero {
   background:
     radial-gradient(ellipse at 92% 110%, rgba(212,175,55,.22) 0%, transparent 52%),
-    linear-gradient(135deg, #3A4F86 0%, #33446f 58%, #2b3a5e 100%);
+    linear-gradient(135deg, var(--seg-platform) 0%, #33446f 58%, var(--seg-platform-dark) 100%);
   border-radius: 1.25rem;
   padding: 1rem 1.5rem;
   color: #fff;

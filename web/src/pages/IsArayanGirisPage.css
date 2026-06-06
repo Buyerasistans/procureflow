@@ -38,7 +38,7 @@
   color: white;
   background:
     radial-gradient(circle at top right, rgba(251, 113, 133, 0.3), transparent 24%),
-    linear-gradient(135deg, #9F1239 0%, #be123c 52%, #e11d48 100%);
+    linear-gradient(135deg, var(--seg-seeker) 0%, #be123c 52%, #e11d48 100%);
 }
 
 .iag-brand-content {
@@ -90,7 +90,7 @@
   font-weight: 800;
   letter-spacing: 2.2px;
   text-transform: uppercase;
-  color: #9F1239;
+  color: var(--seg-seeker);
 }
 
 .iag-form-h2 {
@@ -136,7 +136,7 @@
   padding: 14px 18px;
   border-radius: 18px;
   border: none;
-  background: #9F1239;
+  background: var(--seg-seeker);
   color: white;
   font-weight: 800;
   font-size: 14px;

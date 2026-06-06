@@ -4433,7 +4433,7 @@ export default function AdminPage() {
                   <div className="ph-aud-grid">
                     {([
                       {
-                        code: "strategic", label: "Stratejik Partner", color: "#134E37", bg: "#ecfdf5",
+                        code: "strategic", label: SEGMENT_META.strategic.label, color: SEGMENT_META.strategic.color, bg: SEGMENT_META.strategic.bg,
                         subLabel: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
                         metrics: [
                           { k: "Firma",     v: panelHomePlatformMetrics.partnerCompanies },
@@ -4444,7 +4444,7 @@ export default function AdminPage() {
                         ctaKey: "tenant_governance" as AdminTabKey,
                       },
                       {
-                        code: "supplier", label: "Tedarikçi", color: "#0E7490", bg: "#ecfeff",
+                        code: "supplier", label: SEGMENT_META.supplier.label, color: SEGMENT_META.supplier.color, bg: SEGMENT_META.supplier.bg,
                         subLabel: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
                         metrics: [
                           { k: "Firma",             v: panelHomePlatformMetrics.supplierCompanies },
@@ -4454,7 +4454,7 @@ export default function AdminPage() {
                         ctaKey: "platform_suppliers" as AdminTabKey,
                       },
                       {
-                        code: "channel", label: "İş Ortağı", color: "#7C2D12", bg: "#fff7ed",
+                        code: "channel", label: SEGMENT_META.channel.label, color: SEGMENT_META.channel.color, bg: SEGMENT_META.channel.bg,
                         subLabel: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
                         metrics: [
                           { k: "Firma",      v: panelHomePlatformMetrics.channelCompanies },
@@ -4465,7 +4465,7 @@ export default function AdminPage() {
                         ctaKey: "channel_partners" as AdminTabKey,
                       },
                       {
-                        code: "employer", label: "Personel Arayan", color: "#5B21B6", bg: "#fdf4ff",
+                        code: "employer", label: SEGMENT_META.employer.label, color: SEGMENT_META.employer.color, bg: SEGMENT_META.employer.bg,
                         subLabel: `${(panelHomePlatformMetrics as Record<string, unknown>).employerActive as number ?? 6} aktif · ${(panelHomePlatformMetrics as Record<string, unknown>).employerPassive as number ?? 1} pasif`,
                         metrics: [
                           { k: "İşveren",      v: (panelHomePlatformMetrics as Record<string, unknown>).employerCompanies as number ?? 7 },
@@ -4476,7 +4476,7 @@ export default function AdminPage() {
                         ctaKey: "kariyer_yonetimi" as AdminTabKey,
                       },
                       {
-                        code: "seeker", label: "İş Arayan", color: "#9F1239", bg: "#fff1f3",
+                        code: "seeker", label: SEGMENT_META.seeker.label, color: SEGMENT_META.seeker.color, bg: SEGMENT_META.seeker.bg,
                         subLabel: `${(panelHomePlatformMetrics as Record<string, unknown>).seekerActive as number ?? 54} aktif · ${(panelHomePlatformMetrics as Record<string, unknown>).seekerPassive as number ?? 12} pasif`,
                         metrics: [
                           { k: "Aday",      v: (panelHomePlatformMetrics as Record<string, unknown>).candidates as number ?? 66 },
@@ -4665,12 +4665,14 @@ export default function AdminPage() {
                         // 3 Y-axis ticks
                         const t1 = domMin; const t2 = (domMin + domMax) / 2; const t3 = domMax;
                         const ticks = [{ v: t1, y: yScale(t1) }, { v: t2, y: yScale(t2) }, { v: t3, y: yScale(t3) }];
+                        const plt = SEGMENT_META.platform.color;
+                        const chn = SEGMENT_META.channel.color;
                         return (
                           <svg viewBox={`0 0 ${W} ${H}`} className="ph-mrr-svg" preserveAspectRatio="none">
                             <defs>
                               <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#3A4F86" stopOpacity="0.26" />
-                                <stop offset="100%" stopColor="#3A4F86" stopOpacity="0.02" />
+                                <stop offset="0%" stopColor={plt} stopOpacity="0.26" />
+                                <stop offset="100%" stopColor={plt} stopOpacity="0.02" />
                               </linearGradient>
                             </defs>
                             {ticks.map(({ v, y }) => (
@@ -4680,10 +4682,10 @@ export default function AdminPage() {
                               </g>
                             ))}
                             <path d={areaPath} fill="url(#mrrGrad)" />
-                            <path d={linePath} fill="none" stroke="#3A4F86" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d={netLine} fill="none" stroke="#7C2D12" strokeWidth="1.6" strokeDasharray="5,3" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx={last.x} cy={last.y} r="5" fill="#3A4F86" stroke="#fff" strokeWidth="2" />
-                            <rect x={last.x - 18} y={last.y - 18} width="36" height="13" rx="4" fill="#3A4F86" opacity="0.9" />
+                            <path d={linePath} fill="none" stroke={plt} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d={netLine} fill="none" stroke={chn} strokeWidth="1.6" strokeDasharray="5,3" strokeLinecap="round" strokeLinejoin="round" />
+                            <circle cx={last.x} cy={last.y} r="5" fill={plt} stroke="#fff" strokeWidth="2" />
+                            <rect x={last.x - 18} y={last.y - 18} width="36" height="13" rx="4" fill={plt} opacity="0.9" />
                             <text x={last.x} y={last.y - 8} fontSize="8" fill="#fff" textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length - 1].mrr / 1000).toFixed(0)}K</text>
                           </svg>
                         );
@@ -4695,7 +4697,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <p className="ph-chart-note ph-chart-note--compact">
-                      <b>——</b> Toplam MRR &nbsp;·&nbsp; <b style={{ borderBottom: "2px dashed #7C2D12" }}>- -</b> Net büyüme (yeni − churn) &nbsp;·&nbsp; ● Son ay balonu
+                      <b>——</b> Toplam MRR &nbsp;·&nbsp; <b style={{ borderBottom: `2px dashed ${SEGMENT_META.channel.color}` }}>- -</b> Net büyüme (yeni − churn) &nbsp;·&nbsp; ● Son ay balonu
                     </p>
                     <div className="ph-mrr-churn-bar">
                       <div className="ph-mrr-churn-bar__row">
@@ -5465,12 +5467,13 @@ export default function AdminPage() {
                   const areaPath = `${linePath} L${pts[pts.length-1].x.toFixed(1)},${H-10} L${pts[0].x.toFixed(1)},${H-10} Z`;
                   const last = pts[pts.length - 1];
                   const tickVals = [0, Math.round(maxMrr / 2 / 1000), Math.round(maxMrr / 1000)];
+                  const plt2 = SEGMENT_META.platform.color;
                   return (
                     <svg viewBox={`0 0 ${W} ${H}`} className="ph-mrr-svg" preserveAspectRatio="none">
                       <defs>
                         <linearGradient id="mrrGrad2" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3A4F86" stopOpacity="0.22" />
-                          <stop offset="100%" stopColor="#3A4F86" stopOpacity="0.01" />
+                          <stop offset="0%" stopColor={plt2} stopOpacity="0.22" />
+                          <stop offset="100%" stopColor={plt2} stopOpacity="0.01" />
                         </linearGradient>
                       </defs>
                       {tickVals.map((v, i) => {
@@ -5478,9 +5481,9 @@ export default function AdminPage() {
                         return <g key={v}><line x1={PAD} y1={y} x2={W-4} y2={y} stroke="#e2e8f0" strokeWidth="0.8" /><text x={PAD-4} y={y+4} fontSize="8" fill="#94a3b8" textAnchor="end">₺{v}K</text></g>;
                       })}
                       <path d={areaPath} fill="url(#mrrGrad2)" />
-                      <path d={linePath} fill="none" stroke="#3A4F86" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      <circle cx={last.x} cy={last.y} r="5" fill="#3A4F86" stroke="#fff" strokeWidth="2" />
-                      <text x={last.x} y={last.y - 9} fontSize="8" fill="#3A4F86" textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length-1].mrr/1000).toFixed(0)}K</text>
+                      <path d={linePath} fill="none" stroke={plt2} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx={last.x} cy={last.y} r="5" fill={plt2} stroke="#fff" strokeWidth="2" />
+                      <text x={last.x} y={last.y - 9} fontSize="8" fill={plt2} textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length-1].mrr/1000).toFixed(0)}K</text>
                     </svg>
                   );
                 })()}

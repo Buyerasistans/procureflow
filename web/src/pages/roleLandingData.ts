@@ -1,3 +1,5 @@
+import { SEGMENT_META } from "../admin/segment-colors";
+
 export interface RoleLandingData {
   pageKey: string;
   title: string;
@@ -22,7 +24,7 @@ export const ROLE_LANDING_DATA: Record<string, RoleLandingData> = {
     pageKey: "stratejik-ortak",
     title: "Stratejik Ortak Olmanın Farkı",
     lead: "Kurumsal satın alma sürecinizi standartlaştırın; onay, tedarikçi ve bütçe yönetimini tek platformda yönetin.",
-    color: "#134E37",
+    color: SEGMENT_META.strategic.color,
     colorLight: "#a7f3d0",
     colorBg: "#ecfdf5",
     registerHref: "/onboarding",
@@ -55,7 +57,7 @@ export const ROLE_LANDING_DATA: Record<string, RoleLandingData> = {
     pageKey: "tedarikci",
     title: "Tedarikçi Olarak Büyü",
     lead: "Onaylı alıcılara ulaş, teklif süreçlerini hızlandır, performansını veriyle yönet.",
-    color: "#0E7490",
+    color: SEGMENT_META.supplier.color,
     colorLight: "#a5f3fc",
     colorBg: "#ecfeff",
     registerHref: "/supplier/register",
@@ -88,7 +90,7 @@ export const ROLE_LANDING_DATA: Record<string, RoleLandingData> = {
     pageKey: "cift-rol",
     title: "Çift Rol: Hem Alıcı Hem Satıcı",
     lead: "Aynı hesapta hem kurumsal satın alma yapın hem tedarikçi olarak teklif verin — roller ve faturalar tamamen izole.",
-    color: "#3A4F86",
+    color: SEGMENT_META.platform.color,
     colorLight: "#bfdbfe",
     colorBg: "#eff6ff",
     registerHref: "/onboarding",
@@ -120,7 +122,7 @@ export const ROLE_LANDING_DATA: Record<string, RoleLandingData> = {
     pageKey: "is-ortagi",
     title: "İş Ortağı Programı",
     lead: "Getirdiğin partneri ve tedarikçiyi kaydet; her başarılı aktivasyonda attribution tabanlı hakediş kazan.",
-    color: "#7C2D12",
+    color: SEGMENT_META.channel.color,
     colorLight: "#fed7aa",
     colorBg: "#fff7ed",
     registerHref: "/is-ortagi-basvuru",
@@ -152,7 +154,7 @@ export const ROLE_LANDING_DATA: Record<string, RoleLandingData> = {
     pageKey: "isveren",
     title: "Satın Alma Uzmanı Bul",
     lead: "Onaylı satın alma uzmanı adaylarına ulaş, ilanını 5 dakikada yayınla, İK yöneticilerine özel roller tanımla.",
-    color: "#5B21B6",
+    color: SEGMENT_META.employer.color,
     colorLight: "#e9d5ff",
     colorBg: "#fdf4ff",
     registerHref: "/employer/register",
@@ -184,7 +186,7 @@ export const ROLE_LANDING_DATA: Record<string, RoleLandingData> = {
     pageKey: "is-arayan",
     title: "Satın Alma Kariyerini Hızlandır",
     lead: "Profil oluştur, onaylı işverenlerden iş ilanlarını takip et, başvurularını gerçek zamanlı izle.",
-    color: "#9F1239",
+    color: SEGMENT_META.seeker.color,
     colorLight: "#fecdd3",
     colorBg: "#fff1f3",
     registerHref: "/candidate/register",

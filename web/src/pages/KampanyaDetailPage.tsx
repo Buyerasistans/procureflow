@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import DemoRequestForm from "../components/DemoRequestForm";
+import { SEGMENT_META } from "../admin/segment-colors";
 import "./KampanyaDetailPage.css";
 
 interface KampanyaData {
@@ -24,7 +25,7 @@ const KAMPANYALAR: Record<string, KampanyaData> = {
     badge: "Yeni Üye",
     title: "Yeni Tedarikçi Hoş Geldin Paketi",
     summary: "Platform'a yeni katılan tedarikçiler için ilk 3 ay temel özellikler ücretsiz.",
-    color: "#0E7490",
+    color: SEGMENT_META.supplier.color,
     colorBg: "#ecfeff",
     validUntil: "2026-12-31",
     audience: "supplier",
@@ -44,7 +45,7 @@ const KAMPANYALAR: Record<string, KampanyaData> = {
     badge: "Büyüme",
     title: "Stratejik Partner Büyüme Paketi",
     summary: "İlk yılınızda %20 platform ücreti indirimi — kurumsal büyüme planları için özel teklif.",
-    color: "#134E37",
+    color: SEGMENT_META.strategic.color,
     colorBg: "#ecfdf5",
     validUntil: "2026-09-30",
     audience: "strategic",
@@ -64,7 +65,7 @@ const KAMPANYALAR: Record<string, KampanyaData> = {
     badge: "İK",
     title: "İşveren İK Başlangıç Paketi",
     summary: "İlk 3 iş ilanınız ücretsiz — satın alma uzmanı bulmaya hemen başlayın.",
-    color: "#5B21B6",
+    color: SEGMENT_META.employer.color,
     colorBg: "#fdf4ff",
     validUntil: "2026-12-31",
     audience: "employer",
@@ -84,7 +85,7 @@ const KAMPANYALAR: Record<string, KampanyaData> = {
     badge: "Kariyer & İK",
     title: "İlk İlan Ücretsiz — İşveren & Aday Paketi",
     summary: "İşverene ilk ilan ücretsiz. İş arayan adaylara CV profili ve başvuru paketi tamamen ücretsiz.",
-    color: "#9F1239",
+    color: SEGMENT_META.seeker.color,
     colorBg: "#fff1f3",
     validUntil: "2026-12-31",
     audience: "employer",

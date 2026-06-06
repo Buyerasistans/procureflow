@@ -10,7 +10,7 @@
 /* ── Hero ── */
 .rlp-hero {
   padding: 64px 24px;
-  background: linear-gradient(135deg, var(--rlp-color, #134E37) 0%, color-mix(in srgb, var(--rlp-color, #134E37) 80%, black) 100%);
+  background: linear-gradient(135deg, var(--rlp-color, var(--seg-strategic)) 0%, color-mix(in srgb, var(--rlp-color, var(--seg-strategic)) 80%, black) 100%);
 }
 
 .rlp-hero-inner {
@@ -62,7 +62,7 @@
 
 .rlp-btn--primary {
   background: #fff;
-  color: var(--rlp-color, #134E37);
+  color: var(--rlp-color, var(--seg-strategic));
 }
 
 .rlp-btn--ghost {
@@ -141,7 +141,7 @@
   height: 22px;
   border-radius: 50%;
   background: var(--rlp-bg, #ecfdf5);
-  color: var(--rlp-color, #134E37);
+  color: var(--rlp-color, var(--seg-strategic));
   font-weight: 900;
   font-size: 12px;
   display: flex;
@@ -172,7 +172,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--rlp-color, #134E37);
+  background: var(--rlp-color, var(--seg-strategic));
   color: #fff;
   font-weight: 900;
   font-size: 14px;
@@ -223,7 +223,7 @@
 }
 
 .rlp-cta-block {
-  background: var(--rlp-color, #134E37);
+  background: var(--rlp-color, var(--seg-strategic));
   border-radius: 20px;
   padding: 24px;
   color: #fff;
@@ -240,7 +240,7 @@
 
 .rlp-cta-block .rlp-btn--primary {
   background: #fff;
-  color: var(--rlp-color, #134E37);
+  color: var(--rlp-color, var(--seg-strategic));
 }
 
 .rlp-cta-block .rlp-btn--ghost {
@@ -286,7 +286,7 @@
 }
 
 .rlp-footer-link {
-  color: var(--rlp-color, #134E37);
+  color: var(--rlp-color, var(--seg-strategic));
   text-decoration: none;
   font-weight: 700;
 }

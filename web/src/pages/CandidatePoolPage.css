@@ -9,7 +9,7 @@
 /* ── Hero ── */
 .cpp-hero {
   padding: 56px 24px;
-  background: linear-gradient(135deg, #5B21B6 0%, #4c1d95 100%);
+  background: linear-gradient(135deg, var(--seg-employer) 0%, var(--seg-employer-dark) 100%);
   color: #fff;
 }
 
@@ -49,7 +49,7 @@
 .cpp-hero-cta {
   display: inline-block;
   background: #fff;
-  color: #5B21B6;
+  color: var(--seg-employer);
   font-weight: 900;
   font-size: 14px;
   padding: 12px 22px;
@@ -138,7 +138,7 @@
 .cpp-cta-aside-btn {
   display: block;
   text-align: center;
-  background: #5B21B6;
+  background: var(--seg-employer);
   color: #fff;
   font-size: 12px;
   font-weight: 800;
@@ -195,7 +195,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #5B21B6;
+  background: var(--seg-employer);
   color: #fff;
   font-weight: 900;
   font-size: 16px;
@@ -266,7 +266,7 @@
 }
 
 .cpp-card-btn:hover { opacity: 0.88; }
-.cpp-card-btn--primary { background: #5B21B6; color: #fff; }
+.cpp-card-btn--primary { background: var(--seg-employer); color: #fff; }
 .cpp-card-btn--ghost { background: #f1f5f9; color: #334155; }
 
 /* ── Empty state ── */
@@ -291,7 +291,7 @@
 }
 
 .cpp-footer a {
-  color: #5B21B6;
+  color: var(--seg-employer);
   font-weight: 700;
   text-decoration: none;
 }

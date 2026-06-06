@@ -3010,8 +3010,8 @@
   border-radius: 50%;
   display: inline-block;
 }
-.ph-legend-dot--mrr   { background: #3A4F86; }
-.ph-legend-dot--net   { background: transparent; border: 2px dashed #7C2D12; border-radius: 0; }
+.ph-legend-dot--mrr   { background: var(--seg-platform); }
+.ph-legend-dot--net   { background: transparent; border: 2px dashed var(--seg-channel); border-radius: 0; }
 .ph-legend-dot--new   { background: #16a34a; }
 .ph-legend-dot--churn { background: #be123c; }
 

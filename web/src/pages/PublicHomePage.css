@@ -61,10 +61,10 @@
 
 .php-cta:hover { opacity: 0.9; transform: translateY(-1px); }
 
-.php-cta--primary { background: linear-gradient(135deg, #134E37 0%, #0e3527 100%); color: #D4AF37; }
+.php-cta--primary { background: linear-gradient(135deg, var(--seg-strategic) 0%, #0e3527 100%); color: #D4AF37; }
 .php-cta--teal    { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #fff; }
-.php-cta--purple  { background: linear-gradient(135deg, #5B21B6 0%, #4c1d95 100%); color: #fff; }
-.php-cta--wine    { background: linear-gradient(135deg, #9F1239 0%, #7f0f2e 100%); color: #fff; }
+.php-cta--purple  { background: linear-gradient(135deg, var(--seg-employer) 0%, var(--seg-employer-dark) 100%); color: #fff; }
+.php-cta--wine    { background: linear-gradient(135deg, var(--seg-seeker) 0%, #7f0f2e 100%); color: #fff; }
 .php-cta--gold    { background: linear-gradient(135deg, #D4AF37 0%, #b5952f 100%); color: #112a25; }
 .php-cta--dark    { background: linear-gradient(135deg, #112a25 0%, #1e4a3d 100%); color: #D4AF37; }
 
@@ -184,7 +184,7 @@
 
 .php-campaign-card {
   background: var(--kc-bg, #ecfdf5);
-  border: 1.5px solid var(--kc-color, #134E37);
+  border: 1.5px solid var(--kc-color, var(--seg-strategic));
   border-radius: 18px;
   padding: 20px;
   display: flex;
@@ -194,7 +194,7 @@
 
 .php-campaign-badge {
   display: inline-block;
-  background: var(--kc-color, #134E37);
+  background: var(--kc-color, var(--seg-strategic));
   color: #fff;
   font-size: 10px;
   font-weight: 900;
@@ -244,14 +244,14 @@
 .php-campaign-btn:hover { opacity: 0.85; }
 
 .php-campaign-btn--primary {
-  background: var(--kc-color, #134E37);
+  background: var(--kc-color, var(--seg-strategic));
   color: #fff;
 }
 
 .php-campaign-btn--ghost {
   background: #fff;
-  color: var(--kc-color, #134E37);
-  border: 1px solid var(--kc-color, #134E37);
+  color: var(--kc-color, var(--seg-strategic));
+  border: 1px solid var(--kc-color, var(--seg-strategic));
 }
 
 /* ── Why cards ── */
@@ -278,7 +278,7 @@
   font-weight: 900;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: var(--wc-color, #134E37);
+  color: var(--wc-color, var(--seg-strategic));
 }
 
 .php-why-card__tagline {
@@ -313,8 +313,8 @@
 }
 
 .php-why-btn:hover { opacity: 0.85; }
-.php-why-btn--primary { background: var(--wc-color, #134E37); color: #fff; }
-.php-why-btn--ghost   { background: #fff; color: var(--wc-color, #134E37); border: 1px solid var(--wc-border, #a7f3d0); }
+.php-why-btn--primary { background: var(--wc-color, var(--seg-strategic)); color: #fff; }
+.php-why-btn--ghost   { background: #fff; color: var(--wc-color, var(--seg-strategic)); border: 1px solid var(--wc-border, #a7f3d0); }
 .php-why-btn--link    { background: transparent; color: #64748b; padding-left: 4px; }
 
 /* ── Ecosystem cards ── */
@@ -368,8 +368,8 @@
 }
 
 .php-eco-btn:hover { opacity: 0.85; }
-.php-eco-btn--primary { background: var(--eco-color, #134E37); color: #fff; }
-.php-eco-btn--ghost   { background: transparent; color: var(--eco-color, #134E37); border: 1.5px solid var(--eco-border, #a7f3d0); }
+.php-eco-btn--primary { background: var(--eco-color, var(--seg-strategic)); color: #fff; }
+.php-eco-btn--ghost   { background: transparent; color: var(--eco-color, var(--seg-strategic)); border: 1.5px solid var(--eco-border, #a7f3d0); }
 
 /* ── Feature boxes ── */
 .php-features { margin-top: 40px; }
@@ -436,7 +436,7 @@
   font-size: 13px;
   font-weight: 800;
   text-decoration: none;
-  background: #134E37;
+  background: var(--seg-strategic);
   color: #fff;
   transition: opacity 0.15s;
 }
@@ -444,13 +444,13 @@
 .php-demo-btn:hover { opacity: 0.88; }
 
 .php-demo-btn--supplier {
-  background: #0E7490;
+  background: var(--seg-supplier);
 }
 
 /* ── Growth section ── */
 .php-growth {
   margin-top: 40px;
-  background: linear-gradient(135deg, #0e3527 0%, #134E37 60%, #1a5c42 100%);
+  background: linear-gradient(135deg, #0e3527 0%, var(--seg-strategic) 60%, #1a5c42 100%);
   border-radius: 24px;
   padding: 40px;
   display: grid;

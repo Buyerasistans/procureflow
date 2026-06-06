@@ -38,7 +38,7 @@
   color: white;
   background:
     radial-gradient(circle at top right, rgba(103, 232, 249, 0.3), transparent 24%),
-    linear-gradient(135deg, #0E7490 0%, #0c8fad 52%, #0aa8c9 100%);
+    linear-gradient(135deg, var(--seg-supplier) 0%, #0c8fad 52%, #0aa8c9 100%);
 }
 
 .spll-brand-content {
@@ -90,7 +90,7 @@
   font-weight: 800;
   letter-spacing: 2.2px;
   text-transform: uppercase;
-  color: #0E7490;
+  color: var(--seg-supplier);
 }
 
 .spll-form-h2 {
@@ -124,7 +124,7 @@
 
 .spll-input:focus {
   outline: none;
-  border-color: #0E7490;
+  border-color: var(--seg-supplier);
   box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
 }
 
@@ -147,7 +147,7 @@
   padding: 14px 18px;
   border-radius: 18px;
   border: none;
-  background: #0E7490;
+  background: var(--seg-supplier);
   color: white;
   font-weight: 800;
   font-size: 14px;
