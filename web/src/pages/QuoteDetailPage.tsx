@@ -816,7 +816,7 @@ export default function QuoteDetailPage() {
 
       {readOnly && (
         <div className="qdp-readonly-banner">
-          Platform personeli bu teklifi inceleyebilir; duzenleme, onaya gonderme, onay, revize ve tedarikci secimi aksiyonlari salt okunur modda kapatildi.
+          Platform personeli bu teklifi inceleyebilir; düzenleme, onaya gönderme, onay, revize ve tedarikçi seçimi aksiyonları salt okunur modda kapatıldı.
         </div>
       )}
 

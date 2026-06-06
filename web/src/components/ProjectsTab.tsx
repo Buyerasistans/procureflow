@@ -202,7 +202,7 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
 
       {readOnly && (
         <div className="pr-readonly-bar">
-          Platform personeli proje portfoyunu inceleyebilir; yeni proje ekleme ve silme bu yuzeyde kapalıdır.
+          Platform personeli proje portföyünü inceleyebilir; yeni proje ekleme ve silme bu yüzeyde kapalıdır.
         </div>
       )}
 

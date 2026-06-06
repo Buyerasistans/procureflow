@@ -169,7 +169,7 @@ export default function QuoteComparisonReportPage() {
 
       {readOnly && (
         <div className="qcr-card qcr-card--readonly">
-          Platform personeli karsilastirma raporunu inceleyebilir; tedarikci secimi ve is onayı gibi write aksiyonlari salt okunur modda kapatildi.
+          Platform personeli karşılaştırma raporunu inceleyebilir; tedarikçi seçimi ve iş onayı gibi write aksiyonları salt okunur modda kapatıldı.
         </div>
       )}
 

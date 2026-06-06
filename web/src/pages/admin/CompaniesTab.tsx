@@ -400,8 +400,8 @@ export function CompaniesTab({
         <table className="co-sup-table">
           <thead>
             <tr>
-              <th>Firma Adi</th>
-              <th>Yetkili Kullanici</th>
+              <th>Firma Adı</th>
+              <th>Yetkili Kullanıcı</th>
               <th>Durum</th>
               <th>Aksiyonlar</th>
             </tr>
@@ -468,9 +468,9 @@ export function CompaniesTab({
     });
     return (
       <>
-        {platformSups.length > 0 && renderSupplierTableGroup(platformSups, `Buyera Asistans Ozel Tedarikci (${platformSups.length})`)}
+        {platformSups.length > 0 && renderSupplierTableGroup(platformSups, `Buyera Asistans Özel Tedarikçi (${platformSups.length})`)}
         {Array.from(tenantMap.entries()).map(([, sups]) =>
-          renderSupplierTableGroup(sups, sups[0].tenant_name ?? sups[0].inviter_company_name ?? "Tedarikci")
+          renderSupplierTableGroup(sups, sups[0].tenant_name ?? sups[0].inviter_company_name ?? "Tedarikçi")
         )}
       </>
     );

@@ -412,7 +412,7 @@ export default function PremiumFeaturePurchasePanel({
           {lastTransaction?.instructions ? (
             <div className="premium-feature-purchase-panel__card premium-feature-purchase-panel__card--bank">
               <div className="premium-feature-purchase-panel__card-title premium-feature-purchase-panel__card-title--bank">
-                Banka Havalesi Talimati
+                Banka Havalesi Talimatı
               </div>
               <div className="premium-feature-purchase-panel__meta">İşlem No: {lastTransaction.id}</div>
               <div className="premium-feature-purchase-panel__meta">Banka: {lastTransaction.instructions.bank_name || "-"}</div>
@@ -469,7 +469,7 @@ export default function PremiumFeaturePurchasePanel({
                     disabled={verifyBusy}
                     className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--success"
                   >
-                    {verifyBusy ? "Dogrulanıyor..." : "Odemeyi Dogrula ve Aktiflestir"}
+                    {verifyBusy ? "Doğrulanıyor..." : "Ödemeyi Doğrula ve Aktifleştir"}
                   </button>
                 ) : null}
               </div>
@@ -487,10 +487,10 @@ export default function PremiumFeaturePurchasePanel({
               className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--primary"
             >
               {submitting
-                ? "Odeme Baslatılıyor..."
+                ? "Ödeme Başlatılıyor..."
                 : purchaseMode === "premium_feature"
-                  ? "Premium Satin Alimini Baslat"
-                  : "Add-on Satin Alimini Baslat"}
+                  ? "Premium Satın Alımını Başlat"
+                  : "Add-on Satın Alımını Başlat"}
             </button>
           </div>
         </>

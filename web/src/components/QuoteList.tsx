@@ -209,7 +209,7 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
 
         {readOnly ? (
           <div className="quote-list__notice">
-            Platform personeli teklif portfoyunu inceleyebilir; yeni teklif, duzenleme, silme ve gonderim aksiyonlari salt okunur modda kapatildi.
+            Platform personeli teklif portföyünü inceleyebilir; yeni teklif, düzenleme, silme ve gönderim aksiyonları salt okunur modda kapatıldı.
           </div>
         ) : null}
 

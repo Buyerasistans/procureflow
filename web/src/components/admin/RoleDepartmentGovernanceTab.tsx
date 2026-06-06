@@ -52,8 +52,8 @@ interface RoleDepartmentGovernanceTabProps {
 const SCOPE_TITLES: Record<GovernanceScope, string> = {
   platform: "Portal Ana Firmalar",
   partner: "Stratejik Partner Rolleri",
-  supplier: "Tedarikci Rolleri",
-  channel: "Is Ortagi Rolleri",
+  supplier: "Tedarikçi Rolleri",
+  channel: "İş Ortağı Rolleri",
   career: "Kariyer Rolleri",
 };
 
@@ -1021,7 +1021,7 @@ export function RoleDepartmentGovernanceTab({
                       </span>
                     </div>
                     <div className="rdg-row__meta">
-                      id: {row.id} • ust rol: {parentRole?.name || "Kok"} • alt rol: {row.childCount}
+                      id: {row.id} • üst rol: {parentRole?.name || "Kök"} • alt rol: {row.childCount}
                     </div>
                   </div>
                   {canManage ? (
@@ -1345,7 +1345,7 @@ export function RoleDepartmentGovernanceTab({
                 disabled={!roleEditor.name.trim() || Boolean(busy)}
                 className="rdg-btn rdg-btn--save-primary"
               >
-                {editingRoleId ? "Rolu Guncelle" : "Rolu Kaydet"}
+                {editingRoleId ? "Rolü Güncelle" : "Rolü Kaydet"}
               </button>
             </div>
           </div>

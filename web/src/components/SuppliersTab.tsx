@@ -393,7 +393,7 @@ export function SuppliersTab() {
       {success && <div className="su-msg su-msg--success">✅ {success}</div>}
       {readOnly && (
         <div className="su-msg su-msg--error">
-          Platform personeli tedarikçi portfoyunu inceleyebilir; yeni tedarikci, duzenleme, silme ve tedarikci kullanicisi yonetimi bu yuzeyde kapatildi.
+          Platform personeli tedarikçi portföyünü inceleyebilir; yeni tedarikçi, düzenleme, silme ve tedarikçi kullanıcısı yönetimi bu yüzeyde kapatıldı.
         </div>
       )}
 

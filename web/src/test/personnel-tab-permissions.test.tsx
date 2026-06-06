@@ -78,8 +78,8 @@ describe("PersonnelTab permissions", () => {
       />,
     );
 
-    expect(screen.getByText(/platform personeli bu alanda kullanici listesini inceleyebilir/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /yeni kullanici/i })).toBeDisabled();
+    expect(screen.getByText(/platform personeli bu alanda kullanıcı listesini inceleyebilir/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Yeni Kullanıcı/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /platform visible user durum kutusu/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /detay/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /düzenle/i })).not.toBeInTheDocument();
@@ -95,7 +95,7 @@ describe("PersonnelTab permissions", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /yeni kullanici/i })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /Yeni Kullanıcı/ })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: /platform visible user durum kutusu/i })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: /düzenle/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sil/i })).toBeInTheDocument();

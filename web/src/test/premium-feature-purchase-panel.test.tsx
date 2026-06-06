@@ -61,7 +61,7 @@ describe("Premium feature purchase panel", () => {
     );
 
     await screen.findByText(/gercek odeme baslatma paneli/i);
-    await user.click(screen.getByRole("button", { name: /premium satin alimini baslat/i }));
+    await user.click(screen.getByRole("button", { name: /Premium Satın Alımını Başlat/ }));
 
     await waitFor(() =>
       expect(mockInitiatePremiumFeaturePayment).toHaveBeenCalledWith(
@@ -73,7 +73,7 @@ describe("Premium feature purchase panel", () => {
         }),
       ),
     );
-    expect(await screen.findByText(/banka havalesi talimati/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Banka Havalesi Talimatı/)).toBeInTheDocument();
     expect(screen.getByText(/demo bank/i)).toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe("Premium feature purchase panel", () => {
     );
 
     await screen.findByText(/gercek odeme baslatma paneli/i);
-    await user.click(screen.getByRole("button", { name: /premium satin alimini baslat/i }));
-    expect(await screen.findByRole("button", { name: /odemeyi dogrula ve aktiflestir/i })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Premium Satın Alımını Başlat/ }));
+    expect(await screen.findByRole("button", { name: /Ödemeyi Doğrula ve Aktifleştir/ })).toBeInTheDocument();
   });
 });

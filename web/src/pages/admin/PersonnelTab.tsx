@@ -738,7 +738,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
             disabled={readOnly}
             onClick={() => setShowNewPersonnelModal(true)}
           >
-            + Yeni Kullanici
+            + Yeni Kullanıcı
           </button>
         }
       />
@@ -759,7 +759,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
 
       {readOnly && (
         <div className="pe-readonly-bar">
-          Platform personeli bu alanda kullanici listesini inceleyebilir; oluşturma, düzenleme, aktiflik değiştirme ve silme aksiyonları yalnızca tenant yönetim yetkisi olan hesaplarda açılır.
+          Platform personeli bu alanda kullanıcı listesini inceleyebilir; oluşturma, düzenleme, aktiflik değiştirme ve silme aksiyonları yalnızca tenant yönetim yetkisi olan hesaplarda açılır.
         </div>
       )}
 

@@ -70,7 +70,7 @@ describe("SuppliersTab permissions", () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText(/platform personeli tedarikçi portfoyunu inceleyebilir/i)).toBeInTheDocument();
+    expect(await screen.findByText(/platform personeli tedarikçi portföyünü inceleyebilir/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /yeni tedarikçi/i })).toBeDisabled();
     expect(screen.getAllByRole("button", { name: /tedarikçiyi görüntüle/i }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: /^sil$/i })).not.toBeInTheDocument();

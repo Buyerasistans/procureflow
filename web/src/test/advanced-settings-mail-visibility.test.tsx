@@ -86,7 +86,7 @@ describe("AdvancedSettingsTab company mail visibility", () => {
     const user = userEvent.setup();
     render(<AdvancedSettingsTab />);
 
-    expect(await screen.findByText(/Firma Bazli Mail Gorunurluk/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Firma Bazlı Mail Görünürlük/)).toBeInTheDocument();
     expect(screen.getByText(/Ana Firma A.S./i)).toBeInTheDocument();
     expect(screen.getByText(/^Pasif$/i)).toBeInTheDocument();
 

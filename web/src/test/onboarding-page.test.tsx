@@ -151,7 +151,7 @@ describe("OnboardingPage", () => {
     await user.click(screen.getByRole("button", { name: /plan secimine devam et/i }));
     await user.click(await screen.findByRole("button", { name: /devam et/i }));
 
-    expect(await screen.findByRole("heading", { name: /kaydiniz alindi/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Kaydınız Alındı/ })).toBeInTheDocument();
     expect(screen.getByText(/gelen kutunuzu kontrol edin/i)).toBeInTheDocument();
     expect(screen.getByText(/admin@ornek.com/i)).toBeInTheDocument();
 
@@ -234,7 +234,7 @@ describe("OnboardingPage", () => {
     expect(screen.getByText(/3\.500 try/i)).toBeInTheDocument();
     expect(screen.getByText(/6\.000 try/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /odemeyi baslat ve kaydi tamamla/i }));
+    await user.click(screen.getByRole("button", { name: /Ödemeyi Başlat ve Kaydı Tamamla/ }));
 
     await waitFor(() => {
       const paymentCall = fetchMock.mock.calls.find((call) => String(call[0]).includes("/api/v1/payment/initiate"));

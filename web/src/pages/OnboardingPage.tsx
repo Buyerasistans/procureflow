@@ -857,7 +857,7 @@ export default function OnboardingPage() {
               <div className="obp-actions">
                 <button type="button" className="obp-btn-secondary" onClick={() => setStep("plan")}>← Geri</button>
                 <button type="button" className="obp-btn-primary" onClick={handlePaymentAndComplete} disabled={paymentLoading || submitting}>
-                  {paymentLoading || submitting ? "İşleniyor..." : "Odemeyi Baslat ve Kaydi Tamamla"}
+                  {paymentLoading || submitting ? "İşleniyor..." : "Ödemeyi Başlat ve Kaydı Tamamla"}
                 </button>
               </div>
             </div>
@@ -866,7 +866,7 @@ export default function OnboardingPage() {
           {step === "done" && doneData && (
             <div className="obp-done-section">
               <div className="obp-done-emoji">🎉</div>
-              <h2 className="obp-step-title obp-step-title--center">Kaydiniz Alindi!</h2>
+              <h2 className="obp-step-title obp-step-title--center">Kaydınız Alındı!</h2>
               <p className="obp-done-msg">{doneData.message}</p>
               <div className="obp-done-box">
                 <div><strong>Hesap:</strong> {doneData.admin_email}</div>

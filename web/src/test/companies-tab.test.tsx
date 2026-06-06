@@ -212,11 +212,11 @@ describe("CompaniesTab tedarikci segment aksiyonlari", () => {
 
   it("tedarikci tablosunda Yetkili Kullanici kolonu gorunur", () => {
     renderSupplierTab([activeSupplier]);
-    expect(screen.getByRole("columnheader", { name: /yetkili kullanici/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Yetkili Kullanıcı/ })).toBeInTheDocument();
   });
 
   it("grup basligi tedarikci sayisini gosterir", () => {
     renderSupplierTab([activeSupplier, passiveSupplier]);
-    expect(screen.getByText(/buyera asistans ozel tedarikci/i)).toBeInTheDocument();
+    expect(screen.getByText(/Buyera Asistans Özel Tedarikçi/)).toBeInTheDocument();
   });
 });

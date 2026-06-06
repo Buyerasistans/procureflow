@@ -68,9 +68,9 @@ export default function SolutionsPage() {
         </section>
 
         <div className="sp-cta-row">
-          <a href="/teklifler" className="sp-cta--primary">Teklifler Akisina Git</a>
-          <a href="/tedarikciler" className="sp-cta--secondary">Tedarikciler Sayfasina Git</a>
-          <a href="/stratejik-ortaklik" className="sp-cta--secondary">Stratejik Partnerlik Sayfas?na Git</a>
+          <a href="/teklifler" className="sp-cta--primary">Teklifler Akışına Git</a>
+          <a href="/tedarikciler" className="sp-cta--secondary">Tedarikçiler Sayfasına Git</a>
+          <a href="/stratejik-ortaklik" className="sp-cta--secondary">Stratejik Partnerlik Sayfasına Git</a>
         </div>
       </section>
       </main>

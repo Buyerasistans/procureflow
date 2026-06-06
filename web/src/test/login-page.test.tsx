@@ -33,8 +33,8 @@ describe("LoginPage", () => {
     renderWithAuth({ user: null, loading: false, login: vi.fn(), logout: vi.fn() });
 
     expect(screen.getByRole("button", { name: /stratejik partner girisi/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /tedarikci girisi/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /is ortagi girisi/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Tedarikçi Girişi/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /İş Ortağı Girişi/ })).toBeInTheDocument();
   });
 
   test("Stratejik Partner Girisi butonuna tiklaninca doğru yola gider", async () => {

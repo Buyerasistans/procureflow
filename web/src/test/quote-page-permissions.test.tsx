@@ -249,7 +249,7 @@ describe("Quote page permissions", () => {
 
     renderQuoteList();
 
-    expect(await screen.findByText(/platform personeli teklif portfoyunu inceleyebilir/i)).toBeInTheDocument();
+    expect(await screen.findByText(/platform personeli teklif portföyünü inceleyebilir/i)).toBeInTheDocument();
     expect(screen.getByText(/readonly quote/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /goruntule/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /yeni teklif/i })).not.toBeInTheDocument();
@@ -280,7 +280,7 @@ describe("Quote page permissions", () => {
 
     await waitFor(() => expect(screen.getByText(/readonly quote/i)).toBeInTheDocument());
     expect(screen.getByText("RFQ #5 • Teklif ID: 5 • V1")).toBeInTheDocument();
-    expect(screen.getByText(/salt okunur modda kapatildi/i)).toBeInTheDocument();
+    expect(screen.getByText(/salt okunur modda kapatıldı/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /duzenle/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /onaya gonder/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^sil$/i })).not.toBeInTheDocument();
@@ -534,9 +534,9 @@ describe("Quote page permissions", () => {
 
     renderQuoteComparisonReportPage();
 
-    expect(await screen.findByText(/karsilastirma raporu/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Karşılaştırma Raporu/)).toBeInTheDocument();
     expect(screen.getByText("Readonly Quote • RFQ #5 • Teklif #5")).toBeInTheDocument();
-    expect(screen.getByText(/salt okunur modda kapatildi/i)).toBeInTheDocument();
+    expect(screen.getByText(/salt okunur modda kapatıldı/i)).toBeInTheDocument();
     expect(screen.queryByText(/işlem/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /iş onayı ver/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(2);

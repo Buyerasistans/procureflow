@@ -109,7 +109,7 @@ export default function PricingPlansPage() {
           </section>
 
           <section id="tedarikci" className="ppp-section">
-            <h2 className="ppp-section-h2">Tedarikci Planlari</h2>
+            <h2 className="ppp-section-h2">Tedarikçi Planları</h2>
             <div className="ppp-plan-grid">
               {config.supplier.plans.map((p, i) => (
                 <article key={p.code} className={i === 1 ? "ppp-card ppp-card--featured-supplier" : "ppp-card"}>

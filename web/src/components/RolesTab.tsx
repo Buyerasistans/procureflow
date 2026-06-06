@@ -272,7 +272,7 @@ export function RolesTab({
       <div>
         {readOnly ? (
           <div className="roles-tab__panel roles-tab__panel--readonly">
-            Platform personeli rol hiyerarsisini inceleyebilir; yeni rol ekleme, duzenleme ve silme aksiyonlari bu yüzeyde kapatildi.
+            Platform personeli rol hiyerarşisini inceleyebilir; yeni rol ekleme, düzenleme ve silme aksiyonları bu yüzeyde kapatıldı.
           </div>
         ) : null}
 
