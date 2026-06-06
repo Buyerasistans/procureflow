@@ -3158,10 +3158,18 @@ def _is_deleted_user(u: "User | None") -> bool:
 
 
 def _is_valid_company_owner(u: "User | None") -> bool:
-    """Kullanıcı firma yetkilisi olabilecek admin seviyesinde mi?"""
+    """Kullanıcı firma yetkilisi olabilecek seviyede mi?
+    Kabul: system_role admin VEYA Lvl 0 (hierarchy_level==0) rol ataması."""
     if u is None or _is_deleted_user(u):
         return False
-    return (u.system_role or "").lower() in ("super_admin", "tenant_owner", "tenant_admin")
+    sr = (u.system_role or "").lower()
+    if sr in ("super_admin", "tenant_owner", "tenant_admin"):
+        return True
+    # Lvl 0 rol ataması (Partner Admin, Firma Admin vb.) varsa yetkili sayılır
+    for cr in getattr(u, "company_roles", None) or []:
+        if cr.is_active and getattr(getattr(cr, "role", None), "hierarchy_level", 99) == 0:
+            return True
+    return False
 
 
 def _serialize_company(
@@ -3172,19 +3180,9 @@ def _serialize_company(
     owner_email: str | None = None
     owner_user: User | None = None
 
-    if (
-        company.tenant is not None
-        and getattr(company.tenant, "owner_user", None) is not None
-        and _is_valid_company_owner(company.tenant.owner_user)
-    ):
-        owner_user = company.tenant.owner_user
-    elif company.tenant_id is not None:
-        tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-        candidate = tenant.owner_user if tenant else None
-        if _is_valid_company_owner(candidate):
-            owner_user = candidate
-
-    if owner_user is None and company.created_by_id is not None:
+    # Yalnızca şirkete özgü created_by_id kullanılır — tenant.owner_user kullanılmaz
+    # (tenant.owner_user tüm alt şirketlere bulaşır; her şirketin kendi yetkilisi olmalı)
+    if company.created_by_id is not None:
         candidate = db.query(User).filter(User.id == company.created_by_id).first()
         if _is_valid_company_owner(candidate):
             owner_user = candidate
@@ -4886,19 +4884,8 @@ async def list_companies(
         owner_email: str | None = None
         owner_user: User | None = None
 
-        if (
-            company.tenant is not None
-            and getattr(company.tenant, "owner_user", None) is not None
-            and _is_valid_company_owner(company.tenant.owner_user)
-        ):
-            owner_user = company.tenant.owner_user
-        elif company.tenant_id is not None:
-            tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-            candidate = tenant.owner_user if tenant else None
-            if _is_valid_company_owner(candidate):
-                owner_user = candidate
-
-        if owner_user is None and company.created_by_id is not None:
+        # Yalnızca şirkete özgü created_by_id — tenant.owner_user fallback yok
+        if company.created_by_id is not None:
             candidate = db.query(User).filter(User.id == company.created_by_id).first()
             if _is_valid_company_owner(candidate):
                 owner_user = candidate
@@ -7015,13 +7002,34 @@ async def get_company_candidate_owners(
 
     if tenant_id is not None:
         admin_roles = ["tenant_owner", "tenant_admin"]
+
+        # system_role admin olan kullanıcılar
         tenant_admins = (
             base_q
             .filter(User.tenant_id == tenant_id, User.system_role.in_(admin_roles))
-            .order_by(User.full_name)
             .all()
         )
-        return _serialize(tenant_admins)
+
+        # Lvl 0 rol ataması olan kullanıcılar (Partner Admin, Firma Admin vb.)
+        lvl0_users = (
+            base_q
+            .join(CompanyRole, CompanyRole.user_id == User.id)
+            .join(Role, Role.id == CompanyRole.role_id)
+            .filter(
+                User.tenant_id == tenant_id,
+                CompanyRole.is_active.is_(True),
+                Role.hierarchy_level == 0,
+            )
+            .distinct()
+            .all()
+        )
+
+        # Birleştir, tekrar önle
+        merged: dict[int, User] = {u.id: u for u in tenant_admins}
+        for u in lvl0_users:
+            merged.setdefault(u.id, u)
+
+        return _serialize(list(merged.values()))
 
     return []
 

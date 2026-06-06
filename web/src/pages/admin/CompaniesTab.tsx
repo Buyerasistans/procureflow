@@ -190,20 +190,26 @@ export function CompaniesTab({
 
   const responsibleByCompanyId = useMemo(() => {
     const map = new Map<number, { label: string; score: number }>();
-    const resolveAdminScore = (person: TenantUser): number | null => {
+    // Atama bazında skor: kişi + atama kombinasyonuna göre
+    const resolveAssignmentScore = (
+      person: TenantUser,
+      assignment: NonNullable<TenantUser["company_assignments"]>[number],
+    ): number | null => {
       const sr = String(person.system_role || "").trim().toLowerCase();
       if (sr === "super_admin" || sr === "tenant_owner") return 0;
       if (sr === "tenant_admin") return 1;
-      return null; // tenant_member ve diğerleri yetkili sayılmaz
+      // Bu atamada Lvl 0 rol var mı? (Partner Admin, Firma Admin vb.)
+      if ((assignment.role?.hierarchy_level ?? 99) === 0) return 2;
+      return null; // diğer üyeler yetkili sayılmaz
     };
     [...personnel, ...channelUsers].forEach((person) => {
       if (!person.is_active) return;
       const personLabel = person.full_name || person.email || "-";
       if (isDeletedPersonValue(personLabel) || isDeletedPersonValue(person.email)) return;
-      const score = resolveAdminScore(person);
-      if (score === null) return; // admin olmayan → yetkili değil
       (person.company_assignments || []).forEach((assignment) => {
         if (!assignment.is_active) return;
+        const score = resolveAssignmentScore(person, assignment);
+        if (score === null) return;
         const current = map.get(assignment.company_id);
         if (!current || score < current.score || (score === current.score && personLabel.localeCompare(current.label, "tr") < 0)) {
           map.set(assignment.company_id, { label: personLabel, score });
@@ -231,7 +237,13 @@ export function CompaniesTab({
     if (company.created_by_id && peopleById.has(company.created_by_id)) {
       const creator = peopleById.get(company.created_by_id);
       const label = creator?.full_name || creator?.email || "";
-      if (creator?.is_active && !isDeletedPersonValue(label) && !isDeletedPersonValue(creator?.email)) return label;
+      if (creator?.is_active && !isDeletedPersonValue(label) && !isDeletedPersonValue(creator?.email)) {
+        // Sadece admin veya Lvl 0 rol atanmış kişiler yetkili sayılır
+        const sr = String(creator?.system_role || "").trim().toLowerCase();
+        const isAdminCreator = sr === "tenant_admin" || sr === "tenant_owner" || sr === "super_admin"
+          || (creator?.company_assignments || []).some((a) => a.is_active && (a.role?.hierarchy_level ?? 99) === 0);
+        if (isAdminCreator) return label;
+      }
     }
     if (company.owner_email && !isDeletedPersonValue(company.owner_email)) return company.owner_email;
     if (company.contact_info) return company.contact_info;
