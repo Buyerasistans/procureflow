@@ -104,6 +104,7 @@ class PanelThemeResponse(BaseModel):
     updatedAt: str | None
     updatedBy: str | None
     segments: dict[str, Any]
+    canEdit: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +121,23 @@ def _get_or_create_theme(db: Session) -> PanelThemeSetting:
     return setting
 
 
-def _build_response(setting: PanelThemeSetting, db: Session) -> PanelThemeResponse:
+def _has_panel_design_permission_bool(current_user: User, db: Session) -> bool:
+    """True iff user is super_admin OR holds panel_design.edit permission."""
+    if is_super_admin(current_user):
+        return True
+    return bool(
+        db.query(Permission)
+        .join(Permission.roles)
+        .join(Role.company_roles)
+        .filter(
+            CompanyRole.user_id == current_user.id,
+            Permission.name == "panel_design.edit",
+        )
+        .first()
+    )
+
+
+def _build_response(setting: PanelThemeSetting, db: Session, can_edit: bool = True) -> PanelThemeResponse:
     updated_by_email: str | None = None
     if setting.updated_by_id is not None:
         user = db.query(User).filter(User.id == setting.updated_by_id).first()
@@ -141,6 +158,7 @@ def _build_response(setting: PanelThemeSetting, db: Session) -> PanelThemeRespon
         updatedAt=updated_at_str,
         updatedBy=updated_by_email,
         segments=segments,
+        canEdit=can_edit,
     )
 
 
@@ -213,7 +231,8 @@ def get_panel_theme(
 ):
     """Panel teması override'larını döner. Boş segments = kod varsayılanları geçerli."""
     setting = _get_or_create_theme(db)
-    return _build_response(setting, db)
+    can_edit = _has_panel_design_permission_bool(current_user, db)
+    return _build_response(setting, db, can_edit=can_edit)
 
 
 @router.put("/panel-theme", response_model=PanelThemeResponse)

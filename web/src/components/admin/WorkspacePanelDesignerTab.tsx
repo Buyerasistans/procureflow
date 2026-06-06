@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ACCENT_COLOR_PRESETS,
@@ -14,6 +14,10 @@ import {
 import type { AuthUser } from "../../context/auth-types";
 import type { TenantUser, WorkspacePanelConfig, WorkspacePanelProfile } from "../../services/admin.service";
 import "./WorkspacePanelDesignerTab.css";
+import { getAccessToken } from "../../lib/token";
+import { PANEL_COLORS, resolvePanelColors, publishPanelTheme } from "../../admin/panel-colors";
+import type { SegmentKey, PanelThemeOverrides } from "../../admin/panel-colors";
+import { isSuperAdminUser } from "../../auth/permissions";
 
 type Props = {
   config: WorkspacePanelConfig;
@@ -86,6 +90,40 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
   const dragTabIndexRef = useRef<number | null>(null);
   const dragLinkIndexRef = useRef<number | null>(null);
   const isSelfMode = mode === "self";
+
+  // ── Renk Şeması Durumu ────────────────────────────────────────────────────
+  type ColorField = 'accent' | 'accentDark' | 'accentTint' | 'chipBg' | 'secondary' | 'onAccent';
+  const [colorDraft, setColorDraft] = useState<PanelThemeOverrides>({});
+  const [colorLoadStatus, setColorLoadStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [canEditColors, setCanEditColors] = useState<boolean>(() => isSuperAdminUser(currentUser));
+  const [colorSaveStatus, setColorSaveStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle');
+  const [colorSaveMsg, setColorSaveMsg] = useState<string | null>(null);
+
+  const resolvedColors = useMemo(() => resolvePanelColors(colorDraft), [colorDraft]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const apiBase = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+    setColorLoadStatus('loading');
+    fetch(`${apiBase}/api/v1/admin/panel-theme`, {
+      headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<{ segments: PanelThemeOverrides; canEdit: boolean }>;
+      })
+      .then((data) => {
+        setColorDraft(data.segments ?? {});
+        setCanEditColors(Boolean(data.canEdit));
+        setColorLoadStatus('done');
+      })
+      .catch((err: unknown) => {
+        if ((err as { name?: string }).name !== 'AbortError') setColorLoadStatus('error');
+      });
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedProfile = draft.profiles[selectedIndex] || null;
   const selectedMenuStyle = normalizeMenuStyle(selectedProfile?.menu_style);
@@ -557,6 +595,57 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
     anchor.click();
     URL.revokeObjectURL(url);
   }
+
+  const updateColorField = useCallback((segKey: SegmentKey, field: ColorField, value: string | null) => {
+    setColorDraft((prev) => {
+      const prevSeg = prev[segKey] || {};
+      if (value === null || value === '') {
+        const nextSeg = Object.fromEntries(Object.entries(prevSeg).filter(([k]) => k !== field));
+        return { ...prev, [segKey]: nextSeg as PanelThemeOverrides[SegmentKey] };
+      }
+      return { ...prev, [segKey]: { ...prevSeg, [field]: value } };
+    });
+  }, []);
+
+  const resetSegmentColors = useCallback((segKey: SegmentKey) => {
+    setColorDraft((prev) => {
+      const next = { ...prev };
+      delete next[segKey];
+      return next;
+    });
+  }, []);
+
+  const saveColorTheme = useCallback(async () => {
+    const apiBase = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+    setColorSaveStatus('saving');
+    setColorSaveMsg(null);
+    try {
+      const res = await fetch(`${apiBase}/api/v1/admin/panel-theme`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAccessToken() ?? ''}`,
+        },
+        body: JSON.stringify({ segments: colorDraft }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { detail?: string };
+        throw new Error(err.detail ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as { segments: PanelThemeOverrides };
+      setColorDraft(data.segments ?? {});
+      publishPanelTheme(colorDraft);
+      setColorSaveStatus('ok');
+      setColorSaveMsg('Renk şeması kaydedildi ve yayınlandı.');
+    } catch (e) {
+      setColorSaveStatus('error');
+      setColorSaveMsg(`Kayıt hatası: ${String(e)}`);
+    }
+    window.setTimeout(() => {
+      setColorSaveStatus('idle');
+      setColorSaveMsg(null);
+    }, 3200);
+  }, [colorDraft]);
 
   function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -1432,6 +1521,150 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
             </>
           )}
         </div>
+      </div>
+
+      {/* ── Renk Şeması Kartı ─────────────────────────────────────────────── */}
+      <div className="wpd-card pcs-root">
+        <div className="wpd-eyebrow">Renk Şeması</div>
+        <div className="wpd-page-title">Segment Renk Ayarları</div>
+        <div className="wpd-page-copy">
+          Her segment için ana renk, koyu ton, açık zemin ve ikincil rengi özelleştirin.
+          Değişiklikler "Kaydet ve Yayınla" sonrası tüm panellere anında yansır.
+        </div>
+        {colorLoadStatus === 'loading' && (
+          <div className="wpd-empty">Renk ayarları yükleniyor…</div>
+        )}
+        {colorLoadStatus === 'error' && (
+          <div role="alert" className="wpd-alert-error">Renk ayarları yüklenemedi. Sayfayı yenileyin.</div>
+        )}
+        {colorLoadStatus === 'done' && !canEditColors && (
+          <div className="pcs-readonly-note">
+            Bu bölümü düzenlemek için yetki gerekli (Super Admin veya <strong>panel_design.edit</strong> izni).
+          </div>
+        )}
+        {colorLoadStatus === 'done' && (
+          <>
+            <div className="pcs-segments">
+              {(Object.keys(PANEL_COLORS) as SegmentKey[]).map((segKey) => {
+                const defaults = PANEL_COLORS[segKey];
+                const resolved = resolvedColors[segKey];
+                const override = colorDraft[segKey] || {};
+                const hasOverride = Object.keys(override).length > 0;
+                return (
+                  <div key={segKey} className="pcs-segment-card">
+                    <div className="pcs-segment-head">
+                      <div className="pcs-segment-info">
+                        <div className="pcs-swatches" aria-hidden="true">
+                          <svg className="pcs-swatch" width="24" height="24" viewBox="0 0 24 24" title={`Accent: ${resolved.accent}`}>
+                            <rect width="24" height="24" rx="5" fill={resolved.accent} />
+                          </svg>
+                          <svg className="pcs-swatch pcs-swatch--sm" width="16" height="24" viewBox="0 0 16 24" title={`Koyu: ${resolved.accentDark}`}>
+                            <rect width="16" height="24" rx="4" fill={resolved.accentDark} />
+                          </svg>
+                          <svg className="pcs-swatch pcs-swatch--sm" width="16" height="24" viewBox="0 0 16 24" title={`Tint: ${resolved.accentTint}`}>
+                            <rect width="16" height="24" rx="4" fill={resolved.accentTint} stroke="rgba(15,23,42,0.08)" strokeWidth="1" />
+                          </svg>
+                          {resolved.secondary && (
+                            <svg className="pcs-swatch pcs-swatch--sm" width="16" height="24" viewBox="0 0 16 24" title={`İkincil: ${resolved.secondary}`}>
+                              <rect width="16" height="24" rx="4" fill={resolved.secondary} />
+                            </svg>
+                          )}
+                          <svg className="pcs-swatch pcs-swatch--on" width="32" height="24" viewBox="0 0 32 24" title={`Üst metin: ${resolved.onAccent}`}>
+                            <rect width="32" height="24" rx="5" fill={resolved.accent} />
+                            <text x="16" y="17" textAnchor="middle" fill={resolved.onAccent} fontSize="11" fontWeight="700">Aa</text>
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="pcs-seg-name">{defaults.label}</div>
+                          <div className="pcs-seg-key">{segKey}{hasOverride ? ' · özel' : ''}</div>
+                        </div>
+                      </div>
+                      {hasOverride && (
+                        <button
+                          type="button"
+                          onClick={() => resetSegmentColors(segKey)}
+                          disabled={!canEditColors}
+                          className="wpd-button wpd-button--warning pcs-reset-btn"
+                        >
+                          Varsayılana Dön
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="pcs-color-fields">
+                      {([
+                        { field: 'accent', label: 'Accent (Ana Renk)' },
+                        { field: 'accentDark', label: 'Koyu (Gradient / Derinlik)' },
+                        { field: 'accentTint', label: 'Tint (Açık Zemin)' },
+                        { field: 'onAccent', label: 'Üst Metin Rengi' },
+                      ] as const).map(({ field, label }) => {
+                        const val = (override[field] as string | undefined) ?? defaults[field];
+                        return (
+                          <label key={field} className="wpd-field">
+                            <span className="wpd-field-label">{label}</span>
+                            <div className="wpd-color-field-row">
+                              <input
+                                type="color"
+                                value={val.slice(0, 7)}
+                                disabled={!canEditColors}
+                                onChange={(e) => updateColorField(segKey, field, e.target.value)}
+                                className="wpd-color-input wpd-color-input--large"
+                                aria-label={`${defaults.label} ${label}`}
+                              />
+                              <input
+                                value={val}
+                                disabled={!canEditColors}
+                                onChange={(e) => updateColorField(segKey, field, e.target.value || null)}
+                                placeholder={defaults[field]}
+                                className="wpd-input"
+                              />
+                            </div>
+                          </label>
+                        );
+                      })}
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">İkincil Renk</span>
+                        <div className="wpd-color-field-row">
+                          <input
+                            type="color"
+                            value={((override.secondary as string | null | undefined) ?? defaults.secondary ?? '#9ca3af').slice(0, 7)}
+                            disabled={!canEditColors}
+                            onChange={(e) => updateColorField(segKey, 'secondary', e.target.value)}
+                            className="wpd-color-input wpd-color-input--large"
+                            aria-label={`${defaults.label} ikincil renk`}
+                          />
+                          <input
+                            value={(override.secondary as string | null | undefined) ?? defaults.secondary ?? ''}
+                            disabled={!canEditColors}
+                            onChange={(e) => updateColorField(segKey, 'secondary', e.target.value || null)}
+                            placeholder={defaults.secondary ?? 'Yok (varsayılan)'}
+                            className="wpd-input"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="wpd-actions">
+              <button
+                type="button"
+                onClick={() => void saveColorTheme()}
+                disabled={!canEditColors || colorSaveStatus === 'saving'}
+                className="wpd-button wpd-button--primary"
+              >
+                {colorSaveStatus === 'saving' ? 'Kaydediliyor…' : 'Kaydet ve Yayınla'}
+              </button>
+            </div>
+            {colorSaveMsg && (
+              <div role="alert" className={colorSaveStatus === 'error' ? 'wpd-alert-error' : 'wpd-apply-message'}>
+                {colorSaveMsg}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );
