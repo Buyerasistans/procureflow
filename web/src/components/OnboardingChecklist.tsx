@@ -4,9 +4,11 @@
  * Tüm adımlar tamamlandığında veya kullanıcı ertelediğinde gizlenir.
  */
 import { useState, useMemo, useEffect } from "react";
+import type { CSSProperties } from "react";
 import type { AuthUser } from "../context/auth-types";
 import { getCompanies, getTenantUsers, getAdminSuppliers, type Company, type TenantUser } from "../services/admin.service";
 import { getQuotes } from "../services/quote.service";
+import "./OnboardingChecklist.css";
 
 const DOCS_BASE = "https://buyerasistans.info/docs";
 const SNOOZE_DAYS = 7;
@@ -364,38 +366,20 @@ export default function OnboardingChecklist({ user }: OnboardingChecklistProps) 
   };
 
   return (
-    <div
-      style={{
-        borderRadius: 20,
-        border: "1px solid #fde68a",
-        background: "linear-gradient(135deg, #fffbeb 0%, #fef9c3 100%)",
-        padding: "18px 22px",
-        boxShadow: "0 8px 24px rgba(251, 191, 36, 0.12)",
-        marginBottom: 24,
-      }}
-    >
-      {/* Başlık */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+    <div className="oc-card">
+      <div className="oc-header">
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#92400e", marginBottom: 4 }}>
-            Başlangıç Rehberi
-          </div>
-          <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a" }}>
-            🎉 Hesabınız aktive edildi! Birkaç adımı tamamlayın.
-          </div>
+          <div className="oc-header__eyebrow">Başlangıç Rehberi</div>
+          <div className="oc-header__title">🎉 Hesabınız aktive edildi! Birkaç adımı tamamlayın.</div>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button
-            type="button"
-            onClick={() => setCollapsed((v) => !v)}
-            style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #fcd34d", background: "white", color: "#92400e", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
-          >
+        <div className="oc-header__actions">
+          <button type="button" onClick={() => setCollapsed((v) => !v)} className="oc-btn">
             {collapsed ? "Göster ▼" : "Gizle ▲"}
           </button>
           <button
             type="button"
             onClick={handleSnooze}
-            style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #fcd34d", background: "white", color: "#92400e", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+            className="oc-btn"
             title={`${SNOOZE_DAYS} gün boyunca gizle`}
           >
             Sonraya Bırak
@@ -403,94 +387,52 @@ export default function OnboardingChecklist({ user }: OnboardingChecklistProps) 
         </div>
       </div>
 
-      {/* İlerleme çubuğu */}
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ flex: 1, height: 8, borderRadius: 999, background: "#fde68a", overflow: "hidden" }}>
+      <div className="oc-progress">
+        <div className="oc-progress__track">
           <div
-            style={{
-              height: "100%",
-              width: `${progressPct}%`,
-              background: "linear-gradient(90deg, #f59e0b, #d97706)",
-              borderRadius: 999,
-              transition: "width 0.4s ease",
-            }}
+            className="oc-progress__fill"
+            style={{ "--oc-fill-w": `${progressPct}%` } as CSSProperties}
           />
         </div>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e", whiteSpace: "nowrap" }}>
-          {doneCount}/{steps.length} tamamlandı
-        </div>
+        <div className="oc-progress__label">{doneCount}/{steps.length} tamamlandı</div>
       </div>
 
-      {/* Adım listesi */}
       {!collapsed && (
-        <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
+        <div className="oc-steps">
           {steps.map((step) => {
             const isDone = effectiveCompleted.has(step.id);
             const isVerifiedDone = verifiedCompleted.has(step.id);
             return (
               <div
                 key={step.id}
-                style={{
-                  borderRadius: 14,
-                  border: `1px solid ${isDone ? "#bbf7d0" : "#fde68a"}`,
-                  background: isDone ? "#f0fdf4" : "white",
-                  padding: "12px 14px",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 12,
-                  transition: "background 0.2s",
-                }}
+                className={`oc-step${isDone ? " oc-step--done" : ""}`}
               >
-                {/* Checkbox */}
                 <button
                   type="button"
                   onClick={() => handleToggle(step.id)}
                   aria-label={isDone ? "Tamamlandı olarak işaretle (geri al)" : "Tamamlandı olarak işaretle"}
                   disabled={isVerifiedDone}
-                  style={{
-                    flexShrink: 0,
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
-                    border: `2px solid ${isDone ? "#22c55e" : "#fcd34d"}`,
-                    background: isDone ? "#22c55e" : "white",
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: isVerifiedDone ? "not-allowed" : "pointer",
-                    opacity: isVerifiedDone ? 0.75 : 1,
-                    fontSize: 13,
-                    fontWeight: 800,
-                    marginTop: 2,
-                  }}
+                  className={`oc-step__check${isDone ? " oc-step__check--done" : ""}${isVerifiedDone ? " oc-step__check--locked" : ""}`}
                 >
                   {isDone ? "✓" : ""}
                 </button>
 
-                {/* İçerik */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, color: isDone ? "#15803d" : "#0f172a", fontSize: 14, textDecoration: isDone ? "line-through" : "none" }}>
+                <div className="oc-step__body">
+                  <div className={`oc-step__title${isDone ? " oc-step__title--done" : ""}`}>
                     {step.title}
                   </div>
                   {isVerifiedDone && (
-                    <div style={{ color: "#15803d", fontSize: 11, fontWeight: 700, marginTop: 2 }}>
-                      Sistem tarafından doğrulandı
-                    </div>
+                    <div className="oc-step__verified">Sistem tarafından doğrulandı</div>
                   )}
                   {!isDone && (
-                    <div style={{ color: "#64748b", fontSize: 12, marginTop: 2 }}>{step.description}</div>
+                    <div className="oc-step__desc">{step.description}</div>
                   )}
                 </div>
 
-                {/* Aksiyonlar */}
                 {!isDone && (
-                  <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
+                  <div className="oc-step__actions">
                     {step.actionPath && step.actionLabel && (
-                      <a
-                        href={step.actionPath}
-                        style={{ padding: "5px 10px", borderRadius: 8, border: "none", background: "#f59e0b", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 12, textDecoration: "none", display: "inline-block" }}
-                      >
+                      <a href={step.actionPath} className="oc-step__action-btn">
                         {step.actionLabel}
                       </a>
                     )}
@@ -498,7 +440,7 @@ export default function OnboardingChecklist({ user }: OnboardingChecklistProps) 
                       href={`${DOCS_BASE}/${step.docSlug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ padding: "5px 10px", borderRadius: 8, border: "1px solid #fcd34d", background: "white", color: "#92400e", fontWeight: 700, fontSize: 12, textDecoration: "none", display: "inline-block" }}
+                      className="oc-step__doc-link"
                       title="Nasıl yapılır kılavuzunu aç"
                     >
                       Nasıl?
@@ -511,17 +453,16 @@ export default function OnboardingChecklist({ user }: OnboardingChecklistProps) 
         </div>
       )}
 
-      {/* Alt bilgi */}
       {!collapsed && (
-        <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-          <div style={{ color: "#92400e", fontSize: 12 }}>
+        <div className="oc-footer">
+          <div className="oc-footer__hint">
             Tüm adımları tamamladıktan sonra bu panel otomatik kapanır.
           </div>
           <a
             href={`${DOCS_BASE}/aktivasyon`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#d97706", fontSize: 12, fontWeight: 700, textDecoration: "underline" }}
+            className="oc-footer__link"
           >
             Tam Başlangıç Kılavuzu →
           </a>

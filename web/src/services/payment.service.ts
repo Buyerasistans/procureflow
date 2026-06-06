@@ -194,3 +194,19 @@ export async function getMyTenantPremiumPurchaseContext(): Promise<TenantPremium
   const response = await http.get<TenantPremiumPurchaseContext>("/onboarding/my-tenant-premium-context");
   return response.data;
 }
+
+export interface AddonStatus {
+  addon_code: string;
+  addon_status: "active" | null;
+  request_pending: boolean;
+}
+
+export async function getMyAddonStatus(addonCode = "dual_role_portal"): Promise<AddonStatus> {
+  const response = await http.get<AddonStatus>("/billing/my-addon-status", { params: { addon_code: addonCode } });
+  return response.data;
+}
+
+export async function submitAddonRequest(notes?: string): Promise<{ id: number; addon_code: string; status: string }> {
+  const response = await http.post<{ id: number; addon_code: string; status: string }>("/billing/my-addon-request", { notes: notes ?? null });
+  return response.data;
+}

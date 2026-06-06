@@ -44,7 +44,17 @@ const PersonnelProfileEditorPage = lazy(() => import("./pages/PersonnelProfileEd
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
 const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
+const JobCreatePage = lazy(() => import("./pages/JobCreatePage"));
+const SatinAlmaKariyerimPage = lazy(() => import("./pages/SatinAlmaKariyerimPage"));
+const IsverenPozisyonlariPage = lazy(() => import("./pages/IsverenPozisyonlariPage"));
+const IsIlanlariPage = lazy(() => import("./pages/IsIlanlariPage"));
 const TalentProfilePage = lazy(() => import("./pages/TalentProfilePage"));
+const TalentPublicProfilePage = lazy(() => import("./pages/TalentPublicProfilePage"));
+const IsverenGirisPage = lazy(() => import("./pages/IsverenGirisPage"));
+const IsArayanGirisPage = lazy(() => import("./pages/IsArayanGirisPage"));
+const RoleLandingPage = lazy(() => import("./pages/RoleLandingPage"));
+const CandidatePoolPage = lazy(() => import("./pages/CandidatePoolPage"));
+const KampanyaDetailPage = lazy(() => import("./pages/KampanyaDetailPage"));
 const PayoutAdminPage = lazy(() => import("./pages/PayoutAdminPage"));
 const TalentAdminControlPage = lazy(() => import("./pages/TalentAdminControlPage"));
 const DepartmentDetailPage = lazy(() => import("./pages/DepartmentDetailPage"));
@@ -60,6 +70,14 @@ const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const PublicPricingAdminPage = lazy(() => import("./pages/PublicPricingAdminPage"));
 const ReferralLandingPage = lazy(() => import("./pages/ReferralLandingPage.tsx"));
 const KnowledgeLandingPage = lazy(() => import("./pages/KnowledgeLandingPage"));
+const ViewAsPage = lazy(() => import("./pages/ViewAsPage"));
+const ViewAsSupplierPage = lazy(() => import("./pages/ViewAsSupplierPage"));
+const RoleMatrixPage = lazy(() => import("./pages/RoleMatrixPage"));
+const SocialAuthCallbackPage = lazy(() => import("./pages/SocialAuthCallbackPage"));
+const GizlilikPolitikasiPage    = lazy(() => import("./pages/GizlilikPolitikasiPage"));
+const KullanimKosullariPage     = lazy(() => import("./pages/KullanimKosullariPage"));
+const IadeVeOdemePolitikasiPage = lazy(() => import("./pages/IadeVeOdemePolitikasiPage"));
+const CerezPolitikasiPage       = lazy(() => import("./pages/CerezPolitikasiPage"));
 
 function LegacyPublicRedirect({ to }: { to: string }) {
   const location = useLocation();
@@ -71,7 +89,7 @@ function LegacyPublicRedirect({ to }: { to: string }) {
 function RouteFallback() {
   return (
     <div
-      style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#475569", fontSize: 14 }}
+      className="route-fallback"
       role="status"
       aria-live="polite"
     >
@@ -128,10 +146,32 @@ export default function App() {
           <Route path="/supplier/:code" element={<ReferralLandingPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/activate-account" element={<InternalUserActivationPage />} />
+          <Route path="/auth/social/callback" element={<SocialAuthCallbackPage />} />
+          <Route path="/gizlilik-politikasi"      element={<GizlilikPolitikasiPage />} />
+          <Route path="/kullanim-kosullari"       element={<KullanimKosullariPage />} />
+          <Route path="/iade-ve-odeme-politikasi" element={<IadeVeOdemePolitikasiPage />} />
+          <Route path="/cerez-politikasi"         element={<CerezPolitikasiPage />} />
+          <Route path="/view-as" element={<ViewAsPage />} />
+          <Route path="/view-as-supplier" element={<ViewAsSupplierPage />} />
+          <Route path="/rol-matrisi" element={<RoleMatrixPage />} />
           <Route path="/supplier/login" element={<SupplierLoginPage />} />
           <Route path="/supplier/register" element={<SupplierRegisterPage />} />
           <Route path="/employer/register" element={<EmployerRegisterPage />} />
           <Route path="/candidate/register" element={<CandidateRegisterPage />} />
+          <Route path="/satin-alma-kariyerim" element={<SatinAlmaKariyerimPage />} />
+          <Route path="/isveren-pozisyonlari" element={<IsverenPozisyonlariPage />} />
+          <Route path="/is-ilanlari" element={<IsIlanlariPage />} />
+          <Route path="/talent/:id" element={<TalentPublicProfilePage />} />
+          <Route path="/isveren-giris" element={<IsverenGirisPage />} />
+          <Route path="/is-arayan-giris" element={<IsArayanGirisPage />} />
+          <Route path="/is-arayanlar" element={<CandidatePoolPage />} />
+          <Route path="/kampanya/:slug" element={<KampanyaDetailPage />} />
+          <Route path="/neden-stratejik-ortak" element={<RoleLandingPage pageKey="stratejik-ortak" />} />
+          <Route path="/neden-tedarikci" element={<RoleLandingPage pageKey="tedarikci" />} />
+          <Route path="/cift-rol" element={<RoleLandingPage pageKey="cift-rol" />} />
+          <Route path="/neden-is-ortagi" element={<RoleLandingPage pageKey="is-ortagi" />} />
+          <Route path="/neden-isveren" element={<RoleLandingPage pageKey="isveren" />} />
+          <Route path="/neden-is-arayan" element={<RoleLandingPage pageKey="is-arayan" />} />
           <Route path="/supplier/email-change-confirm" element={<SupplierEmailChangeConfirmPage />} />
 
           <Route element={<SupplierRoute />}>
@@ -146,6 +186,7 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/jobs" element={<JobsPage />} />
+              <Route path="/jobs/new" element={<JobCreatePage />} />
               <Route path="/jobs/:id" element={<JobDetailPage />} />
               <Route path="/talent/profile" element={<TalentProfilePage />} />
               <Route path="/admin/payout-requests" element={<PayoutAdminPage />} />

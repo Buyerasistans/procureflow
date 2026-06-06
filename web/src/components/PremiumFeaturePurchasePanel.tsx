@@ -250,7 +250,7 @@ export default function PremiumFeaturePurchasePanel({
     <div className="premium-feature-purchase-panel">
       <div className="premium-feature-purchase-panel__header">
         <div className="premium-feature-purchase-panel__eyebrow">Premium Satın Alma</div>
-        <div className="premium-feature-purchase-panel__title">Gerçek ödeme başlatma paneli</div>
+        <div className="premium-feature-purchase-panel__title">Gercek odeme baslatma paneli</div>
         <div className="premium-feature-purchase-panel__description">
           Seçilen stratejik partner için premium feature veya kapasite add-on ödemesini başlatır. Başarılı webhook sonrasında hak otomatik aktifleşir.
         </div>

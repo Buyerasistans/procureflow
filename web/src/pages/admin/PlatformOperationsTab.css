@@ -597,3 +597,407 @@
     width: 100%;
   }
 }
+
+/* ── SLA ve Müdahale Operasyonları — po-* sınıfları ─────────────────────── */
+
+.po-band {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+/* Kuyruk kartları */
+.po-q-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.po-q-card {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid var(--qc, #1d4ed8);
+  background: #fff;
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.po-q-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.po-q-card__label {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--pf-slate-900);
+}
+
+.po-q-card__owner {
+  font-size: 11px;
+  color: var(--pf-slate-500);
+  margin-top: 2px;
+}
+
+.po-q-card__count {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--qc, #1d4ed8);
+  white-space: nowrap;
+}
+
+.po-q-card__bar {
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.po-q-card__fill {
+  height: 100%;
+  background: var(--qc, #1d4ed8);
+  border-radius: 4px;
+  width: var(--fill-w);
+}
+
+.po-q-card__stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--pf-slate-600);
+}
+
+.po-q-card__breach {
+  color: #be123c;
+  font-weight: 700;
+}
+
+/* Müdahale filtresi */
+.po-filter {
+  display: flex;
+  gap: 2px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.po-filter__btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.po-filter__btn.on {
+  background: #fff;
+  color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Müdahale listesi */
+.po-int-list {
+  display: grid;
+  gap: 8px;
+}
+
+.po-int {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 10px 12px;
+}
+
+.po-int--critical { border-left-color: #be123c; background: #fff5f5; }
+.po-int--high     { border-left-color: #b45309; background: #fffbeb; }
+.po-int--medium   { border-left-color: #0369a1; background: #f0f9ff; }
+.po-int--low      { border-left-color: #64748b; background: #f8fafc; }
+
+.po-int__l {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 80px;
+}
+
+.po-int__id {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--pf-slate-700);
+}
+
+.po-int__tag {
+  display: inline-flex;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+.po-int__tag--critical { background: #fecaca; color: #991b1b; }
+.po-int__tag--high     { background: #fde68a; color: #92400e; }
+.po-int__tag--medium   { background: #bae6fd; color: #075985; }
+.po-int__tag--low      { background: #e2e8f0; color: #475569; }
+
+.po-int__body {
+  display: grid;
+  gap: 4px;
+}
+
+.po-int__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pf-slate-900);
+}
+
+.po-int__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--pf-slate-500);
+}
+
+.po-int__r {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.po-int__age {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pf-slate-900);
+  text-align: right;
+}
+
+.po-int__sla-target {
+  font-size: 10px;
+  color: var(--pf-slate-500);
+  text-align: right;
+}
+
+.po-int__action {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--pf-border-color);
+  background: var(--pf-surface);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--pf-color-primary-dark);
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.po-empty {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--pf-slate-50);
+  color: var(--pf-slate-500);
+  font-size: 13px;
+}
+
+/* Operatör kartları */
+.po-assignees {
+  display: grid;
+  gap: 8px;
+}
+
+.po-assignee {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.po-assignee__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.po-assignee__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.po-assignee__meta {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  font-size: 13px;
+}
+
+.po-assignee__meta b {
+  color: var(--pf-slate-900);
+}
+
+.po-assignee__meta span {
+  font-size: 11px;
+  color: var(--pf-slate-500);
+}
+
+.po-assignee__score {
+  font-size: 16px;
+  font-weight: 900;
+  color: #15803d;
+}
+
+.po-assignee__stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--pf-slate-600);
+}
+
+.po-assignee__stats div {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.po-assignee__stats b {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--pf-slate-900);
+}
+
+.po-assignee__bar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.po-assignee__fill {
+  height: 100%;
+  border-radius: 4px;
+  width: var(--fill-w);
+}
+
+.po-assignee__fill--green { background: #16a34a; }
+.po-assignee__fill--amber { background: #b45309; }
+.po-assignee__fill--red   { background: #be123c; }
+
+/* Olay akışı */
+.po-events {
+  display: grid;
+  gap: 0;
+}
+
+.po-event {
+  display: grid;
+  grid-template-columns: 64px 12px 1fr;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.po-event:last-child {
+  border-bottom: 0;
+}
+
+.po-event__time {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  padding-top: 2px;
+}
+
+.po-event__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.po-event--warn     .po-event__dot { background: #f59e0b; }
+.po-event--info     .po-event__dot { background: #0ea5e9; }
+.po-event--success  .po-event__dot { background: #16a34a; }
+.po-event--critical .po-event__dot { background: #be123c; }
+
+.po-event__body {
+  display: grid;
+  gap: 2px;
+}
+
+.po-event__title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--pf-slate-900);
+}
+
+.po-event__source {
+  font-size: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.po-event__action {
+  font-size: 11px;
+  color: var(--pf-slate-600);
+}
+
+.po-event__target {
+  font-size: 11px;
+  color: var(--pf-slate-500);
+}
+
+@media (max-width: 720px) {
+  .po-int {
+    grid-template-columns: 1fr;
+  }
+
+  .po-int__r {
+    align-items: flex-start;
+  }
+
+  .po-q-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,48 @@
+/* TeamPerformanceTable — tpt-* namespace */
+.tpt-empty {
+  color: #9ca3af;
+  font-size: 13px;
+  margin: 0;
+}
+.tpt-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+.tpt-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+.tpt-thead-row {
+  background-color: #f8fafc;
+  text-align: left;
+}
+.tpt-th {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+.tpt-row {
+  border-top: 1px solid #f1f5f9;
+}
+.tpt-td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #111827;
+}
+.tpt-td--inactive {
+  color: #9ca3af;
+}
+.tpt-td--role {
+  font-size: 12px;
+  color: #475569;
+}
+.tpt-td--num {
+  font-size: 12px;
+}
+.tpt-td--score {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f766e;
+}

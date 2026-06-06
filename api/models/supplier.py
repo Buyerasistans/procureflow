@@ -75,6 +75,14 @@ class Supplier(Base):
         String(500), nullable=True
     )  # Logo/Amblem URL'si
 
+    # Çift Rol Köprüsü (Dual-Role: aynı firma hem Tedarikçi hem Stratejik Partner)
+    linked_tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id"), nullable=True, index=True
+    )
+    dual_role_status: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # None | "pending" | "active" | "rejected"
+
     # Durum
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -90,13 +98,21 @@ class Supplier(Base):
     )
 
     # İlişkiler
-    tenant: Mapped["Tenant | None"] = relationship("Tenant", back_populates="suppliers")
+    tenant: Mapped["Tenant | None"] = relationship(
+        "Tenant", foreign_keys=[tenant_id], back_populates="suppliers"
+    )
+    linked_tenant: Mapped["Tenant | None"] = relationship(
+        "Tenant", foreign_keys=[linked_tenant_id], back_populates="linked_as_supplier"
+    )
     created_by: Mapped["User"] = relationship("User", foreign_keys=[created_by_id])
     users: Mapped[list["SupplierUser"]] = relationship(
         "SupplierUser", back_populates="supplier", cascade="all, delete-orphan"
     )
     quotes: Mapped[list["SupplierQuote"]] = relationship(
         "SupplierQuote", back_populates="supplier", cascade="all, delete-orphan"
+    )
+    marketing_plans: Mapped[list["SupplierMarketingPlan"]] = relationship(
+        "SupplierMarketingPlan", back_populates="supplier", cascade="all, delete-orphan"
     )
 
     @property
@@ -149,6 +165,54 @@ class Supplier(Base):
             if normalized and normalized.casefold() not in seen:
                 values.append(normalized)
         return values
+
+
+class SupplierMarketingPlan(Base):
+    """Tedarikçi Pazarlama Planı — tedarikçinin hedef kitlesi ve kampanya pozisyonu."""
+
+    __tablename__ = "supplier_marketing_plans"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    supplier_id: Mapped[int] = mapped_column(
+        ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    headline: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    categories_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    target_segments_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    campaign_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    visibility: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="draft", index=True
+    )  # draft | active | paused
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    valid_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    valid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, onupdate=datetime.now)
+
+    supplier: Mapped["Supplier"] = relationship("Supplier", back_populates="marketing_plans")
+
+    @property
+    def categories(self) -> list[str]:
+        if not self.categories_json:
+            return []
+        try:
+            v = json.loads(self.categories_json)
+            return v if isinstance(v, list) else []
+        except (TypeError, ValueError):
+            return []
+
+    @property
+    def target_segments(self) -> list[str]:
+        if not self.target_segments_json:
+            return []
+        try:
+            v = json.loads(self.target_segments_json)
+            return v if isinstance(v, list) else []
+        except (TypeError, ValueError):
+            return []
 
 
 class SupplierUser(Base):

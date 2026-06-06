@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import styled from "styled-components";
 import {
   createAdminSupplierFinanceInvoice,
   createAdminSupplierFinancePayment,
@@ -15,71 +14,7 @@ import {
   updateAdminSupplierFinancePhoto,
   type SupplierFinanceSummary,
 } from "../services/admin.service";
-
-const Page = styled.div`
-  display: grid;
-  gap: 16px;
-`;
-
-const Card = styled.section`
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-`;
-
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-`;
-
-const Label = styled.label`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
-  color: #334155;
-`;
-
-const Input = styled.input`
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 14px;
-`;
-
-const Btn = styled.button`
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
-  padding: 8px 12px;
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const PrimaryBtn = styled(Btn)`
-  border: 0;
-  background: #2563eb;
-  color: #fff;
-`;
-
-const Message = styled.div<{ $error?: boolean }>`
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 14px;
-  color: ${(p) => (p.$error ? "#991b1b" : "#065f46")};
-  background: ${(p) => (p.$error ? "#fee2e2" : "#d1fae5")};
-`;
+import "./AdminSupplierFinancePage.css";
 
 export default function AdminSupplierFinancePage() {
   const navigate = useNavigate();
@@ -233,124 +168,173 @@ export default function AdminSupplierFinancePage() {
     await loadFinance();
   }
 
-  if (loading) return <Page>Yukleniyor...</Page>;
+  if (loading) return <div className="asf-page">Yukleniyor...</div>;
 
   return (
-    <Page>
-      {error && <Message $error>{error}</Message>}
-      {success && <Message>{success}</Message>}
+    <div className="asf-page">
+      {error && <div className="asf-msg asf-msg--error">{error}</div>}
+      {success && <div className="asf-msg">{success}</div>}
 
-      <Card>
-        <Header>
-          <h2 style={{ margin: 0 }}>Finans Modulu: {supplierName || `#${supplierId}`}</h2>
-          <Btn type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}`)}>Tedarikçi Detayına Dön</Btn>
-        </Header>
-        {!!finance?.alerts?.length && <Message $error style={{ marginTop: 10 }}>{finance.alerts.join(" ")}</Message>}
-      </Card>
-
-      <Card>
-        <Grid>
-          <Label>Sozlesme Toplami<Input readOnly value={(finance?.totals.contract_total ?? 0).toLocaleString("tr-TR")} /></Label>
-          <Label>Fatura Toplami<Input readOnly value={(finance?.totals.invoice_total ?? 0).toLocaleString("tr-TR")} /></Label>
-          <Label>Odeme Toplami<Input readOnly value={(finance?.totals.payment_total ?? 0).toLocaleString("tr-TR")} /></Label>
-        </Grid>
-      </Card>
-
-      <Card>
-        <h3 style={{ marginTop: 0 }}>Filtrele</h3>
-        <Grid>
-          <Label>Arama<Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Baslik, tutar, not" /></Label>
-          <Label>Tarih Başlangıç<Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Label>
-          <Label>Tarih Bitis<Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Label>
-        </Grid>
-        <div style={{ marginTop: 8 }}>
-          <Btn type="button" onClick={() => void loadFinance()}>Filtrele</Btn>
+      <section className="asf-card">
+        <div className="asf-card__header">
+          <h2 className="asf-card__title">Finans Modulu: {supplierName || `#${supplierId}`}</h2>
+          <button type="button" className="asf-btn" onClick={() => navigate(`/admin/suppliers/${supplierId}`)}>
+            Tedarikçi Detayına Dön
+          </button>
         </div>
-      </Card>
+        {!!finance?.alerts?.length && (
+          <div className="asf-msg asf-msg--error asf-msg--mt">{finance.alerts.join(" ")}</div>
+        )}
+      </section>
 
-      <Card>
-        <h3 style={{ marginTop: 0 }}>Fatura Ekle</h3>
-        <Grid>
-          <Label>Fatura Basligi<Input value={invoiceTitle} onChange={(e) => setInvoiceTitle(e.target.value)} /></Label>
-          <Label>Fatura Tutari<Input type="number" value={invoiceAmount} onChange={(e) => setInvoiceAmount(e.target.value)} /></Label>
-          <Label>Fatura Tarihi<Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} /></Label>
-          <Label>Fatura Dosyasi<Input type="file" onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} /></Label>
-        </Grid>
-        <div style={{ marginTop: 8 }}>
-          <PrimaryBtn type="button" onClick={() => void handleAddInvoice()}>Fatura Ekle</PrimaryBtn>
+      <section className="asf-card">
+        <div className="asf-grid">
+          <label className="asf-label">
+            Sozlesme Toplami
+            <input className="asf-input" readOnly value={(finance?.totals.contract_total ?? 0).toLocaleString("tr-TR")} />
+          </label>
+          <label className="asf-label">
+            Fatura Toplami
+            <input className="asf-input" readOnly value={(finance?.totals.invoice_total ?? 0).toLocaleString("tr-TR")} />
+          </label>
+          <label className="asf-label">
+            Odeme Toplami
+            <input className="asf-input" readOnly value={(finance?.totals.payment_total ?? 0).toLocaleString("tr-TR")} />
+          </label>
         </div>
-      </Card>
+      </section>
 
-      <Card>
-        <h3 style={{ marginTop: 0 }}>Odeme Ekle</h3>
-        <Grid>
-          <Label>Odeme Basligi<Input value={paymentTitle} onChange={(e) => setPaymentTitle(e.target.value)} /></Label>
-          <Label>Odeme Tutari<Input type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} /></Label>
-          <Label>Odeme Tarihi<Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} /></Label>
-        </Grid>
-        <div style={{ marginTop: 8 }}>
-          <PrimaryBtn type="button" onClick={() => void handleAddPayment()}>Odeme Ekle</PrimaryBtn>
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">Filtrele</h3>
+        <div className="asf-grid">
+          <label className="asf-label">
+            Arama
+            <input className="asf-input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Baslik, tutar, not" />
+          </label>
+          <label className="asf-label">
+            Tarih Başlangıç
+            <input className="asf-input" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            Tarih Bitis
+            <input className="asf-input" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </label>
         </div>
-      </Card>
-
-      <Card>
-        <h3 style={{ marginTop: 0 }}>İş Fotoğrafı Ekle</h3>
-        <Grid>
-          <Label>Fotograf Basligi<Input value={photoTitle} onChange={(e) => setPhotoTitle(e.target.value)} /></Label>
-          <Label>İş Fotoğrafı<Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} /></Label>
-        </Grid>
-        <div style={{ marginTop: 8 }}>
-          <PrimaryBtn type="button" onClick={() => void handleAddPhoto()}>Fotograf Ekle</PrimaryBtn>
+        <div className="asf-card__footer">
+          <button type="button" className="asf-btn" onClick={() => void loadFinance()}>Filtrele</button>
         </div>
-      </Card>
+      </section>
 
-      <Card>
-        <h3 style={{ marginTop: 0 }}>Faturalar ({finance?.invoices.length || 0})</h3>
-        <div style={{ display: "grid", gap: 8 }}>
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">Fatura Ekle</h3>
+        <div className="asf-grid">
+          <label className="asf-label">
+            Fatura Basligi
+            <input className="asf-input" value={invoiceTitle} onChange={(e) => setInvoiceTitle(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            Fatura Tutari
+            <input className="asf-input" type="number" value={invoiceAmount} onChange={(e) => setInvoiceAmount(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            Fatura Tarihi
+            <input className="asf-input" type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            Fatura Dosyasi
+            <input className="asf-input" type="file" onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
+          </label>
+        </div>
+        <div className="asf-card__footer">
+          <button type="button" className="asf-btn asf-btn--primary" onClick={() => void handleAddInvoice()}>Fatura Ekle</button>
+        </div>
+      </section>
+
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">Odeme Ekle</h3>
+        <div className="asf-grid">
+          <label className="asf-label">
+            Odeme Basligi
+            <input className="asf-input" value={paymentTitle} onChange={(e) => setPaymentTitle(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            Odeme Tutari
+            <input className="asf-input" type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            Odeme Tarihi
+            <input className="asf-input" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+          </label>
+        </div>
+        <div className="asf-card__footer">
+          <button type="button" className="asf-btn asf-btn--primary" onClick={() => void handleAddPayment()}>Odeme Ekle</button>
+        </div>
+      </section>
+
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">İş Fotoğrafı Ekle</h3>
+        <div className="asf-grid">
+          <label className="asf-label">
+            Fotograf Basligi
+            <input className="asf-input" value={photoTitle} onChange={(e) => setPhotoTitle(e.target.value)} />
+          </label>
+          <label className="asf-label">
+            İş Fotoğrafı
+            <input className="asf-input" type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
+          </label>
+        </div>
+        <div className="asf-card__footer">
+          <button type="button" className="asf-btn asf-btn--primary" onClick={() => void handleAddPhoto()}>Fotograf Ekle</button>
+        </div>
+      </section>
+
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">Faturalar ({finance?.invoices.length || 0})</h3>
+        <div className="asf-item-list">
           {(finance?.invoices || []).map((i) => (
-            <div key={i.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+            <div key={i.id} className="asf-item-row">
               <span>{i.title} - {i.amount.toLocaleString("tr-TR")} {i.currency}</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                <Btn type="button" onClick={() => void handleEditInvoice(i.id, i)}>Duzenle</Btn>
-                <Btn type="button" onClick={() => void handleDeleteInvoice(i.id)}>Sil</Btn>
+              <div className="asf-item-row__actions">
+                <button type="button" className="asf-btn asf-btn--sm" onClick={() => void handleEditInvoice(i.id, i)}>Duzenle</button>
+                <button type="button" className="asf-btn asf-btn--sm" onClick={() => void handleDeleteInvoice(i.id)}>Sil</button>
               </div>
             </div>
           ))}
-          {(finance?.invoices || []).length === 0 && <span style={{ color: "#94a3b8", fontSize: 12 }}>Kayit yok.</span>}
+          {(finance?.invoices || []).length === 0 && <span className="asf-empty">Kayit yok.</span>}
         </div>
-      </Card>
+      </section>
 
-      <Card>
-        <h3 style={{ marginTop: 0 }}>Odemeler ({finance?.payments.length || 0})</h3>
-        <div style={{ display: "grid", gap: 8 }}>
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">Odemeler ({finance?.payments.length || 0})</h3>
+        <div className="asf-item-list">
           {(finance?.payments || []).map((p) => (
-            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+            <div key={p.id} className="asf-item-row">
               <span>{p.title} - {p.amount.toLocaleString("tr-TR")} {p.currency}</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                <Btn type="button" onClick={() => void handleEditPayment(p.id, p)}>Duzenle</Btn>
-                <Btn type="button" onClick={() => void handleDeletePayment(p.id)}>Sil</Btn>
+              <div className="asf-item-row__actions">
+                <button type="button" className="asf-btn asf-btn--sm" onClick={() => void handleEditPayment(p.id, p)}>Duzenle</button>
+                <button type="button" className="asf-btn asf-btn--sm" onClick={() => void handleDeletePayment(p.id)}>Sil</button>
               </div>
             </div>
           ))}
-          {(finance?.payments || []).length === 0 && <span style={{ color: "#94a3b8", fontSize: 12 }}>Kayit yok.</span>}
+          {(finance?.payments || []).length === 0 && <span className="asf-empty">Kayit yok.</span>}
         </div>
-      </Card>
+      </section>
 
-      <Card>
-        <h3 style={{ marginTop: 0 }}>İş Fotoğrafları ({finance?.photos.length || 0})</h3>
-        <div style={{ display: "grid", gap: 8 }}>
+      <section className="asf-card">
+        <h3 className="asf-card__subtitle">İş Fotoğrafları ({finance?.photos.length || 0})</h3>
+        <div className="asf-item-list">
           {(finance?.photos || []).map((p) => (
-            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+            <div key={p.id} className="asf-item-row">
               <a href={p.file_url} target="_blank" rel="noreferrer">{p.title}</a>
-              <div style={{ display: "flex", gap: 6 }}>
-                <Btn type="button" onClick={() => void handleEditPhoto(p.id, p)}>Duzenle</Btn>
-                <Btn type="button" onClick={() => void handleDeletePhoto(p.id)}>Sil</Btn>
+              <div className="asf-item-row__actions">
+                <button type="button" className="asf-btn asf-btn--sm" onClick={() => void handleEditPhoto(p.id, p)}>Duzenle</button>
+                <button type="button" className="asf-btn asf-btn--sm" onClick={() => void handleDeletePhoto(p.id)}>Sil</button>
               </div>
             </div>
           ))}
-          {(finance?.photos || []).length === 0 && <span style={{ color: "#94a3b8", fontSize: 12 }}>Kayit yok.</span>}
+          {(finance?.photos || []).length === 0 && <span className="asf-empty">Kayit yok.</span>}
         </div>
-      </Card>
-    </Page>
+      </section>
+    </div>
   );
 }

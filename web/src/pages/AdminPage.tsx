@@ -1,10 +1,9 @@
 // PAGE: web/src/pages/AdminPage.tsx
 import { lazy, Suspense, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { DepartmentsTab } from "./admin/DepartmentsTab";
-import { PersonnelTab } from "./admin/PersonnelTab";
-import { CompaniesTab } from "./admin/CompaniesTab";
+// PersonnelTab and CompaniesTab are lazy-loaded below
 import { PackagesTab } from "./admin/PackagesTab";
-import { PlatformOperationsTab } from "./admin/PlatformOperationsTab";
+// PlatformOperationsTab is lazy-loaded below
 import { CommissionAdminTab } from "./admin/commission-admin-tab";
 import { SupportTicketAdminTab } from "../components/admin/SupportTicketAdminTab";
 import { ScopeWorkspaceHome } from "./admin/ScopeWorkspaceHome";
@@ -12,15 +11,14 @@ import { UpgradeExtrasWorkspace } from "./admin/UpgradeExtrasWorkspace";
 import { renderTabIconBadge, translateServiceLabel } from "./admin/adminPageMeta";
 import type { AdminFocusBannerTone, AdminTabKey, TabConfig } from "./admin/adminPageMeta";
 import { useAuth } from "../hooks/useAuth";
-import { canAccessAdminSurface, canAccessProcurementSettings, canAccessWorkspacePanel, canManageRoleCatalog, canManageTenantGovernance, getUserDisplayRoleLabel, isPlatformStaffUser, isSuperAdminUser, isTenantAdminUser, resolveApprovalRoleLabel } from "../auth/permissions";
-import { ProjectsTab } from "../components/ProjectsTab";
-import { RoleDepartmentGovernanceTab } from "../components/admin/RoleDepartmentGovernanceTab";
-import { OnboardingStudioTab } from "./admin/OnboardingStudioTab";
+import ImpersonationBanner from "../components/ImpersonationBanner";
+import { canAccessAdminSurface, canAccessProcurementSettings, canAccessWorkspacePanel, canManageRoleCatalog, canManageTenantGovernance, getUserDisplayRoleLabel, isIkAdminUser, isPlatformStaffUser, isSuperAdminUser, isTenantAdminUser, resolveApprovalRoleLabel } from "../auth/permissions";
+// ProjectsTab, RoleDepartmentGovernanceTab, OnboardingStudioTab are lazy-loaded below
 import { TenantGovernanceTab } from "./admin/TenantGovernanceTab";
-import { SuppliersTab } from "../components/SuppliersTab";
-import { SettingsTab } from "../components/SettingsTab";
-import { AdvancedSettingsTab } from "../components/AdvancedSettingsTab";
-import { ApprovalDashboard } from "../components/ApprovalDashboard";
+// SuppliersTab is lazy-loaded below
+import { SupplierProfileTab } from "./admin/SupplierProfileTab";
+// SettingsTab, AdvancedSettingsTab, ApprovalDashboard are lazy-loaded below
+import { DataTable, PageHeader, Section, StatCard } from "./admin/AdminTabContent";
 
 import { getAccessToken } from "../lib/token";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -70,10 +68,12 @@ import { useSearchParams } from "react-router-dom";
 import { QuoteStatusLabel, normalizeQuoteStatus } from "../types/quote.types";
 import { getQuote, getQuoteAuditTrail, getQuoteHistory, getQuotePendingApprovals, getQuotes, type Quote, type QuoteAuditTrail, type QuotePendingApproval, type StatusLog } from "../services/quote.service";
 import { getWorkspacePanelQuickLinks, mergeWorkspacePanelConfig, resolveWorkspacePanelProfile, WORKSPACE_PANEL_DATA_TABS, type WorkspacePanelTabKey } from "../admin/workspace-panels";
+import { SEGMENT_META, type SegmentKey } from "../admin/segment-colors";
 import { buildPolicyContext, resolveVisiblePanelTabKeys } from "../config/navigation-policy";
 import { useLocale } from "../context/LocaleContext";
 import { usePublicTranslations } from "../hooks/usePublicTranslations";
 import "../styles/pages/AdminPage.css";
+import AdminShell from "./admin/AdminShell";
 
 type ServiceUsageCard = {
   key: string;
@@ -271,7 +271,7 @@ function formatAdminFocusTimestamp(value?: number | null) {
 }
 
 function getQuoteInsightSectionLabel(section: "status-history" | "full-audit-trail") {
-  return section === "status-history" ? "Durum Geçmişi" : "Denetim İzi";
+  return section === "status-history" ? "Durum Gecmisi" : "Denetim Izi";
 }
 
 type BillingInvoiceStatusBucket = "open" | "paid" | "other";
@@ -739,7 +739,7 @@ const ChannelReportsTabContent = lazy(async () => ({
 }));
 
 const PlatformAnalyticsTab = lazy(async () => ({
-  default: (await import("./admin/adminSecondaryTabs")).PlatformAnalyticsTab,
+  default: (await import("./admin/PlatformAnalyticsTab")).PlatformAnalyticsTab,
 }));
 
 const PlatformSuppliersTab = lazy(async () => ({
@@ -754,6 +754,14 @@ const CampaignsTab = lazy(async () => ({
   default: (await import("./admin/adminSecondaryTabs")).CampaignsTab,
 }));
 
+const ChannelPartnersAdminTab = lazy(async () => ({
+  default: (await import("./admin/adminSecondaryTabs")).ChannelPartnersAdminTab,
+}));
+
+const AiLabAdminTab = lazy(async () => ({
+  default: (await import("./admin/adminSecondaryTabs")).AiLabAdminTab,
+}));
+
 const WorkspacePanelDesignerTab = lazy(async () => ({
   default: (await import("../components/admin/WorkspacePanelDesignerTab")).WorkspacePanelDesignerTab,
 }));
@@ -762,19 +770,246 @@ const DeploymentPanel = lazy(async () => ({
   default: (await import("../components/admin/DeploymentPanel")).DeploymentPanel,
 }));
 
+const TalentAdminControlPage = lazy(async () => ({
+  default: (await import("./TalentAdminControlPage")).default,
+}));
+const PanelDesignerTab = lazy(async () => ({
+  default: (await import("./admin/PanelDesignerTab")).default,
+}));
+const NavManagerTab = lazy(async () => ({
+  default: (await import("./admin/NavManagerTab")).default,
+}));
+const AdminProfileTab = lazy(async () => {
+  const m = await import("./admin/AdminProfileTab");
+  return { default: m.AdminProfileTab };
+});
+
+const PersonnelTab = lazy(async () => {
+  const m = await import("./admin/PersonnelTab");
+  return { default: m.PersonnelTab };
+});
+const CompaniesTab = lazy(async () => {
+  const m = await import("./admin/CompaniesTab");
+  return { default: m.CompaniesTab };
+});
+const PlatformOperationsTab = lazy(async () => {
+  const m = await import("./admin/PlatformOperationsTab");
+  return { default: m.PlatformOperationsTab };
+});
+const OnboardingStudioTab = lazy(async () => {
+  const m = await import("./admin/OnboardingStudioTab");
+  return { default: m.OnboardingStudioTab };
+});
+const ProjectsTab = lazy(async () => {
+  const m = await import("../components/ProjectsTab");
+  return { default: m.ProjectsTab };
+});
+const RoleDepartmentGovernanceTab = lazy(async () => {
+  const m = await import("../components/admin/RoleDepartmentGovernanceTab");
+  return { default: m.RoleDepartmentGovernanceTab };
+});
+const SuppliersTab = lazy(async () => {
+  const m = await import("../components/SuppliersTab");
+  return { default: m.SuppliersTab };
+});
+const SettingsTab = lazy(async () => {
+  const m = await import("../components/SettingsTab");
+  return { default: m.SettingsTab };
+});
+const AdvancedSettingsTab = lazy(async () => {
+  const m = await import("../components/AdvancedSettingsTab");
+  return { default: m.AdvancedSettingsTab };
+});
+const ApprovalDashboard = lazy(async () => {
+  const m = await import("../components/ApprovalDashboard");
+  return { default: m.ApprovalDashboard };
+});
+
+// TODO(data): Phase B — panel_home mock data (replace with API when finans servisi hazır)
+const PH_OPS_QUEUE = [
+  { code: "setup",   label: "Kurulum Kuyruğu",         count: 4, color: "#b45309", desc: "Onboarding tamamlanmayı bekleyen partner.", cta: "Kuruluma git" },
+  { code: "owner",   label: "Sorumlu Aksiyonu",         count: 0, color: "#be123c", desc: "Sorumlu ataması yapılmayan bekleyen kayıt yok.", cta: "İncele" },
+  { code: "brand",   label: "Marka Kimliği Eksiği",     count: 5, color: "#7c3aed", desc: "Logo veya görünen ad bilgisi eksik partner.", cta: "Logoları tamamla" },
+  { code: "passive", label: "Pasif Stratejik Partner",  count: 0, color: "#0f172a", desc: "Duraklatılmış veya pasif durumdaki partner.", cta: "Geçmişi gör" },
+] as const;
+
+const PH_SUPPORT_QUEUE = [
+  { code: "open",    label: "Açık Destek Kaydı",        count: 2, color: "#1d4ed8", desc: "Yeni veya işlemde olan destek kayıtları.", cta: "Detaya git" },
+  { code: "waiting", label: "Sorumlu Bekleyen Destek",  count: 0, color: "#7c3aed", desc: "Platform ekibinin geri dönüşü beklediği kayıtlar.", cta: "Detaya git" },
+  { code: "closed",  label: "Kapanışı Tamamlanan",      count: 4, color: "#15803d", desc: "Çözüldü durumuna alınmış kayıtlar.", cta: "Detaya git" },
+  { code: "stale",   label: "Teması Geciken Kayıt",     count: 0, color: "#b45309", desc: "3 gün ve üzeri temas edilmeyen aktif kayıtlar.", cta: "Detaya git" },
+] as const;
+
+const PH_SUPPORT_SUMMARY = [
+  { code: "orphan", label: "Sorumlusuz Destek Kaydı",     value: "0",                                   color: "#be123c", desc: "Operasyon sorumlusu atanmamış aktif kayıt sayısı.", cta: "Detaya git", isPerson: false },
+  { code: "top",    label: "En Yoğun Destek Sorumlusu",  value: "Platform Destek Admin · Destek",       color: "#15803d", desc: "1 aktif kayıt", cta: "Detaya git", isPerson: true },
+];
+
+const PH_PRIORITY_TENANTS = [
+  { name: "BA Demo Stratejik Ortak",  slug: "demo-stratejik-ortak",                           tags: ["Kurulum: bootstrap completed", "Marka kimliği eksik", "Destek: Çözüldü"] },
+  { name: "Kanal Ana Yönetici Demo",  slug: "kanal-ana-yonetici-demo",                        tags: ["Kurulum: bootstrap completed", "Marka kimliği eksik", "Destek: Çözüldü"] },
+  { name: "BA Demo İş Ortağı",        slug: "demo-kanal-is-ortagi",                           tags: ["Kurulum: bootstrap completed", "Marka kimliği eksik"] },
+  { name: "PİZZA MAX",                slug: "pi-zza-max",                                     tags: ["Kurulum: bootstrap completed"] },
+  { name: "OLİMPOS TEKNOLOJİ",        slug: "oli-mpos-teknoloji",                             tags: ["Marka kimliği eksik", "Destek: Çözüldü"] },
+];
+
+const PH_ALERTS: { id: number; level: string; title: string; desc: string; cta: string; aud: SegmentKey; firm: string }[] = [
+  { id: 1, level: "critical", title: "Doğan Otomotiv",  desc: "Churn risk · 14 gün hareketsiz · Kurumsal plan ₺14.900/ay", cta: "Müşteri başarıyı uyar",  aud: "strategic", firm: "Doğan Otomotiv A.Ş." },
+  { id: 2, level: "critical", title: "Polat Tekstil",   desc: "Vade aşımı · ₺4.990 + KDV · 2 gün",                         cta: "Tahsilat süreci başlat", aud: "strategic", firm: "Polat Tekstil Ltd." },
+  { id: 3, level: "warning",  title: "Kurulum Kuyruğu", desc: "Egem Makina · Bursa Otomasyon · 2 partner SLA içinde",       cta: "Stüdyoya git",           aud: "platform",  firm: "Platform Ops" },
+  { id: 4, level: "warning",  title: "Tetra Holding",   desc: "Sözleşme süresi 14 gün · yenileme süreci başlatılmalı",     cta: "Yenileme paketi gönder", aud: "strategic", firm: "Tetra Holding A.Ş." },
+];
+
+const PH_MRR_SERIES = [
+  { m: "2025-06", mrr: 820000  }, { m: "2025-07", mrr: 894000  }, { m: "2025-08", mrr: 950000  },
+  { m: "2025-09", mrr: 1012000 }, { m: "2025-10", mrr: 1068000 }, { m: "2025-11", mrr: 1102000 },
+  { m: "2025-12", mrr: 1140000 }, { m: "2026-01", mrr: 1188000 }, { m: "2026-02", mrr: 1207000 },
+  { m: "2026-03", mrr: 1241000 }, { m: "2026-04", mrr: 1252000 }, { m: "2026-05", mrr: 1284500 },
+];
+
+const PH_NET_GROWTH_SERIES = [
+  { m: "2025-12", newMrr: 102000, churn: 64000 },
+  { m: "2026-01", newMrr: 124000, churn: 76000 },
+  { m: "2026-02", newMrr: 95000,  churn: 76000 },
+  { m: "2026-03", newMrr: 118000, churn: 84000 },
+  { m: "2026-04", newMrr: 99000,  churn: 88000 },
+  { m: "2026-05", newMrr: 132000, churn: 99500 },
+];
+
+const PH_PLAN_DISTRIBUTION = [
+  { code: "starter",    label: "Başlangıç", count: 11, percent: 26, color: "#94a3b8" },
+  { code: "growth",     label: "Gelişim",   count: 22, percent: 52, color: "#2563eb" },
+  { code: "enterprise", label: "Kurumsal",  count: 6,  percent: 14, color: "#7c3aed" },
+  { code: "custom",     label: "Özel",      count: 3,  percent: 8,  color: "#D4AF37" },
+];
+
+const PH_SYSTEM_HEALTH = {
+  metrics: [
+    { code: "api",     label: "API",         value: "200 OK",      status: "ok"   },
+    { code: "db",      label: "DB",          value: "12ms",        status: "ok"   },
+    { code: "mail",    label: "MAIL",        value: "SMTP",        status: "ok"   },
+    { code: "webhook", label: "WEBHOOK",     value: "3 kuyruk",    status: "ok"   },
+    { code: "uptime",  label: "UPTİME 90G", value: "%99.98",      status: "ok"   },
+    { code: "backup",  label: "BACKUP",      value: "06:00 ✓",    status: "ok"   },
+    { code: "payment", label: "ÖDEME SAĞ.",  value: "3 aktif",    status: "idle" },
+    { code: "cdn",     label: "CDN",         value: "Cloudflare",  status: "idle" },
+  ],
+  domains: [
+    { host: "buyerasistans.com.tr", role: "Ana TR vitrini" },
+    { host: "buyerasistans.com",    role: "Global EN" },
+    { host: "buyerasistans.online", role: "Kampanya" },
+    { host: "buyerasistans.info",   role: "Bilgi merkezi" },
+  ],
+};
+
+// TODO(data): replace with API
+const TE_TIERS = [
+  { name: "Platin", min: 800, count: 6,  color: "#0ea5e9", perk: "Öncelikli görev + %0 komisyon" },
+  { name: "Altın",  min: 600, count: 22, color: "#D4AF37", perk: "Erken görev erişimi + rozet" },
+  { name: "Gümüş",  min: 300, count: 41, color: "#94a3b8", perk: "Standart görev havuzu" },
+  { name: "Bronz",  min: 0,   count: 55, color: "#b45309", perk: "Onboarding & değerlendirme" },
+] as const;
+
+const TE_SKILLS = [
+  { k: "Tedarik Analizi",      n: 44 },
+  { k: "Kategori Yönetimi",    n: 38 },
+  { k: "Pazarlık & Sözleşme",  n: 33 },
+  { k: "Lojistik & Operasyon", n: 26 },
+  { k: "Hammadde / Kimya",     n: 19 },
+  { k: "Sürdürülebilirlik",    n: 12 },
+] as const;
+
+const TE_LEADERS = [
+  { name: "Emre Şahin",  rep: 740, tasks: 28, earned: 12400, tier: "Altın"  },
+  { name: "Aslı Tan",    rep: 520, tasks: 19, earned: 8700,  tier: "Gümüş"  },
+  { name: "Nehir Kılıç", rep: 815, tasks: 34, earned: 16850, tier: "Platin" },
+  { name: "Deniz Kaya",  rep: 210, tasks: 7,  earned: 3200,  tier: "Bronz"  },
+  { name: "Onur Demir",  rep: 660, tasks: 24, earned: 11200, tier: "Altın"  },
+] as const;
+
+const TE_PILLARS = [
+  { k: "Yetenek Havuzu",  d: "Bağımsız, KYC doğrulamalı satınalma uzmanları. Stratejik Partnerler bu havuzdan iş ve görev için kaynak bulur.", color: "#1d4ed8" },
+  { k: "Katkı Ekonomisi", d: "Mikro görevler (tedarikçi keşfi, RFQ zenginleştirme, referans) ile uzmanlar katkı sağlar ve ödül kazanır.",      color: "#7c3aed" },
+  { k: "İtibar & Ödül",   d: "Tamamlanan görevler itibar puanına dönüşür; seviye yükseldikçe görev önceliği ve ödül oranı artar.",              color: "#047857" },
+] as const;
+
+const TE_TALENTS_INIT = [
+  { id: 101, name: "Emre Şahin",   avail: "full_time", exp: 8, rep: 740, earned: 12400, kyc: "approved", skills: ["kategori yönetimi", "sözleşme"]  },
+  { id: 102, name: "Deniz Kaya",   avail: "freelance",  exp: 3, rep: 210, earned: 3200,  kyc: "pending",  skills: ["tedarik", "analiz"]              },
+  { id: 103, name: "Aslı Tan",     avail: "part_time",  exp: 5, rep: 520, earned: 8700,  kyc: "approved", skills: ["lojistik", "pazarlık"]           },
+  { id: 104, name: "Burak Yılmaz", avail: "freelance",  exp: 2, rep: 60,  earned: 450,   kyc: "pending",  skills: ["hammadde"]                       },
+];
+
+const TE_TASKS_MOCK = [
+  { id: "T-7", title: "Ambalaj tedarikçisi keşfi — 5 firma", type: "supplier_discovery", reward: 750,  subs: 6  },
+  { id: "T-8", title: "Lojistik partner referansı",           type: "partner_referral",   reward: 1500, subs: 2  },
+  { id: "T-9", title: "RFQ zenginleştirme (kimya)",           type: "rfq_enrichment",     reward: 400,  subs: 11 },
+] as const;
+
+const TE_PAYOUTS_INIT = [
+  { id: "P-44", name: "Emre Şahin", amount: 3200, method: "IBAN ••4521", status: "pending"  },
+  { id: "P-45", name: "Aslı Tan",   amount: 1800, method: "IBAN ••9087", status: "pending"  },
+  { id: "P-46", name: "Deniz Kaya", amount: 950,  method: "IBAN ••3344", status: "approved" },
+];
+
+const TE_AVAIL_LABEL: Record<string, string> = {
+  full_time:     "Tam zamanlı",
+  part_time:     "Yarı zamanlı",
+  freelance:     "Freelance",
+  not_available: "Müsait değil",
+};
+
+const TE_TIER_COLORS: Record<string, string>  = { Platin: "#0ea5e9", Altın: "#D4AF37", Gümüş: "#94a3b8", Bronz: "#b45309" };
+const TE_TIER_BG:     Record<string, string>  = { Platin: "#e0f2fe", Altın: "#fef9c3", Gümüş: "#f1f5f9", Bronz: "#fef3c7" };
+
+/* ── Discovery Lab Oturum Yönetimi — statik veriler ─────────────────────── */
+type DiscFocusItem = {
+  id: string; tenant: string; project: string; file: string;
+  stage: string; layers: number; qa: string; owner: string;
+  age: string; priority: "critical" | "high" | "normal";
+};
+
+const DISC_KPI = {
+  openSessions: 18, activeChains: 4, replayCount: 142, anomalies: 3, avgDuration: "3 dk 24 sn",
+} as const;
+
+const DISC_FOCUSES: DiscFocusItem[] = [
+  { id: "AIL-1142", tenant: "ACME Holding",  project: "Kocaeli Fabrika Genişleme",     file: "kocaeli_fabrika_v3.dwg", stage: "soru-cevap", layers: 6,  qa: "3/5",  owner: "Tuba A.",   age: "4 dk",  priority: "high"     },
+  { id: "AIL-1141", tenant: "Tetra Holding", project: "İstanbul Lojistik Üssü",         file: "lojistik_us_v8.dxf",     stage: "replay",     layers: 12, qa: "8/8",  owner: "Mehmet T.", age: "38 dk", priority: "critical" },
+  { id: "AIL-1140", tenant: "BorTeknik",     project: "Bursa Otomasyon Üretim Hattı",   file: "bursa_otomasyon.dwg",     stage: "çözüldü",    layers: 8,  qa: "4/4",  owner: "Ali D.",    age: "2 sa",  priority: "normal"   },
+  { id: "AIL-1139", tenant: "Nova Lojistik", project: "Soğuk Zincir Depo Modülü",       file: "sogukzincir_v2.dwg",      stage: "metraj",     layers: 4,  qa: "0/3",  owner: "Sema Y.",   age: "4 sa",  priority: "high"     },
+  { id: "AIL-1138", tenant: "Zümrüt Kimya",  project: "Reaktör Bina Genişletme",         file: "reaktor_v1.dwg",          stage: "anomali",    layers: 7,  qa: "0/12", owner: "—",         age: "6 sa",  priority: "high"     },
+];
+
+const DISC_CHAINS = [
+  { name: "cad-layer-extractor-v4",  stages: 4, success: 96, lastRun: "4 dk",  duration: "47 sn", desc: "DWG/DXF'ten katman çıkarımı" },
+  { name: "metraj-calculator-v3",     stages: 6, success: 92, lastRun: "8 dk",  duration: "32 sn", desc: "Birim bazlı metraj hesabı"    },
+  { name: "ai-question-generator-v2", stages: 5, success: 88, lastRun: "14 dk", duration: "21 sn", desc: "Bilişsel soru üretimi"         },
+  { name: "rfq-draft-composer-v1",    stages: 3, success: 94, lastRun: "24 dk", duration: "12 sn", desc: "RFQ taslak oluşturma"         },
+];
+
+const DISC_TELEMETRY = [
+  { time: "14:42:01", actor: "Tuba A.",   source: "ai-lab",  action: "session-open",  detail: "AIL-1142 · ACME · Kocaeli Fabrika"          },
+  { time: "14:38:14", actor: "Sistem",    source: "cron",    action: "replay-batch",  detail: "7 zincir tetiklendi · 142 olay"               },
+  { time: "14:24:42", actor: "Mehmet T.", source: "ai-lab",  action: "answer-save",   detail: "AIL-1141 · Q-3 onaylandı · S355J2"            },
+  { time: "13:56:18", actor: "Sistem",    source: "model",   action: "anomaly-fire",  detail: "Zümrüt Kimya · katman çıkarımında %18 sapma" },
+  { time: "13:42:09", actor: "Sema Y.",   source: "ai-lab",  action: "rfq-transfer",  detail: "AIL-1138 → RFQ-2025-1142 oluşturuldu"         },
+  { time: "13:18:55", actor: "Sistem",    source: "export",  action: "csv-export",    detail: "Tuba A. · oturum logu indirildi"               },
+];
+
 export default function AdminPage() {
   const { user } = useAuth();
   const { locale } = useLocale();
   const tAdmin = usePublicTranslations("admin_tabs", locale, {
-    panel_home: "Panel Ana Sayfa",
+    panel_home: "Super Admin Paneli",
     platform_operations: "Platform Operasyonları",
-    discovery_lab_operations: "Discovery Lab Operasyonları",
+    discovery_lab_operations: "Discovery Lab Operasyonlari",
     onboarding_studio: "Kurulum Stüdyosu",
-    tenant_governance: "Stratejik Partner Yönetimi",
+    tenant_governance: "Stratejik Partner Yonetimi",
     packages: "Paket ve Kullanım",
     deployment: "Yayınlama",
     platform_analytics: "Platform Analitikleri",
-    platform_suppliers: "Platform Tedarikçi Havuzu",
+    platform_suppliers: "Platform Tedarikci Havuzu",
     public_pricing: "Genel Fiyatlandırma",
     campaigns: "Kampanyalar ve Landing",
     commission_admin: "Komisyon Yönetimi",
@@ -791,16 +1026,23 @@ export default function AdminPage() {
     personal_theme: "Kişisel Tema",
     partner_settings: "Stratejik Partner Ayarları",
     channel_settings: "İş Ortağı Platform Ayarları",
+    channel_partners: "İş Ortakları (Kanal)",
+    ai_lab: "AI Keşif Lab",
+    nav_management: "Navigasyon Yönetimi",
   });
   const isChannelUser = String(user?.scope_type || "").toLowerCase() === "channel"
     || String(user?.business_role || user?.role || "").toLowerCase() === "channel_owner"
     || String(user?.business_role || user?.role || "").toLowerCase() === "channel_agent";
+  const isPartnerAdmin = String(user?.business_role || user?.role || "").toLowerCase() === "partner_admin"
+    || String(user?.scope_type || "").toLowerCase() === "partner";
 
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isUpgradeExtrasPage = location.pathname === "/admin/yukseltme-ekstra-ozellikler";
   const [activeTab, setActiveTab] = useState<AdminTabKey>("panel_home");
+  const activeTabRef = useRef<AdminTabKey>(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
   const [channelCatalogRefreshNonce, setChannelCatalogRefreshNonce] = useState(0);
   const [workspacePanelConfig, setWorkspacePanelConfig] = useState<WorkspacePanelConfig | null>(null);
   const [workspacePanelSaving, setWorkspacePanelSaving] = useState(false);
@@ -887,6 +1129,9 @@ export default function AdminPage() {
   const [platformOpsSavingTenantId, setPlatformOpsSavingTenantId] = useState<number | null>(null);
   const [platformOpsStatusFilter, setPlatformOpsStatusFilter] = useState<"all" | "new" | "in_progress" | "waiting_owner" | "resolved">("all");
   const [platformOpsOwnerFilter, setPlatformOpsOwnerFilter] = useState<string>("all");
+  const [phKpiOpen, setPhKpiOpen] = useState(false);
+  const [teTalents, setTeTalents] = useState<Array<{ id: number; name: string; avail: string; exp: number; rep: number; earned: number; kyc: string; skills: string[] }>>(() => [...TE_TALENTS_INIT]);
+  const [tePayouts, setTePayouts] = useState<Array<{ id: string; name: string; amount: number; method: string; status: string }>>(() => [...TE_PAYOUTS_INIT]);
   const [billingSubscriptionFilter, setBillingSubscriptionFilter] = useState<"all" | "active" | "trialing" | "other">("all");
   const [billingInvoiceFilter, setBillingInvoiceFilter] = useState<"all" | "open" | "paid" | "other">("all");
   const [billingWebhookFilter, setBillingWebhookFilter] = useState<"all" | "processed" | "failed" | "other">("all");
@@ -1009,6 +1254,8 @@ export default function AdminPage() {
   const canAccessRoleCatalog = canManageRoleCatalog(user);
   const canViewPlatformGovernance = isPlatformStaff || isSuperAdminUser(user);
   const canViewPackagesTab = isSuperAdminUser(user);
+  const canViewSupplierProfileTab = (isTenantAdminUser(user) || user?.business_role === "satinalma_direktoru") && !canViewPlatformGovernance;
+  const canViewKariyerYonetimiTab = isSuperAdminUser(user) || isIkAdminUser(user);
   const canViewSettingsTab = canAccessProcurementSettings(user);
   const showSettingsWorkspaceLinks = !canViewPlatformGovernance && (canViewSettingsTab || isChannelUser);
   const isLocalhostRuntime = typeof window !== "undefined" && ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
@@ -1016,16 +1263,9 @@ export default function AdminPage() {
   const workspaceName = user?.organization_name || user?.platform_name || "Buyera Asistans";
   const mergedWorkspacePanelConfig = useMemo(() => mergeWorkspacePanelConfig(workspacePanelConfig), [workspacePanelConfig]);
   const activeWorkspacePanelProfile = useMemo(() => resolveWorkspacePanelProfile(user, mergedWorkspacePanelConfig), [mergedWorkspacePanelConfig, user]);
-  const isRoleManagementOnly = canAccessRoleCatalog && !canAccessAdminWorkspace;
+  const isRoleManagementOnly = canAccessRoleCatalog && !canAccessAdminWorkspace && !isSuperAdminUser(user) && !isTenantAdminUser(user);
   const canOpenWorkspacePanel = (!isRoleManagementOnly && canAccessWorkspacePanel(user)) || Boolean(activeWorkspacePanelProfile);
   const workspacePanelQuickLinks = useMemo(() => getWorkspacePanelQuickLinks(activeWorkspacePanelProfile), [activeWorkspacePanelProfile]);
-
-  useEffect(() => {
-    if (activeTab !== "tenant_governance") return;
-    if (!canViewPlatformGovernance) return;
-    if (canEditTenantGovernance) return;
-    setIsTenantFormModalOpen(true);
-  }, [activeTab, canViewPlatformGovernance, canEditTenantGovernance]);
 
   const telemetryPresetUserKey = buildFocusTelemetryPresetUserKey(user?.email, user?.id);
   const platformOpsDefaultOwner = user?.full_name || user?.email || workspaceName;
@@ -1654,7 +1894,7 @@ export default function AdminPage() {
       },
       {
         key: "transition",
-        label: transitionReason === "-" ? "Gerekçe yok" : "Gerekçe var",
+        label: transitionReason === "-" ? "Gerekce yok" : "Gerekce var",
         detail: `Transition reason: ${transitionReason}`,
         tone: transitionReason === "-" ? "gray" : "blue",
       },
@@ -1713,13 +1953,13 @@ export default function AdminPage() {
     const projectFocusName = searchParams.get("projectFocusName");
     const onboardingPlanFocus = searchParams.get("onboardingPlanFocus");
     if (tenantFocusName) {
-      events.push({ id: "platform-overview-tenant", label: "Platform Genel Bakışı Odagi", detail: `Stratejik Partner odagi: ${tenantFocusName}`, source: "platform-overview", createdAt: now });
+      events.push({ id: "platform-overview-tenant", label: "Platform Genel Bakisi Odagi", detail: `Stratejik Partner odagi: ${tenantFocusName}`, source: "platform-overview", createdAt: now });
     }
     if (projectFocusName) {
-      events.push({ id: "platform-overview-project", label: "Platform Genel Bakışı Odagi", detail: `Proje odagi: ${projectFocusName}`, source: "platform-overview", createdAt: now - 1 });
+      events.push({ id: "platform-overview-project", label: "Platform Genel Bakisi Odagi", detail: `Proje odagi: ${projectFocusName}`, source: "platform-overview", createdAt: now - 1 });
     }
     if (onboardingPlanFocus) {
-      events.push({ id: "platform-overview-onboarding", label: "Platform Genel Bakışı Odagi", detail: `Onboarding planı: ${String(onboardingPlanFocus).toUpperCase()}`, source: "platform-overview", createdAt: now - 2 });
+      events.push({ id: "platform-overview-onboarding", label: "Platform Genel Bakisi Odagi", detail: `Onboarding planı: ${String(onboardingPlanFocus).toUpperCase()}`, source: "platform-overview", createdAt: now - 2 });
     }
     if (tenantGovernanceFocus?.tenantId != null || tenantGovernanceFocus?.tenantName) {
       events.push({
@@ -2850,6 +3090,18 @@ export default function AdminPage() {
               description: "Kanal komisyon ledger kayıtlarını görüntüleyin, onaylayın ve ödeme durumunu yönetin.",
             },
             {
+              key: "channel_partners" as const,
+              label: tAdmin.channel_partners,
+              icon: "KNL",
+              description: "Acente ve broker iş ortaklarının organizasyon kaydını ve komisyon sözleşmelerini yönetin.",
+            },
+            {
+              key: "ai_lab" as const,
+              label: tAdmin.ai_lab,
+              icon: "AIC",
+              description: "AI destekli mimari proje analizi, metraj çıkarımı ve RFQ üretim istatistiklerini izleyin.",
+            },
+            {
               key: "support_tickets" as const,
               label: tAdmin.support_tickets,
               icon: "DST",
@@ -2931,6 +3183,24 @@ export default function AdminPage() {
         : []),
     ];
 
+    if (canViewKariyerYonetimiTab) {
+      baseTabs.push({
+        key: "kariyer_yonetimi" as const,
+        label: "Kariyer ve İş Piyasası",
+        icon: "ILN",
+        description: "İş ilanları, talent profilleri ve işveren hesaplarını merkezi olarak yönetin.",
+      });
+    }
+
+    if (canViewSupplierProfileTab) {
+      baseTabs.push({
+        key: "supplier_profile" as const,
+        label: "Tedarikçi Profilim",
+        icon: "TED",
+        description: "Firmanızın tedarikçi kaydını bu Stratejik Partner hesabıyla ilişkilendirin (Dual-Role).",
+      });
+    }
+
     if (isSuperAdminUser(user) || activeWorkspacePanelProfile?.allow_user_self_customization) {
       baseTabs.push({
         key: "panel_designer",
@@ -2953,16 +3223,18 @@ export default function AdminPage() {
       can_view_settings_tab: canViewSettingsTab,
       show_settings_workspace_links: showSettingsWorkspaceLinks,
       can_use_panel_designer: Boolean(isSuperAdminUser(user) || activeWorkspacePanelProfile?.allow_user_self_customization),
+      can_view_supplier_profile_tab: canViewSupplierProfileTab,
+      can_view_kariyer_yonetimi_tab: canViewKariyerYonetimiTab,
     }) as AdminTabKey[]);
     const policyFilteredTabs = baseTabs.filter((tab) => policyVisibleTabKeys.has(tab.key));
 
-    if (!activeWorkspacePanelProfile) {
+    if (!activeWorkspacePanelProfile || isSuperAdminUser(user)) {
       return policyFilteredTabs;
     }
 
     const allowedTabs = new Set(activeWorkspacePanelProfile.allowed_tabs as AdminTabKey[]);
-    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer");
-  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
+    return policyFilteredTabs.filter((tab) => allowedTabs.has(tab.key) || tab.key === "panel_home" || tab.key === "panel_designer" || tab.key === "supplier_profile" || tab.key === "kariyer_yonetimi");
+  }, [activeWorkspacePanelProfile, canViewDeploymentTab, canViewKariyerYonetimiTab, canViewPackagesTab, canViewPlatformGovernance, canViewSettingsTab, canViewSupplierProfileTab, currentUserRoleLabel, isRoleManagementOnly, showSettingsWorkspaceLinks, tAdmin, user]);
 
   const shouldLoadAdminWorkspaceData = useMemo(
     () => tabConfigs.some((item) => WORKSPACE_PANEL_DATA_TABS.has(item.key as WorkspacePanelTabKey)),
@@ -2970,6 +3242,9 @@ export default function AdminPage() {
   );
   const showUpgradeExtrasWorkspace = Boolean(shouldLoadAdminWorkspaceData && isUpgradeExtrasPage && activeTab === "panel_home");
   const canUseSelfPanelDesigner = Boolean(activeWorkspacePanelProfile?.allow_user_self_customization);
+
+  const handleShellNavigate = useCallback((key: string) => navigateAdminTab(key as AdminTabKey), [navigateAdminTab]);
+  const shellTabKeys = useMemo(() => isSuperAdminUser(user) ? undefined : tabConfigs.map((t) => t.key), [user, tabConfigs]);
 
   const handleCreateRoleCatalogRequest = useCallback(async (payload: { name: string; description?: string }) => {
     try {
@@ -3072,7 +3347,7 @@ export default function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      const p1 = getTenantUsers();
+      const p1 = getTenantUsers().catch(() => [] as TenantUser[]);
       const p2 = getDepartments().catch(() => [] as Department[]);
       const p3 = getCompanies().catch(() => [] as Company[]);
       const p4 = getRoles().catch(() => [] as Role[]);
@@ -3110,7 +3385,7 @@ export default function AdminPage() {
             getOnboardingStudioSummary(),
           ])
         : Promise.resolve(null);
-      const p8 = canAccessAdminWorkspace ? getSubscriptionCatalog() : Promise.resolve(null);
+      const p8 = canViewPackagesTab ? getSubscriptionCatalog() : Promise.resolve(null);
       const p9 = typeof globalThis.fetch === "function" && typeof import.meta.env.VITE_API_URL === "string" && import.meta.env.VITE_API_URL.length > 0 && canAccessAdminWorkspace
         ? fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/public-pricing-config`, {
             headers: { Authorization: `Bearer ${getAccessToken() ?? ""}` },
@@ -3129,7 +3404,7 @@ export default function AdminPage() {
       const p12 = canAccessAdminWorkspace
         ? getQuotes(1, 1).then((response) => Number(response.total ?? response.count ?? 0)).catch(() => 0)
         : Promise.resolve(0);
-      const p13 = canViewPlatformGovernance && (activeTab === "platform_overview" || activeTab === "panel_home")
+      const p13 = canViewPlatformGovernance && (activeTabRef.current === "platform_overview" || activeTabRef.current === "panel_home")
         ? getQuotes(1, 100).then((response) => response.items || []).catch(() => [] as Quote[])
         : Promise.resolve([] as Quote[]);
       const [personnelData, deptData, companyData, rolesData, projectData, catalogRequestData, governanceResults, subscriptionData, publicPricingResponse, premiumFeatureResponse, billingData, quoteTotal, overviewQuoteItems] = await Promise.all([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]);
@@ -3165,11 +3440,13 @@ export default function AdminPage() {
           console.warn("Admin governance partial load failure", message);
         }
       }
+      if (canViewPackagesTab) {
+        setSubscriptionCatalog(subscriptionData as SubscriptionCatalogSnapshot | null);
+      }
       if (canAccessAdminWorkspace) {
         const normalizedPremiumFeatureCatalog = Array.isArray(premiumFeatureResponse)
           ? premiumFeatureResponse
           : [];
-        setSubscriptionCatalog(subscriptionData as SubscriptionCatalogSnapshot | null);
         setPublicPricingConfig(publicPricingResponse as PublicPricingConfig | null);
         setPremiumFeatureCatalog(normalizedPremiumFeatureCatalog as Array<{ id: number; code: string; name: string; description?: string | null; monthly_price?: number | null }>);
       }
@@ -3195,7 +3472,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, canAccessAdminWorkspace, canAccessRoleCatalog, canViewPackagesTab, canViewPlatformGovernance, discoveryLabAuditDecisionFilter, discoveryLabDateFrom, discoveryLabDateTo, discoveryLabProjectQuery, discoveryLabSearch, discoveryLabStatusFilter, discoveryLabUserQuery, isRoleManagementOnly, loadCatalogRequestsSafe, shouldLoadAdminWorkspaceData]);
+  }, [canAccessAdminWorkspace, canAccessRoleCatalog, canViewPackagesTab, canViewPlatformGovernance, discoveryLabAuditDecisionFilter, discoveryLabDateFrom, discoveryLabDateTo, discoveryLabProjectQuery, discoveryLabSearch, discoveryLabStatusFilter, discoveryLabUserQuery, isRoleManagementOnly, loadCatalogRequestsSafe, shouldLoadAdminWorkspaceData]);
 
   const reloadPersonnel = useCallback(async (params?: TenantUsersQueryParams) => {
     try {
@@ -3217,7 +3494,7 @@ export default function AdminPage() {
     const tenantFocusName = searchParams.get("tenantFocusName");
     const projectFocusName = searchParams.get("projectFocusName");
     const telemetrySnapshot = buildFocusTelemetryFilterSnapshot(searchParams);
-    if (resolvedTab && tabConfigs.some((item) => item.key === resolvedTab)) {
+    if (resolvedTab && (tabConfigs.some((item) => item.key === resolvedTab) || resolvedTab === "profile" || resolvedTab === "platform_overview")) {
       setActiveTab(resolvedTab as AdminTabKey);
     } else if (isRoleManagementOnly) {
       setActiveTab("roles");
@@ -3570,7 +3847,7 @@ export default function AdminPage() {
     setTelemetryPulseTarget({
       quoteId: selectedFocusTelemetryTarget.quoteId,
       section: selectedFocusTelemetryTarget.section,
-        reason: `Telemetry seçimi bu bölümü hedefledi: ${getQuoteInsightSectionLabel(selectedFocusTelemetryTarget.section)}`,
+        reason: `Telemetry secimi bu bolumu hedefledi: ${getQuoteInsightSectionLabel(selectedFocusTelemetryTarget.section)}`,
     });
     if (focusTelemetryPulseTimeoutRef.current) {
       window.clearTimeout(focusTelemetryPulseTimeoutRef.current);
@@ -3745,7 +4022,7 @@ export default function AdminPage() {
   function handleStartOnboardingTemplate(planCode: string) {
     const presets: Record<string, { legalName: string; brandName: string; city: string; adminEmail: string }> = {
       starter: {
-        legalName: "Starter Müşteri Ltd.",
+        legalName: "Starter Musteri Ltd.",
         brandName: "Starter Workspace",
         city: "Istanbul",
         adminEmail: "owner@starter.test",
@@ -4017,11 +4294,14 @@ export default function AdminPage() {
     isUpgradeExtrasPage ? "admin-page__tab-link--active" : "",
   ].filter(Boolean).join(" ");
 
-  return (
-    <div className="admin-page">
+  const _shellMode = canAccessAdminSurface(user);
 
-      {/* ScopeWorkspaceHome - panel_home en uste */}
-      {activeTab === "panel_home" && (
+  const _adminNode = (
+    <div className="admin-page">
+      <ImpersonationBanner />
+
+      {/* ScopeWorkspaceHome - panel_home en uste; platform adminler ph-page'i kullanir */}
+      {activeTab === "panel_home" && !canViewPlatformGovernance && (
         <section className="admin-page__section">
           {workspacePanelError ? (
             <div className="admin-page__notice admin-page__notice--error">
@@ -4030,6 +4310,7 @@ export default function AdminPage() {
           ) : null}
           <ScopeWorkspaceHome
             hideTopSummarySection
+            hideHero
             hideBottomSections={canViewPlatformGovernance}
             user={user}
             currentUserRoleLabel={currentUserRoleLabel}
@@ -4062,6 +4343,7 @@ export default function AdminPage() {
         </section>
       )}
 
+      {!_shellMode && (
       <section className="admin-page__card admin-page__card--padded">
         <div className={menuRowClassName}>
           {tabConfigs.map((tab) => (
@@ -4092,84 +4374,402 @@ export default function AdminPage() {
           </Link>
         </div>
       </section>
+      )}
 
       {activeTab === "panel_home" && (() => {
         const _scope = String(user?.scope_type || "").toLowerCase();
+        const isPlat = _scope === "platform";
         const requestSummaryTop = {
           pending: catalogRequests.filter((item) => item.review_status === "pending_review").length,
           approved: catalogRequests.filter((item) => item.review_status === "approved").length,
           rejected: catalogRequests.filter((item) => item.review_status === "rejected").length,
         };
-        const quickLinkTone = _scope === "platform" ? "navy" : _scope === "channel" ? "amber" : _scope === "supplier" ? "red" : "blue";
+        const quickLinkTone = isPlat ? "navy" : _scope === "channel" ? "amber" : _scope === "supplier" ? "red" : "blue";
         return (
-          <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
-            {_scope === "platform" && panelHomePlatformMetrics ? (
-              <div className="admin-page__grid admin-page__grid--sm">
-                <div className="admin-page__section-title admin-page__section-title--accent">Platform Yönetim Alanı</div>
-                <div className="admin-page__metric-grid">
-                  {[
-                    {
-                      label: "Stratejik Partner",
-                      tone: "blue",
-                      note: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
-                      items: [
-                        { key: "Firma", value: panelHomePlatformMetrics.partnerCompanies },
-                        { key: "Personel", value: panelHomePlatformMetrics.partnerPersonnel },
-                        { key: "Proje", value: panelHomePlatformMetrics.partnerProjects },
-                        { key: "Teklif", value: panelHomePlatformMetrics.partnerQuotes },
-                      ],
-                    },
-                    {
-                      label: "Tedarikçi",
-                      tone: "red",
-                      note: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
-                      items: [
-                        { key: "Firma", value: panelHomePlatformMetrics.supplierCompanies },
-                        { key: "Yanıtlanan Teklif", value: panelHomePlatformMetrics.supplierRespondedQuotes },
-                        { key: "Revize Teklif", value: panelHomePlatformMetrics.supplierRevisedQuotes },
-                      ],
-                    },
-                    {
-                      label: "İş Ortağı",
-                      tone: "teal",
-                      note: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
-                      items: [
-                        { key: "Firma", value: panelHomePlatformMetrics.channelCompanies },
-                        { key: "Personel", value: panelHomePlatformMetrics.channelPersonnel },
-                        { key: "Proje", value: panelHomePlatformMetrics.channelProjects },
-                        { key: "Teklif", value: panelHomePlatformMetrics.channelQuotes },
-                      ],
-                    },
-                  ].map((group) => (
-                    <div key={group.label} className={`admin-page__metric-group admin-page__tone--${group.tone}`}>
-                      <div className="admin-page__metric-group-title">{group.label}</div>
-                      <div className="admin-page__metric-group-note">{group.note}</div>
-                      {group.items.map((entry) => (
-                        <div key={`${group.label}-${entry.key}`} className="admin-page__metric-group-row">
-                          <span className="admin-page__metric-group-key">{entry.key}</span>
-                          <span className="admin-page__metric-group-value">{entry.value}</span>
+          <div className="ph-page">
+            {/* ── Platform Yönetim Alanı — audience cards + approval strip ── */}
+            {isPlat && panelHomePlatformMetrics ? (
+              <>
+                {/* ── Collapsible KPI strip (Finans & Sağlık — EN ÜSTE) ── */}
+                <div className={`ph-kpi-collapse${phKpiOpen ? " ph-kpi-collapse--open" : ""}`}>
+                  <button type="button" className="ph-kpi-collapse__toggle" onClick={() => setPhKpiOpen((c) => !c)}>
+                    <span className="ph-kpi-collapse__title">Finans &amp; Sağlık Özeti</span>
+                    <span className="ph-kpi-collapse__summary">
+                      <span>MRR <b>₺1.284K</b></span>
+                      <span>ARR <b>₺15.4M</b></span>
+                      <span>Partner <b>42</b></span>
+                      <span>Churn <b>%1.4</b></span>
+                      <span>SLA <b>%99.98</b></span>
+                    </span>
+                    <span className="ph-kpi-collapse__chevron">{phKpiOpen ? "▲" : "▼"}</span>
+                  </button>
+                  {phKpiOpen && (
+                    <div className="ph-kpi-grid">
+                      {[
+                        { label: "Aylık Tekrarlayan Gelir (MRR)", value: "₺1.284.500", delta: "+%12.3", accent: "blue" },
+                        { label: "Yıllık Gelir (ARR)",            value: "₺15.4M",     delta: "+%14.8", accent: "gold" },
+                        { label: "Aktif Partner",                  value: "42",          delta: "+4",     accent: "" },
+                        { label: "Churn (30 gün)",                 value: "%1.4",        delta: "▼ %0.3", accent: "green" },
+                        { label: "SLA Sağlık",                     value: "%99.98",      sub: "Son 30 gün · hedef ≥%99.9", accent: "green" },
+                      ].map((k) => (
+                        <div key={k.label} className={`ph-kpi-card${k.accent ? ` ph-kpi-card--${k.accent}` : ""}`}>
+                          <div className="ph-kpi-card__label">{k.label}</div>
+                          <div className="ph-kpi-card__value">{k.value}</div>
+                          {"delta" in k && k.delta && <div className="ph-kpi-card__delta">{k.delta}</div>}
+                          {"sub" in k && k.sub && <div className="ph-kpi-card__sub">{k.sub}</div>}
                         </div>
                       ))}
                     </div>
+                  )}
+                </div>
+
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Platform Yönetim Alanı</div>
+                      <div className="ph-section__sub">Aktif kitle dağılımı ve onay durumu</div>
+                    </div>
+                  </div>
+                  <div className="ph-aud-grid">
+                    {([
+                      {
+                        code: "strategic", label: "Stratejik Partner", color: "#134E37", bg: "#ecfdf5",
+                        subLabel: `${panelHomePlatformMetrics.partnerActiveCompanies} aktif · ${panelHomePlatformMetrics.partnerPassiveCompanies} pasif`,
+                        metrics: [
+                          { k: "Firma",     v: panelHomePlatformMetrics.partnerCompanies },
+                          { k: "Personel",  v: panelHomePlatformMetrics.partnerPersonnel },
+                          { k: "Proje",     v: panelHomePlatformMetrics.partnerProjects },
+                          { k: "Aylık RFQ", v: panelHomePlatformMetrics.partnerQuotes },
+                        ],
+                        ctaKey: "tenant_governance" as AdminTabKey,
+                      },
+                      {
+                        code: "supplier", label: "Tedarikçi", color: "#0E7490", bg: "#ecfeff",
+                        subLabel: `${panelHomePlatformMetrics.supplierActiveCompanies} aktif · ${panelHomePlatformMetrics.supplierPassiveCompanies} pasif`,
+                        metrics: [
+                          { k: "Firma",             v: panelHomePlatformMetrics.supplierCompanies },
+                          { k: "Yanıtlanan Teklif", v: panelHomePlatformMetrics.supplierRespondedQuotes },
+                          { k: "Revize Teklif",     v: panelHomePlatformMetrics.supplierRevisedQuotes },
+                        ],
+                        ctaKey: "platform_suppliers" as AdminTabKey,
+                      },
+                      {
+                        code: "channel", label: "İş Ortağı", color: "#7C2D12", bg: "#fff7ed",
+                        subLabel: `${panelHomePlatformMetrics.channelActiveCompanies} aktif · ${panelHomePlatformMetrics.channelPassiveCompanies} pasif`,
+                        metrics: [
+                          { k: "Firma",      v: panelHomePlatformMetrics.channelCompanies },
+                          { k: "Personel",   v: panelHomePlatformMetrics.channelPersonnel },
+                          { k: "Proje",      v: panelHomePlatformMetrics.channelProjects },
+                          { k: "Hak ediş",   v: panelHomePlatformMetrics.channelQuotes },
+                        ],
+                        ctaKey: "channel_partners" as AdminTabKey,
+                      },
+                      {
+                        code: "employer", label: "Personel Arayan", color: "#5B21B6", bg: "#fdf4ff",
+                        subLabel: `${(panelHomePlatformMetrics as Record<string, unknown>).employerActive as number ?? 6} aktif · ${(panelHomePlatformMetrics as Record<string, unknown>).employerPassive as number ?? 1} pasif`,
+                        metrics: [
+                          { k: "İşveren",      v: (panelHomePlatformMetrics as Record<string, unknown>).employerCompanies as number ?? 7 },
+                          { k: "Açık İlan",    v: (panelHomePlatformMetrics as Record<string, unknown>).openJobs as number ?? 18 },
+                          { k: "Başvuru",      v: (panelHomePlatformMetrics as Record<string, unknown>).applications as number ?? 142 },
+                          { k: "Görüntülenme", v: (panelHomePlatformMetrics as Record<string, unknown>).jobViews as string ?? "3.1K" },
+                        ],
+                        ctaKey: "kariyer_yonetimi" as AdminTabKey,
+                      },
+                      {
+                        code: "seeker", label: "İş Arayan", color: "#9F1239", bg: "#fff1f3",
+                        subLabel: `${(panelHomePlatformMetrics as Record<string, unknown>).seekerActive as number ?? 54} aktif · ${(panelHomePlatformMetrics as Record<string, unknown>).seekerPassive as number ?? 12} pasif`,
+                        metrics: [
+                          { k: "Aday",      v: (panelHomePlatformMetrics as Record<string, unknown>).candidates as number ?? 66 },
+                          { k: "Aktif CV",  v: (panelHomePlatformMetrics as Record<string, unknown>).activeCvs as number ?? 54 },
+                          { k: "Başvuru",   v: (panelHomePlatformMetrics as Record<string, unknown>).applications as number ?? 142 },
+                          { k: "Eşleşme",   v: (panelHomePlatformMetrics as Record<string, unknown>).matches as number ?? 23 },
+                        ],
+                        ctaKey: "talent_ecosystem" as AdminTabKey,
+                      },
+                    ]).map((a) => (
+                      <div key={a.code} className="ph-aud-card" style={{ "--aud": a.color, "--aud-bg": a.bg } as React.CSSProperties}>
+                        <div className="ph-aud-card__head">
+                          <span className="ph-aud-card__title">{a.label}</span>
+                          <span className="ph-aud-card__badge">{a.subLabel}</span>
+                        </div>
+                        <div className="ph-aud-card__body">
+                          {a.metrics.map((m) => (
+                            <div key={m.k} className="ph-aud-card__row">
+                              <span>{m.k}</span>
+                              <b>{m.v}</b>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="ph-aud-card__foot">
+                          <button type="button" className="ph-aud-card__cta" onClick={() => navigateAdminTab(a.ctaKey)}>
+                            Yönet →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Approval strip */}
+                  <div className="ph-approval-strip">
+                    {[
+                      { label: "Bekleyen Talep", value: requestSummaryTop.pending,            cls: "warn", sub: "Son 24 saatte hareketsiz" },
+                      { label: "Onaylanan",       value: requestSummaryTop.approved,           cls: "ok",   sub: "▲ %12 · son 7 gün" },
+                      { label: "Reddedilen",      value: requestSummaryTop.rejected,           cls: "bad",  sub: "▼ %3 · son 7 gün" },
+                      { label: "Hızlı Link",      value: workspacePanelQuickLinks.length,      cls: "blue", sub: "Sabitlenmiş kısayollar" },
+                    ].map((c) => (
+                      <div key={c.label} className={`ph-appr-card ph-appr-card--${c.cls}`}>
+                        <div className="ph-appr-card__label">{c.label}</div>
+                        <div className="ph-appr-card__value">{c.value}</div>
+                        <div className="ph-appr-card__sub">{c.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Operasyonel Uyarılar ── */}
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Operasyonel Uyarılar</div>
+                      <div className="ph-section__sub">Anlık aksiyon gerektiren kuyruklar</div>
+                    </div>
+                    <button type="button" className="ph-lnk" onClick={() => navigateAdminTab("platform_operations")}>Tümünü gör →</button>
+                  </div>
+                  <div className="ph-ops-grid">
+                    {PH_OPS_QUEUE.map((o) => (
+                      <div key={o.code} className="ph-ops-card" style={{ "--ops": o.color } as React.CSSProperties}>
+                        <div className="ph-ops-card__label">{o.label}</div>
+                        <div className="ph-ops-card__value">{o.count}</div>
+                        <div className="ph-ops-card__desc">{o.desc}</div>
+                        <button type="button" className="ph-ops-card__cta">{o.cta} →</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Destek Kuyruğu ── */}
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Destek Kuyruğu</div>
+                      <div className="ph-section__sub">Platform desteği · gelen ticket durumları</div>
+                    </div>
+                  </div>
+                  <div className="ph-ops-grid">
+                    {PH_SUPPORT_QUEUE.map((s) => (
+                      <div key={s.code} className="ph-ops-card" style={{ "--ops": s.color } as React.CSSProperties}>
+                        <div className="ph-ops-card__label">{s.label}</div>
+                        <div className="ph-ops-card__value">{s.count}</div>
+                        <div className="ph-ops-card__desc">{s.desc}</div>
+                        <button type="button" className="ph-ops-card__cta">{s.cta} →</button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="ph-sup-summary">
+                    {PH_SUPPORT_SUMMARY.map((s) => (
+                      <div key={s.code} className="ph-sup-card" style={{ "--sup": s.color } as React.CSSProperties}>
+                        <div className="ph-sup-card__label">{s.label}</div>
+                        <div className={`ph-sup-card__value${s.isPerson ? " ph-sup-card__value--person" : ""}`}>{s.value}</div>
+                        <div className="ph-sup-card__desc">{s.desc}</div>
+                        <button type="button" className="ph-sup-card__cta">{s.cta} →</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Operasyon Kuyruğu ── */}
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <div>
+                      <div className="ph-section__title">Operasyon Kuyruğu · Platform destek öncelikleri</div>
+                      <div className="ph-section__sub">Müdahale önceliği yüksek Stratejik Partner kayıtları tek görünümde.</div>
+                    </div>
+                  </div>
+                  <div className="ph-priority-list">
+                    {PH_PRIORITY_TENANTS.map((t) => (
+                      <div key={t.slug} className="ph-priority-row">
+                        <div className="ph-priority-row__main">
+                          <div className="ph-priority-row__name">{t.name}</div>
+                          <div className="ph-priority-row__tags">
+                            {t.tags.map((tag, i) => (
+                              <span key={i} className={`ph-priority-tag${
+                                tag.includes("Kurulum") ? " ph-tag-blue"  :
+                                tag.includes("Marka")   ? " ph-tag-amber" :
+                                tag.includes("Destek")  ? " ph-tag-green" : ""
+                              }`}>{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="ph-priority-row__slug">{t.slug}</div>
+                        <button type="button" className="ph-row-act" title="Detay">↗</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── MRR Trendi + Uyarılar — 2:1 split ── */}
+                <div className="ph-split-2-1">
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <div>
+                        <div className="ph-section__title">MRR Trendi</div>
+                        <div className="ph-section__sub">Son 12 ay · net büyüme = yeni − churn</div>
+                      </div>
+                      <div className="ph-legend">
+                        <span className="ph-legend-dot ph-legend-dot--mrr" />MRR
+                        <span className="ph-legend-dot ph-legend-dot--net" style={{ marginLeft: 10, borderStyle: "dashed" }} />Net büyüme
+                      </div>
+                    </div>
+                    <div className="ph-mrr-chart">
+                      {(() => {
+                        const W = 480; const H = 130; const PAD = 40;
+                        // Padded domain — shrinks dead space
+                        const rawMin = Math.min(...PH_MRR_SERIES.map((d) => d.mrr));
+                        const rawMax = Math.max(...PH_MRR_SERIES.map((d) => d.mrr));
+                        const rng = rawMax - rawMin;
+                        const domMin = rawMin - rng * 0.18;
+                        const domMax = rawMax + rng * 0.12;
+                        const yScale = (v: number) => 10 + ((domMax - v) / (domMax - domMin)) * (H - 26);
+                        const pts = PH_MRR_SERIES.map((d, i) => ({
+                          x: PAD + (i / (PH_MRR_SERIES.length - 1)) * (W - PAD - 6),
+                          y: yScale(d.mrr),
+                        }));
+                        // Catmull-Rom → cubic bezier smooth path
+                        const smoothPath = (arr: {x: number; y: number}[]) => {
+                          let d = `M${arr[0].x.toFixed(1)},${arr[0].y.toFixed(1)}`;
+                          for (let i = 0; i < arr.length - 1; i++) {
+                            const p0 = arr[Math.max(0, i - 1)];
+                            const p1 = arr[i]; const p2 = arr[i + 1];
+                            const p3 = arr[Math.min(arr.length - 1, i + 2)];
+                            const cp1x = p1.x + (p2.x - p0.x) / 6;
+                            const cp1y = p1.y + (p2.y - p0.y) / 6;
+                            const cp2x = p2.x - (p3.x - p1.x) / 6;
+                            const cp2y = p2.y - (p3.y - p1.y) / 6;
+                            d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+                          }
+                          return d;
+                        };
+                        const linePath = smoothPath(pts);
+                        const last = pts[pts.length - 1];
+                        const areaPath = `${linePath} L${last.x.toFixed(1)},${H - 8} L${pts[0].x.toFixed(1)},${H - 8} Z`;
+                        // Net growth on its own scale (last 6 months)
+                        const netVals = PH_NET_GROWTH_SERIES.map((d) => d.newMrr - d.churn);
+                        const netMin = Math.min(...netVals); const netMax = Math.max(...netVals);
+                        const netRng = netMax - netMin || 1;
+                        const netYScale = (v: number) => 10 + ((netMax + netRng * 0.1 - v) / (netRng * 1.3)) * (H - 26);
+                        const netPts = PH_NET_GROWTH_SERIES.map((d, i) => ({
+                          x: PAD + ((PH_MRR_SERIES.length - PH_NET_GROWTH_SERIES.length + i) / (PH_MRR_SERIES.length - 1)) * (W - PAD - 6),
+                          y: netYScale(d.newMrr - d.churn),
+                        }));
+                        const netLine = smoothPath(netPts);
+                        // 3 Y-axis ticks
+                        const t1 = domMin; const t2 = (domMin + domMax) / 2; const t3 = domMax;
+                        const ticks = [{ v: t1, y: yScale(t1) }, { v: t2, y: yScale(t2) }, { v: t3, y: yScale(t3) }];
+                        return (
+                          <svg viewBox={`0 0 ${W} ${H}`} className="ph-mrr-svg" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#3A4F86" stopOpacity="0.26" />
+                                <stop offset="100%" stopColor="#3A4F86" stopOpacity="0.02" />
+                              </linearGradient>
+                            </defs>
+                            {ticks.map(({ v, y }) => (
+                              <g key={v}>
+                                <line x1={PAD} y1={y} x2={W - 4} y2={y} stroke="#e2e8f0" strokeWidth="0.7" />
+                                <text x={PAD - 4} y={y + 3.5} fontSize="8" fill="#94a3b8" textAnchor="end">₺{Math.round(v / 1000)}K</text>
+                              </g>
+                            ))}
+                            <path d={areaPath} fill="url(#mrrGrad)" />
+                            <path d={linePath} fill="none" stroke="#3A4F86" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d={netLine} fill="none" stroke="#7C2D12" strokeWidth="1.6" strokeDasharray="5,3" strokeLinecap="round" strokeLinejoin="round" />
+                            <circle cx={last.x} cy={last.y} r="5" fill="#3A4F86" stroke="#fff" strokeWidth="2" />
+                            <rect x={last.x - 18} y={last.y - 18} width="36" height="13" rx="4" fill="#3A4F86" opacity="0.9" />
+                            <text x={last.x} y={last.y - 8} fontSize="8" fill="#fff" textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length - 1].mrr / 1000).toFixed(0)}K</text>
+                          </svg>
+                        );
+                      })()}
+                      <div className="ph-mrr-labels">
+                        {PH_MRR_SERIES.map((d) => (
+                          <span key={d.m}>{d.m.slice(5)}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="ph-chart-note ph-chart-note--compact">
+                      <b>——</b> Toplam MRR &nbsp;·&nbsp; <b style={{ borderBottom: "2px dashed #7C2D12" }}>- -</b> Net büyüme (yeni − churn) &nbsp;·&nbsp; ● Son ay balonu
+                    </p>
+                    <div className="ph-mrr-churn-bar">
+                      <div className="ph-mrr-churn-bar__row">
+                        <span className="ph-mrr-churn-bar__label ph-pos">Yeni +₺132K</span>
+                        <div className="ph-mrr-churn-bar__track">
+                          <div className="ph-mrr-churn-bar__fill ph-mrr-churn-bar__fill--new" style={{ width: "57%" }} />
+                        </div>
+                      </div>
+                      <div className="ph-mrr-churn-bar__row">
+                        <span className="ph-mrr-churn-bar__label ph-neg">Churn −₺99K</span>
+                        <div className="ph-mrr-churn-bar__track">
+                          <div className="ph-mrr-churn-bar__fill ph-mrr-churn-bar__fill--churn" style={{ width: "43%" }} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ph-mrr-stats">
+                      <div><span>Net büyüme</span><b className="ph-pos">+₺32.500</b></div>
+                      <div><span>Büyüme oranı</span><b className="ph-pos">+%2.6</b></div>
+                      <div><span>Bu ay yeni</span><b className="ph-pos">+₺132.000</b></div>
+                      <div><span>Bu ay churn</span><b className="ph-neg">−₺99.500</b></div>
+                    </div>
+                  </div>
+
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <div>
+                        <div className="ph-section__title">Operasyonel Uyarılar</div>
+                        <div className="ph-section__sub">Bekleyen {PH_ALERTS.length}</div>
+                      </div>
+                      <button type="button" className="ph-lnk">Tümünü gör →</button>
+                    </div>
+                    <div className="ph-alert-list">
+                      {PH_ALERTS.map((a) => {
+                        const seg = SEGMENT_META[a.aud] ?? SEGMENT_META.platform;
+                        return (
+                          <div key={a.id} className={`ph-alert-row ph-alert-row--${a.level}`}>
+                            <div className="ph-alert-row__dot" />
+                            <div className="ph-alert-row__body">
+                              <div className="ph-alert-row__top">
+                                <span className="ph-alert-row__firm">{a.firm}</span>
+                                <span className="ph-seg-chip" style={{ color: seg.color, background: seg.bg }}>
+                                  <span className="ph-seg-chip__dot" style={{ background: seg.color }} />{seg.label}
+                                </span>
+                              </div>
+                              <div className="ph-alert-row__subject">{a.title}</div>
+                              <div className="ph-alert-row__desc">{a.desc}</div>
+                              <button type="button" className="ph-alert-row__cta">{a.cta}</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Non-platform: compact summary strip */
+              <section className="admin-page__card admin-page__card--large admin-page__card--stacked">
+                <div className="admin-page__summary-grid">
+                  {[
+                    { label: "Bekleyen Talep", value: requestSummaryTop.pending, tone: "amber" },
+                    { label: "Onaylanan",       value: requestSummaryTop.approved, tone: "green" },
+                    { label: "Reddedilen",      value: requestSummaryTop.rejected, tone: "red-dark" },
+                    { label: "Hizli Link",      value: workspacePanelQuickLinks.length, tone: quickLinkTone },
+                  ].map((item) => (
+                    <div key={item.label} className={`admin-page__summary-card admin-page__tone--${item.tone}`}>
+                      <div className="admin-page__summary-label">{item.label}</div>
+                      <div className="admin-page__summary-value">{item.value}</div>
+                    </div>
                   ))}
                 </div>
-              </div>
-            ) : null}
-
-            <div className="admin-page__summary-grid">
-              {[
-                { label: "Bekleyen Talep", value: requestSummaryTop.pending, tone: "amber" },
-                { label: "Onaylanan", value: requestSummaryTop.approved, tone: "green" },
-                { label: "Reddedilen", value: requestSummaryTop.rejected, tone: "red-dark" },
-                { label: "Hizli Link", value: workspacePanelQuickLinks.length, tone: quickLinkTone },
-              ].map((item) => (
-                <div key={item.label} className={`admin-page__summary-card admin-page__tone--${item.tone}`}>
-                  <div className="admin-page__summary-label">{item.label}</div>
-                  <div className="admin-page__summary-value">{item.value}</div>
-                </div>
-              ))}
-            </div>
-          </section>
+              </section>
+            )}
+          </div>
         );
       })()}
 
@@ -4193,7 +4793,32 @@ export default function AdminPage() {
       )}
 
 
-      {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (
+      {activeTab === "platform_overview" && (
+        <div className="atc-page--header">
+          <PageHeader
+            eyebrow="Genel"
+            title="Platform Genel Bakış"
+            sub="Finans, partner sağlığı ve operasyon metrikleri"
+          />
+          <div className="kpi-grid">
+            {/* TODO(data): MRR — finans/fatura servisi gerekli */}
+            <StatCard label="MRR" value="—" sub="TODO(data): finans servisi" accent="blue" />
+            {/* TODO(data): ARR — finans/fatura servisi gerekli */}
+            <StatCard label="ARR" value="—" sub="TODO(data): finans servisi" accent="gold" />
+            <StatCard
+              label="Aktif Partner"
+              value={tenants.filter((t) => t.is_active).length}
+              sub={`${tenants.filter((t) => !t.is_active).length} pasif kayıt`}
+            />
+            {/* TODO(data): Churn — abonelik geçmişi servisi gerekli */}
+            <StatCard label="Churn (30 gün)" value="—" unit="%" sub="TODO(data): abonelik servisi" accent="green" />
+            {/* TODO(data): SLA — izleme/uptime servisi gerekli */}
+            <StatCard label="SLA Sağlık" value="—" unit="%" sub="TODO(data): izleme servisi" accent="green" />
+          </div>
+        </div>
+      )}
+
+      {(activeTab === "platform_overview" || activeTab === "panel_home") && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           {(searchParams.get("tenantFocusName") || searchParams.get("projectFocusName") || searchParams.get("onboardingPlanFocus")) ? renderAdminFocusBanner({
             eyebrow: "Yönetici Odağı",
@@ -4208,10 +4833,10 @@ export default function AdminPage() {
                 ? "Discovery Lab izleme kartları seçili proje bağlamına göre okunuyor."
                 : "Onboarding odağı platform genel bakış seviyesinde korunuyor.",
             tone: "amber",
-            sourceLabel: "Platform genel bakış bağlantısı",
+            sourceLabel: "Platform genel bakis baglantisi",
             timestamp: Date.now(),
             actions: [
-              searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
+              searchParams.get("tenantFocusName") ? { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance", { tenantFocusId: searchParams.get("tenantFocusId") || "", tenantFocusName: searchParams.get("tenantFocusName") || "" }) } : undefined,
               searchParams.get("projectFocusName") ? { label: "Discovery Lab'a Git", onClick: () => navigateAdminTab("discovery_lab_operations", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
               searchParams.get("projectFocusName") ? { label: "Projelere Git", onClick: () => navigateAdminTab("projects", { projectFocusName: searchParams.get("projectFocusName") || "" }) } : undefined,
               searchParams.get("onboardingPlanFocus") ? { label: "Onboarding'e Git", onClick: () => navigateAdminTab("onboarding_studio", { onboardingPlanFocus: searchParams.get("onboardingPlanFocus") || "" }) } : undefined,
@@ -4372,7 +4997,7 @@ export default function AdminPage() {
             </div>
 
             <div ref={focusTelemetryPanelRef} className="admin-page__panel-card admin-page__panel-card--stacked">
-              <div className="admin-page__panel-eyebrow">Yönetici Odak Telemetrisi</div>
+              <div className="admin-page__panel-eyebrow">Yonetici Odak Telemetrisi</div>
               <div className="admin-page__panel-title">Paylaşılan focus olay listesi</div>
               <div className="admin-page__link-description">Platform genel bakış, filtre odakları ve geri yükleme davranışları tek listede toplanır.</div>
               <div className="admin-page__wrap-row">
@@ -4385,22 +5010,22 @@ export default function AdminPage() {
               <div className="admin-page__form-row">
                 <label className="admin-page__field admin-page__field--wide">
                   Preset Adı
-                  <input aria-label="Telemetry Preset Adı" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="örnek: Merkez Replay" className="admin-page__control" />
+                  <input aria-label="Telemetry Preset Adi" value={focusTelemetryPresetName} onChange={(event) => setFocusTelemetryPresetName(event.target.value)} placeholder="örnek: Merkez Replay" className="admin-page__control" />
                 </label>
                 <button type="button" onClick={saveFocusTelemetryPreset} className="admin-page__pill-button">
                   Preset Kaydet
                 </button>
                 <button type="button" onClick={exportFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--blue">
-                  Preset Paketi Hazırla
+                  Preset Paketi Hazirla
                 </button>
                 <button type="button" onClick={importFocusTelemetryPresetPackage} className="admin-page__pill-button admin-page__pill-button--violet">
-                  Preset Paketini İçe Aktar
+                  Preset Paketini Ice Aktar
                 </button>
                 {focusTelemetryPresets.map((preset) => (
                   <div key={preset.id} className="admin-page__chip-row">
                     {focusTelemetryEditingPresetId === preset.id ? (
                       <>
-                        <input aria-label={`Preset Yeniden Adlandır ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
+                        <input aria-label={`Preset Yeniden Adlandir ${preset.name}`} value={focusTelemetryPresetDraftName} onChange={(event) => setFocusTelemetryPresetDraftName(event.target.value)} className="admin-page__control admin-page__field--narrow" />
                         <button type="button" onClick={() => commitFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--blue">
                           Kaydet
                         </button>
@@ -4411,7 +5036,7 @@ export default function AdminPage() {
                       </button>
                     )}
                     <button type="button" onClick={() => startFocusTelemetryPresetRename(preset.id)} className="admin-page__pill-button admin-page__pill-button--amber">
-                      Yeniden Adlandır
+                      Yeniden Adlandir
                     </button>
                     <button type="button" onClick={() => deleteFocusTelemetryPreset(preset.id)} className="admin-page__pill-button admin-page__pill-button--red">
                       Preseti Sil
@@ -4478,7 +5103,7 @@ export default function AdminPage() {
                   <span className="admin-page__tag-chip">Disa Aktarim Zamani: {previewFocusTelemetryPresetPackage.exportedAtLabel}</span>
                   <span className="admin-page__tag-chip">Calisma Alani: {previewFocusTelemetryPresetPackage.sourceWorkspaceLabel}</span>
                   <span className="admin-page__tag-chip">Operator: {previewFocusTelemetryPresetPackage.operatorLabel}</span>
-                  <span className="admin-page__tag-chip">Özet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
+                  <span className="admin-page__tag-chip">Ozet Kodu: {previewFocusTelemetryPresetPackage.presetHash}</span>
                   <span className="admin-page__tag-chip">Kayit: {previewFocusTelemetryPresetPackage.acceptedCount}/{previewFocusTelemetryPresetPackage.presetCount}</span>
                   <span className="admin-page__tag-chip">Cakisma: {previewFocusTelemetryPresetPackage.conflictCount}</span>
                 </div>
@@ -4563,6 +5188,7 @@ export default function AdminPage() {
                         type="button"
                         onClick={() => setFocusTelemetryActionHistoryFilter(item.key as "all" | "export" | "preset" | "navigation")}
                         className={`admin-page__pill-button admin-page__pill-button--sm ${focusTelemetryActionHistoryFilter === item.key ? "admin-page__pill-button--active-blue" : ""}`}
+                        style={focusTelemetryActionHistoryFilter === item.key ? { background: "rgb(239, 246, 255)" } : undefined}
                       >
                         {item.label}
                       </button>
@@ -4621,7 +5247,7 @@ export default function AdminPage() {
                     if (!eventTarget.currentTarget.contains(nextFocused)) {
                       setIsFocusTelemetryReturnPaused(false);
                     }
-                  }} className={`admin-page__event-card ${
+                  }} style={focusTelemetryReturnedEventId === event.id ? { transform: "scale(1.01)" } : undefined} className={`admin-page__event-card ${
                     focusTelemetrySelectedEventId === event.id
                       ? "admin-page__event-card--selected"
                       : replayChainTargetQuoteId != null && event.targetQuoteId === replayChainTargetQuoteId
@@ -4703,7 +5329,7 @@ export default function AdminPage() {
                   Telemetry Export Hazirla
                 </button>
                 <button type="button" onClick={exportFocusTelemetryCsv} className="admin-page__pill-button">
-                  CSV Özet Hazırla
+                  CSV Ozet Hazirla
                 </button>
                 <button type="button" onClick={() => {
                   void copyFocusTelemetryText(focusTelemetryExport)
@@ -4752,7 +5378,185 @@ export default function AdminPage() {
         </section>
       )}
 
-      {activeTab === "panel_home" && canViewPlatformGovernance && (() => {
+      {/* ── Platform Genel Bakış: Finansal Detay + Sistem Sağlığı + Grafikler ── */}
+      {activeTab === "platform_overview" && canViewPlatformGovernance && (
+        <div className="ph-page">
+          {/* LTV / CAC / LTV:CAC */}
+          <div className="ph-section">
+            <div className="ph-section__head">
+              <div>
+                <div className="ph-section__title">Finansal Detay</div>
+                <div className="ph-section__sub">Birim ekonomi ve müşteri yaşam döngüsü</div>
+              </div>
+            </div>
+            <div className="ph-ltv-grid">
+              <div className="ph-kpi-card ph-kpi-card--blue">
+                <div className="ph-kpi-card__label">LTV (ort)</div>
+                <div className="ph-kpi-card__value">₺89.400</div>
+                <div className="ph-kpi-card__delta">+%4.2</div>
+              </div>
+              <div className="ph-kpi-card ph-kpi-card--green">
+                <div className="ph-kpi-card__label">CAC</div>
+                <div className="ph-kpi-card__value">₺11.200</div>
+                <div className="ph-kpi-card__delta">▼%3.1 (iyileşme)</div>
+              </div>
+              <div className="ph-kpi-card ph-kpi-card--green">
+                <div className="ph-kpi-card__label">LTV:CAC</div>
+                <div className="ph-kpi-card__value">7.98×</div>
+                <div className="ph-kpi-card__sub">Hedef ≥ 3×</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sistem Sağlığı */}
+          <div className="ph-section">
+            <div className="ph-section__head">
+              <div>
+                <div className="ph-section__title">Sistem Sağlığı</div>
+                <div className="ph-section__sub">Anlık platform telemetrisi · 30 sn güncellenir</div>
+              </div>
+              <button type="button" className="ph-lnk">Status sayfası →</button>
+            </div>
+            <div className="ph-syshealth-grid">
+              {PH_SYSTEM_HEALTH.metrics.map((m) => (
+                <div key={m.code} className={`ph-syshealth-card ph-syshealth-card--${m.status}`}>
+                  <div className="ph-syshealth-card__label">{m.label}</div>
+                  <div className="ph-syshealth-card__value">
+                    <span className={`ph-syshealth-dot ph-syshealth-dot--${m.status}`} />
+                    {m.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="ph-syshealth-domains-head">ÇOKLU DOMAIN</div>
+            <div className="ph-syshealth-domains">
+              {PH_SYSTEM_HEALTH.domains.map((d) => (
+                <div key={d.host} className="ph-syshealth-domain">
+                  <div className="ph-syshealth-domain__host">{d.host}</div>
+                  <div className="ph-syshealth-domain__role">
+                    <span className="ph-syshealth-domain__dot" />{d.role}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* MRR Detayı + Plan Dağılımı — 1:1 */}
+          <div className="ph-split-1-1">
+            <div className="ph-section">
+              <div className="ph-section__head">
+                <div>
+                  <div className="ph-section__title">MRR Detayı · 12 ay</div>
+                </div>
+                <div className="ph-legend">
+                  <span className="ph-legend-dot ph-legend-dot--mrr" />MRR
+                </div>
+              </div>
+              <div className="ph-mrr-chart">
+                {(() => {
+                  const W = 480; const H = 120; const PAD = 36;
+                  const maxMrr = Math.max(...PH_MRR_SERIES.map((d) => d.mrr));
+                  const pts = PH_MRR_SERIES.map((d, i) => {
+                    const x = PAD + (i / (PH_MRR_SERIES.length - 1)) * (W - PAD - 8);
+                    const y = 8 + ((maxMrr - d.mrr) / maxMrr) * (H - 28);
+                    return { x, y, d };
+                  });
+                  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+                  const areaPath = `${linePath} L${pts[pts.length-1].x.toFixed(1)},${H-10} L${pts[0].x.toFixed(1)},${H-10} Z`;
+                  const last = pts[pts.length - 1];
+                  const tickVals = [0, Math.round(maxMrr / 2 / 1000), Math.round(maxMrr / 1000)];
+                  return (
+                    <svg viewBox={`0 0 ${W} ${H}`} className="ph-mrr-svg" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="mrrGrad2" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3A4F86" stopOpacity="0.22" />
+                          <stop offset="100%" stopColor="#3A4F86" stopOpacity="0.01" />
+                        </linearGradient>
+                      </defs>
+                      {tickVals.map((v, i) => {
+                        const y = i === 0 ? H - 10 : i === 1 ? H / 2 : 8;
+                        return <g key={v}><line x1={PAD} y1={y} x2={W-4} y2={y} stroke="#e2e8f0" strokeWidth="0.8" /><text x={PAD-4} y={y+4} fontSize="8" fill="#94a3b8" textAnchor="end">₺{v}K</text></g>;
+                      })}
+                      <path d={areaPath} fill="url(#mrrGrad2)" />
+                      <path d={linePath} fill="none" stroke="#3A4F86" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx={last.x} cy={last.y} r="5" fill="#3A4F86" stroke="#fff" strokeWidth="2" />
+                      <text x={last.x} y={last.y - 9} fontSize="8" fill="#3A4F86" textAnchor="middle" fontWeight="700">₺{(PH_MRR_SERIES[PH_MRR_SERIES.length-1].mrr/1000).toFixed(0)}K</text>
+                    </svg>
+                  );
+                })()}
+                <div className="ph-mrr-labels">
+                  {PH_MRR_SERIES.map((d) => <span key={d.m}>{d.m.slice(5)}</span>)}
+                </div>
+              </div>
+              <p className="ph-chart-note">
+                <b>Düz çizgi (MRR):</b> aboneliklerden gelen toplam aylık tekrarlayan gelir.{" "}
+                Son aydaki balon güncel MRR değeridir.
+              </p>
+            </div>
+
+            <div className="ph-section">
+              <div className="ph-section__head">
+                <div>
+                  <div className="ph-section__title">Plan Dağılımı</div>
+                </div>
+              </div>
+              <div className="ph-plan-dist">
+                {PH_PLAN_DISTRIBUTION.map((p) => {
+                  const maxPct = Math.max(...PH_PLAN_DISTRIBUTION.map((x) => x.percent));
+                  return (
+                    <div key={p.code} className="ph-plan-row" style={{ "--plan-color": p.color, "--plan-w": `${(p.percent / maxPct) * 100}%` } as React.CSSProperties}>
+                      <div className="ph-plan-row__label">
+                        <span className="ph-plan-row__dot" />
+                        {p.label}
+                      </div>
+                      <div className="ph-plan-row__bar-wrap">
+                        <div className="ph-plan-row__bar" />
+                      </div>
+                      <div className="ph-plan-row__meta">
+                        <b>{p.count}</b> <span>(%{p.percent})</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Aylık Net Büyüme Bileşenleri */}
+          <div className="ph-section">
+            <div className="ph-section__head">
+              <div>
+                <div className="ph-section__title">Aylık Net Büyüme Bileşenleri</div>
+                <div className="ph-section__sub">Yeni vs. churn — son 6 ay</div>
+              </div>
+            </div>
+            <div className="ph-bars-grid">
+              {(() => {
+                const maxVal = Math.max(...PH_NET_GROWTH_SERIES.map((d) => Math.max(d.newMrr, d.churn)));
+                return PH_NET_GROWTH_SERIES.map((d) => (
+                  <div key={d.m} className="ph-bars-col" style={{ "--new-h": `${(d.newMrr / maxVal) * 100}%`, "--churn-h": `${(d.churn / maxVal) * 100}%` } as React.CSSProperties}>
+                    <div className="ph-bars-stack">
+                      <div className="ph-bar ph-bar--new">
+                        <span>+{(d.newMrr / 1000).toFixed(0)}K</span>
+                      </div>
+                      <div className="ph-bar ph-bar--churn">
+                        <span>−{(d.churn / 1000).toFixed(0)}K</span>
+                      </div>
+                    </div>
+                    <div className="ph-bars-label">{d.m.slice(5)}</div>
+                  </div>
+                ));
+              })()}
+            </div>
+            <div className="ph-bars-legend">
+              <span><span className="ph-legend-dot ph-legend-dot--new" />Yeni MRR</span>
+              <span><span className="ph-legend-dot ph-legend-dot--churn" />Churn MRR</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(activeTab === "panel_home" || activeTab === "platform_overview") && canViewPlatformGovernance && (() => {
         const _scope = String(user?.scope_type || "").toLowerCase();
         const _bRole = String(user?.business_role || user?.role || "").toLowerCase();
         const isChannel = _scope === "channel" || _bRole === "channel_owner" || _bRole === "channel_agent";
@@ -4866,10 +5670,23 @@ export default function AdminPage() {
       })()}
 
       {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="AI & Keşif" title="Discovery Lab Operasyonları" sub="Answer audit ve RFQ bağlantı merkezi — Discovery Lab operasyon masası" />
+          <div className="kpi-grid">
+            <StatCard label="Toplam Oturum" value={discoveryLabSummary.total_sessions} accent="blue" />
+            <StatCard label="Quote Hazır" value={discoveryLabSummary.quote_ready_sessions} accent="green" />
+            <StatCard label="Kilitli Oturum" value={discoveryLabSummary.locked_sessions} accent="warn" />
+            <StatCard label="Aktif Proje" value={discoveryLabSummary.active_project_count} accent="violet" />
+            <StatCard label="Audit Kaydi" value={discoveryLabSummary.answer_audit_count} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
         <section className="admin-page__grid">
           <div className="admin-page__panel-card admin-page__panel-card--stacked">
             <div className="admin-page__discovery-title">Discovery Lab Operasyon Masası</div>
-            <div className="admin-page__large-heading">Answer audit ve RFQ bağlantı merkezi</div>
+            <div className="admin-page__large-heading">Answer audit ve RFQ baglanti merkezi</div>
             <div className="admin-page__plain-muted">Stratejik Partner, proje, kullanıcı ve karar kırılımı ile Discovery Lab cevaplarını ve oluşan RFQ bağlantılarını izleyin.</div>
             {showRestoredQuoteToast && restoredQuoteInsight ? (
               <div
@@ -4892,7 +5709,7 @@ export default function AdminPage() {
               >
                 <div className="admin-page__restore-toast-content">
                   <div className="admin-page__restore-toast-title">Geri Dönüş Restore</div>
-                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} içinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odağı geri yüklendi.</div>
+                  <div className="admin-page__restore-toast-detail">RFQ #{restoredQuoteInsight.quoteId} icinde {getQuoteInsightSectionLabel(restoredQuoteInsight.section)} odagi geri yuklendi.</div>
                   <progress data-testid="restored-quote-toast-progress" className="admin-page__wide-progress" value={restoredQuoteToastProgress} max={100} />
                 </div>
                 <div className="admin-page__wrap-row">
@@ -4901,7 +5718,7 @@ export default function AdminPage() {
                     onClick={jumpToRestoredQuoteCard}
                     className="admin-page__ghost-button"
                   >
-                    RFQ #{restoredQuoteInsight.quoteId} Odağına Git
+                    RFQ #{restoredQuoteInsight.quoteId} Odagina Git
                   </button>
                   <button
                     type="button"
@@ -4918,9 +5735,9 @@ export default function AdminPage() {
           <div className="admin-page__compact-metric-grid">
             {[
               { label: "Toplam Audit", value: discoveryLabSummary.answer_audit_count, note: "Kayıt altına alınan tüm cevaplar", tone: "blue" },
-              { label: "RFQ Bağlı Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile çaprazlanan cevaplar", tone: "navy" },
-              { label: "Stratejik Partner Bağlı Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner bağlamına çözülmüş kayıtlar", tone: "teal" },
-              { label: "İnceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri dönüş gerektiren cevaplar", tone: "amber" },
+              { label: "RFQ Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.quote_id).length, note: "Quote/RFQ ile caprazlanan cevaplar", tone: "navy" },
+              { label: "Stratejik Partner Bagli Audit", value: discoveryLabAnswerAudits.filter((item) => item.tenant_id).length, note: "Stratejik Partner baglamina cozulmus kayitlar", tone: "teal" },
+              { label: "Inceleme Bekleyen", value: discoveryLabAnswerAudits.filter((item) => item.decision === "needs_review").length, note: "Operasyonel geri donus gerektiren cevaplar", tone: "amber" },
             ].map((card) => (
               <div key={card.label} className={`admin-page__overview-card admin-page__tone--${card.tone}`}>
                 <div className="admin-page__overview-label">{card.label}</div>
@@ -5011,7 +5828,7 @@ export default function AdminPage() {
                 ))}
                 {filteredRestoredQuoteDebugEvents.length === 0 ? (
                   <div className="admin-page__empty-state">
-                    Seçili filtre için debug olayı bulunmuyor.
+                    Secili filtre icin debug olayi bulunmuyor.
                   </div>
                 ) : null}
               </div>
@@ -5062,14 +5879,14 @@ export default function AdminPage() {
                   className="admin-page__control"
                 />
                 <input
-                  aria-label="Discovery Lab Kullanıcı Filtresi"
+                  aria-label="Discovery Lab Kullanici Filtresi"
                   value={discoveryLabUserQuery}
                   onChange={(event) => setDiscoveryLabUserQuery(event.target.value)}
                   placeholder="Kullanıcı ara"
                   className="admin-page__control"
                 />
                 <input
-                  aria-label="Discovery Lab Kayıt Arama"
+                  aria-label="Discovery Lab Kayit Arama"
                   value={discoveryLabSearch}
                   onChange={(event) => setDiscoveryLabSearch(event.target.value)}
                   placeholder="Kayıt ara"
@@ -5084,7 +5901,7 @@ export default function AdminPage() {
                     onClick={() => setDiscoveryLabAuditDecisionFilter(decision)}
                     className={`admin-page__pill-button admin-page__pill-button--sm ${discoveryLabAuditDecisionFilter === decision ? "admin-page__pill-button--active-teal" : ""}`}
                   >
-                    {decision === "all" ? "Tüm Kararlar" : decision === "needs_review" ? "İnceleme" : decision === "approved" ? "Onaylandı" : "Göz Ardı"}
+                    {decision === "all" ? "Tum Kararlar" : decision === "needs_review" ? "Inceleme" : decision === "approved" ? "Onaylandi" : "Goz Ardi"}
                   </button>
                 ))}
                 <button
@@ -5098,18 +5915,18 @@ export default function AdminPage() {
                   }}
                   className="admin-page__pill-button admin-page__pill-button--sm"
                 >
-                  Son 7 Gün
+                  Son 7 Gun
                 </button>
               </div>
             </div>
             <div className="admin-page__space-between-row">
               <div>
-                <div className="admin-page__discovery-title">Filtrelenmiş Audit Kayıtları</div>
-                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bağlı detay listesi</div>
+                <div className="admin-page__discovery-title">Filtrelenmis Audit Kayitlari</div>
+                <div className="admin-page__panel-title">Stratejik Partner ve RFQ bagli detay listesi</div>
                 {restoredQuoteInsight ? renderAdminFocusBanner({
                   eyebrow: "Admin Focus",
-                  title: `Admin geri dönüş odağı: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
-                  detail: `Geri dönüş odağı geçici olarak listenin üstüne taşındı: RFQ #${restoredQuoteInsight.quoteId} - replay hedefi ${getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}`,
+                  title: `Admin geri donus odagi: RFQ ${getQuoteInsightSectionLabel(restoredQuoteInsight.section)}`,
+                  detail: `Geri donus odagi gecici olarak listenin ustune tasindi: RFQ #${restoredQuoteInsight.quoteId} - replay hedefi ${getQuoteInsightSectionLabel(restoredQuoteReplayTarget)}`,
                   tone: restoredQuoteInsight.section === "status-history" ? "blue" : "violet",
                   sourceLabel: "Quote return",
                   timestamp: filteredRestoredQuoteDebugEvents[0]?.createdAt || Date.now(),
@@ -5174,7 +5991,7 @@ export default function AdminPage() {
                         ) : null}
                         {selectedFocusTelemetryTarget?.quoteId === audit.quote_id ? (
                           <span className="admin-page__pill-chip admin-page__pill-chip--blue">
-                            Telemetry Seçimi
+                            Telemetry Secimi
                           </span>
                         ) : null}
                         {replayChainTargetQuoteId === audit.quote_id ? (
@@ -5219,7 +6036,7 @@ export default function AdminPage() {
                           onClick={() => openTenantGovernanceTab(audit.tenant_id, audit.tenant_name)}
                           className="admin-page__audit-button admin-page__audit-button--teal"
                         >
-                          Stratejik Partner Yönetimine Git
+                          Stratejik Partner Yonetimine Git
                         </button>
                       ) : null}
                       {audit.project_id ? (
@@ -5228,7 +6045,7 @@ export default function AdminPage() {
                           onClick={() => openProjectsTab(audit.project_name)}
                           className="admin-page__audit-button admin-page__audit-button--indigo"
                         >
-                          Proje Akışını Aç
+                          Proje Akisini Ac
                         </button>
                       ) : null}
                     </div>
@@ -5240,23 +6057,23 @@ export default function AdminPage() {
                             RFQ #{audit.quote_id}
                           </a>
                           <a href={`/quotes/${audit.quote_id}/comparison?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--violet">
-                            RFQ Karşılaştırma
+                            RFQ Karsilastirma
                           </a>
                           <a href={`/quotes/${audit.quote_id}/edit?${buildAdminReturnQuery(audit)}`} className="admin-page__audit-link admin-page__audit-link--amber">
-                            RFQ Akışına Git
+                            RFQ Akisina Git
                           </a>
                           <a href={`/quotes/${audit.quote_id}?insight=status-history&${buildAdminReturnQuery(audit, "status-history")}`} className="admin-page__audit-link admin-page__audit-link--soft-blue">
-                            RFQ Durum Geçmişi
+                            RFQ Durum Gecmisi
                           </a>
                           <a href={`/quotes/${audit.quote_id}?insight=full-audit-trail&${buildAdminReturnQuery(audit, "full-audit-trail")}`} className="admin-page__audit-link admin-page__audit-link--soft-violet">
-                            RFQ Denetim İzi Sayfası
+                            RFQ Denetim Izi Sayfasi
                           </a>
                           <button
                             type="button"
                             onClick={() => toggleDiscoveryQuoteInsights(audit.quote_id!)}
                             className="admin-page__audit-button admin-page__audit-button--slate"
                           >
-                            {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Geçmişini Gizle" : "RFQ Geçmişini Aç"}
+                            {expandedDiscoveryQuoteInsightId === audit.quote_id ? "RFQ Gecmisini Gizle" : "RFQ Gecmisini Ac"}
                           </button>
                         </div>
                       ) : (
@@ -5273,13 +6090,13 @@ export default function AdminPage() {
                         ) : null}
                         {restoredQuoteInsight?.quoteId === audit.quote_id ? (
                           <div className={`admin-page__insight-focus ${restoredQuoteInsight.section === "status-history" ? "admin-page__insight-focus--blue" : "admin-page__insight-focus--violet"}`}>
-                            <span>Admin geri dönüş odağı: {restoredQuoteInsight.section === "status-history" ? "RFQ durum geçmişi" : "RFQ denetim izi"}</span>
+                            <span>Admin geri donus odagi: {restoredQuoteInsight.section === "status-history" ? "RFQ durum gecmisi" : "RFQ denetim izi"}</span>
                             <button
                               type="button"
                               onClick={clearRestoredQuoteInsight}
                               className={`admin-page__mini-pill-button ${restoredQuoteInsight.section === "status-history" ? "admin-page__mini-pill-button--blue" : "admin-page__mini-pill-button--violet"}`}
                             >
-                              Odağı Temizle
+                              Odagi Temizle
                             </button>
                           </div>
                         ) : null}
@@ -5369,6 +6186,11 @@ export default function AdminPage() {
                             ref={(node) => {
                               discoveryQuoteAuditTrailRefs.current[audit.quote_id!] = node;
                             }}
+                            style={
+                              telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail"
+                                ? { transform: "scale(1.02)" }
+                                : undefined
+                            }
                             className={`admin-page__quote-insight-section ${
                               telemetryPulseTarget?.quoteId === audit.quote_id && telemetryPulseTarget.section === "full-audit-trail"
                                 ? "admin-page__quote-insight-section--pulse-violet"
@@ -5408,7 +6230,7 @@ export default function AdminPage() {
                             </div>
                             {discoveryQuoteAuditTrailById[audit.quote_id].summary ? (
                               <div className="admin-page__wrap-row">
-                                <span className="admin-page__text-xs-body">Durum değişikliği: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
+                                <span className="admin-page__text-xs-body">Durum Degisikligi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.status_changes ?? 0}</span>
                                 <span className="admin-page__text-xs-body">Onay seviyesi: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.approval_levels ?? 0}</span>
                                 <span className="admin-page__text-xs-body">Tedarikçi yanıtı: {discoveryQuoteAuditTrailById[audit.quote_id].summary?.suppliers_responded ?? 0}</span>
                               </div>
@@ -5436,62 +6258,134 @@ export default function AdminPage() {
         </section>
       )}
 
+      {activeTab === "discovery_lab_operations" && canViewPlatformGovernance && (
+        <>
+          <div className="disc-band">AI Lab Oturum Yönetimi</div>
+          <div className="kpi-grid">
+            <StatCard label="Açık Oturum" value={DISC_KPI.openSessions} delta={12} trend="up" accent="blue" />
+            <StatCard label="Aktif Zincir" value={DISC_KPI.activeChains} sub="Production zincirleri" />
+            <StatCard label="Replay (30g)" value={DISC_KPI.replayCount} delta={28} trend="up" accent="green" />
+            <StatCard label="Anomali" value={DISC_KPI.anomalies} sub="Son 24 saat" accent="warn" />
+            <StatCard label="Ort. Oturum Süresi" value={DISC_KPI.avgDuration} delta={2.1} trend="down" accent="green" />
+          </div>
+          <Section title="Aktif AI Lab Oturumları" sub={`${DISC_FOCUSES.length} açık oturum · CAD analizi + soru-cevap döngüsü`} padded={false}>
+            <DataTable
+              rows={DISC_FOCUSES as unknown as Record<string, unknown>[]}
+              columns={[
+                { key: "id", label: "Oturum", render: (r) => { const item = r as unknown as DiscFocusItem; return (<div><code className="disc-code">{item.id}</code><div className="cell-tenant__sub disc-mt">{item.file}</div></div>); }},
+                { key: "tenant", label: "Partner & Proje", render: (r) => { const item = r as unknown as DiscFocusItem; return (<div><b className="cell-tenant__name">{item.tenant}</b><div className="cell-tenant__sub">{item.project}</div></div>); }},
+                { key: "stage", label: "Aşama", render: (r) => { const item = r as unknown as DiscFocusItem; return <span className={`disc-stage disc-stage--${item.stage.replace(/\s+/g, "-")}`}>{item.stage}</span>; }},
+                { key: "layers", label: "Katman", align: "right", render: (r) => <b className="cell-num">{String((r as unknown as DiscFocusItem).layers)}</b> },
+                { key: "qa", label: "Soru/Cevap", align: "right", render: (r) => <span className="cell-num">{String((r as unknown as DiscFocusItem).qa)}</span> },
+                { key: "owner", label: "Sorumlu", render: (r) => { const item = r as unknown as DiscFocusItem; return item.owner === "—" ? <span className="cell-muted">Atanmadı</span> : <b>{item.owner}</b>; }},
+                { key: "age", label: "Yaş", render: (r) => <span className="cell-muted">{String((r as unknown as DiscFocusItem).age)}</span> },
+                { key: "priority", label: "Öncelik", render: (r) => { const item = r as unknown as DiscFocusItem; return <span className={`disc-prio disc-prio--${item.priority}`}>{item.priority === "critical" ? "KRİTİK" : item.priority === "high" ? "YÜKSEK" : "NORMAL"}</span>; }},
+              ]}
+            />
+          </Section>
+          <div className="split-1-1">
+            <Section title="Replay Zincirleri" sub="CAD analizi + AI üretim zincirleri">
+              <div className="disc-chains">
+                {DISC_CHAINS.map((c) => (
+                  <div key={c.name} className="disc-chain">
+                    <div className="disc-chain__head">
+                      <div><code className="disc-code">{c.name}</code><div className="disc-chain__desc">{c.desc}</div></div>
+                      <span className={`disc-chain__success disc-chain__success--${c.success >= 90 ? "high" : c.success >= 80 ? "mid" : "low"}`}>{c.success}%</span>
+                    </div>
+                    <div className="disc-chain__bar"><div className={`disc-chain__fill disc-chain__fill--${c.success >= 90 ? "high" : c.success >= 80 ? "mid" : "low"}`} style={{ "--fill-w": c.success + "%" } as React.CSSProperties}></div></div>
+                    <div className="disc-chain__meta"><span><b>{c.stages}</b> aşama</span><span><b>{c.duration}</b> ort. süre</span><span>Son: <b>{c.lastRun}</b></span></div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+            <Section title="Operasyon Telemetrisi" sub="Son operatör + sistem aksiyonları">
+              <div className="disc-tel-wrap">
+                <table className="disc-tel">
+                  <thead><tr><th>Zaman</th><th>Aktör</th><th>Kaynak</th><th>Aksiyon</th><th>Detay</th></tr></thead>
+                  <tbody>
+                    {DISC_TELEMETRY.map((e, idx) => (
+                      <tr key={idx}>
+                        <td className="cell-muted disc-tel__mono">{e.time}</td>
+                        <td><b>{e.actor}</b></td>
+                        <td><span className="tier-pill">{e.source}</span></td>
+                        <td><span className="pay-pill pay-pending">{e.action}</span></td>
+                        <td className="cell-muted">{e.detail}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </div>
+        </>
+      )}
+
       {activeTab === "platform_operations" && canViewPlatformGovernance && (
-        <PlatformOperationsTab
-          activePlatformOpsFocusSummary={activePlatformOpsFocusSummary}
-          renderAdminFocusBanner={renderAdminFocusBanner}
-          navigateAdminTab={navigateAdminTab}
-          jumpToPlatformOpsFocusTarget={jumpToPlatformOpsFocusTarget}
-          setPlatformOpsStatusFilter={setPlatformOpsStatusFilter}
-          setPlatformOpsOwnerFilter={setPlatformOpsOwnerFilter}
-          platformOpsStatusSummary={platformOpsStatusSummary}
-          platformOpsStatusFilter={platformOpsStatusFilter}
-          platformOpsOwnerFilter={platformOpsOwnerFilter}
-          platformOpsOwnerOptions={platformOpsOwnerOptions}
-          visiblePlatformOpsQueues={visiblePlatformOpsQueues}
-          allTenants={tenants}
-          platformOpsQueueRefs={platformOpsQueueRefs}
-          platformOpsOwners={platformOpsOwners}
-          setPlatformOpsOwners={setPlatformOpsOwners}
-          platformOpsDefaultOwner={platformOpsDefaultOwner}
-          setPlatformOpsTouchedAt={setPlatformOpsTouchedAt}
-          platformOpsStatuses={platformOpsStatuses}
-          setPlatformOpsStatuses={setPlatformOpsStatuses}
-          formatPartnerLifecycleStatus={formatPartnerLifecycleStatus}
-          formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
-          platformOpsTouchedAt={platformOpsTouchedAt}
-          platformOpsNotes={platformOpsNotes}
-          setPlatformOpsNotes={setPlatformOpsNotes}
-          platformOpsResolutionReasons={platformOpsResolutionReasons}
-          setPlatformOpsResolutionReasons={setPlatformOpsResolutionReasons}
-          handleSavePlatformOpsNote={handleSavePlatformOpsNote}
-          platformOpsSavingTenantId={platformOpsSavingTenantId}
-          setActiveTab={setActiveTab}
-          canViewPackagesTab={canViewPackagesTab}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <PlatformOperationsTab
+            activePlatformOpsFocusSummary={activePlatformOpsFocusSummary}
+            renderAdminFocusBanner={renderAdminFocusBanner}
+            navigateAdminTab={navigateAdminTab}
+            jumpToPlatformOpsFocusTarget={jumpToPlatformOpsFocusTarget}
+            setPlatformOpsStatusFilter={setPlatformOpsStatusFilter}
+            setPlatformOpsOwnerFilter={setPlatformOpsOwnerFilter}
+            platformOpsStatusSummary={platformOpsStatusSummary}
+            platformOpsStatusFilter={platformOpsStatusFilter}
+            platformOpsOwnerFilter={platformOpsOwnerFilter}
+            platformOpsOwnerOptions={platformOpsOwnerOptions}
+            visiblePlatformOpsQueues={visiblePlatformOpsQueues}
+            allTenants={tenants}
+            platformOpsQueueRefs={platformOpsQueueRefs}
+            platformOpsOwners={platformOpsOwners}
+            setPlatformOpsOwners={setPlatformOpsOwners}
+            platformOpsDefaultOwner={platformOpsDefaultOwner}
+            setPlatformOpsTouchedAt={setPlatformOpsTouchedAt}
+            platformOpsStatuses={platformOpsStatuses}
+            setPlatformOpsStatuses={setPlatformOpsStatuses}
+            formatPartnerLifecycleStatus={formatPartnerLifecycleStatus}
+            formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
+            platformOpsTouchedAt={platformOpsTouchedAt}
+            platformOpsNotes={platformOpsNotes}
+            setPlatformOpsNotes={setPlatformOpsNotes}
+            platformOpsResolutionReasons={platformOpsResolutionReasons}
+            setPlatformOpsResolutionReasons={setPlatformOpsResolutionReasons}
+            handleSavePlatformOpsNote={handleSavePlatformOpsNote}
+            platformOpsSavingTenantId={platformOpsSavingTenantId}
+            setActiveTab={setActiveTab}
+            canViewPackagesTab={canViewPackagesTab}
+          />
+        </Suspense>
       )}
 
       {activeTab === "onboarding_studio" && canViewPlatformGovernance && (
-        <OnboardingStudioTab
-          onboardingStudioSummary={onboardingStudioSummary}
-          searchParams={searchParams}
-          renderAdminFocusBanner={renderAdminFocusBanner}
-          navigateAdminTab={navigateAdminTab}
-          handleStartOnboardingTemplate={handleStartOnboardingTemplate}
-          handleCreateDraftTenant={handleCreateDraftTenant}
-          tenantGovernanceSuppliers={tenantGovernanceSuppliers}
-          formatOnboardingApprovalStatus={formatOnboardingApprovalStatus}
-          formatOnboardingPaymentStatus={formatOnboardingPaymentStatus}
-          formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
-          formatActivationDeliveryStatus={formatActivationDeliveryStatus}
-          formatCategoryRequestStatus={formatCategoryRequestStatus}
-          onboardingMembershipActionTenantId={onboardingMembershipActionTenantId}
-          handleReviewTenantCategory={handleReviewTenantCategory}
-          handleVerifyOnboardingPayment={handleVerifyOnboardingPayment}
-          handleApproveOnboardingMembership={handleApproveOnboardingMembership}
-          handleRequestOnboardingInfo={handleRequestOnboardingInfo}
-          handleRejectOnboardingMembership={handleRejectOnboardingMembership}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <OnboardingStudioTab
+            onboardingStudioSummary={onboardingStudioSummary}
+            searchParams={searchParams}
+            renderAdminFocusBanner={renderAdminFocusBanner}
+            navigateAdminTab={navigateAdminTab}
+            handleStartOnboardingTemplate={handleStartOnboardingTemplate}
+            handleCreateDraftTenant={handleCreateDraftTenant}
+            tenantGovernanceSuppliers={tenantGovernanceSuppliers}
+            formatOnboardingApprovalStatus={formatOnboardingApprovalStatus}
+            formatOnboardingPaymentStatus={formatOnboardingPaymentStatus}
+            formatPartnerOnboardingStatus={formatPartnerOnboardingStatus}
+            formatActivationDeliveryStatus={formatActivationDeliveryStatus}
+            formatCategoryRequestStatus={formatCategoryRequestStatus}
+            onboardingMembershipActionTenantId={onboardingMembershipActionTenantId}
+            handleReviewTenantCategory={handleReviewTenantCategory}
+            handleVerifyOnboardingPayment={handleVerifyOnboardingPayment}
+            handleApproveOnboardingMembership={handleApproveOnboardingMembership}
+            handleRequestOnboardingInfo={handleRequestOnboardingInfo}
+            handleRejectOnboardingMembership={handleRejectOnboardingMembership}
+          />
+        </Suspense>
+      )}
+
+      {activeTab === "tenant_governance" && canViewPlatformGovernance && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="Yönetişim" title="Tenant Yönetişimi" sub="Stratejik partner açılışı, onboarding şablonları ve yaşam döngüsü yönetimi" />
+        </div>
       )}
 
       {activeTab === "tenant_governance" && canViewPlatformGovernance && (
@@ -5528,93 +6422,33 @@ export default function AdminPage() {
           handleEditTenant={handleEditTenant}
           handleTenantStatusAction={handleTenantStatusAction}
           handleDeleteTenant={handleDeleteTenant}
+          companies={companies}
+          subscriptionCatalog={subscriptionCatalog}
+          navigateAdminTab={(tab, tenantId) =>
+            navigateAdminTab(tab as AdminTabKey, tenantId != null ? { tenantFocusId: String(tenantId) } : undefined)
+          }
         />
       )}
 
       {activeTab === "packages" && canViewPackagesTab && (
-        <PackagesTab
-          activePackageFocusSummary={activePackageFocusSummary}
-          renderAdminFocusBanner={renderAdminFocusBanner}
-          navigateAdminTab={navigateAdminTab}
-          jumpToPackageFocusTarget={jumpToPackageFocusTarget}
-          subscriptionCatalog={subscriptionCatalog}
-          strategicAddonCatalog={strategicAddonCatalog}
-          packageUsageSummary={packageUsageSummary}
-          packagePlanSummary={packagePlanSummary}
-          visiblePackageUsageRows={visiblePackageUsageRows}
-          packageUsageRowRefs={packageUsageRowRefs}
-          packagePlanRefs={packagePlanRefs}
-          packagePlanFilter={packagePlanFilter}
-          setPackagePlanFilter={setPackagePlanFilter}
-          packageRiskFilter={packageRiskFilter}
-          setPackageRiskFilter={setPackageRiskFilter}
-          commercialRequests={commercialRequests}
-          filteredCommercialRequests={filteredCommercialRequests}
-          commercialRequestSummary={commercialRequestSummary}
-          commercialRequestStatusFilter={commercialRequestStatusFilter}
-          setCommercialRequestStatusFilter={setCommercialRequestStatusFilter}
-          commercialRequestOwnerFilter={commercialRequestOwnerFilter}
-          setCommercialRequestOwnerFilter={setCommercialRequestOwnerFilter}
-          commercialRequestOwnerOptions={commercialRequestOwnerOptions}
-          commercialRequestUpdatingId={commercialRequestUpdatingId}
-          handleAssignCommercialRequest={handleAssignCommercialRequest}
-          handleCommercialRequestStatusUpdate={handleCommercialRequestStatusUpdate}
-          subscriptionAddons={subscriptionAddons}
-          filteredSubscriptionAddons={filteredSubscriptionAddons}
-          subscriptionAddonStatusFilter={subscriptionAddonStatusFilter}
-          setSubscriptionAddonStatusFilter={setSubscriptionAddonStatusFilter}
-          subscriptionAddonTenantFilter={subscriptionAddonTenantFilter}
-          setSubscriptionAddonTenantFilter={setSubscriptionAddonTenantFilter}
-          subscriptionAddonTenantOptions={subscriptionAddonTenantOptions}
-          subscriptionAddonExpiryDrafts={subscriptionAddonExpiryDrafts}
-          setSubscriptionAddonExpiryDrafts={setSubscriptionAddonExpiryDrafts}
-          subscriptionAddonUpdatingId={subscriptionAddonUpdatingId}
-          handleSubscriptionAddonLifecycle={handleSubscriptionAddonLifecycle}
-          commercialRequestWebhookSettings={commercialRequestWebhookSettings}
-          commercialRequestWebhookDraft={commercialRequestWebhookDraft}
-          setCommercialRequestWebhookDraft={setCommercialRequestWebhookDraft}
-          commercialRequestWebhookSaving={commercialRequestWebhookSaving}
-          handleSaveCommercialRequestWebhookSettings={handleSaveCommercialRequestWebhookSettings}
-          handleClearCommercialRequestWebhookSecret={handleClearCommercialRequestWebhookSecret}
-          visibleCommercialRequestWebhookDeliveries={visibleCommercialRequestWebhookDeliveries}
-          commercialRequestWebhookDeliveryFilter={commercialRequestWebhookDeliveryFilter}
-          setCommercialRequestWebhookDeliveryFilter={setCommercialRequestWebhookDeliveryFilter}
-          selectedCommercialRequestWebhookDeliveryId={selectedCommercialRequestWebhookDeliveryId}
-          setSelectedCommercialRequestWebhookDeliveryId={setSelectedCommercialRequestWebhookDeliveryId}
-          selectedCommercialRequestWebhookDelivery={selectedCommercialRequestWebhookDelivery}
-          commercialRequestWebhookRetryingId={commercialRequestWebhookRetryingId}
-          handleRetryCommercialRequestWebhookDelivery={handleRetryCommercialRequestWebhookDelivery}
-          billingOverview={billingOverview}
-          billingSummary={billingSummary}
-          visibleBillingSubscriptions={visibleBillingSubscriptions}
-          billingSubscriptionFilter={billingSubscriptionFilter}
-          setBillingSubscriptionFilter={setBillingSubscriptionFilter}
-          visibleBillingInvoices={visibleBillingInvoices}
-          billingInvoiceFilter={billingInvoiceFilter}
-          setBillingInvoiceFilter={setBillingInvoiceFilter}
-          getBillingInvoiceStatusMeta={getBillingInvoiceStatusMeta}
-          visibleBillingWebhooks={visibleBillingWebhooks}
-          billingWebhookFilter={billingWebhookFilter}
-          setBillingWebhookFilter={setBillingWebhookFilter}
-          billingWebhookRetryingEventId={billingWebhookRetryingEventId}
-          handleRetryBillingWebhookEvent={handleRetryBillingWebhookEvent}
-          user={user}
-        />
+        <PackagesTab />
       )}
 
       {error && <div className="admin-page__error-banner">{error}</div>}
 
       {activeTab === "personnel" && (
-        <PersonnelTab
-          personnel={isChannelUser ? channelTeamPersonnel : personnel}
-          roles={roles}
-          companies={companies}
-          tenants={tenants}
-          loadData={loadData}
-          reloadPersonnel={reloadPersonnel}
-          readOnly={isPlatformStaff}
-          isChannelUser={isChannelUser}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <PersonnelTab
+            personnel={isChannelUser ? channelTeamPersonnel : personnel}
+            roles={roles}
+            companies={companies}
+            tenants={tenants}
+            loadData={loadData}
+            reloadPersonnel={reloadPersonnel}
+            readOnly={isPlatformStaff}
+            isChannelUser={isChannelUser}
+          />
+        </Suspense>
       )}
 
       {/* Departments Tab */}
@@ -5664,24 +6498,27 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-          <CompaniesTab
-            companies={companies}
-            loadData={loadData}
-            readOnly={isPlatformStaff}
-            suppliers={tenantGovernanceSuppliers}
-            channelUsers={channelUsers}
-            personnel={personnel}
-            tenants={tenants}
-            handleDeleteCompany={async (id: number) => {
-              if (!confirm("Firmayı silmek istediğinize emin misiniz?")) return;
-              try {
-                await deleteCompany(id);
-                await loadData();
-              } catch (err) {
-                alert("Silme hatası: " + String(err));
-              }
-            }}
-          />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <CompaniesTab
+              companies={companies}
+              loadData={loadData}
+              readOnly={isPlatformStaff}
+              suppliers={tenantGovernanceSuppliers}
+              channelUsers={channelUsers}
+              personnel={personnel}
+              tenants={tenants}
+              visibleSegments={isPartnerAdmin ? ["partner"] : undefined}
+              handleDeleteCompany={async (id: number) => {
+                if (!confirm("Firmayı silmek istediğinize emin misiniz?")) return;
+                try {
+                  await deleteCompany(id);
+                  await loadData();
+                } catch (err) {
+                  alert("Silme hatası: " + String(err));
+                }
+              }}
+            />
+          </Suspense>
         </>
       )}
 
@@ -5709,13 +6546,16 @@ export default function AdminPage() {
               }}
             />
           )}
-          <RoleDepartmentGovernanceTab
-            key={`channel-governance-${channelCatalogRefreshNonce}`}
-            tenants={tenants}
-            canManage={canAccessRoleCatalog}
-            isSuperAdmin={isSuperAdminUser(user)}
-            currentUser={user}
-          />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <RoleDepartmentGovernanceTab
+              key={`channel-governance-${channelCatalogRefreshNonce}`}
+              tenants={tenants}
+              canManage={canAccessRoleCatalog}
+              isSuperAdmin={isSuperAdminUser(user)}
+              currentUser={user}
+              suppliers={tenantGovernanceSuppliers}
+            />
+          </Suspense>
         </section>
       )}
 
@@ -5734,27 +6574,74 @@ export default function AdminPage() {
               testId: "admin-focus-banner-project",
             })
           ) : null}
-          <ProjectsTab readOnly={isPlatformStaff} initialSearchTerm={searchParams.get("projectFocusName") || ""} />
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <ProjectsTab readOnly={isPlatformStaff} initialSearchTerm={searchParams.get("projectFocusName") || ""} />
+          </Suspense>
         </section>
       )}
 
       {/* Suppliers Tab */}
       {activeTab === "suppliers" && (
-        <SuppliersTab />
+        <div className="atc-page--header">
+          <PageHeader eyebrow="Tedarik" title="Tedarikçiler" sub="Özel ve global tedarikçi listesi, mail hesapları ve kategori etiketleri" />
+        </div>
+      )}
+
+      {activeTab === "suppliers" && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <SuppliersTab />
+        </Suspense>
+      )}
+
+      {/* Supplier Profile Tab (Dual-Role) */}
+      {activeTab === "supplier_profile" && canViewSupplierProfileTab && (
+        <SupplierProfileTab
+          tenantName={user?.organization_name ?? user?.platform_name ?? null}
+          tenantId={typeof user?.tenant_id === "number" ? user.tenant_id : null}
+          linkedSupplierId={null}
+          dualRoleStatus="none"
+          onRequestDualRole={async (_supplierId) => {
+            // TODO: call PATCH /api/suppliers/{supplierId}/request-dual-role
+          }}
+        />
       )}
 
       {/* Approvals Tab */}
       {activeTab === "approvals" && (
-        <ApprovalDashboard
-          apiUrl={import.meta.env.VITE_API_URL || "http://localhost:8000"}
-          authToken={getAccessToken() || ""}
-        />
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <ApprovalDashboard
+            apiUrl={import.meta.env.VITE_API_URL || "http://localhost:8000"}
+            authToken={getAccessToken() || ""}
+          />
+        </Suspense>
+      )}
+
+      {/* Navigasyon Yönetimi Tab */}
+      {activeTab === "nav_management" && isSuperAdminUser(user) && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <NavManagerTab />
+        </Suspense>
       )}
 
       {/* Settings Tab */}
-      {activeTab === "settings" && <SettingsTab />}
+      {activeTab === "settings" && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <SettingsTab onNavigate={(tab) => navigateAdminTab(tab as AdminTabKey)} />
+        </Suspense>
+      )}
 
-      {activeTab === "panel_designer" && (isSuperAdminUser(user) || canUseSelfPanelDesigner) && (
+      {/* panel_designer: super admin → PanelDesignerTab; self-customizers → WorkspacePanelDesignerTab */}
+      {activeTab === "panel_designer" && isSuperAdminUser(user) && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <PanelDesignerTab onNavigate={(tab) => navigateAdminTab(tab as AdminTabKey)} />
+        </Suspense>
+      )}
+      {activeTab === "panel_designer" && !isSuperAdminUser(user) && canUseSelfPanelDesigner && (
+        <div className="atc-page--header">
+          <PageHeader eyebrow="Platform" title="Panel Tasarımcısı" sub="Rol bazlı panel şablonlarını, sekme görünürlüğünü ve renk temalarını düzenleyin" />
+        </div>
+      )}
+      {activeTab === "panel_designer" && !isSuperAdminUser(user) && canUseSelfPanelDesigner && (
         <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
           <WorkspacePanelDesignerTab
             key={JSON.stringify(mergedWorkspacePanelConfig)}
@@ -5762,7 +6649,7 @@ export default function AdminPage() {
             sourceConfig={workspacePanelConfig || undefined}
             currentUser={user}
             personnel={personnel}
-            mode={isSuperAdminUser(user) ? "full" : "self"}
+            mode="self"
             lockedProfile={activeWorkspacePanelProfile}
             saving={workspacePanelSaving}
             onSave={handleSaveWorkspacePanels}
@@ -5778,7 +6665,15 @@ export default function AdminPage() {
         )}
 
         {activeTab === "mail" && (
-          <AdvancedSettingsTab />
+          <div className="atc-page--header">
+            <PageHeader eyebrow="Sistem" title="E-posta & Gelişmiş Ayarlar" sub="E-posta profilleri, API anahtarları, yedek ve bildirim ayarları" />
+          </div>
+        )}
+
+        {activeTab === "mail" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <AdvancedSettingsTab />
+          </Suspense>
         )}
 
         {/* Deployment Tab */}
@@ -5823,12 +6718,269 @@ export default function AdminPage() {
           </Suspense>
         )}
 
+        {/* Channel Partners Admin Tab */}
+        {activeTab === "channel_partners" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <ChannelPartnersAdminTab />
+          </Suspense>
+        )}
+
+        {/* AI Lab Admin Tab */}
+        {activeTab === "ai_lab" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <AiLabAdminTab />
+          </Suspense>
+        )}
+
+        {/* Yetenek Ekosistemi Tab */}
+        {activeTab === "talent_ecosystem" && (() => {
+          const teMoney = (n: number) => "₺" + Number(n || 0).toLocaleString("tr-TR");
+          const teInitials = (name: string) => name.split(" ").map((p) => p[0]).join("").slice(0, 2);
+          const teKycPending = teTalents.filter((t) => t.kyc === "pending").length;
+          const tePendingPay = tePayouts.filter((p) => p.status !== "paid").reduce((s, p) => s + p.amount, 0);
+          const teLeaders = [...TE_LEADERS].sort((a, b) => b.rep - a.rep);
+          const teMaxSkill = Math.max(...TE_SKILLS.map((s) => s.n));
+          function teSetKyc(id: number, status: string) {
+            setTeTalents((prev) => prev.map((t) => t.id === id ? { ...t, kyc: status } : t));
+          }
+          function teAdvancePayout(id: string) {
+            setTePayouts((prev) => prev.map((p) => p.id !== id ? p : { ...p, status: p.status === "pending" ? "approved" : "paid" }));
+          }
+          return (
+            <div className="ph-page">
+              <PageHeader
+                eyebrow="Kariyer & Yetenek · Ekosistem"
+                title="Yetenek Ekosistemi"
+                sub="Bağımsız satınalma uzmanları ağı, katkı ekonomisi ve itibar/ödül sistemi. Stratejik Partnerlerin görev ve kaynak bulduğu, uzmanların katkıyla kazandığı platform ekosistemi."
+              />
+
+              {/* KPI strip — reuse ph-kpi-grid */}
+              <div className="ph-kpi-grid">
+                <div className="ph-kpi-card ph-kpi-card--blue">
+                  <div className="ph-kpi-card__label">Yetenek Profili</div>
+                  <div className="ph-kpi-card__value">124</div>
+                  <div className="ph-kpi-card__sub">kayıtlı uzman · +12 / ay</div>
+                </div>
+                <div className="ph-kpi-card ph-kpi-card--green">
+                  <div className="ph-kpi-card__label">KYC Onaylı</div>
+                  <div className="ph-kpi-card__value">96</div>
+                  <div className="ph-kpi-card__sub">%77 doğrulanmış</div>
+                </div>
+                <div className="ph-kpi-card ph-kpi-card--violet">
+                  <div className="ph-kpi-card__label">Aktif Katkıcı</div>
+                  <div className="ph-kpi-card__value">58</div>
+                  <div className="ph-kpi-card__sub">son 30 günde görev aldı</div>
+                </div>
+                <div className="ph-kpi-card ph-kpi-card--gold">
+                  <div className="ph-kpi-card__label">Katkı Ekonomisi</div>
+                  <div className="ph-kpi-card__value">₺186K</div>
+                  <div className="ph-kpi-card__sub">dağıtılan ödül · 12 ay</div>
+                </div>
+                <div className="ph-kpi-card">
+                  <div className="ph-kpi-card__label">Ortalama İtibar</div>
+                  <div className="ph-kpi-card__value">512</div>
+                  <div className="ph-kpi-card__sub">1000 üzerinden</div>
+                </div>
+              </div>
+
+              {/* 3 Pillars */}
+              <div className="te-pillars">
+                {TE_PILLARS.map((p) => (
+                  <div key={p.k} className="te-pillar" style={{ "--tc": p.color } as React.CSSProperties}>
+                    <b>{p.k}</b>
+                    <span>{p.d}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* İtibar Seviyeleri + Beceri Kapsamı */}
+              <div className="ph-split-1-1">
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <span className="ph-section__title">İtibar Seviyeleri</span>
+                    <span className="ph-section__sub">görev başarımına göre kademe ve ayrıcalıklar</span>
+                  </div>
+                  <div className="te-tiers">
+                    {TE_TIERS.map((t) => (
+                      <div key={t.name} className="te-tier" style={{ "--tc": t.color } as React.CSSProperties}>
+                        <div className="te-tier__top">
+                          <span className="te-tier__dot" />
+                          <b>{t.name}</b>
+                          <em>{t.count} uzman</em>
+                        </div>
+                        <div className="te-tier__min">İtibar ≥ {t.min}</div>
+                        <div className="te-tier__perk">{t.perk}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="ph-section">
+                  <div className="ph-section__head">
+                    <span className="ph-section__title">Beceri & Kategori Kapsamı</span>
+                    <span className="ph-section__sub">havuzdaki uzmanlık dağılımı</span>
+                  </div>
+                  <div className="te-skills">
+                    {TE_SKILLS.map((s) => (
+                      <div key={s.k} className="te-skill">
+                        <div className="te-skill__hd"><span>{s.k}</span><b>{s.n}</b></div>
+                        <div className="te-skill__bar">
+                          <i style={{ "--skill-w": `${Math.round(s.n / teMaxSkill * 100)}%` } as React.CSSProperties} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Leaderboard */}
+              <div className="ph-section">
+                <div className="ph-section__head">
+                  <span className="ph-section__title">En İyi Katkıcılar</span>
+                  <span className="ph-section__sub">itibar ve katkı bazlı sıralama</span>
+                </div>
+                <div className="te-board">
+                  {teLeaders.map((l, i) => (
+                    <div key={l.name} className="te-leader">
+                      <span className={`te-rank${i < 3 ? " te-rank--top" : ""}`}>{i + 1}</span>
+                      <span className="te-av">{teInitials(l.name)}</span>
+                      <div className="te-leader__meta">
+                        <b>{l.name}</b>
+                        <span>{l.tasks} görev tamamlandı</span>
+                      </div>
+                      <span className="te-tier-badge" style={{ "--tc": TE_TIER_COLORS[l.tier], "--tg": TE_TIER_BG[l.tier] } as React.CSSProperties}>{l.tier}</span>
+                      <div className="te-leader__num"><b>{l.rep}</b><span>itibar</span></div>
+                      <div className="te-leader__num"><b>{teMoney(l.earned)}</b><span>kazanç</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* KYC Kuyruğu + Görevler | Ödeme Kuyruğu */}
+              <div className="te-split">
+                <div className="te-split__col">
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <span className="ph-section__title">Yetenek & KYC Onay Kuyruğu</span>
+                      <span className="ph-section__sub">{teKycPending} uzman doğrulama bekliyor</span>
+                    </div>
+                    <div className="te-table-wrap">
+                      <table className="te-table">
+                        <thead>
+                          <tr>
+                            <th>Uzman</th><th>Müsaitlik</th><th>İtibar</th><th>Kazanç</th><th>KYC</th><th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teTalents.map((t) => (
+                            <tr key={t.id}>
+                              <td>
+                                <div className="te-tname">
+                                  <span className="te-av te-av--sm">{teInitials(t.name)}</span>
+                                  <div>
+                                    <b>{t.name}</b>
+                                    <span className="te-muted">{t.exp} yıl · {t.skills.join(", ")}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="te-muted">{TE_AVAIL_LABEL[t.avail] ?? t.avail}</td>
+                              <td className="te-mono">{t.rep}</td>
+                              <td className="te-mono">{teMoney(t.earned)}</td>
+                              <td>
+                                <span className={`te-badge te-badge--${t.kyc === "approved" ? "ok" : t.kyc === "rejected" ? "err" : "wait"}`}>
+                                  {t.kyc === "approved" ? "Onaylı" : t.kyc === "rejected" ? "Red" : "Bekliyor"}
+                                </span>
+                              </td>
+                              <td>
+                                {t.kyc === "pending" && (
+                                  <span className="te-actrow">
+                                    <button type="button" className="te-act te-act--ok" onClick={() => teSetKyc(t.id, "approved")}>Onayla</button>
+                                    <button type="button" className="te-act te-act--danger" onClick={() => teSetKyc(t.id, "rejected")}>Red</button>
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="ph-section">
+                    <div className="ph-section__head">
+                      <span className="ph-section__title">Katkı Görevleri</span>
+                      <span className="ph-section__sub">platform mikro görevleri</span>
+                    </div>
+                    <div className="te-tasks">
+                      {TE_TASKS_MOCK.map((t) => (
+                        <div key={t.id} className="te-task">
+                          <div className="te-task__l">
+                            <b>{t.title}</b>
+                            <span className="te-muted">{t.type} · {t.subs} katkı</span>
+                          </div>
+                          <div className="te-task__r">
+                            <span className="te-reward">{teMoney(t.reward)}</span>
+                            <span className="te-badge te-badge--ok">Aktif</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ödeme kuyruğu */}
+                <div className="te-payout-panel">
+                  <div className="te-payout-panel__hd">
+                    Ödül & Ödeme Kuyruğu
+                    <span className="te-payout-panel__count">{tePayouts.filter((p) => p.status !== "paid").length}</span>
+                  </div>
+                  <div className="te-payout-list">
+                    {tePayouts.map((p) => (
+                      <div key={p.id} className="te-payout">
+                        <div className="te-payout__top">
+                          <b>{p.name}</b>
+                          <span className={`te-badge te-badge--${p.status === "paid" ? "ok" : p.status === "approved" ? "info" : "wait"}`}>
+                            {p.status === "paid" ? "Ödendi" : p.status === "approved" ? "Onaylı" : "Bekliyor"}
+                          </span>
+                        </div>
+                        <div className="te-payout__mid">
+                          <span className="te-mono">{teMoney(p.amount)}</span>
+                          <span className="te-muted">{p.method}</span>
+                        </div>
+                        {p.status !== "paid" && (
+                          <button type="button" className="te-act te-act--ok te-act--full" onClick={() => teAdvancePayout(p.id)}>
+                            {p.status === "pending" ? "Onayla" : "Ödemeyi tamamla"}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <div className="te-paysum">Bekleyen toplam <b>{teMoney(tePendingPay)}</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Kariyer Yönetimi Tab */}
+        {activeTab === "kariyer_yonetimi" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <TalentAdminControlPage jobsOnly />
+          </Suspense>
+        )}
+
         {/* Support Tickets Tab */}
         {activeTab === "support_tickets" && (
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <SupportTicketAdminTab />
           </Suspense>
         )}
+
+      {/* Profile Tab */}
+      {activeTab === "profile" && (
+        <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+          <AdminProfileTab />
+        </Suspense>
+      )}
 
       {showUpgradeExtrasWorkspace && (
         <UpgradeExtrasWorkspace
@@ -5846,4 +6998,18 @@ export default function AdminPage() {
       )}
     </div>
   );
+
+  if (_shellMode) {
+    return (
+      <AdminShell
+        activeKey={activeTab}
+        onNavigate={handleShellNavigate}
+        user={user}
+        tabKeys={shellTabKeys}
+      >
+        {_adminNode}
+      </AdminShell>
+    );
+  }
+  return _adminNode;
 }

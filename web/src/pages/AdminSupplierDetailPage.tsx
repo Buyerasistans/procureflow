@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import styled from "styled-components";
 import {
   createAdminSupplierGuarantee,
   createAdminSupplierUser,
@@ -20,269 +19,8 @@ import {
 import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
 import { CategorySelectionModal } from "../components/CategorySelectionModal";
-
-const Page = styled.div`
-  display: grid;
-  gap: 16px;
-`;
-
-const Card = styled.section`
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 16px;
-`;
-
-const HeaderRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-`;
-
-const Label = styled.label`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
-  color: #111827;
-`;
-
-const Input = styled.input`
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 14px;
-`;
-
-const Select = styled.select`
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 14px;
-  background: #fff;
-`;
-
-const TextArea = styled.textarea`
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 14px;
-  resize: vertical;
-`;
-
-const Button = styled.button`
-  border: 0;
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-weight: 600;
-  background: #2563eb;
-  color: #fff;
-  cursor: pointer;
-`;
-
-const SecondaryButton = styled(Button)`
-  background: #4b5563;
-`;
-
-const DangerButton = styled(Button)`
-  background: #dc2626;
-`;
-
-const GhostButton = styled.button`
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: #fff;
-  color: #334155;
-  font-weight: 600;
-  cursor: pointer;
-`;
-
-const Message = styled.div<{ $error?: boolean }>`
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 14px;
-  color: ${(p) => (p.$error ? "#991b1b" : "#065f46")};
-  background: ${(p) => (p.$error ? "#fee2e2" : "#d1fae5")};
-`;
-
-const StatusBadge = styled.span<{ $tone: "neutral" | "success" | "warning" | "info" }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  background: ${(p) =>
-    p.$tone === "success"
-      ? "#dcfce7"
-      : p.$tone === "warning"
-        ? "#fef3c7"
-        : p.$tone === "info"
-          ? "#dbeafe"
-          : "#e5e7eb"};
-  color: ${(p) =>
-    p.$tone === "success"
-      ? "#166534"
-      : p.$tone === "warning"
-        ? "#92400e"
-        : p.$tone === "info"
-          ? "#1d4ed8"
-          : "#475569"};
-`;
-
-const SectionHeader = styled.button`
-  width: 100%;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 14px;
-  h3 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: #4f4f6c;
-  }
-`;
-
-const Arrow = styled.span`
-  font-size: 18px;
-  font-weight: 700;
-  color: #334155;
-`;
-
-const TeamList = styled.div`
-  margin-top: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-`;
-
-const TeamHead = styled.div`
-  display: grid;
-  grid-template-columns: minmax(170px, 1.1fr) minmax(170px, 1fr) minmax(220px, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-  padding: 9px 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  @media (max-width: 900px) {
-    display: none;
-  }
-`;
-
-const TeamRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(170px, 1.1fr) minmax(170px, 1fr) minmax(220px, 1fr) auto;
-  gap: 8px;
-  align-items: start;
-  padding: 10px 12px;
-  border-bottom: 1px dashed #dbe3ee;
-  background: #fff;
-  &:last-child {
-    border-bottom: none;
-  }
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-`;
-
-const TeamCell = styled.div`
-  font-size: 12px;
-  color: #334155;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  strong {
-    color: #0f172a;
-  }
-`;
-
-const MiniActionBtn = styled.button`
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #334155;
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const CallBtn = styled(MiniActionBtn)`
-  border-color: #93c5fd;
-  color: #1d4ed8;
-`;
-
-const MailBtn = styled(MiniActionBtn)`
-  border-color: #fcd34d;
-  color: #92400e;
-`;
-
-const WhatsappBtn = styled(MiniActionBtn)`
-  border-color: #86efac;
-  color: #166534;
-`;
-
-const LogoBox = styled.div`
-  width: 110px;
-  height: 110px;
-  border-radius: 12px;
-  border: 1px solid #dbe3ee;
-  background: #f8fafc;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-`;
-
-const ModalBack = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-`;
-
-const ModalCard = styled.div`
-  width: min(700px, 94vw);
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #dbe3ee;
-  padding: 16px;
-`;
-
-const ActionInline = styled.div`
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-`;
+import { SupplierMarketingPlansSection } from "../components/SupplierMarketingPlansSection";
+import "./AdminSupplierDetailPage.css";
 
 const BANKS = [
   { key: "ziraat", name: "Ziraat Bankası" },
@@ -306,7 +44,7 @@ type GuaranteeEditState = {
   status: string;
 };
 
-type SectionKey = "invoice" | "payment" | "users" | "guarantees";
+type SectionKey = "invoice" | "payment" | "users" | "guarantees" | "marketing";
 
 type UserDraft = { name: string; email: string; phone: string };
 
@@ -410,6 +148,7 @@ export default function AdminSupplierDetailPage() {
     users: true,
     guarantees: true,
     payment: true,
+    marketing: false,
   });
 
   const cityNames = useMemo(() => getCityNames(), []);
@@ -627,25 +366,25 @@ export default function AdminSupplierDetailPage() {
     }
   }
 
-
-async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
-  if (!id) return;
-  try {
-    setResendingMagicUserId(teamUser.id);
-    const result = await resendAdminSupplierMagicLink(Number(id), teamUser.id);
-    if (result.magic_link_sent) {
-      setSuccess(`Magic link tekrar gönderildi: ${teamUser.email}`);
-      setError(null);
-    } else {
-      setError(result.message || "Magic link yenilendi ancak e-posta gönderilemedi");
+  async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
+    if (!id) return;
+    try {
+      setResendingMagicUserId(teamUser.id);
+      const result = await resendAdminSupplierMagicLink(Number(id), teamUser.id);
+      if (result.magic_link_sent) {
+        setSuccess(`Magic link tekrar gönderildi: ${teamUser.email}`);
+        setError(null);
+      } else {
+        setError(result.message || "Magic link yenilendi ancak e-posta gönderilemedi");
+      }
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Magic link tekrar gönderilemedi");
+    } finally {
+      setResendingMagicUserId(null);
     }
-    await load();
-  } catch (e) {
-    setError(e instanceof Error ? e.message : "Magic link tekrar gönderilemedi");
-  } finally {
-    setResendingMagicUserId(null);
   }
-}
+
   function shareOnWhatsapp() {
     if (!form) return;
     const mapLink = getMapLink(form.address, form.address_district, form.city);
@@ -704,136 +443,145 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
       setSuccess("E-posta gönderildi");
       setShowEmailModal(false);
     } catch (e) {
-      const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail || "E-posta gönderilemedi");
+      const errDetail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(errDetail || "E-posta gönderilemedi");
     } finally {
       setEmailSending(false);
     }
   }
 
-  if (loading) return <Page>Yükleniyor...</Page>;
-  if (!detail || !form) return <Page>Veri bulunamadı.</Page>;
+  if (loading) return <div className="asd-page">Yükleniyor...</div>;
+  if (!detail || !form) return <div className="asd-page">Veri bulunamadı.</div>;
 
   return (
-    <Page>
-      {error && <Message $error>{error}</Message>}
-      {success && <Message>{success}</Message>}
+    <div className="asd-page">
+      {error && <div className="asd-msg asd-msg--error">{error}</div>}
+      {success && <div className="asd-msg">{success}</div>}
 
-      <HeaderRow>
+      <div className="asd-header-row">
         <h2>Tedarikçiyi Görüntüle: {detail.supplier.company_name}</h2>
-        <div style={{ display: "flex", gap: 8 }}>
-          <SecondaryButton onClick={() => navigate("/admin?tab=suppliers")}>Tedarikçilere Dön</SecondaryButton>
-          <SecondaryButton onClick={() => navigate("/admin")}>Panele Dön</SecondaryButton>
+        <div className="asd-nav-btns">
+          <button type="button" className="asd-btn asd-btn--secondary" onClick={() => navigate("/admin?tab=suppliers")}>Tedarikçilere Dön</button>
+          <button type="button" className="asd-btn asd-btn--secondary" onClick={() => navigate("/admin")}>Panele Dön</button>
         </div>
-      </HeaderRow>
+      </div>
 
-      <Card>
-        <HeaderRow>
+      <section className="asd-card">
+        <div className="asd-header-row">
           <h3>Genel Bilgiler</h3>
-          <Button disabled={saving} onClick={handleSaveSupplier}>{saving ? "Kaydediliyor..." : "Kaydet"}</Button>
-        </HeaderRow>
+          <button type="button" className="asd-btn" disabled={saving} onClick={handleSaveSupplier}>
+            {saving ? "Kaydediliyor..." : "Kaydet"}
+          </button>
+        </div>
 
-        <div style={{ display: "flex", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
-          <LogoBox>
-            {logoSrc ? <img src={logoSrc} alt="Firma logosu" /> : <span style={{ color: "#94a3b8" }}>Logo Yok</span>}
-          </LogoBox>
-          <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
-            <div style={{ fontWeight: 700, color: "#1e293b" }}>{form.company_name || "-"}</div>
-            <div style={{ color: "#64748b", fontSize: 13 }}>Logoyu tedarikçi kendi profilinden günceller.</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <StatusBadge $tone={supplierInviteStatus.tone}>{supplierInviteStatus.label}</StatusBadge>
-              <StatusBadge $tone={detail.supplier.address_district || detail.supplier.city ? "info" : "neutral"}>
+        <div className="asd-logo-row">
+          <div className="asd-logo-box">
+            {logoSrc ? <img src={logoSrc} alt="Firma logosu" /> : <span className="asd-logo-box__empty">Logo Yok</span>}
+          </div>
+          <div className="asd-logo-row__info">
+            <div className="asd-logo-row__name">{form.company_name || "-"}</div>
+            <div className="asd-logo-row__hint">Logoyu tedarikçi kendi profilinden günceller.</div>
+            <div className="asd-badge-row">
+              <span className={`asd-badge asd-badge--${supplierInviteStatus.tone}`}>{supplierInviteStatus.label}</span>
+              <span className={`asd-badge ${detail.supplier.address_district || detail.supplier.city ? "asd-badge--info" : ""}`}>
                 {detail.supplier.address_district || detail.supplier.city
                   ? `Konum: ${[detail.supplier.city, detail.supplier.address_district].filter(Boolean).join(" / ")}`
                   : "Konum bilgisi davet seviyesinde"}
-              </StatusBadge>
-              <StatusBadge $tone={detail.supplier.partner_category_tags.length > 0 ? "info" : "neutral"}>
+              </span>
+              <span className={`asd-badge ${detail.supplier.partner_category_tags.length > 0 ? "asd-badge--info" : ""}`}>
                 {detail.supplier.partner_category_tags.length > 0
                   ? `${detail.supplier.partner_category_tags.length} partner kategorisi`
                   : "Partner kategorisi bekleniyor"}
-              </StatusBadge>
+              </span>
             </div>
-            <ActionInline>
-              <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=certificates`)}>Sertifika Yükle</GhostButton>
-              <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=company_docs`)}>Şirket Evrakları</GhostButton>
-              <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=personnel_docs`)}>Personel Evrakları</GhostButton>
-              <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/finance`)}>Finans Modülü</GhostButton>
-              <GhostButton type="button" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=guarantee_docs`)}>Alınan Teminatlar</GhostButton>
-            </ActionInline>
+            <div className="asd-action-inline">
+              <button type="button" className="asd-ghost-btn" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=certificates`)}>Sertifika Yükle</button>
+              <button type="button" className="asd-ghost-btn" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=company_docs`)}>Şirket Evrakları</button>
+              <button type="button" className="asd-ghost-btn" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=personnel_docs`)}>Personel Evrakları</button>
+              <button type="button" className="asd-ghost-btn" onClick={() => navigate(`/admin/suppliers/${supplierId}/finance`)}>Finans Modülü</button>
+              <button type="button" className="asd-ghost-btn" onClick={() => navigate(`/admin/suppliers/${supplierId}/workspace?tab=guarantee_docs`)}>Alınan Teminatlar</button>
+            </div>
           </div>
         </div>
 
-        <Grid>
-          <Label>Firma Adı<Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></Label>
-          <Label>Ünvan<Input value={form.company_title} onChange={(e) => setForm({ ...form, company_title: e.target.value })} /></Label>
-          <Label>
+        <div className="asd-grid">
+          <label className="asd-label">Firma Adı<input className="asd-input" value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></label>
+          <label className="asd-label">Ünvan<input className="asd-input" value={form.company_title} onChange={(e) => setForm({ ...form, company_title: e.target.value })} /></label>
+          <label className="asd-label">
             Telefon
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <ActionInline>
-              <CallBtn type="button" onClick={() => callPhone(form.phone)}>Ara</CallBtn>
-              <WhatsappBtn type="button" disabled={!isLikelyMobilePhone(form.phone)} onClick={() => messageWhatsapp(form.phone)}>WhatsApp</WhatsappBtn>
-            </ActionInline>
-          </Label>
-          <Label>
+            <input className="asd-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <div className="asd-action-inline">
+              <button type="button" className="asd-mini-btn asd-mini-btn--call" onClick={() => callPhone(form.phone)}>Ara</button>
+              <button type="button" className="asd-mini-btn asd-mini-btn--whatsapp" disabled={!isLikelyMobilePhone(form.phone)} onClick={() => messageWhatsapp(form.phone)}>WhatsApp</button>
+            </div>
+          </label>
+          <label className="asd-label">
             E-posta
-            <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <ActionInline>
-              <MailBtn type="button" onClick={() => openEmailComposer(form.email)}>Mail Gönder</MailBtn>
-            </ActionInline>
-          </Label>
-          <Label>Web Sitesi<Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></Label>
-          <Label>
+            <input className="asd-input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <div className="asd-action-inline">
+              <button type="button" className="asd-mini-btn asd-mini-btn--mail" onClick={() => openEmailComposer(form.email)}>Mail Gönder</button>
+            </div>
+          </label>
+          <label className="asd-label">Web Sitesi<input className="asd-input" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></label>
+          <label className="asd-label">
             Stratejik Partner Kategorileri
-            <GhostButton type="button" onClick={() => setShowPartnerCategoryModal(true)}>Kategori Seç</GhostButton>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+            <button type="button" className="asd-ghost-btn" onClick={() => setShowPartnerCategoryModal(true)}>Kategori Seç</button>
+            <div className="asd-cat-pills">
               {form.partner_category_tags.length > 0 ? form.partner_category_tags.map((item) => (
-                <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: 12 }}>{item}</span>
-              )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Henüz partner kategorisi atanmadı</span>}
+                <span key={item} className="asd-cat-pill asd-cat-pill--blue">{item}</span>
+              )) : <span className="asd-cat-pills__empty">Henüz partner kategorisi atanmadı</span>}
             </div>
-          </Label>
-          <Label>
+          </label>
+          <label className="asd-label">
             Tedarikçinin Kendi Kategorileri
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+            <div className="asd-cat-pills">
               {detail.supplier.category_tags.length > 0 ? detail.supplier.category_tags.map((item) => (
-                <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#ecfeff", color: "#0f766e", fontWeight: 700, fontSize: 12 }}>{item}</span>
-              )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Tedarikçi kendi görünürlük kategorilerini henüz eklemedi</span>}
+                <span key={item} className="asd-cat-pill asd-cat-pill--teal">{item}</span>
+              )) : <span className="asd-cat-pills__empty">Tedarikçi kendi görünürlük kategorilerini henüz eklemedi</span>}
             </div>
-          </Label>
+          </label>
 
-          <Label style={{ gridColumn: "1 / -1" }}>Adres<TextArea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Label>
+          <label className="asd-label asd-label--full">Adres<textarea className="asd-textarea" rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
 
-          <Label>
+          <label className="asd-label">
             Şehir
-            <Select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value, address_district: "" })}>
+            <select className="asd-select" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value, address_district: "" })}>
               <option value="">Seçiniz</option>
               {cityNames.map((city) => <option key={city} value={city}>{city}</option>)}
-            </Select>
-          </Label>
-          <Label>
+            </select>
+          </label>
+          <label className="asd-label">
             İlçe
-            <Select value={form.address_district} onChange={(e) => setForm({ ...form, address_district: e.target.value })} disabled={!form.city}>
+            <select className="asd-select" value={form.address_district} onChange={(e) => setForm({ ...form, address_district: e.target.value })} disabled={!form.city}>
               <option value="">Seçiniz</option>
               {cityDistricts.map((d) => <option key={d} value={d}>{d}</option>)}
-            </Select>
-          </Label>
-          <Label>Posta Kodu<Input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} /></Label>
+            </select>
+          </label>
+          <label className="asd-label">Posta Kodu<input className="asd-input" value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} /></label>
 
-          <Label style={{ gridColumn: "1 / -1" }}>Notlar<TextArea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Label>
-        </Grid>
+          <label className="asd-label asd-label--full">Notlar<textarea className="asd-textarea" rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
+        </div>
 
-        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-          <GhostButton type="button" onClick={() => setShowFirmMap((v) => !v)}>
+        <div className="asd-map-btns">
+          <button type="button" className="asd-ghost-btn" onClick={() => setShowFirmMap((v) => !v)}>
             {showFirmMap ? "Firma Konumunu Gizle" : "Firma Konumunu Aç"}
-          </GhostButton>
-          <GhostButton type="button" onClick={shareOnWhatsapp}>WhatsApp Paylaş</GhostButton>
+          </button>
+          <button type="button" className="asd-ghost-btn" onClick={shareOnWhatsapp}>WhatsApp Paylaş</button>
         </div>
 
         {showFirmMap && (
-          <div style={{ marginTop: 10, border: "1px solid #dbe3ee", borderRadius: 8, overflow: "hidden" }}>
-            <iframe title="Firma konumu" src={getMapEmbedSrc(form.address, form.address_district, form.city)} width="100%" height="280" style={{ border: 0 }} loading="lazy" />
+          <div className="asd-map-wrap">
+            <iframe
+              title="Firma konumu"
+              className="asd-map-frame"
+              src={getMapEmbedSrc(form.address, form.address_district, form.city)}
+              width="100%"
+              height="280"
+              loading="lazy"
+            />
           </div>
         )}
-      </Card>
+      </section>
 
       <CategorySelectionModal
         isOpen={showPartnerCategoryModal}
@@ -849,192 +597,201 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
         }}
       />
 
-      <Card>
-        <SectionHeader onClick={() => toggleSection("users")}>
+      <section className="asd-card">
+        <button type="button" className="asd-section-hdr" onClick={() => toggleSection("users")}>
           <h3>Yetkili Kullanıcılar ({detail.users_count})</h3>
-          <Arrow>{sectionArrow(openSections.users)}</Arrow>
-        </SectionHeader>
+          <span className="asd-section-hdr__arrow">{sectionArrow(openSections.users)}</span>
+        </button>
         {openSections.users && (
           <>
-            <Grid>
-              <Label>Arama<Input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Ad, e-posta, telefon" /></Label>
-              <Label>
+            <div className="asd-grid">
+              <label className="asd-label">Arama<input className="asd-input" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Ad, e-posta, telefon" /></label>
+              <label className="asd-label">
                 Durum Filtresi
-                <Select value={userFilter} onChange={(e) => setUserFilter(e.target.value as "all" | "verified" | "unverified") }>
+                <select className="asd-select" value={userFilter} onChange={(e) => setUserFilter(e.target.value as "all" | "verified" | "unverified")}>
                   <option value="all">Tümü</option>
                   <option value="verified">Doğrulanmış</option>
                   <option value="unverified">Bekleyen</option>
-                </Select>
-              </Label>
-            </Grid>
-
-            <div style={{ marginTop: 8 }}>
-              <Button type="button" onClick={() => setShowAddUser(true)}>+ Kullanıcı Ekle</Button>
+                </select>
+              </label>
             </div>
 
-            <TeamList>
-              <TeamHead>
+            <div className="asd-section-footer">
+              <button type="button" className="asd-btn" onClick={() => setShowAddUser(true)}>+ Kullanıcı Ekle</button>
+            </div>
+
+            <div className="asd-team-list">
+              <div className="asd-team-head">
                 <div>Ad Soyad</div>
                 <div>Telefon</div>
                 <div>E-posta</div>
-                <div style={{ textAlign: "right" }}>İşlemler</div>
-              </TeamHead>
+                <div className="asd-th--right">İşlemler</div>
+              </div>
               {filteredUsers.map((teamUser) => {
                 const editing = editingUsers[teamUser.id];
                 return (
-                  <TeamRow key={teamUser.id}>
-                    <TeamCell>
+                  <div className="asd-team-row" key={teamUser.id}>
+                    <div className="asd-team-cell">
                       {editing ? (
-                        <Input value={editing.name} onChange={(e) => setEditingUsers((prev) => ({ ...prev, [teamUser.id]: { ...editing, name: e.target.value } }))} />
+                        <input className="asd-input" aria-label="Ad Soyad" value={editing.name} onChange={(e) => setEditingUsers((prev) => ({ ...prev, [teamUser.id]: { ...editing, name: e.target.value } }))} />
                       ) : (
                         <strong>{teamUser.name}{teamUser.is_default ? " (Varsayılan)" : ""}</strong>
                       )}
-                    </TeamCell>
+                    </div>
 
-                    <TeamCell>
+                    <div className="asd-team-cell">
                       {editing ? (
-                        <Input value={editing.phone} onChange={(e) => setEditingUsers((prev) => ({ ...prev, [teamUser.id]: { ...editing, phone: e.target.value } }))} />
+                        <input className="asd-input" aria-label="Telefon" value={editing.phone} onChange={(e) => setEditingUsers((prev) => ({ ...prev, [teamUser.id]: { ...editing, phone: e.target.value } }))} />
                       ) : (
                         <>
                           {teamUser.phone || "-"}
-                          <ActionInline>
-                            <CallBtn type="button" onClick={() => callPhone(teamUser.phone)}>Ara</CallBtn>
-                            <WhatsappBtn type="button" disabled={!isLikelyMobilePhone(teamUser.phone)} onClick={() => messageWhatsapp(teamUser.phone)}>WhatsApp</WhatsappBtn>
-                          </ActionInline>
+                          <div className="asd-action-inline">
+                            <button type="button" className="asd-mini-btn asd-mini-btn--call" onClick={() => callPhone(teamUser.phone)}>Ara</button>
+                            <button type="button" className="asd-mini-btn asd-mini-btn--whatsapp" disabled={!isLikelyMobilePhone(teamUser.phone)} onClick={() => messageWhatsapp(teamUser.phone)}>WhatsApp</button>
+                          </div>
                         </>
                       )}
-                    </TeamCell>
+                    </div>
 
-                    <TeamCell>
+                    <div className="asd-team-cell">
                       {editing ? (
-                        <Input type="email" value={editing.email} onChange={(e) => setEditingUsers((prev) => ({ ...prev, [teamUser.id]: { ...editing, email: e.target.value } }))} />
+                        <input className="asd-input" type="email" aria-label="E-posta" value={editing.email} onChange={(e) => setEditingUsers((prev) => ({ ...prev, [teamUser.id]: { ...editing, email: e.target.value } }))} />
                       ) : (
                         <>
                           {teamUser.email}
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
-                            <StatusBadge $tone={teamUser.password_set ? "success" : "warning"}>
+                          <div className="asd-badge-row asd-badge-row--mt4">
+                            <span className={`asd-badge ${teamUser.password_set ? "asd-badge--success" : "asd-badge--warning"}`}>
                               {teamUser.password_set ? "Kayıt tamamlandı" : "Magic link bekleniyor"}
-                            </StatusBadge>
-                            <StatusBadge $tone={teamUser.email_verified ? "success" : "neutral"}>
+                            </span>
+                            <span className={`asd-badge ${teamUser.email_verified ? "asd-badge--success" : ""}`}>
                               {teamUser.email_verified ? "E-posta onaylı" : "E-posta onayı bekliyor"}
-                            </StatusBadge>
+                            </span>
                           </div>
-                          <ActionInline>
-                            <MailBtn type="button" onClick={() => openEmailComposer(teamUser.email)}>Mail Gönder</MailBtn>
+                          <div className="asd-action-inline">
+                            <button type="button" className="asd-mini-btn asd-mini-btn--mail" onClick={() => openEmailComposer(teamUser.email)}>Mail Gönder</button>
                             {(!teamUser.password_set || !teamUser.email_verified) && (
-                              <MailBtn
+                              <button
                                 type="button"
+                                className="asd-mini-btn asd-mini-btn--mail"
                                 onClick={() => void handleResendUserMagicLink(teamUser)}
                                 disabled={resendingMagicUserId === teamUser.id}
                               >
                                 {resendingMagicUserId === teamUser.id ? "Gönderiliyor..." : "Magic Link Tekrar Gönder"}
-                              </MailBtn>
+                              </button>
                             )}
-                          </ActionInline>
-                        </>
-                      )}
-                    </TeamCell>
-
-                    <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap" }}>
-                      {editing ? (
-                        <>
-                          <MiniActionBtn type="button" onClick={() => void saveEditUser(teamUser.id)}>Kaydet</MiniActionBtn>
-                          <MiniActionBtn type="button" onClick={() => cancelEditUser(teamUser.id)}>Vazgeç</MiniActionBtn>
-                        </>
-                      ) : (
-                        <>
-                          <MiniActionBtn type="button" onClick={() => startEditUser(teamUser)}>Düzenle</MiniActionBtn>
-                          {!teamUser.is_default && <MiniActionBtn type="button" onClick={() => void handleSetDefaultUser(teamUser.id)}>Varsayılan Yap</MiniActionBtn>}
-                          {!teamUser.is_default && <MiniActionBtn type="button" onClick={() => void handleDeleteUser(teamUser.id)}>Sil</MiniActionBtn>}
+                          </div>
                         </>
                       )}
                     </div>
-                  </TeamRow>
+
+                    <div className="asd-team-actions">
+                      {editing ? (
+                        <>
+                          <button type="button" className="asd-mini-btn" onClick={() => void saveEditUser(teamUser.id)}>Kaydet</button>
+                          <button type="button" className="asd-mini-btn" onClick={() => cancelEditUser(teamUser.id)}>Vazgeç</button>
+                        </>
+                      ) : (
+                        <>
+                          <button type="button" className="asd-mini-btn" onClick={() => startEditUser(teamUser)}>Düzenle</button>
+                          {!teamUser.is_default && <button type="button" className="asd-mini-btn" onClick={() => void handleSetDefaultUser(teamUser.id)}>Varsayılan Yap</button>}
+                          {!teamUser.is_default && <button type="button" className="asd-mini-btn" onClick={() => void handleDeleteUser(teamUser.id)}>Sil</button>}
+                        </>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
-            </TeamList>
+            </div>
           </>
         )}
-      </Card>
+      </section>
 
-      <Card>
-        <SectionHeader onClick={() => toggleSection("invoice")}>
+      <section className="asd-card">
+        <button type="button" className="asd-section-hdr" onClick={() => toggleSection("invoice")}>
           <h3>Fatura Bilgileri</h3>
-          <Arrow>{sectionArrow(openSections.invoice)}</Arrow>
-        </SectionHeader>
+          <span className="asd-section-hdr__arrow">{sectionArrow(openSections.invoice)}</span>
+        </button>
         {openSections.invoice && (
           <>
-            <Grid>
-              <Label>Fatura Ünvanı<Input value={form.invoice_name} onChange={(e) => setForm({ ...form, invoice_name: e.target.value })} /></Label>
-              <Label>Vergi Dairesi<Input value={form.tax_office} onChange={(e) => setForm({ ...form, tax_office: e.target.value })} /></Label>
-              <Label>Vergi No<Input value={form.tax_number} onChange={(e) => setForm({ ...form, tax_number: e.target.value })} /></Label>
-              <Label>Sicil No<Input value={form.registration_number} onChange={(e) => setForm({ ...form, registration_number: e.target.value })} /></Label>
+            <div className="asd-grid">
+              <label className="asd-label">Fatura Ünvanı<input className="asd-input" value={form.invoice_name} onChange={(e) => setForm({ ...form, invoice_name: e.target.value })} /></label>
+              <label className="asd-label">Vergi Dairesi<input className="asd-input" value={form.tax_office} onChange={(e) => setForm({ ...form, tax_office: e.target.value })} /></label>
+              <label className="asd-label">Vergi No<input className="asd-input" value={form.tax_number} onChange={(e) => setForm({ ...form, tax_number: e.target.value })} /></label>
+              <label className="asd-label">Sicil No<input className="asd-input" value={form.registration_number} onChange={(e) => setForm({ ...form, registration_number: e.target.value })} /></label>
 
-              <Label style={{ gridColumn: "1 / -1" }}>Fatura Adresi<TextArea rows={2} value={form.invoice_address} onChange={(e) => setForm({ ...form, invoice_address: e.target.value })} /></Label>
+              <label className="asd-label asd-label--full">Fatura Adresi<textarea className="asd-textarea" rows={2} value={form.invoice_address} onChange={(e) => setForm({ ...form, invoice_address: e.target.value })} /></label>
 
-              <Label>
+              <label className="asd-label">
                 Fatura Şehir
-                <Select value={form.invoice_city} onChange={(e) => setForm({ ...form, invoice_city: e.target.value, invoice_district: "" })}>
+                <select className="asd-select" value={form.invoice_city} onChange={(e) => setForm({ ...form, invoice_city: e.target.value, invoice_district: "" })}>
                   <option value="">Seçiniz</option>
                   {cityNames.map((city) => <option key={city} value={city}>{city}</option>)}
-                </Select>
-              </Label>
-              <Label>
+                </select>
+              </label>
+              <label className="asd-label">
                 Fatura İlçe
-                <Select value={form.invoice_district} onChange={(e) => setForm({ ...form, invoice_district: e.target.value })} disabled={!form.invoice_city}>
+                <select className="asd-select" value={form.invoice_district} onChange={(e) => setForm({ ...form, invoice_district: e.target.value })} disabled={!form.invoice_city}>
                   <option value="">Seçiniz</option>
                   {invoiceDistricts.map((d) => <option key={d} value={d}>{d}</option>)}
-                </Select>
-              </Label>
-              <Label>Fatura Posta Kodu<Input value={form.invoice_postal_code} onChange={(e) => setForm({ ...form, invoice_postal_code: e.target.value })} /></Label>
-            </Grid>
+                </select>
+              </label>
+              <label className="asd-label">Fatura Posta Kodu<input className="asd-input" value={form.invoice_postal_code} onChange={(e) => setForm({ ...form, invoice_postal_code: e.target.value })} /></label>
+            </div>
 
-            <div style={{ marginTop: 10 }}>
-              <GhostButton type="button" onClick={() => setShowInvoiceMap((v) => !v)}>
+            <div className="asd-section-footer--mt10">
+              <button type="button" className="asd-ghost-btn" onClick={() => setShowInvoiceMap((v) => !v)}>
                 {showInvoiceMap ? "Fatura Konumunu Gizle" : "Fatura Konumunu Aç"}
-              </GhostButton>
+              </button>
             </div>
 
             {showInvoiceMap && (
-              <div style={{ marginTop: 10, border: "1px solid #dbe3ee", borderRadius: 8, overflow: "hidden" }}>
-                <iframe title="Fatura konumu" src={getMapEmbedSrc(form.invoice_address, form.invoice_district, form.invoice_city)} width="100%" height="280" style={{ border: 0 }} loading="lazy" />
+              <div className="asd-map-wrap">
+                <iframe
+                  title="Fatura konumu"
+                  className="asd-map-frame"
+                  src={getMapEmbedSrc(form.invoice_address, form.invoice_district, form.invoice_city)}
+                  width="100%"
+                  height="280"
+                  loading="lazy"
+                />
               </div>
             )}
           </>
         )}
-      </Card>
+      </section>
 
-      <Card>
-        <SectionHeader onClick={() => toggleSection("guarantees")}>
+      <section className="asd-card">
+        <button type="button" className="asd-section-hdr" onClick={() => toggleSection("guarantees")}>
           <h3>Teminatlar</h3>
-          <Arrow>{sectionArrow(openSections.guarantees)}</Arrow>
-        </SectionHeader>
+          <span className="asd-section-hdr__arrow">{sectionArrow(openSections.guarantees)}</span>
+        </button>
         {openSections.guarantees && (
           <>
-            <Grid>
-              <Label>Başlık<Input value={newGuarantee.title} onChange={(e) => setNewGuarantee({ ...newGuarantee, title: e.target.value })} /></Label>
-              <Label>Tür<Input value={newGuarantee.guarantee_type} onChange={(e) => setNewGuarantee({ ...newGuarantee, guarantee_type: e.target.value })} /></Label>
-              <Label>Tutar<Input value={newGuarantee.amount} onChange={(e) => setNewGuarantee({ ...newGuarantee, amount: e.target.value })} /></Label>
-              <Label>Para Birimi<Input value={newGuarantee.currency} onChange={(e) => setNewGuarantee({ ...newGuarantee, currency: e.target.value.toUpperCase() })} /></Label>
-              <Label>Veriliş Tarihi<Input type="date" value={newGuarantee.issued_at} onChange={(e) => setNewGuarantee({ ...newGuarantee, issued_at: e.target.value })} /></Label>
-              <Label>Bitiş Tarihi<Input type="date" value={newGuarantee.expires_at} onChange={(e) => setNewGuarantee({ ...newGuarantee, expires_at: e.target.value })} /></Label>
-            </Grid>
-            <div style={{ marginTop: 8 }}>
-              <Button type="button" onClick={() => void handleAddGuarantee()}>Teminat Ekle</Button>
+            <div className="asd-grid">
+              <label className="asd-label">Başlık<input className="asd-input" value={newGuarantee.title} onChange={(e) => setNewGuarantee({ ...newGuarantee, title: e.target.value })} /></label>
+              <label className="asd-label">Tür<input className="asd-input" value={newGuarantee.guarantee_type} onChange={(e) => setNewGuarantee({ ...newGuarantee, guarantee_type: e.target.value })} /></label>
+              <label className="asd-label">Tutar<input className="asd-input" value={newGuarantee.amount} onChange={(e) => setNewGuarantee({ ...newGuarantee, amount: e.target.value })} /></label>
+              <label className="asd-label">Para Birimi<input className="asd-input" value={newGuarantee.currency} onChange={(e) => setNewGuarantee({ ...newGuarantee, currency: e.target.value.toUpperCase() })} /></label>
+              <label className="asd-label">Veriliş Tarihi<input className="asd-input" type="date" value={newGuarantee.issued_at} onChange={(e) => setNewGuarantee({ ...newGuarantee, issued_at: e.target.value })} /></label>
+              <label className="asd-label">Bitiş Tarihi<input className="asd-input" type="date" value={newGuarantee.expires_at} onChange={(e) => setNewGuarantee({ ...newGuarantee, expires_at: e.target.value })} /></label>
+            </div>
+            <div className="asd-section-footer">
+              <button type="button" className="asd-btn" onClick={() => void handleAddGuarantee()}>Teminat Ekle</button>
             </div>
 
-            <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+            <div className="asd-guarantee-list">
               {detail.guarantees.map((g) => (
-                <Card key={g.id}>
-                  <HeaderRow>
+                <section className="asd-card" key={g.id}>
+                  <div className="asd-header-row">
                     <div>
                       <strong>{g.title}</strong>
                       <div>{g.guarantee_type} | {g.amount ?? "-"} {g.currency || "TRY"}</div>
                       <div>Durum: {g.status} | Bitiş: {g.expires_at || "-"}</div>
                     </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <SecondaryButton
+                    <div className="asd-guarantee-actions">
+                      <button
                         type="button"
+                        className="asd-btn asd-btn--secondary"
                         onClick={() => {
                           setEditingGuaranteeId(g.id);
                           setEditingGuarantee({
@@ -1049,45 +806,46 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
                         }}
                       >
                         Düzenle
-                      </SecondaryButton>
-                      <DangerButton type="button" onClick={() => void handleDeleteGuarantee(g.id)}>Sil</DangerButton>
+                      </button>
+                      <button type="button" className="asd-btn asd-btn--danger" onClick={() => void handleDeleteGuarantee(g.id)}>Sil</button>
                     </div>
-                  </HeaderRow>
-                </Card>
+                  </div>
+                </section>
               ))}
             </div>
           </>
         )}
-      </Card>
+      </section>
 
-      <Card>
-        <SectionHeader onClick={() => toggleSection("payment")}>
+      <section className="asd-card">
+        <button type="button" className="asd-section-hdr" onClick={() => toggleSection("payment")}>
           <h3>Ödeme ve Çek Ayarları</h3>
-          <Arrow>{sectionArrow(openSections.payment)}</Arrow>
-        </SectionHeader>
+          <span className="asd-section-hdr__arrow">{sectionArrow(openSections.payment)}</span>
+        </button>
         {openSections.payment && (
           <>
-            <Grid>
-              <Label>
+            <div className="asd-grid">
+              <label className="asd-label">
                 Çek Kabulü
-                <Select value={form.accepts_checks ? "yes" : "no"} onChange={(e) => setForm({ ...form, accepts_checks: e.target.value === "yes" })}>
+                <select className="asd-select" value={form.accepts_checks ? "yes" : "no"} onChange={(e) => setForm({ ...form, accepts_checks: e.target.value === "yes" })}>
                   <option value="yes">Evet</option>
                   <option value="no">Hayır</option>
-                </Select>
-              </Label>
-              <Label>
+                </select>
+              </label>
+              <label className="asd-label">
                 Tercih Edilen Çek Vadesi
-                <Input value={form.preferred_check_term} onChange={(e) => setForm({ ...form, preferred_check_term: e.target.value })} disabled={!form.accepts_checks} />
-              </Label>
-            </Grid>
+                <input className="asd-input" value={form.preferred_check_term} onChange={(e) => setForm({ ...form, preferred_check_term: e.target.value })} disabled={!form.accepts_checks} />
+              </label>
+            </div>
 
-            <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+            <div className="asd-payment-list">
               {form.payment_accounts.map((acc, idx) => (
-                <Card key={`${acc.bank_name}-${idx}`}>
-                  <Grid>
-                    <Label>
+                <section className="asd-card" key={`${acc.bank_name}-${idx}`}>
+                  <div className="asd-grid">
+                    <label className="asd-label">
                       Banka
-                      <Select
+                      <select
+                        className="asd-select"
                         value={acc.bank_key || ""}
                         onChange={(e) => {
                           const bank = BANKS.find((b) => b.key === e.target.value);
@@ -1098,16 +856,17 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
                       >
                         <option value="">Seçiniz</option>
                         {BANKS.map((b) => <option key={b.key} value={b.key}>{b.name}</option>)}
-                      </Select>
-                    </Label>
-                    <Label>IBAN<Input value={acc.iban} onChange={(e) => {
+                      </select>
+                    </label>
+                    <label className="asd-label">IBAN<input className="asd-input" value={acc.iban} onChange={(e) => {
                       const next = [...form.payment_accounts] as AdminSupplierPaymentAccount[];
                       next[idx] = { ...next[idx], iban: e.target.value };
                       setForm({ ...form, payment_accounts: next });
-                    }} /></Label>
-                    <Label>
+                    }} /></label>
+                    <label className="asd-label">
                       Hesap Türü
-                      <Select
+                      <select
+                        className="asd-select"
                         value={acc.account_type}
                         onChange={(e) => {
                           const next = [...form.payment_accounts] as AdminSupplierPaymentAccount[];
@@ -1117,106 +876,111 @@ async function handleResendUserMagicLink(teamUser: AdminSupplierUser) {
                       >
                         <option value="tl">TL</option>
                         <option value="doviz">Döviz</option>
-                      </Select>
-                    </Label>
-                    <DangerButton type="button" onClick={() => setForm({ ...form, payment_accounts: form.payment_accounts.filter((_, i) => i !== idx) })}>
+                      </select>
+                    </label>
+                    <button type="button" className="asd-btn asd-btn--danger" onClick={() => setForm({ ...form, payment_accounts: form.payment_accounts.filter((_, i) => i !== idx) })}>
                       Hesabı Sil
-                    </DangerButton>
-                  </Grid>
-                </Card>
+                    </button>
+                  </div>
+                </section>
               ))}
 
-              <SecondaryButton
+              <button
                 type="button"
+                className="asd-btn asd-btn--secondary"
                 onClick={() => setForm({
                   ...form,
                   payment_accounts: [...form.payment_accounts, { bank_name: "", iban: "", account_type: "tl", bank_key: null }],
                 })}
               >
                 + Hesap Ekle
-              </SecondaryButton>
+              </button>
             </div>
           </>
         )}
-      </Card>
+      </section>
+
+      <section>
+        <button type="button" className="asd-section-hdr" onClick={() => toggleSection("marketing")}>
+          <h3>Pazarlama Planları</h3>
+          <span className="asd-section-hdr__arrow">{sectionArrow(openSections.marketing)}</span>
+        </button>
+        {openSections.marketing && detail && (
+          <SupplierMarketingPlansSection supplierId={detail.supplier.id} canEdit={true} />
+        )}
+      </section>
 
       {showAddUser && (
-        <ModalBack onClick={() => setShowAddUser(false)}>
-          <ModalCard onClick={(e) => e.stopPropagation()}>
+        <div className="asd-modal-back" onClick={() => setShowAddUser(false)}>
+          <div className="asd-modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>Yeni Yetkili Ekle</h3>
-            <Grid>
-              <Label>Ad Soyad<Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></Label>
-              <Label>E-posta<Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></Label>
-              <Label>Telefon<Input value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} /></Label>
-            </Grid>
-            <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <SecondaryButton type="button" onClick={() => setShowAddUser(false)}>İptal</SecondaryButton>
-              <Button type="button" onClick={() => void handleAddUser()}>Kullanıcı Ekle</Button>
+            <div className="asd-grid">
+              <label className="asd-label">Ad Soyad<input className="asd-input" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
+              <label className="asd-label">E-posta<input className="asd-input" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>
+              <label className="asd-label">Telefon<input className="asd-input" value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} /></label>
             </div>
-          </ModalCard>
-        </ModalBack>
+            <div className="asd-modal-footer">
+              <button type="button" className="asd-btn asd-btn--secondary" onClick={() => setShowAddUser(false)}>İptal</button>
+              <button type="button" className="asd-btn" onClick={() => void handleAddUser()}>Kullanıcı Ekle</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {editingGuaranteeId && editingGuarantee && (
-        <ModalBack onClick={() => { setEditingGuaranteeId(null); setEditingGuarantee(null); }}>
-          <ModalCard onClick={(e) => e.stopPropagation()}>
+        <div className="asd-modal-back" onClick={() => { setEditingGuaranteeId(null); setEditingGuarantee(null); }}>
+          <div className="asd-modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>Teminat Düzenle</h3>
-            <Grid>
-              <Label>Başlık<Input value={editingGuarantee.title} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, title: e.target.value })} /></Label>
-              <Label>Tür<Input value={editingGuarantee.guarantee_type} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, guarantee_type: e.target.value })} /></Label>
-              <Label>Tutar<Input value={editingGuarantee.amount} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, amount: e.target.value })} /></Label>
-              <Label>Para Birimi<Input value={editingGuarantee.currency} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, currency: e.target.value.toUpperCase() })} /></Label>
-              <Label>Veriliş Tarihi<Input type="date" value={editingGuarantee.issued_at} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, issued_at: e.target.value })} /></Label>
-              <Label>Bitiş Tarihi<Input type="date" value={editingGuarantee.expires_at} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, expires_at: e.target.value })} /></Label>
-              <Label>
+            <div className="asd-grid">
+              <label className="asd-label">Başlık<input className="asd-input" value={editingGuarantee.title} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, title: e.target.value })} /></label>
+              <label className="asd-label">Tür<input className="asd-input" value={editingGuarantee.guarantee_type} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, guarantee_type: e.target.value })} /></label>
+              <label className="asd-label">Tutar<input className="asd-input" value={editingGuarantee.amount} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, amount: e.target.value })} /></label>
+              <label className="asd-label">Para Birimi<input className="asd-input" value={editingGuarantee.currency} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, currency: e.target.value.toUpperCase() })} /></label>
+              <label className="asd-label">Veriliş Tarihi<input className="asd-input" type="date" value={editingGuarantee.issued_at} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, issued_at: e.target.value })} /></label>
+              <label className="asd-label">Bitiş Tarihi<input className="asd-input" type="date" value={editingGuarantee.expires_at} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, expires_at: e.target.value })} /></label>
+              <label className="asd-label">
                 Durum
-                <Select value={editingGuarantee.status} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, status: e.target.value })}>
+                <select className="asd-select" value={editingGuarantee.status} onChange={(e) => setEditingGuarantee({ ...editingGuarantee, status: e.target.value })}>
                   <option value="active">active</option>
                   <option value="expired">expired</option>
                   <option value="cancelled">cancelled</option>
-                </Select>
-              </Label>
-            </Grid>
-            <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <SecondaryButton type="button" onClick={() => { setEditingGuaranteeId(null); setEditingGuarantee(null); }}>İptal</SecondaryButton>
-              <Button type="button" onClick={() => void saveGuaranteeEdit()}>Kaydet</Button>
+                </select>
+              </label>
             </div>
-          </ModalCard>
-        </ModalBack>
+            <div className="asd-modal-footer">
+              <button type="button" className="asd-btn asd-btn--secondary" onClick={() => { setEditingGuaranteeId(null); setEditingGuarantee(null); }}>İptal</button>
+              <button type="button" className="asd-btn" onClick={() => void saveGuaranteeEdit()}>Kaydet</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showEmailModal && (
-        <ModalBack onClick={() => setShowEmailModal(false)}>
-          <ModalCard onClick={(e) => e.stopPropagation()}>
+        <div className="asd-modal-back" onClick={() => setShowEmailModal(false)}>
+          <div className="asd-modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>E-posta Gönder</h3>
-            <Grid>
-              <Label>Alıcı (To)<Input type="email" value={emailTo} onChange={(e) => setEmailTo(e.target.value)} /></Label>
-              <Label>CC (virgülle ayırın)<Input value={emailCc} onChange={(e) => setEmailCc(e.target.value)} /></Label>
-              <Label style={{ gridColumn: "1 / -1" }}>Konu<Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} /></Label>
-              <Label style={{ gridColumn: "1 / -1" }}>Mesaj<TextArea rows={7} value={emailBody} onChange={(e) => setEmailBody(e.target.value)} /></Label>
-              <Label style={{ gridColumn: "1 / -1" }}>
+            <div className="asd-grid">
+              <label className="asd-label">Alıcı (To)<input className="asd-input" type="email" value={emailTo} onChange={(e) => setEmailTo(e.target.value)} /></label>
+              <label className="asd-label">CC (virgülle ayırın)<input className="asd-input" value={emailCc} onChange={(e) => setEmailCc(e.target.value)} /></label>
+              <label className="asd-label asd-label--full">Konu<input className="asd-input" value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} /></label>
+              <label className="asd-label asd-label--full">Mesaj<textarea className="asd-textarea" rows={7} value={emailBody} onChange={(e) => setEmailBody(e.target.value)} /></label>
+              <label className="asd-label asd-label--full">
                 Ek Dosyalar
-                <Input
-                  type="file"
-                  multiple
-                  onChange={(e) => setEmailFiles(Array.from(e.target.files || []))}
-                />
+                <input className="asd-input" type="file" multiple onChange={(e) => setEmailFiles(Array.from(e.target.files || []))} />
                 {emailFiles.length > 0 && (
-                  <div style={{ marginTop: 6, fontSize: 12, color: "#334155" }}>
-                    {emailFiles.map((f) => f.name).join(", ")}
-                  </div>
+                  <div className="asd-file-list">{emailFiles.map((f) => f.name).join(", ")}</div>
                 )}
-              </Label>
-            </Grid>
-            <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <SecondaryButton type="button" onClick={() => setShowEmailModal(false)}>İptal</SecondaryButton>
-              <Button type="button" disabled={emailSending} onClick={() => void handleSendEmail()}>
-                {emailSending ? "Gönderiliyor..." : "Gönder"}
-              </Button>
+              </label>
             </div>
-          </ModalCard>
-        </ModalBack>
+            <div className="asd-modal-footer">
+              <button type="button" className="asd-btn asd-btn--secondary" onClick={() => setShowEmailModal(false)}>İptal</button>
+              <button type="button" className="asd-btn" disabled={emailSending} onClick={() => void handleSendEmail()}>
+                {emailSending ? "Gönderiliyor..." : "Gönder"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
-    </Page>
+    </div>
   );
 }

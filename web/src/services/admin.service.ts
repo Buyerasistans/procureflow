@@ -58,6 +58,7 @@ export interface WorkspacePanelProfile {
   hero_text_color?: string | null;
   hero_muted_text_color?: string | null;
   allow_user_self_customization?: boolean | null;
+  restricted_customization_sections?: string[] | null;
   menu_style?: "pill" | "accordion" | "drawer" | "tabs" | null;
   allowed_tabs: string[];
   quick_links: Array<{
@@ -374,6 +375,8 @@ export interface AdminSupplierListItem {
   tenant_name?: string | null;
   inviter_company_name?: string | null;
   special_listing_active?: boolean;
+  dual_role_status?: string | null;
+  linked_tenant_id?: number | null;
 }
 
 export interface AdminSupplierUserListItem {
@@ -1626,6 +1629,16 @@ export async function getAdminSupplierManagementDetail(supplierId: number): Prom
 
 export async function getAdminSuppliers(params?: { filter_active?: boolean; source_type?: string }): Promise<AdminSupplierListItem[]> {
   const res = await http.get<AdminSupplierListItem[]>('/suppliers', { params });
+  return res.data;
+}
+
+export async function seedRoleCatalogs(): Promise<{ message: string; created: Record<string, number>; updated: Record<string, number> }> {
+  const res = await http.post('/admin/seed-role-catalogs', {});
+  return res.data;
+}
+
+export async function resetRoleCatalogs(): Promise<{ message: string; deleted: Record<string, number>; created: Record<string, number>; updated: Record<string, number> }> {
+  const res = await http.post('/admin/reset-role-catalogs', {});
   return res.data;
 }
 

@@ -1,0 +1,117 @@
+/* CompanyDetailSuppliersTab.css — namespace: cdst-* */
+
+/* ── Loading / error / empty states ── */
+.cdst-loading { padding: 20px; }
+
+.cdst-error {
+  padding: 20px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+}
+
+.cdst-empty {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+}
+
+.cdst-empty-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.cdst-empty-desc  { font-size: 14px; }
+
+/* ── Root grid ── */
+.cdst-root { display: grid; gap: 12px; }
+
+/* ── Section headers ── */
+.cdst-section-title--invited  { font-size: 13px; font-weight: 700; color: #0f766e; letter-spacing: 0.3px; }
+.cdst-section-title--platform { font-size: 13px; font-weight: 700; color: #92400e; letter-spacing: 0.3px; }
+
+/* ── Supplier card ── */
+.cdst-card {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 16px;
+}
+
+.cdst-card--platform { background: #fffbeb; }
+
+/* ── Avatar ── */
+.cdst-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 24px;
+}
+
+/* ── Info section ── */
+.cdst-info     { display: grid; gap: 8px; }
+.cdst-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cdst-name     { font-weight: 600; font-size: 15px; color: #0f172a; }
+
+/* ── Badges ── */
+.cdst-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cdst-badge--invited  { background: #dcfce7; color: #166534; }
+.cdst-badge--platform { background: #fef3c7; color: #92400e; }
+.cdst-badge--special  { background: #ede9fe; color: #5b21b6; }
+
+/* ── Email ── */
+.cdst-email { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+/* ── Meta grid ── */
+.cdst-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 12px;
+  font-size: 13px;
+}
+
+.cdst-meta-label { color: #94a3b8; font-weight: 500; }
+.cdst-meta-value { color: #475569; }
+
+/* ── Status badge ── */
+.cdst-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cdst-status--active   { background: #d1fae5; color: #065f46; }
+.cdst-status--inactive { background: #fee2e2; color: #991b1b; }
+
+/* ── Actions ── */
+.cdst-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.cdst-detail-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}

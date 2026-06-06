@@ -102,7 +102,7 @@ describe("Admin read-only tabs", () => {
       </AuthContext.Provider>,
     );
 
-    expect(await screen.findByText(/platform personeli rol hiyerarsisini inceleyebilir/i)).toBeInTheDocument();
+    expect(await screen.findByText(/platform personeli rol hiyerarşisini inceleyebilir/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /yeni rol/i })).toBeDisabled();
     expect(screen.queryByRole("button", { name: /düzenle/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^sil$/i })).not.toBeInTheDocument();

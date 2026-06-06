@@ -1,7 +1,7 @@
 ---
 title: Quote & Approval Domain
 owned_by: backend+frontend
-last_verified_at: 2026-05-24
+last_verified_at: 2026-06-05
 confidence: 0.84
 stale_after_days: 14
 source_files:

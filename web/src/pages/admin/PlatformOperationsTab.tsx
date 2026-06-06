@@ -1,8 +1,62 @@
 import { useMemo, useState } from "react";
-import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
+import type { CSSProperties, Dispatch, MutableRefObject, ReactNode, SetStateAction } from "react";
 import type { AdminFocusBannerTone, AdminTabKey } from "./adminPageMeta";
 import type { Tenant } from "../../services/admin.service";
+import { PageHeader, Section, StatCard } from "./AdminTabContent";
 import "./PlatformOperationsTab.css";
+
+/* ── SLA & Müdahale bölümü için statik veriler ─────────────────────────── */
+
+type PoInterventionType = "critical" | "high" | "medium" | "low";
+type PoEventLevel = "warn" | "info" | "success" | "critical";
+
+const PO_KPI = {
+  openIssues: 12,
+  slaBreach: 2,
+  activeInterventions: 5,
+  avgResolution: "3.4 sa",
+  mttr: "47 dk",
+} as const;
+
+const PO_QUEUES = [
+  { code: "tenant",   label: "Partner Müdahalesi",  color: "#1d4ed8", total: 8,  sla: 6,  breach: 0, owner: "Mehmet T." },
+  { code: "rfq",      label: "RFQ İncelemesi",      color: "#7c3aed", total: 14, sla: 12, breach: 2, owner: "Tuba A."   },
+  { code: "finance",  label: "Finans Doğrulama",    color: "#15803d", total: 5,  sla: 5,  breach: 0, owner: "Ali D."    },
+  { code: "supplier", label: "Tedarikçi Onayı",     color: "#0284c7", total: 9,  sla: 8,  breach: 1, owner: "Sema Y."  },
+  { code: "security", label: "Güvenlik Bildirimi",  color: "#be123c", total: 2,  sla: 2,  breach: 0, owner: "Ahmet K." },
+];
+
+const PO_INTERVENTIONS: Array<{
+  id: string; title: string; tenant: string; type: PoInterventionType;
+  stage: string; owner: string; age: string; sla: string; action: string;
+}> = [
+  { id: "INT-1041", title: "Doğan Otomotiv onay zinciri kilitlendi",    tenant: "Doğan Otomotiv", type: "critical", stage: "inceleme",   owner: "Mehmet T.", age: "23 dk", sla: "40 dk", action: "Onay zincirini sıfırla"    },
+  { id: "INT-1040", title: "Karaca Üretim · 3 RFQ rakamı negatif",      tenant: "Karaca Üretim",  type: "high",     stage: "doğrulama", owner: "Tuba A.",   age: "1 sa",  sla: "4 sa",  action: "Manuel kontrol başlat"      },
+  { id: "INT-1039", title: "Tetra Holding bekleyen 4 EFT dekontu",       tenant: "Tetra Holding",  type: "medium",   stage: "iletim",    owner: "Ali D.",    age: "2 sa",  sla: "8 sa",  action: "Tahsilat aşamasına ilerlet" },
+  { id: "INT-1038", title: "Nova Lojistik supplier_admin token expired", tenant: "Nova Lojistik",  type: "low",      stage: "çözüldü",   owner: "Sema Y.",   age: "4 sa",  sla: "tamam", action: "İncelemeye al"              },
+];
+
+const PO_EVENTS: Array<{
+  time: string; actor: string; source: string; action: string; target: string; level: PoEventLevel;
+}> = [
+  { time: "14:38:21", actor: "Mehmet T.", source: "tenant_governance", action: "tenant-suspend", target: "Polat Tekstil · vade aşımı",         level: "warn"     },
+  { time: "14:32:18", actor: "Sistem",    source: "cron",              action: "sla-check",      target: "14 tenant taranıyor",                  level: "info"     },
+  { time: "14:18:09", actor: "Tuba A.",   source: "rfq",               action: "replay-chain",   target: "RFQ-2419 · MetalForm",                 level: "info"     },
+  { time: "13:56:41", actor: "Sistem",    source: "webhook",           action: "delivery-fail",  target: "3 webhook · ACME · retry 2",           level: "warn"     },
+  { time: "13:42:08", actor: "Ali D.",    source: "finance",           action: "invoice-issue",  target: "Aylık fatura kesimi · 42 tenant",      level: "success"  },
+  { time: "13:14:55", actor: "Sema Y.",   source: "support",           action: "ticket-resolve", target: "Konya Gıda onboarding kuyruğu",        level: "success"  },
+  { time: "12:50:32", actor: "Sistem",    source: "security",          action: "auth-spike",     target: "12 deneme · IP 78.180.x.x",            level: "critical" },
+];
+
+const PO_ASSIGNEES = [
+  { name: "Mehmet T.", role: "Senior Operatör",  open: 6, sla: 4.2, score: 96 },
+  { name: "Tuba A.",   role: "Operatör",          open: 8, sla: 3.8, score: 88 },
+  { name: "Ali D.",    role: "Finans Operatörü",  open: 4, sla: 5.1, score: 92 },
+  { name: "Sema Y.",   role: "Destek Operatörü",  open: 5, sla: 4.7, score: 90 },
+  { name: "Ahmet K.",  role: "Güvenlik Uzmanı",   open: 2, sla: 2.3, score: 98 },
+];
+
+/* ──────────────────────────────────────────────────────────────────────── */
 
 type PlatformOpsStatus = "new" | "in_progress" | "waiting_owner" | "resolved";
 type PlatformOpsStatusFilter = "all" | PlatformOpsStatus;
@@ -102,6 +156,7 @@ export function PlatformOperationsTab({
   const [emptyStateStatus, setEmptyStateStatus] = useState<PlatformOpsStatus>("new");
   const [emptyStateNote, setEmptyStateNote] = useState("");
   const [nowMs] = useState(() => Date.now());
+  const [interventionFilter, setInterventionFilter] = useState<"all" | PoInterventionType>("all");
 
   const hasAnyVisiblePartner = visiblePlatformOpsQueues
     .filter((queue) => queue.key !== "support_status")
@@ -200,8 +255,24 @@ export function PlatformOperationsTab({
     nowMs,
   ]);
 
+  const filteredInterventions = useMemo(
+    () => interventionFilter === "all" ? PO_INTERVENTIONS : PO_INTERVENTIONS.filter((i) => i.type === interventionFilter),
+    [interventionFilter],
+  );
+
   return (
     <section className="platform-operations-tab">
+      <PageHeader
+        eyebrow="Operasyon"
+        title="Platform Operasyonları"
+        sub="Tenant destek kuyruğu, sorumlu atama ve kapanış takibi"
+      />
+      <div className="kpi-grid kpi-grid--4">
+        <StatCard label="Yeni" value={platformOpsStatusSummary.new} sub="Henüz işleme alınmadı" accent="blue" />
+        <StatCard label="İşlemde" value={platformOpsStatusSummary.in_progress} sub="Aktif müdahale" accent="warn" />
+        <StatCard label="Owner Bekliyor" value={platformOpsStatusSummary.waiting_owner} sub="Geri dönüş bekleniyor" accent="violet" />
+        <StatCard label="Çözüldü" value={platformOpsStatusSummary.resolved} sub="Kapanış nedeni girildi" accent="green" />
+      </div>
       {activePlatformOpsFocusSummary.length > 0
         ? renderAdminFocusBanner({
             eyebrow: "Filtre Özeti",
@@ -211,7 +282,7 @@ export function PlatformOperationsTab({
             sourceLabel: "Platform operasyonlari filtresi",
             timestamp: nowMs,
             actions: [
-              { label: "Stratejik Partner Yönetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
+              { label: "Stratejik Partner Yonetimine Git", onClick: () => navigateAdminTab("tenant_governance") },
               { label: "Kuyruga Git", onClick: jumpToPlatformOpsFocusTarget },
               {
                 label: "Filtreyi Temizle",
@@ -232,7 +303,7 @@ export function PlatformOperationsTab({
           Bu alan, onboarding takibi ve owner atama kuyrugu dahil olmak uzere platform ekibinin Stratejik Partner kayitlarini takip
           etmesi, onceliklendirmesi ve dogru aksiyona yonlenmesi icin hazirlandi.
         </div>
-        <div className="platform-operations-tab__link-note">Stratejik Partner Yönetimine Git</div>
+        <div className="platform-operations-tab__link-note">Stratejik Partner Yonetimine Git</div>
         <div className="platform-operations-tab__meta">Operasyon Sahibi • Destek Durumu • Son Temas • Destek Notu</div>
 
         {!hasAnyVisiblePartner ? (
@@ -618,6 +689,147 @@ export function PlatformOperationsTab({
           </div>
         ))}
       </div>
+
+      <div className="po-band">SLA ve Müdahale Operasyonları</div>
+
+      <div className="kpi-grid">
+        <StatCard label="Açık İş" value={PO_KPI.openIssues} delta={4} trend="up" accent="blue" />
+        <StatCard label="SLA İhlali" value={PO_KPI.slaBreach} sub="Son 24 saatte" accent="warn" />
+        <StatCard label="Aktif Müdahale" value={PO_KPI.activeInterventions} sub="Şu an çalışılıyor" />
+        <StatCard label="Ort. Çözüm Süresi" value={PO_KPI.avgResolution} sub="Hedef ≤ 4 sa" accent="green" />
+        <StatCard label="MTTR" value={PO_KPI.mttr} sub="Kritik müdahaleler" accent="green" />
+      </div>
+
+      <Section title="Operasyon Kuyrukları" sub="Aktif iş yükü ve SLA durumu">
+        <div className="po-q-grid">
+          {PO_QUEUES.map((q) => {
+            const pct = Math.round(((q.total - q.breach) / q.total) * 100);
+            return (
+              <div key={q.code} className="po-q-card" style={{ "--qc": q.color } as CSSProperties}>
+                <div className="po-q-card__head">
+                  <div>
+                    <div className="po-q-card__label">{q.label}</div>
+                    <div className="po-q-card__owner">Sorumlu: <b>{q.owner}</b></div>
+                  </div>
+                  <div className="po-q-card__count">{q.total}</div>
+                </div>
+                <div className="po-q-card__bar">
+                  <div className="po-q-card__fill" style={{ "--fill-w": pct + "%" } as CSSProperties}></div>
+                </div>
+                <div className="po-q-card__stats">
+                  <span><b>{q.sla}</b> SLA içinde</span>
+                  <span className={q.breach > 0 ? "po-q-card__breach" : ""}>
+                    {q.breach > 0 ? `▲ ${q.breach} ihlal` : "✓ İhlal yok"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      <div className="split-2-1">
+        <Section
+          title="Aktif Müdahaleler"
+          sub={`${PO_INTERVENTIONS.length} kayıt · filtreler sağda`}
+          action={
+            <div className="po-filter">
+              {(["all", "critical", "high", "medium", "low"] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={"po-filter__btn" + (interventionFilter === f ? " on" : "")}
+                  onClick={() => setInterventionFilter(f)}
+                >
+                  {f === "all" ? "Tümü" : f === "critical" ? "Kritik" : f === "high" ? "Yüksek" : f === "medium" ? "Orta" : "Düşük"}
+                </button>
+              ))}
+            </div>
+          }
+        >
+          <div className="po-int-list">
+            {filteredInterventions.length === 0 ? (
+              <div className="po-empty">Bu filtrede müdahale yok.</div>
+            ) : (
+              filteredInterventions.map((i) => (
+                <div key={i.id} className={`po-int po-int--${i.type}`}>
+                  <div className="po-int__l">
+                    <div className="po-int__id">{i.id}</div>
+                    <span className={`po-int__tag po-int__tag--${i.type}`}>
+                      {i.type === "critical" ? "KRİTİK" : i.type === "high" ? "YÜKSEK" : i.type === "medium" ? "ORTA" : "DÜŞÜK"}
+                    </span>
+                  </div>
+                  <div className="po-int__body">
+                    <div className="po-int__title">{i.title}</div>
+                    <div className="po-int__meta">
+                      <span>{i.tenant}</span>
+                      <span>·</span>
+                      <span>Aşama: <b>{i.stage}</b></span>
+                      <span>·</span>
+                      <span>Sorumlu: <b>{i.owner}</b></span>
+                    </div>
+                  </div>
+                  <div className="po-int__r">
+                    <div className="po-int__sla">
+                      <div className="po-int__age">{i.age}</div>
+                      <div className="po-int__sla-target">SLA: {i.sla}</div>
+                    </div>
+                    <button type="button" className="po-int__action">{i.action} →</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Section>
+
+        <Section title="Operatör Yük Dağılımı" sub="5 operatör · canlı durum">
+          <div className="po-assignees">
+            {PO_ASSIGNEES.map((a) => (
+              <div key={a.name} className="po-assignee">
+                <div className="po-assignee__head">
+                  <div className="po-assignee__avatar">
+                    {a.name.split(" ").map((s) => s[0]).join("")}
+                  </div>
+                  <div className="po-assignee__meta">
+                    <b>{a.name}</b>
+                    <span>{a.role}</span>
+                  </div>
+                  <div className="po-assignee__score">{a.score}</div>
+                </div>
+                <div className="po-assignee__stats">
+                  <div><b>{a.open}</b><span>açık iş</span></div>
+                  <div><b>{a.sla} sa</b><span>ort. çözüm</span></div>
+                </div>
+                <div className="po-assignee__bar">
+                  <div
+                    className={`po-assignee__fill po-assignee__fill--${a.open > 7 ? "red" : a.open > 4 ? "amber" : "green"}`}
+                    style={{ "--fill-w": Math.min(100, a.open * 10) + "%" } as CSSProperties}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      <Section title="Olay Akışı · Canlı" sub="Sistem ve operatör aksiyonları">
+        <div className="po-events">
+          {PO_EVENTS.map((e, idx) => (
+            <div key={idx} className={`po-event po-event--${e.level}`}>
+              <div className="po-event__time">{e.time}</div>
+              <div className="po-event__dot"></div>
+              <div className="po-event__body">
+                <div className="po-event__title">
+                  <b>{e.actor}</b>
+                  <span className="po-event__source">{e.source}</span>
+                  <span className="po-event__action">{e.action}</span>
+                </div>
+                <div className="po-event__target">{e.target}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
     </section>
   );
 }

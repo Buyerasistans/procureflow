@@ -5,7 +5,7 @@ import type { AuthUser } from "./auth-types";
 export type AuthContextType = {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, captchaToken?: string) => Promise<void>;
   logout: () => void;
 };
 

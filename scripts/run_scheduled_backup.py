@@ -18,7 +18,7 @@ SCRIPT_PATH = PROJECT_ROOT / "scripts" / "auto_full_backup.ps1"
 SQL_BACKUP_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "backup_postgres_sql.ps1"
 DEFAULT_BACKUP_ROOT = PROJECT_ROOT.parent / "procureflow_full_backups" / "scheduled"
 API_ENV_PATH = PROJECT_ROOT / "api" / ".env"
-RETENTION_DAYS = 2
+RETENTION_DAYS = 1
 
 
 def get_database_url() -> str | None:
@@ -122,6 +122,11 @@ def main() -> int:
     backup_root, engine = load_backup_root(database_url)
     backup_root.mkdir(parents=True, exist_ok=True)
 
+    # Cleanup runs BEFORE backup so disk space is freed even when backup fails.
+    # Previously cleanup was only at the end — a full disk caused backup failure
+    # which triggered early return, skipping cleanup, creating a vicious cycle.
+    cleanup_old_backups(backup_root)
+
     command = [
         "powershell.exe",
         "-NoProfile",
@@ -135,7 +140,7 @@ def main() -> int:
         str(backup_root),
     ]
 
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
     if result.stdout:
         print(result.stdout.strip())
     if result.returncode != 0:
@@ -157,7 +162,7 @@ def main() -> int:
             str(backup_root),
         ]
         sql_result = subprocess.run(
-            sql_backup_command, capture_output=True, text=True, check=False
+            sql_backup_command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
         )
         if sql_result.stdout:
             print(sql_result.stdout.strip())
@@ -191,8 +196,6 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
-
-    cleanup_old_backups(backup_root)
 
     update_last_backup(engine)
     print(f"DATABASE_URL={database_url}" if database_url else "DATABASE_URL=")

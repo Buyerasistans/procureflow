@@ -1,9 +1,10 @@
-// FILE: web/src/pages/PlatformLoginPage.tsx
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import TurnstileWidget from "../components/TurnstileWidget";
+import "./PlatformLoginPage.css";
 
 export default function PlatformLoginPage() {
   const navigate = useNavigate();
@@ -14,14 +15,16 @@ export default function PlatformLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
     setError(null);
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, captchaToken);
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
@@ -33,137 +36,74 @@ export default function PlatformLoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(circle at top left, rgba(143, 179, 218, 0.28), transparent 28%), linear-gradient(135deg, #eaf2fb 0%, #dbe8f7 48%, #f8fbff 100%)" }}>
+    <div className="plp-root">
       <NavBar variant="platform" activePath="/platform-login" />
-      <div
-        style={{
-          minHeight: "calc(100vh - 60px)",
-          display: "grid",
-          placeItems: "center",
-          padding: 24,
-        }}
-      >
-      <div
-        style={{
-          width: "min(1120px, 100%)",
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(320px, 1fr)",
-          background: "rgba(255,255,255,0.88)",
-          border: "1px solid rgba(255,255,255,0.7)",
-          borderRadius: 32,
-          overflow: "hidden",
-          boxShadow: "0 30px 90px rgba(52, 73, 94, 0.18)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            padding: 56,
-            color: "white",
-            background:
-              "radial-gradient(circle at top right, rgba(176, 205, 233, 0.34), transparent 24%), radial-gradient(circle at bottom left, rgba(125, 159, 196, 0.24), transparent 26%), linear-gradient(135deg, #2a3f67 0%, #4d6489 52%, #7391b8 100%)",
-          }}
-        >
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <PublicBrandLogo height={44} maxWidth={220} />
-            <h1 style={{ margin: "22px 0 12px", fontSize: 50, lineHeight: 1.02, fontWeight: 900 }}>
-              Kurumsal satın alma çalışma alanı
-            </h1>
-            <p style={{ margin: 0, maxWidth: 560, fontSize: 16, lineHeight: 1.7, color: "#dbe4ea" }}>
-              Platform yöneticileri ve super admin kullanıcıları giriş sonrasında merkezi platform arayüzü üzerinden tüm kiracılara ve çalışma alanlarına erişir.
-            </p>
-          </div>
-        </div>
-
-        <div style={{ padding: "52px 44px" }}>
-          <div style={{ maxWidth: 420, margin: "0 auto" }}>
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: "#2a3f67" }}>
-                Platform girişi
-              </div>
-              <h2 style={{ margin: "10px 0 8px", fontSize: 34, lineHeight: 1.08, color: "#0f172a" }}>Hesabınla devam et</h2>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: "#64748b" }}>
-                Platform yöneticileri ve super admin kullanıcıları bu ekran üzerinden sistem ayarlarını ve tüm kiracıları yönetir.
+      <div className="plp-center">
+        <div className="plp-card">
+          <div className="plp-brand">
+            <div className="plp-brand-content">
+              <PublicBrandLogo height={32} maxWidth={200} invert />
+              <h1 className="plp-brand-h1">Kurumsal satın alma çalışma alanı</h1>
+              <p className="plp-brand-lead">
+                Platform yöneticileri ve super admin kullanıcıları giriş sonrasında merkezi platform arayüzü üzerinden tüm kiracılara ve çalışma alanlarına erişir.
               </p>
             </div>
+          </div>
 
-            <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>E-posta</span>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    borderRadius: 18,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    fontSize: 14,
-                  }}
-                />
-              </label>
+          <div className="plp-form-panel">
+            <div className="plp-form-inner">
+              <div className="plp-form-header">
+                <div className="plp-eyebrow">Platform girişi</div>
+                <h2 className="plp-form-h2">Hesabınla devam et</h2>
+                <p className="plp-form-desc">
+                  Platform yöneticileri ve super admin kullanıcıları bu ekran üzerinden sistem ayarlarını ve tüm kiracıları yönetir.
+                </p>
+              </div>
 
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Şifre</span>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    borderRadius: 18,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    fontSize: 14,
-                  }}
-                />
-              </label>
+              <form onSubmit={onSubmit} className="plp-form">
+                <label className="plp-label">
+                  <span className="plp-label-text">E-posta</span>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="plp-input"
+                  />
+                </label>
 
-              {error && (
-                <div style={{ borderRadius: 18, border: "1px solid #fecaca", background: "#fff1f2", padding: "12px 14px", color: "#be123c", fontSize: 14 }}>
-                  {error}
-                </div>
-              )}
+                <label className="plp-label">
+                  <span className="plp-label-text">Şifre</span>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="plp-input"
+                  />
+                </label>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                style={{
-                  width: "100%",
-                  padding: "14px 18px",
-                  borderRadius: 18,
-                  border: "none",
-                  background: "#2a3f67",
-                  color: "white",
-                  fontWeight: 800,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  opacity: submitting ? 0.7 : 1,
-                }}
-              >
-                {submitting ? "Giriş yapılıyor..." : "Giriş yap"}
-              </button>
-            </form>
+                <TurnstileWidget onSuccess={setCaptchaToken} />
 
-            <div style={{ marginTop: 18, borderRadius: 22, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "16px 18px", color: "#475569", fontSize: 14, lineHeight: 1.7 }}>
-              Platform yöneticisi hesabınız varsa bu ekrandan giriş yapabilirsiniz.
+                {error && <div className="plp-error">{error}</div>}
+
+                <button type="submit" disabled={submitting} className="plp-submit-btn">
+                  {submitting ? "Giriş yapılıyor..." : "Giriş yap"}
+                </button>
+              </form>
+
+              <div className="plp-info-box">
+                Platform yöneticisi hesabınız varsa bu ekrandan giriş yapabilirsiniz.
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

@@ -1,202 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import styled from 'styled-components';
 import { Loader, Download, Eye, FileText } from 'lucide-react';
 import { getAccessToken } from '../lib/token';
 import './ContractPortal.css';
-
-const Container = styled.div`
-  padding: 20px;
-`;
-
-const Header = styled.div`
-  margin-bottom: 30px;
-  
-  h2 {
-    color: #1a1a1a;
-    margin-bottom: 10px;
-  }
-  
-  p {
-    color: #666;
-    font-size: 14px;
-  }
-`;
-
-const ContractsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-`;
-
-const ContractCard = styled.div`
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 20px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: #1a73e8;
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
-  }
-`;
-
-const ContractNumber = styled.div`
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 12px;
-  font-size: 14px;
-`;
-
-const ContractInfo = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 15px;
-  font-size: 13px;
-`;
-
-const InfoItem = styled.div`
-  p {
-    color: #666;
-    margin: 0 0 4px 0;
-    font-size: 12px;
-  }
-  
-  strong {
-    color: #1a1a1a;
-    display: block;
-  }
-`;
-
-const PriceInfo = styled.div`
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  
-  div {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 13px;
-    
-    &:last-child {
-      margin-bottom: 0;
-      border-top: 1px solid #e0e0e0;
-      padding-top: 8px;
-      margin-top: 8px;
-      font-weight: 600;
-      color: #1a73e8;
-    }
-  }
-`;
-
-const StatusBadge = styled.span<{ $status: string }>`
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  background: ${props => {
-    switch (props.$status) {
-      case 'generated':
-        return '#e3f2fd';
-      case 'sent':
-        return '#fff3e0';
-      case 'signed':
-        return '#e8f5e9';
-      default:
-        return '#f5f5f5';
-    }
-  }};
-  color: ${props => {
-    switch (props.$status) {
-      case 'generated':
-        return '#1a73e8';
-      case 'sent':
-        return '#e65100';
-      case 'signed':
-        return '#2e7d32';
-      default:
-        return '#616161';
-    }
-  }};
-  margin-bottom: 12px;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-`;
-
-const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
-  flex: 1;
-  min-width: 80px;
-  padding: 8px 12px;
-  border: 1px solid ${props => props.$variant === 'primary' ? '#1a73e8' : '#e0e0e0'};
-  background: ${props => props.$variant === 'primary' ? '#1a73e8' : 'white'};
-  color: ${props => props.$variant === 'primary' ? 'white' : '#1a1a1a'};
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    ${props => props.$variant === 'primary' 
-      ? 'background: #1557b0; border-color: #1557b0;'
-      : 'background: #f5f5f5; border-color: #1a73e8;'
-    }
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const GenerateButton = styled.button`
-  padding: 12px 24px;
-  background: #1a73e8;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: #1557b0;
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 40px 20px;
-  color: #999;
-  
-  p {
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-`;
 
 interface Contract {
   id: number;
@@ -343,14 +148,16 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
   };
 
   return (
-    <Container>
-      <Header>
+    <div className="cp-container">
+      <div className="cp-header">
         <div className="contract-portal__header-row">
           <div>
             <h2>📄 Sözleşme Yönetimi</h2>
             <p>{supplierName} ile yapılan satın alma sözleşmeleri</p>
           </div>
-          <GenerateButton 
+          <button
+            type="button"
+            className="cp-generate-btn"
             onClick={handleGenerateContract}
             disabled={generating}
           >
@@ -365,9 +172,9 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
                 Sözleşme Oluştur
               </>
             )}
-          </GenerateButton>
+          </button>
         </div>
-      </Header>
+      </div>
 
       {loading ? (
         <div className="contract-portal__loading-state">
@@ -375,47 +182,47 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
           <p>Sözleşmeler yükleniyor...</p>
         </div>
       ) : contracts.length === 0 ? (
-        <EmptyState>
+        <div className="cp-empty">
           <FileText size={48} className="contract-portal__empty-icon" />
           <p>Henüz sözleşme oluşturulmamıştır</p>
-        </EmptyState>
+        </div>
       ) : (
-        <ContractsGrid>
+        <div className="cp-grid">
           {contracts.map(contract => (
-            <ContractCard key={contract.id}>
-              <ContractNumber>{contract.contract_number}</ContractNumber>
-              
-              <StatusBadge $status={contract.status}>
-                {contract.status === 'signed' ? '✓ İmzalı' : 
+            <div className="cp-card" key={contract.id}>
+              <div className="cp-card__number">{contract.contract_number}</div>
+
+              <span className={`cp-badge cp-badge--${contract.status}`}>
+                {contract.status === 'signed' ? '✓ İmzalı' :
                  contract.status === 'sent' ? '📤 Gönderildi' :
                  '📋 Oluşturuldu'}
-              </StatusBadge>
+              </span>
 
-              <ContractInfo>
-                <InfoItem>
+              <div className="cp-card__info">
+                <div className="cp-info-item">
                   <p>Toplam Tutar</p>
                   <strong>₺{contract.total_amount.toLocaleString('tr-TR')}</strong>
-                </InfoItem>
-                <InfoItem>
+                </div>
+                <div className="cp-info-item">
                   <p>Nihai Tutar</p>
                   <strong>₺{contract.final_amount.toLocaleString('tr-TR')}</strong>
-                </InfoItem>
-                <InfoItem>
+                </div>
+                <div className="cp-info-item">
                   <p>Teslimat Tarihi</p>
                   <strong>
-                    {contract.delivery_date 
+                    {contract.delivery_date
                       ? new Date(contract.delivery_date).toLocaleDateString('tr-TR')
                       : '-'
                     }
                   </strong>
-                </InfoItem>
-                <InfoItem>
+                </div>
+                <div className="cp-info-item">
                   <p>Garanti Süresi</p>
                   <strong>{contract.warranty_period || '-'}</strong>
-                </InfoItem>
-              </ContractInfo>
+                </div>
+              </div>
 
-              <PriceInfo>
+              <div className="cp-price-info">
                 <div>
                   <span>Sipariş Tutarı:</span>
                   <span>₺{contract.total_amount.toLocaleString('tr-TR')}</span>
@@ -428,39 +235,41 @@ export const ContractPortal: React.FC<ContractPortalProps> = ({
                   <span>Sözleşme Tutarı:</span>
                   <span>₺{contract.final_amount.toLocaleString('tr-TR')}</span>
                 </div>
-              </PriceInfo>
+              </div>
 
-              <ActionButtons>
-                <Button 
-                  $variant="secondary"
+              <div className="cp-actions">
+                <button
+                  type="button"
+                  className="cp-btn"
                   onClick={() => handleDownloadPDF(contract.id, contract.contract_number)}
                   title="PDF'i indir"
                 >
                   <Download size={14} />
                   <span>İndir</span>
-                </Button>
+                </button>
                 {contract.status !== 'signed' && (
-                  <Button 
-                    $variant="primary"
+                  <button
+                    type="button"
+                    className="cp-btn cp-btn--primary"
                     onClick={() => handleSignContract(contract.id)}
                     title="Sözleşmeyi imzala"
                   >
                     <Eye size={14} />
                     <span>İmzala</span>
-                  </Button>
+                  </button>
                 )}
-              </ActionButtons>
+              </div>
 
               {contract.signed_at && (
                 <div className="contract-portal__signed-note">
                   ✓ Imzalama Tarihi: {new Date(contract.signed_at).toLocaleString('tr-TR')}
                 </div>
               )}
-            </ContractCard>
+            </div>
           ))}
-        </ContractsGrid>
+        </div>
       )}
-    </Container>
+    </div>
   );
 };
 

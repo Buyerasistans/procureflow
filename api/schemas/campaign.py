@@ -81,3 +81,15 @@ class CampaignEventIn(BaseModel):
 
 class CampaignApplyGrantIn(BaseModel):
     grant_id: int
+
+
+class CampaignPublicOut(BaseModel):
+    id: int
+    code: str
+    name: str
+    description: str | None = None
+    audience_type: str
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)

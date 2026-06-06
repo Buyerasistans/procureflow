@@ -126,7 +126,7 @@ export function ProjectPage() {
               <iframe
                 width="100%"
                 height="100%"
-                style={{ border: 0 }}
+                className="border-0"
                 loading="lazy"
                 allowFullScreen
                 src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBaXW3jHmQX3Q6K5Z9Y0L2M0N1O2P3Q4R&q=${encodeURIComponent(project.address)}`}

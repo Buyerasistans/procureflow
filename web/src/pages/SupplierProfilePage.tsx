@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import { getSupplierAccessToken } from "../lib/session";
 import {
   deleteSupplierProfileUser,
@@ -17,503 +16,7 @@ import {
 import { getCityNames, getDistricts } from "../data/turkey-cities";
 import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
 import { CategorySelectionModal } from "../components/CategorySelectionModal";
-
-const PageWrap = styled.div`
-  min-height: 100vh;
-  background: #f0f4f8;
-`;
-
-const TopBar = styled.div`
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
-  padding: 0 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-`;
-
-const TopBarLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #fff;
-  h1 { margin: 0; font-size: 20px; font-weight: 700; }
-  span { font-size: 13px; opacity: 0.75; }
-`;
-
-const BackBtn = styled.button`
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: #fff;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  &:hover { background: rgba(255,255,255,0.25); }
-`;
-
-const Body = styled.div`
-  max-width: 1100px;
-  margin: 32px auto;
-  padding: 0 16px 60px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-`;
-
-const Card = styled.div`
-  background: #fff;
-  border-radius: 16px;
-  padding: 26px 28px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-`;
-
-const LogoCard = styled(Card)`
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-  flex-wrap: wrap;
-`;
-
-const LogoLeft = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const LogoBox = styled.div<{ $hasLogo: boolean }>`
-  width: 110px;
-  height: 110px;
-  border-radius: 16px;
-  border: 2px dashed ${p => p.$hasLogo ? "#2d6a9f" : "#d1d5db"};
-  background: ${p => p.$hasLogo ? "#f0f7ff" : "#f9fafb"};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  cursor: pointer;
-  img { width: 100%; height: 100%; object-fit: contain; }
-`;
-
-const LogoPlaceholder = styled.div`
-  color: #9ca3af;
-  font-size: 12px;
-  text-align: center;
-  span { font-size: 28px; display: block; }
-`;
-
-const LogoInfo = styled.div`
-  flex: 1;
-`;
-
-const UploadBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #2d6a9f;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  &:hover { background: #1e3a5f; }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-`;
-
-const TopFields = styled.div`
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  @media (max-width: 900px) { grid-template-columns: 1fr; }
-`;
-
-const MiniField = styled.label`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  > input {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 9px 10px;
-    font-size: 14px;
-    background: #f8fafc;
-    outline: none;
-    &:focus { border-color: #2d6a9f; background: #fff; }
-  }
-`;
-
-const MiniFieldHeader = styled.div`
-  min-height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-`;
-
-const MiniFieldLabel = styled.span`
-  font-size: 11px;
-  color: #475569;
-  font-weight: 700;
-  text-transform: uppercase;
-`;
-
-const SubBtn = styled.button`
-  margin-top: 12px;
-  margin-right: 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #334155;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  &:hover { background: #1f2937; }
-`;
-
-const Hint = styled.p`
-  margin-top: 8px;
-  font-size: 12px;
-  color: #64748b;
-`;
-
-const EmailStatusRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const StatusBadge = styled.span<{ $pending: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  background: ${p => p.$pending ? "#fef3c7" : "#dcfce7"};
-  color: ${p => p.$pending ? "#92400e" : "#166534"};
-`;
-
-const PaymentStack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-`;
-
-const PaymentCard = styled.div`
-  border: 1px solid #dbe3ee;
-  border-radius: 14px;
-  background: #f8fafc;
-  padding: 16px;
-`;
-
-const PaymentCardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-  h4 {
-    margin: 0;
-    font-size: 14px;
-    color: #1e3a5f;
-  }
-`;
-
-const GhostBtn = styled.button`
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #334155;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const DangerGhostBtn = styled(GhostBtn)`
-  color: #b91c1c;
-  border-color: #fecaca;
-  background: #fff5f5;
-`;
-
-const BankGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  @media (max-width: 800px) {
-    grid-template-columns: 1fr 1fr;
-  }
-  @media (max-width: 560px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const BankOption = styled.button<{ $active: boolean; $start: string; $end: string }>`
-  border: 1.5px solid ${p => p.$active ? p.$start : "#dbe3ee"};
-  background: ${p => p.$active ? "#eff6ff" : "#fff"};
-  border-radius: 12px;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  cursor: pointer;
-`;
-
-const BankBadge = styled.span<{ $start: string; $end: string }>`
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, ${p => p.$start} 0%, ${p => p.$end} 100%);
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
-  flex-shrink: 0;
-`;
-
-const BankMeta = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  strong {
-    font-size: 13px;
-    color: #1e293b;
-  }
-  span {
-    font-size: 11px;
-    color: #64748b;
-  }
-`;
-
-const Select = styled.select`
-  border: 1.5px solid #e2e8f0;
-  border-radius: 9px;
-  padding: 10px 12px;
-  font-size: 14px;
-  color: #1e293b;
-  background: #f8fafc;
-  outline: none;
-`;
-
-const InlineCheckbox = styled.label`
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #334155;
-  font-size: 14px;
-  font-weight: 600;
-  input {
-    width: 18px;
-    height: 18px;
-  }
-`;
-
-const SectionHeader = styled.button<{ $open: boolean }>`
-  width: 100%;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 14px;
-  h3 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: #1e3a5f;
-  }
-  span {
-    color: #1e3a5f;
-    font-size: 16px;
-    transform: rotate(${p => p.$open ? "180deg" : "0deg"});
-    transition: transform 0.2s;
-  }
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  @media (max-width: 700px) { grid-template-columns: 1fr; }
-`;
-
-const FullWidth = styled.div`
-  grid-column: 1 / -1;
-`;
-
-const Field = styled.label`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  > span { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; }
-  > input, > textarea {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 9px;
-    padding: 10px 12px;
-    font-size: 14px;
-    color: #1e293b;
-    background: #f8fafc;
-    outline: none;
-    &:focus { border-color: #2d6a9f; background: #fff; }
-  }
-  > textarea { min-height: 90px; resize: vertical; font-family: inherit; }
-`;
-
-const AutocompleteWrap = styled.div`
-  position: relative;
-`;
-
-const DropdownList = styled.ul`
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 0;
-  right: 0;
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  border-radius: 9px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 50;
-  margin: 0;
-  padding: 4px 0;
-  list-style: none;
-`;
-
-const DropdownItem = styled.li<{ $active?: boolean }>`
-  padding: 9px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  background: ${p => p.$active ? "#e8f2fc" : "transparent"};
-`;
-
-const MapBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #0e7490;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 14px;
-`;
-
-const MapFrame = styled.iframe`
-  width: 100%;
-  height: 300px;
-  border: none;
-  border-radius: 12px;
-  margin-top: 12px;
-`;
-
-const MapActions = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-`;
-
-const ShareBtn = styled.a`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #16a34a;
-  color: #fff;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-`;
-
-const FooterBar = styled.div`
-  display: flex;
-  justify-content: flex-end;
-`;
-
-const TeamList = styled.div`
-  margin-top: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-`;
-
-const TeamRow = styled.div`
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr auto;
-  gap: 8px;
-  align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px dashed #dbe3ee;
-  &:last-child {
-    border-bottom: none;
-  }
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-`;
-
-const TeamCell = styled.div`
-  font-size: 12px;
-  color: #334155;
-  strong {
-    color: #0f172a;
-  }
-`;
-
-const MiniActionBtn = styled.button`
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #334155;
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const SaveBtn = styled.button`
-  background: #2d6a9f;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  height: 44px;
-  padding: 0 28px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const Toast = styled.div<{ $type: "success" | "error" }>`
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  background: ${p => p.$type === "success" ? "#065f46" : "#991b1b"};
-  color: #fff;
-  border-radius: 10px;
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 600;
-`;
+import "./SupplierProfilePage.css";
 
 function AutocompleteInput({ value, onChange, options, placeholder, disabled }: {
   value: string;
@@ -530,13 +33,13 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }: 
   );
 
   return (
-    <AutocompleteWrap>
+    <div className="ssp-autocomplete-wrap">
       <input
         type="text"
+        className="ssp-field__input"
         value={value}
         placeholder={placeholder}
         disabled={disabled}
-        style={{ border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "10px 12px", fontSize: 14, width: "100%", boxSizing: "border-box" }}
         onChange={e => { onChange(e.target.value); setOpen(true); setHi(0); }}
         onFocus={() => setOpen(true)}
         onKeyDown={e => {
@@ -548,19 +51,19 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }: 
         }}
       />
       {open && filtered.length > 0 && (
-        <DropdownList>
+        <ul className="ssp-dropdown-list">
           {filtered.map((opt, i) => (
-            <DropdownItem
+            <li
               key={opt}
-              $active={i === hi}
+              className={`ssp-dropdown-item${i === hi ? " ssp-dropdown-item--active" : ""}`}
               onMouseDown={e => { e.preventDefault(); onChange(opt); setOpen(false); }}
             >
               {opt}
-            </DropdownItem>
+            </li>
           ))}
-        </DropdownList>
+        </ul>
       )}
-    </AutocompleteWrap>
+    </div>
   );
 }
 
@@ -647,25 +150,17 @@ export default function SupplierProfilePage() {
   const [profile, setProfile] = useState<SupplierProfileResponse | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
-    invoice: false,
-    address: false,
-    payment: false,
-    categories: false,
-    notes: false,
+    invoice: false, address: false, payment: false, categories: false, notes: false,
   });
   const [emailStatus, setEmailStatus] = useState<{ pending: boolean; pendingEmail: string | null }>({
-    pending: false,
-    pendingEmail: null,
+    pending: false, pendingEmail: null,
   });
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [editingUser, setEditingUser] = useState<number | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingUserForm, setEditingUserForm] = useState<{ name: string; email: string; phone: string }>({
-    name: "",
-    email: "",
-    phone: "",
+    name: "", email: "", phone: "",
   });
-
   const [firmaMapUrl, setFirmaMapUrl] = useState<string | null>(null);
   const [faturaMapUrl, setFaturaMapUrl] = useState<string | null>(null);
   const [firmaGoogleUrl, setFirmaGoogleUrl] = useState<string | null>(null);
@@ -716,12 +211,7 @@ export default function SupplierProfilePage() {
       ...prev,
       payment_accounts: [
         ...prev.payment_accounts,
-        {
-          bank_key: BANK_OPTIONS[0].key,
-          bank_name: BANK_OPTIONS[0].name,
-          iban: "",
-          account_type: "tl",
-        },
+        { bank_key: BANK_OPTIONS[0].key, bank_name: BANK_OPTIONS[0].name, iban: "", account_type: "tl" },
       ],
     } : prev);
   };
@@ -739,10 +229,7 @@ export default function SupplierProfilePage() {
   const removePaymentAccount = (index: number) => {
     setForm((prev) => {
       if (!prev) return prev;
-      return {
-        ...prev,
-        payment_accounts: prev.payment_accounts.filter((_, accountIndex) => accountIndex !== index),
-      };
+      return { ...prev, payment_accounts: prev.payment_accounts.filter((_, i) => i !== index) };
     });
   };
 
@@ -757,11 +244,7 @@ export default function SupplierProfilePage() {
 
   const beginEditTeamUser = (user: SupplierAuthorizedUser) => {
     setEditingUser(user.id);
-    setEditingUserForm({
-      name: user.name,
-      email: user.email,
-      phone: user.phone ?? "",
-    });
+    setEditingUserForm({ name: user.name, email: user.email, phone: user.phone ?? "" });
   };
 
   const saveTeamUser = async (userId: number) => {
@@ -794,27 +277,18 @@ export default function SupplierProfilePage() {
     const q = [addrRaw, district, city, "Türkiye"].filter(Boolean).join(", ");
     const embedUrl = `https://maps.google.com/maps?output=embed&t=k&q=${encodeURIComponent(q)}`;
     const googleUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-    if (kind === "firma") {
-      setFirmaMapUrl(embedUrl);
-      setFirmaGoogleUrl(googleUrl);
-    } else {
-      setFaturaMapUrl(embedUrl);
-      setFaturaGoogleUrl(googleUrl);
-    }
+    if (kind === "firma") { setFirmaMapUrl(embedUrl); setFirmaGoogleUrl(googleUrl); }
+    else { setFaturaMapUrl(embedUrl); setFaturaGoogleUrl(googleUrl); }
   }, [flash]);
 
   useEffect(() => {
     if (!form?.city) return;
-    if (!firmaMapUrl) {
-      void findLocation("firma", [form.address, form.address_district, form.city]);
-    }
+    if (!firmaMapUrl) void findLocation("firma", [form.address, form.address_district, form.city]);
   }, [form?.address, form?.address_district, form?.city, firmaMapUrl, findLocation]);
 
   useEffect(() => {
     if (!form?.invoice_city) return;
-    if (!faturaMapUrl) {
-      void findLocation("fatura", [form.invoice_address, form.invoice_district, form.invoice_city]);
-    }
+    if (!faturaMapUrl) void findLocation("fatura", [form.invoice_address, form.invoice_district, form.invoice_city]);
   }, [form?.invoice_address, form?.invoice_district, form?.invoice_city, faturaMapUrl, findLocation]);
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -888,367 +362,378 @@ export default function SupplierProfilePage() {
 
   if (loading || !profile || !form) {
     return (
-      <PageWrap>
-        <TopBar><TopBarLeft><h1>Profilim</h1></TopBarLeft></TopBar>
-        <Body><Card style={{ textAlign: "center", color: "#64748b" }}>Yükleniyor...</Card></Body>
-      </PageWrap>
+      <div className="ssp-wrap">
+        <div className="ssp-topbar">
+          <div className="ssp-topbar__left"><h1>Profilim</h1></div>
+        </div>
+        <div className="ssp-body"><div className="ssp-card ssp-card--center">Yükleniyor...</div></div>
+      </div>
     );
   }
 
   return (
-    <PageWrap>
-      <TopBar>
-        <TopBarLeft>
+    <div className="ssp-wrap">
+      <div className="ssp-topbar">
+        <div className="ssp-topbar__left">
           <h1>Profilim</h1>
           <span>{profile.supplier.company_name}</span>
-        </TopBarLeft>
-        <BackBtn onClick={() => navigate("/supplier/dashboard")}>← Panele Dön</BackBtn>
-      </TopBar>
+        </div>
+        <button type="button" className="ssp-topbar__back" onClick={() => navigate("/supplier/dashboard")}>← Panele Dön</button>
+      </div>
 
-      <Body>
-        <LogoCard>
-          <LogoLeft>
-            <LogoBox $hasLogo={!!logoSrc} onClick={() => fileRef.current?.click()} title="Tıklayarak logo yükleyin">
-              {logoSrc ? <img src={logoSrc} alt="Logo" /> : <LogoPlaceholder><span>🏢</span>Logo</LogoPlaceholder>}
-            </LogoBox>
-            <UploadBtn onClick={() => fileRef.current?.click()} disabled={uploading}>
+      <div className="ssp-body">
+        {/* Logo & Contact card */}
+        <div className="ssp-card ssp-logo-card">
+          <div className="ssp-logo-left">
+            <div
+              className={`ssp-logo-box${logoSrc ? " ssp-logo-box--has-logo" : ""}`}
+              onClick={() => fileRef.current?.click()}
+              title="Tıklayarak logo yükleyin"
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => e.key === "Enter" && fileRef.current?.click()}
+            >
+              {logoSrc
+                ? <img src={logoSrc} alt="Logo" />
+                : <div className="ssp-logo-placeholder"><span>🏢</span>Logo</div>}
+            </div>
+            <button type="button" className="ssp-upload-btn" onClick={() => fileRef.current?.click()} disabled={uploading}>
               {uploading ? "⏳ Yükleniyor..." : "📷 Logo Yükle"}
-            </UploadBtn>
-          </LogoLeft>
-          <LogoInfo>
-            <TopFields>
-              <MiniField>
-                <MiniFieldHeader>
-                  <MiniFieldLabel>Şirket Yetkilisi</MiniFieldLabel>
-                </MiniFieldHeader>
-                <input value={form.user_name} onChange={e => set("user_name", e.target.value)} placeholder="Yetkili adı" />
-              </MiniField>
-              <MiniField>
-                <MiniFieldHeader>
-                  <MiniFieldLabel>Yetkili Telefonu</MiniFieldLabel>
-                </MiniFieldHeader>
-                <input value={form.user_phone} onChange={e => set("user_phone", e.target.value)} placeholder="0 (5xx) xxx xx xx" />
-              </MiniField>
-              <MiniField>
-                <MiniFieldHeader>
-                  <MiniFieldLabel>İş Maili</MiniFieldLabel>
-                </MiniFieldHeader>
-                <input value={form.user_work_email} onChange={e => set("user_work_email", e.target.value)} placeholder="mailbox@firma.com" />
-              </MiniField>
-              <MiniField>
-                <MiniFieldHeader>
-                  <MiniFieldLabel>Yetkili E-posta</MiniFieldLabel>
-                  <EmailStatusRow>
-                    <StatusBadge $pending={emailStatus.pending}>
+            </button>
+          </div>
+
+          <div className="ssp-logo-info">
+            <div className="ssp-top-fields">
+              <label className="ssp-mini-field">
+                <div className="ssp-mini-field__header">
+                  <span className="ssp-mini-field__label">Şirket Yetkilisi</span>
+                </div>
+                <input className="ssp-field__input" value={form.user_name} onChange={e => set("user_name", e.target.value)} placeholder="Yetkili adı" />
+              </label>
+              <label className="ssp-mini-field">
+                <div className="ssp-mini-field__header">
+                  <span className="ssp-mini-field__label">Yetkili Telefonu</span>
+                </div>
+                <input className="ssp-field__input" value={form.user_phone} onChange={e => set("user_phone", e.target.value)} placeholder="0 (5xx) xxx xx xx" />
+              </label>
+              <label className="ssp-mini-field">
+                <div className="ssp-mini-field__header">
+                  <span className="ssp-mini-field__label">İş Maili</span>
+                </div>
+                <input className="ssp-field__input" value={form.user_work_email} onChange={e => set("user_work_email", e.target.value)} placeholder="mailbox@firma.com" />
+              </label>
+              <label className="ssp-mini-field">
+                <div className="ssp-mini-field__header">
+                  <span className="ssp-mini-field__label">Yetkili E-posta</span>
+                  <div className="ssp-email-status-row">
+                    <span className={`ssp-status-badge${emailStatus.pending || !profile.user.email_verified ? " ssp-status-badge--pending" : ""}`}>
                       {emailStatus.pending || !profile.user.email_verified ? "Beklemede" : "Onaylandı"}
-                    </StatusBadge>
-                  </EmailStatusRow>
-                </MiniFieldHeader>
-                <input value={form.user_email} onChange={e => set("user_email", e.target.value)} placeholder="ornek@firma.com" />
-              </MiniField>
-            </TopFields>
-            <Hint>
+                    </span>
+                  </div>
+                </div>
+                <input className="ssp-field__input" value={form.user_email} onChange={e => set("user_email", e.target.value)} placeholder="ornek@firma.com" />
+              </label>
+            </div>
+            <p className="ssp-hint">
               E-posta değişikliğinde yeni adrese doğrulama maili gönderilir.
               {emailStatus.pending && emailStatus.pendingEmail ? ` Bekleyen onay: ${emailStatus.pendingEmail}` : ""}
-            </Hint>
-            <Hint>İş maili mailbox eşlemesi için kullanılır; giriş e-postasından farklı olabilir.</Hint>
-            <Hint>Şirkette toplam {profile.supplier.authorized_users_count} yetkili bulunuyor.</Hint>
-            <TeamList>
+            </p>
+            <p className="ssp-hint">İş maili mailbox eşlemesi için kullanılır; giriş e-postasından farklı olabilir.</p>
+            <p className="ssp-hint">Şirkette toplam {profile.supplier.authorized_users_count} yetkili bulunuyor.</p>
+
+            <div className="ssp-team-list">
               {authorizedUsers.map((teamUser) => (
-                <TeamRow key={teamUser.id}>
+                <div key={teamUser.id} className="ssp-team-row">
                   {editingUser === teamUser.id ? (
                     <>
                       <input
+                        className="ssp-team-input"
                         value={editingUserForm.name}
                         onChange={(e) => setEditingUserForm(prev => ({ ...prev, name: e.target.value }))}
-                        style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "7px 8px", fontSize: 12 }}
+                        aria-label="Ad Soyad"
                       />
                       <input
+                        className="ssp-team-input"
                         value={editingUserForm.phone}
                         onChange={(e) => setEditingUserForm(prev => ({ ...prev, phone: e.target.value }))}
-                        style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "7px 8px", fontSize: 12 }}
+                        aria-label="Telefon"
                       />
                       <input
+                        className="ssp-team-input"
                         value={editingUserForm.email}
                         onChange={(e) => setEditingUserForm(prev => ({ ...prev, email: e.target.value }))}
-                        style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "7px 8px", fontSize: 12 }}
+                        aria-label="E-posta"
                       />
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <MiniActionBtn type="button" onClick={() => void saveTeamUser(teamUser.id)}>Kaydet</MiniActionBtn>
-                        <MiniActionBtn type="button" onClick={() => setEditingUser(null)}>Vazgeç</MiniActionBtn>
+                      <div className="ssp-team-actions">
+                        <button type="button" className="ssp-mini-action-btn" onClick={() => void saveTeamUser(teamUser.id)}>Kaydet</button>
+                        <button type="button" className="ssp-mini-action-btn" onClick={() => setEditingUser(null)}>Vazgeç</button>
                       </div>
                     </>
                   ) : (
                     <>
-                      <TeamCell><strong>{teamUser.name}</strong>{teamUser.is_default ? " (Varsayılan)" : ""}</TeamCell>
-                      <TeamCell>{teamUser.phone || "-"}</TeamCell>
-                      <TeamCell>{teamUser.email}</TeamCell>
-                      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                      <div className="ssp-team-cell"><strong>{teamUser.name}</strong>{teamUser.is_default ? " (Varsayılan)" : ""}</div>
+                      <div className="ssp-team-cell">{teamUser.phone || "-"}</div>
+                      <div className="ssp-team-cell">{teamUser.email}</div>
+                      <div className="ssp-team-actions">
                         {isCurrentUserDefault && !teamUser.is_default && (
                           <>
-                            <MiniActionBtn type="button" onClick={() => beginEditTeamUser(teamUser)}>Düzenle</MiniActionBtn>
-                            <MiniActionBtn type="button" onClick={() => void removeTeamUser(teamUser.id)}>Sil</MiniActionBtn>
+                            <button type="button" className="ssp-mini-action-btn" onClick={() => beginEditTeamUser(teamUser)}>Düzenle</button>
+                            <button type="button" className="ssp-mini-action-btn" onClick={() => void removeTeamUser(teamUser.id)}>Sil</button>
                           </>
                         )}
                       </div>
                     </>
                   )}
-                </TeamRow>
+                </div>
               ))}
-            </TeamList>
-            <div>
-              <SubBtn onClick={() => navigate("/supplier/workspace?tab=certificates")}>🏅 Sertifika Yükle</SubBtn>
-              <SubBtn onClick={() => navigate("/supplier/workspace?tab=company_docs")}>📁 Şirket Evrakları</SubBtn>
-              <SubBtn onClick={() => navigate("/supplier/workspace?tab=personnel_docs")}>👥 Personel Evrakları</SubBtn>
-              <SubBtn onClick={() => navigate("/supplier/finance")}>💳 Finans Modülü</SubBtn>
-              <SubBtn onClick={() => navigate("/supplier/workspace?tab=guarantee_docs")}>🛡️ Alınan Teminatlar</SubBtn>
-              <SubBtn onClick={() => navigate("/supplier/workspace?tab=contracts")}>📄 Sözleşmelerim</SubBtn>
-              <SubBtn onClick={() => navigate("/supplier/workspace?tab=offers")}>💬 Tekliflerim</SubBtn>
             </div>
-            <Hint>Evraklar bu ekranda listelenmez; ilgili sekmede goruntulenir.</Hint>
-          </LogoInfo>
+
+            <div>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/workspace?tab=certificates")}>🏅 Sertifika Yükle</button>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/workspace?tab=company_docs")}>📁 Şirket Evrakları</button>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/workspace?tab=personnel_docs")}>👥 Personel Evrakları</button>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/finance")}>💳 Finans Modülü</button>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/workspace?tab=guarantee_docs")}>🛡️ Alınan Teminatlar</button>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/workspace?tab=contracts")}>📄 Sözleşmelerim</button>
+              <button type="button" className="ssp-sub-btn" onClick={() => navigate("/supplier/workspace?tab=offers")}>💬 Tekliflerim</button>
+            </div>
+            <p className="ssp-hint">Evraklar bu ekranda listelenmez; ilgili sekmede goruntulenir.</p>
+          </div>
+
           <input
             ref={fileRef}
             type="file"
             accept="image/jpeg,image/png,image/webp,image/svg+xml"
-            style={{ display: "none" }}
+            className="ssp-hidden"
             onChange={handleLogoChange}
+            aria-label="Logo dosyası seç"
           />
-        </LogoCard>
+        </div>
 
-        <Card>
-          <SectionHeader $open={openSections.invoice} onClick={() => toggleSection("invoice")}>
+        {/* Invoice section */}
+        <div className="ssp-card">
+          <button type="button" className="ssp-section-hdr" onClick={() => toggleSection("invoice")}>
             <h3>Fatura ve Vergi Bilgileri</h3>
-            <span>⌄</span>
-          </SectionHeader>
+            <span className={`ssp-section-hdr__arrow${openSections.invoice ? " ssp-section-hdr__arrow--open" : ""}`}>⌄</span>
+          </button>
           {openSections.invoice && (
             <>
-              <Grid>
-                <Field><span>Firma Fatura Ünvanı</span><input value={form.invoice_name} onChange={e => set("invoice_name", e.target.value)} /></Field>
-                <Field><span>Vergi Dairesi</span><input value={form.tax_office} onChange={e => set("tax_office", e.target.value)} /></Field>
-                <Field><span>Vergi Numarası</span><input value={form.tax_number} onChange={e => set("tax_number", e.target.value)} /></Field>
-                <Field><span>Ticaret Sicil No</span><input value={form.registration_number} onChange={e => set("registration_number", e.target.value)} /></Field>
-                <FullWidth><Field><span>Fatura Adresi</span><input value={form.invoice_address} onChange={e => set("invoice_address", e.target.value)} /></Field></FullWidth>
-                <Field>
-                  <span>Fatura İli</span>
-                  <AutocompleteInput value={form.invoice_city} onChange={v => set("invoice_city", v)} options={cityNames} />
-                </Field>
-                <Field>
-                  <span>Fatura İlçesi</span>
-                  <AutocompleteInput value={form.invoice_district} onChange={v => set("invoice_district", v)} options={districts} disabled={!form.invoice_city} />
-                </Field>
-                <Field><span>Fatura Posta Kodu</span><input value={form.invoice_postal_code} onChange={e => set("invoice_postal_code", e.target.value)} /></Field>
-              </Grid>
-              <MapBtn onClick={() => {
+              <div className="ssp-grid">
+                <label className="ssp-field"><span>Firma Fatura Ünvanı</span><input className="ssp-field__input" value={form.invoice_name} onChange={e => set("invoice_name", e.target.value)} /></label>
+                <label className="ssp-field"><span>Vergi Dairesi</span><input className="ssp-field__input" value={form.tax_office} onChange={e => set("tax_office", e.target.value)} /></label>
+                <label className="ssp-field"><span>Vergi Numarası</span><input className="ssp-field__input" value={form.tax_number} onChange={e => set("tax_number", e.target.value)} /></label>
+                <label className="ssp-field"><span>Ticaret Sicil No</span><input className="ssp-field__input" value={form.registration_number} onChange={e => set("registration_number", e.target.value)} /></label>
+                <div className="ssp-full-width"><label className="ssp-field"><span>Fatura Adresi</span><input className="ssp-field__input" value={form.invoice_address} onChange={e => set("invoice_address", e.target.value)} /></label></div>
+                <label className="ssp-field"><span>Fatura İli</span><AutocompleteInput value={form.invoice_city} onChange={v => set("invoice_city", v)} options={cityNames} /></label>
+                <label className="ssp-field"><span>Fatura İlçesi</span><AutocompleteInput value={form.invoice_district} onChange={v => set("invoice_district", v)} options={districts} disabled={!form.invoice_city} /></label>
+                <label className="ssp-field"><span>Fatura Posta Kodu</span><input className="ssp-field__input" value={form.invoice_postal_code} onChange={e => set("invoice_postal_code", e.target.value)} /></label>
+              </div>
+              <button type="button" className="ssp-map-btn" onClick={() => {
                 if (!faturaMapUrl) void findLocation("fatura", [form.invoice_address, form.invoice_district, form.invoice_city]);
                 setShowFaturaMap(v => !v);
               }}>
                 {showFaturaMap ? "Fatura Konumunu Gizle" : "Fatura Konumunu Aç"}
-              </MapBtn>
+              </button>
               {showFaturaMap && faturaMapUrl && (
                 <>
-                  <MapFrame src={faturaMapUrl} title="Fatura Konumu" loading="lazy" allowFullScreen />
+                  <iframe className="ssp-map-frame" src={faturaMapUrl} title="Fatura Konumu" loading="lazy" allowFullScreen />
                   {faturaGoogleUrl && (
-                    <MapActions>
-                      <ShareBtn href={faturaGoogleUrl} target="_blank" rel="noreferrer">🗺️ Google Maps'te Aç</ShareBtn>
-                      <ShareBtn href={`https://wa.me/?text=${encodeURIComponent(`Fatura konumu: ${faturaGoogleUrl}`)}`} target="_blank" rel="noreferrer">📲 WhatsApp ile Paylaş</ShareBtn>
-                    </MapActions>
+                    <div className="ssp-map-actions">
+                      <a className="ssp-share-btn" href={faturaGoogleUrl} target="_blank" rel="noreferrer">🗺️ Google Maps'te Aç</a>
+                      <a className="ssp-share-btn" href={`https://wa.me/?text=${encodeURIComponent(`Fatura konumu: ${faturaGoogleUrl}`)}`} target="_blank" rel="noreferrer">📲 WhatsApp ile Paylaş</a>
+                    </div>
                   )}
                 </>
               )}
             </>
           )}
-        </Card>
+        </div>
 
-        <Card>
-          <SectionHeader $open={openSections.address} onClick={() => toggleSection("address")}>
+        {/* Address section */}
+        <div className="ssp-card">
+          <button type="button" className="ssp-section-hdr" onClick={() => toggleSection("address")}>
             <h3>Firma Adresi ve Web</h3>
-            <span>⌄</span>
-          </SectionHeader>
+            <span className={`ssp-section-hdr__arrow${openSections.address ? " ssp-section-hdr__arrow--open" : ""}`}>⌄</span>
+          </button>
           {openSections.address && (
             <>
-              <Grid>
-                <FullWidth><Field><span>Adres</span><input value={form.address} onChange={e => set("address", e.target.value)} /></Field></FullWidth>
-                <Field>
-                  <span>Şehir / İl</span>
-                  <AutocompleteInput value={form.city} onChange={v => set("city", v)} options={cityNames} />
-                </Field>
-                <Field>
-                  <span>İlçe</span>
-                  <AutocompleteInput value={form.address_district} onChange={v => set("address_district", v)} options={addressDistricts} disabled={!form.city} />
-                </Field>
-                <Field><span>Posta Kodu</span><input value={form.postal_code} onChange={e => set("postal_code", e.target.value)} /></Field>
-                <FullWidth><Field><span>Web Sitesi</span><input value={form.supplier_website} onChange={e => set("supplier_website", e.target.value)} /></Field></FullWidth>
-              </Grid>
-              <MapBtn onClick={() => {
+              <div className="ssp-grid">
+                <div className="ssp-full-width"><label className="ssp-field"><span>Adres</span><input className="ssp-field__input" value={form.address} onChange={e => set("address", e.target.value)} /></label></div>
+                <label className="ssp-field"><span>Şehir / İl</span><AutocompleteInput value={form.city} onChange={v => set("city", v)} options={cityNames} /></label>
+                <label className="ssp-field"><span>İlçe</span><AutocompleteInput value={form.address_district} onChange={v => set("address_district", v)} options={addressDistricts} disabled={!form.city} /></label>
+                <label className="ssp-field"><span>Posta Kodu</span><input className="ssp-field__input" value={form.postal_code} onChange={e => set("postal_code", e.target.value)} /></label>
+                <div className="ssp-full-width"><label className="ssp-field"><span>Web Sitesi</span><input className="ssp-field__input" value={form.supplier_website} onChange={e => set("supplier_website", e.target.value)} /></label></div>
+              </div>
+              <button type="button" className="ssp-map-btn" onClick={() => {
                 if (!firmaMapUrl) void findLocation("firma", [form.address, form.address_district, form.city]);
                 setShowFirmaMap(v => !v);
               }}>
                 {showFirmaMap ? "Firma Konumunu Gizle" : "Firma Konumunu Aç"}
-              </MapBtn>
+              </button>
               {showFirmaMap && firmaMapUrl && (
                 <>
-                  <MapFrame src={firmaMapUrl} title="Firma Konumu" loading="lazy" allowFullScreen />
+                  <iframe className="ssp-map-frame" src={firmaMapUrl} title="Firma Konumu" loading="lazy" allowFullScreen />
                   {firmaGoogleUrl && (
-                    <MapActions>
-                      <ShareBtn href={firmaGoogleUrl} target="_blank" rel="noreferrer">🗺️ Google Maps'te Aç</ShareBtn>
-                      <ShareBtn href={`https://wa.me/?text=${encodeURIComponent(`Firma konumu: ${firmaGoogleUrl}`)}`} target="_blank" rel="noreferrer">📲 WhatsApp ile Paylaş</ShareBtn>
-                    </MapActions>
+                    <div className="ssp-map-actions">
+                      <a className="ssp-share-btn" href={firmaGoogleUrl} target="_blank" rel="noreferrer">🗺️ Google Maps'te Aç</a>
+                      <a className="ssp-share-btn" href={`https://wa.me/?text=${encodeURIComponent(`Firma konumu: ${firmaGoogleUrl}`)}`} target="_blank" rel="noreferrer">📲 WhatsApp ile Paylaş</a>
+                    </div>
                   )}
                 </>
               )}
             </>
           )}
-        </Card>
+        </div>
 
-        <Card>
-          <SectionHeader $open={openSections.payment} onClick={() => toggleSection("payment")}>
+        {/* Payment section */}
+        <div className="ssp-card">
+          <button type="button" className="ssp-section-hdr" onClick={() => toggleSection("payment")}>
             <h3>Ödeme Bilgileri</h3>
-            <span>⌄</span>
-          </SectionHeader>
+            <span className={`ssp-section-hdr__arrow${openSections.payment ? " ssp-section-hdr__arrow--open" : ""}`}>⌄</span>
+          </button>
           {openSections.payment && (
-            <PaymentStack>
-              <Hint>Firma için birden fazla banka hesabı ekleyebilir, hesapları TL ve Döviz olarak ayırabilir ve çek vadelerini tanımlayabilirsiniz.</Hint>
+            <div className="ssp-payment-stack">
+              <p className="ssp-hint">Firma için birden fazla banka hesabı ekleyebilir, hesapları TL ve Döviz olarak ayırabilir ve çek vadelerini tanımlayabilirsiniz.</p>
 
               {form.payment_accounts.length === 0 && (
-                <Card style={{ padding: 16, background: "#f8fafc", boxShadow: "none" }}>
-                  Henüz ödeme hesabı eklenmedi.
-                </Card>
+                <div className="ssp-payment-card ssp-payment-card--empty">Henüz ödeme hesabı eklenmedi.</div>
               )}
 
               {form.payment_accounts.map((account, index) => (
-                <PaymentCard key={`${account.bank_key || "bank"}-${index}`}>
-                  <PaymentCardHeader>
+                <div key={`${account.bank_key || "bank"}-${index}`} className="ssp-payment-card">
+                  <div className="ssp-payment-card__header">
                     <h4>Hesap {index + 1}</h4>
-                    <DangerGhostBtn type="button" onClick={() => removePaymentAccount(index)}>
+                    <button type="button" className="ssp-ghost-btn ssp-ghost-btn--danger" onClick={() => removePaymentAccount(index)}>
                       Hesabı Sil
-                    </DangerGhostBtn>
-                  </PaymentCardHeader>
+                    </button>
+                  </div>
 
-                  <Grid>
-                    <Field>
+                  <div className="ssp-grid">
+                    <label className="ssp-field">
                       <span>Hesap Türü</span>
-                      <Select value={account.account_type} onChange={e => updatePaymentAccount(index, { account_type: e.target.value as "tl" | "doviz" })}>
+                      <select className="ssp-select" value={account.account_type} onChange={e => updatePaymentAccount(index, { account_type: e.target.value as "tl" | "doviz" })}>
                         <option value="tl">TL</option>
                         <option value="doviz">Döviz</option>
-                      </Select>
-                    </Field>
-                    <Field>
+                      </select>
+                    </label>
+                    <label className="ssp-field">
                       <span>IBAN</span>
                       <input
+                        className="ssp-field__input"
                         value={account.iban}
                         onChange={e => updatePaymentAccount(index, { iban: e.target.value.toUpperCase() })}
                         placeholder="TR00 0000 0000 0000 0000 0000 00"
                       />
-                    </Field>
-                    <FullWidth>
-                      <span style={{ display: "block", marginBottom: 8, fontSize: 12, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>Banka Seçimi</span>
-                      <BankGrid>
+                    </label>
+                    <div className="ssp-full-width">
+                      <span className="ssp-bank-section-label">Banka Seçimi</span>
+                      <div className="ssp-bank-grid">
                         {BANK_OPTIONS.map((bank) => (
-                          <BankOption
+                          <button
                             key={bank.key}
                             type="button"
-                            $active={account.bank_key === bank.key}
-                            $start={bank.start}
-                            $end={bank.end}
+                            className={`ssp-bank-option ssp-bank-option--${bank.key}${account.bank_key === bank.key ? " ssp-bank-option--active" : ""}`}
                             onClick={() => updatePaymentAccount(index, { bank_key: bank.key, bank_name: bank.name })}
                           >
-                            <BankBadge $start={bank.start} $end={bank.end}>{bank.short}</BankBadge>
-                            <BankMeta>
+                            <span className={`ssp-bank-badge ssp-bank-badge--${bank.key}`}>{bank.short}</span>
+                            <div className="ssp-bank-meta">
                               <strong>{bank.name}</strong>
                               <span>{bank.short} hesabı</span>
-                            </BankMeta>
-                          </BankOption>
+                            </div>
+                          </button>
                         ))}
-                      </BankGrid>
-                    </FullWidth>
-                  </Grid>
-                </PaymentCard>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
 
               <div>
-                <GhostBtn type="button" onClick={addPaymentAccount}>+ Yeni Hesap Ekle</GhostBtn>
+                <button type="button" className="ssp-ghost-btn" onClick={addPaymentAccount}>+ Yeni Hesap Ekle</button>
               </div>
 
-              <PaymentCard>
-                <PaymentCardHeader>
+              <div className="ssp-payment-card">
+                <div className="ssp-payment-card__header">
                   <h4>Çek Vadeleri</h4>
-                </PaymentCardHeader>
-                <Grid>
-                  <FullWidth>
-                    <InlineCheckbox>
+                </div>
+                <div className="ssp-grid">
+                  <div className="ssp-full-width">
+                    <label className="ssp-inline-checkbox">
                       <input
                         type="checkbox"
                         checked={form.accepts_checks}
                         onChange={e => setForm(prev => prev ? { ...prev, accepts_checks: e.target.checked, preferred_check_term: e.target.checked ? prev.preferred_check_term : "" } : prev)}
                       />
                       Firma çek kabul ediyor
-                    </InlineCheckbox>
-                  </FullWidth>
+                    </label>
+                  </div>
                   {form.accepts_checks && (
-                    <FullWidth>
-                      <Field>
+                    <div className="ssp-full-width">
+                      <label className="ssp-field">
                         <span>Tercih Edilen Çek Vadesi</span>
                         <input
+                          className="ssp-field__input"
                           value={form.preferred_check_term}
                           onChange={e => set("preferred_check_term", e.target.value)}
                           placeholder="Örn: 30 gün, 45 gün, ay sonu + 30"
                         />
-                      </Field>
-                    </FullWidth>
+                      </label>
+                    </div>
                   )}
-                </Grid>
-              </PaymentCard>
-            </PaymentStack>
-          )}
-        </Card>
-
-        <Card>
-          <SectionHeader $open={openSections.categories} onClick={() => toggleSection("categories")}>
-            <h3>Kategori ve Görünürlük</h3>
-            <span>⌄</span>
-          </SectionHeader>
-          {openSections.categories && (
-            <div style={{ display: "grid", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "#0f766e", marginBottom: 8 }}>Sizin yönettiğiniz kategoriler</div>
-                <GhostBtn type="button" onClick={() => setShowCategoryModal(true)}>Kategori Seç</GhostBtn>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-                  {form.category_tags.length > 0 ? form.category_tags.map((item) => (
-                    <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#ecfeff", color: "#0f766e", fontWeight: 700, fontSize: 12 }}>{item}</span>
-                  )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Henüz görünürlük kategorisi seçmediniz</span>}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "#1d4ed8", marginBottom: 8 }}>Stratejik partner tarafından eklenen kategoriler</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {(profile.supplier.partner_category_tags || []).length > 0 ? profile.supplier.partner_category_tags.map((item) => (
-                    <span key={item} style={{ padding: "6px 10px", borderRadius: 999, background: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: 12 }}>{item}</span>
-                  )) : <span style={{ color: "#94a3b8", fontSize: 12 }}>Stratejik partner henüz kategori eklemedi</span>}
                 </div>
               </div>
             </div>
           )}
-        </Card>
+        </div>
 
-        <Card>
-          <SectionHeader $open={openSections.notes} onClick={() => toggleSection("notes")}>
-            <h3>Önemli Notlar</h3>
-            <span>⌄</span>
-          </SectionHeader>
-          {openSections.notes && (
-            <Field>
-              <span>Notlar</span>
-              <textarea value={form.notes} onChange={e => set("notes", e.target.value)} />
-            </Field>
+        {/* Categories section */}
+        <div className="ssp-card">
+          <button type="button" className="ssp-section-hdr" onClick={() => toggleSection("categories")}>
+            <h3>Kategori ve Görünürlük</h3>
+            <span className={`ssp-section-hdr__arrow${openSections.categories ? " ssp-section-hdr__arrow--open" : ""}`}>⌄</span>
+          </button>
+          {openSections.categories && (
+            <div className="ssp-cat-section">
+              <div>
+                <div className="ssp-cat-section__label ssp-cat-section__label--teal">Sizin yönettiğiniz kategoriler</div>
+                <button type="button" className="ssp-ghost-btn" onClick={() => setShowCategoryModal(true)}>Kategori Seç</button>
+                <div className="ssp-cat-pills">
+                  {form.category_tags.length > 0 ? form.category_tags.map((item) => (
+                    <span key={item} className="ssp-cat-pill ssp-cat-pill--teal">{item}</span>
+                  )) : <span className="ssp-cat-empty">Henüz görünürlük kategorisi seçmediniz</span>}
+                </div>
+              </div>
+              <div>
+                <div className="ssp-cat-section__label ssp-cat-section__label--blue">Stratejik partner tarafından eklenen kategoriler</div>
+                <div className="ssp-cat-pills">
+                  {(profile.supplier.partner_category_tags || []).length > 0 ? profile.supplier.partner_category_tags.map((item) => (
+                    <span key={item} className="ssp-cat-pill ssp-cat-pill--blue">{item}</span>
+                  )) : <span className="ssp-cat-empty">Stratejik partner henüz kategori eklemedi</span>}
+                </div>
+              </div>
+            </div>
           )}
-        </Card>
+        </div>
 
-        <FooterBar>
-          <SaveBtn onClick={handleSave} disabled={saving}>
+        {/* Notes section */}
+        <div className="ssp-card">
+          <button type="button" className="ssp-section-hdr" onClick={() => toggleSection("notes")}>
+            <h3>Önemli Notlar</h3>
+            <span className={`ssp-section-hdr__arrow${openSections.notes ? " ssp-section-hdr__arrow--open" : ""}`}>⌄</span>
+          </button>
+          {openSections.notes && (
+            <label className="ssp-field">
+              <span>Notlar</span>
+              <textarea className="ssp-field__textarea" value={form.notes} onChange={e => set("notes", e.target.value)} />
+            </label>
+          )}
+        </div>
+
+        <div className="ssp-footer-bar">
+          <button type="button" className="ssp-save-btn" onClick={handleSave} disabled={saving}>
             {saving ? "⏳ Kaydediliyor..." : "💾 Profili Kaydet"}
-          </SaveBtn>
-        </FooterBar>
+          </button>
+        </div>
 
         <CategorySelectionModal
           isOpen={showCategoryModal}
@@ -1263,9 +748,9 @@ export default function SupplierProfilePage() {
             setShowCategoryModal(false);
           }}
         />
-      </Body>
+      </div>
 
-      {toast && <Toast $type={toast.type}>{toast.msg}</Toast>}
-    </PageWrap>
+      {toast && <div className={`ssp-toast ssp-toast--${toast.type}`}>{toast.msg}</div>}
+    </div>
   );
 }

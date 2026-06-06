@@ -7,8 +7,9 @@ type PublicBrandLogoProps = {
   marginBottom?: number;
 };
 
-export const PUBLIC_BRAND_LOGO_SRC = "/brand/buyer-logo-custom.svg?v=20260505";
-export const PUBLIC_BRAND_LOGO_VARIANT = "buyer-logo-custom.svg";
+export const PUBLIC_BRAND_LOGO_SRC      = "/brand/buyer-logo-custom.svg?v=20260505";
+export const PUBLIC_BRAND_LOGO_DARK_SRC = "/brand/buyer-logo-dark.svg?v=20260603";
+export const PUBLIC_BRAND_LOGO_VARIANT  = "buyer-logo-custom.svg";
 
 function getPublicBrandLogoSizeClass(prefix: "h" | "mw" | "mb", value: number | undefined): string {
   if (value == null) return "";
@@ -26,10 +27,19 @@ export default function PublicBrandLogo({
     getPublicBrandLogoSizeClass("h", height),
     getPublicBrandLogoSizeClass("mw", maxWidth),
     getPublicBrandLogoSizeClass("mb", marginBottom),
-    invert ? "public-brand-logo--invert" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  return <img src={PUBLIC_BRAND_LOGO_SRC} alt="BUYER ASISTANS" className={className} />;
+  return (
+    <img
+      src={invert ? PUBLIC_BRAND_LOGO_DARK_SRC : PUBLIC_BRAND_LOGO_SRC}
+      alt="BUYER ASISTANS"
+      className={className}
+      style={{
+        height: height != null ? `${height}px` : undefined,
+        maxWidth: maxWidth != null ? `${maxWidth}px` : undefined,
+      }}
+    />
+  );
 }

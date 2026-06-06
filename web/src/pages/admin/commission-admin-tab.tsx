@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { PageHeader, StatCard } from "./AdminTabContent";
 import "./commission-admin-tab.css";
 import {
   getAdminCommissionLedger,
@@ -51,6 +52,18 @@ export function CommissionAdminTab() {
 
   return (
     <div className="commission-admin-tab">
+      <PageHeader
+        eyebrow="Ticari"
+        title="Komisyon Yönetimi"
+        sub="Kanal komisyon ledger'ı, onay kuyruğu ve ödeme durumları"
+      />
+      <div className="kpi-grid kpi-grid--4">
+        {/* TODO(data): komisyon servisi — toplam ödenen, bekleyen, reddedilen, bu ay */}
+        <StatCard label="Bu Ay Ödenen" value="—" currency="₺" sub="TODO(data): komisyon servisi" accent="blue" />
+        <StatCard label="Onay Bekleyen" value="—" sub="TODO(data): komisyon servisi" accent="warn" />
+        <StatCard label="Reddedilen" value="—" sub="TODO(data): komisyon servisi" accent="red" />
+        <StatCard label="Toplam Ledger" value="—" sub="TODO(data): komisyon servisi" accent="slate" />
+      </div>
       <CommissionDashboardPanel
         data={dashboard}
         loading={dashboardLoading}

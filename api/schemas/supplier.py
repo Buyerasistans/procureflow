@@ -120,6 +120,10 @@ class SupplierOut(SupplierCreate):
     invoice_postal_code: Optional[str] = None
     registration_number: Optional[str] = None
 
+    # Dual-Role alanları
+    linked_tenant_id: Optional[int] = None
+    dual_role_status: Optional[str] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 

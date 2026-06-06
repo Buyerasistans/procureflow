@@ -111,7 +111,6 @@ export function ConversionOverviewPanel({
           )}
         </div>
 
-        <ConversionFunnelPanel data={conversionMetrics} />
         <CommissionOverviewPanel report={commissionReport} loading={commissionLoading} />
       </div>
     </SectionCard>

@@ -1,0 +1,242 @@
+/* KampanyaDetailPage.css — namespace: kdp-* */
+.kdp-root {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--kdp-bg, #ecfdf5);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.kdp-notfound {
+  max-width: 480px;
+  margin: 100px auto;
+  text-align: center;
+  color: #475569;
+}
+
+.kdp-back {
+  display: inline-block;
+  margin-top: 16px;
+  background: #134E37;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+/* ── Hero ── */
+.kdp-hero {
+  padding: 60px 24px;
+  background: linear-gradient(135deg, var(--kdp-color, #134E37) 0%, color-mix(in srgb, var(--kdp-color, #134E37) 75%, black) 100%);
+  color: #fff;
+}
+
+.kdp-hero-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.kdp-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.kdp-hero-h1 {
+  margin: 0 0 14px;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.kdp-hero-lead {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.7;
+  opacity: 0.9;
+}
+
+.kdp-hero-validity {
+  font-size: 13px;
+  opacity: 0.75;
+  margin-bottom: 22px;
+}
+
+.kdp-hero-cta {
+  display: inline-block;
+  background: #fff;
+  color: var(--kdp-color, #134E37);
+  font-weight: 900;
+  font-size: 14px;
+  padding: 13px 26px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.kdp-hero-cta:hover { opacity: 0.88; }
+
+/* ── Content ── */
+.kdp-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* ── Section ── */
+.kdp-section-title {
+  margin: 0 0 14px;
+  font-size: 19px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* ── Scope ── */
+.kdp-scope-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kdp-scope-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  color: #334155;
+}
+
+.kdp-scope-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--kdp-bg, #ecfdf5);
+  color: var(--kdp-color, #134E37);
+  font-weight: 900;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Conditions ── */
+.kdp-conditions {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kdp-condition-item {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #334155;
+}
+
+/* ── Billing note ── */
+.kdp-billing-note {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.kdp-billing-note__icon { font-size: 22px; flex-shrink: 0; }
+
+.kdp-billing-note__title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.kdp-billing-note__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #78350f;
+}
+
+/* ── Bottom grid ── */
+.kdp-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+.kdp-cta-block {
+  background: var(--kdp-color, #134E37);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kdp-cta-desc {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.kdp-btn {
+  display: block;
+  text-align: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.kdp-btn:hover { opacity: 0.88; }
+.kdp-btn--white { background: #fff; color: var(--kdp-color, #134E37); }
+.kdp-btn--ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1.5px solid rgba(255, 255, 255, 0.3); }
+
+/* ── Footer ── */
+.kdp-footer {
+  padding: 18px 24px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.kdp-footer a {
+  color: var(--kdp-color, #134E37);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .kdp-hero           { padding: 40px 16px; }
+  .kdp-hero-h1        { font-size: 28px; }
+  .kdp-content        { padding: 28px 16px 40px; }
+  .kdp-bottom-grid    { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .kdp-hero-h1        { font-size: 22px; }
+  .kdp-hero           { padding: 32px 14px; }
+}

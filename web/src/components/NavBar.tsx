@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { BRAND_COLORS } from "./nav-brand-colors";
 import PublicBrandLogo from "./PublicBrandLogo";
@@ -24,6 +25,7 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef<number | null>(null);
+  const loginContainerRef = useRef<HTMLDivElement>(null);
 
   const isTurkish = locale === "tr";
   const defaultCopy = isTurkish
@@ -62,6 +64,8 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       "top_nav.public.suppliers": { href: "/tedarikciler", label: copy.suppliers },
       "top_nav.public.strategic": { href: "/stratejik-ortaklik", label: copy.strategic },
       "top_nav.public.partner_program": { href: "/is-ortagi-programi", label: copy.partnerProgram },
+      "top_nav.public.job_listings": { href: "/is-ilanlari", label: "İş İlanları" },
+      "top_nav.public.candidates": { href: "/is-arayanlar", label: "Aday Havuzu" },
       "top_nav.public.employer_register": { href: "/employer/register", label: "İşveren Kaydı" },
       "top_nav.public.candidate_register": { href: "/candidate/register", label: "İş Arıyorum" },
     }
@@ -71,6 +75,8 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       "top_nav.public.suppliers": { href: "/suppliers", label: copy.suppliers },
       "top_nav.public.strategic": { href: "/strategic-partner", label: copy.strategic },
       "top_nav.public.partner_program": { href: "/partner-program", label: copy.partnerProgram },
+      "top_nav.public.job_listings": { href: "/is-ilanlari", label: "Job Listings" },
+      "top_nav.public.candidates": { href: "/is-arayanlar", label: "Candidate Pool" },
       "top_nav.public.employer_register": { href: "/employer/register", label: "For Employers" },
       "top_nav.public.candidate_register": { href: "/candidate/register", label: "Find Jobs" },
     };
@@ -87,10 +93,6 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
     .map((item) => PUBLIC_NAV_LOCALE_MAP[item.key])
     .filter((link): link is { href: string; label: string } => link !== undefined);
 
-  const registerCtas = allVisible
-    .filter((item) => REGISTER_CTA_KEYS.has(item.key))
-    .map((item) => ({ key: item.key, ...PUBLIC_NAV_LOCALE_MAP[item.key] }))
-    .filter((cta): cta is { key: string; href: string; label: string } => !!cta.href);
 
   useEffect(() => {
     return () => {
@@ -99,6 +101,17 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!showLoginPopup) return;
+    function handleOutsideClick(e: MouseEvent) {
+      if (loginContainerRef.current && !loginContainerRef.current.contains(e.target as Node)) {
+        setShowLoginPopup(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [showLoginPopup]);
 
   function handleSystemLoginClick(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -122,147 +135,77 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
     setShowLoginPopup(true);
   }
 
+  const navVars = {
+    "--nb-bg": c.bg,
+    "--nb-accent": c.accent,
+  } as CSSProperties;
+
   return (
-    <nav
-      style={{
-        background: c.bg,
-        padding: "0 28px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 60,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        fontFamily: "'Segoe UI', sans-serif",
-      }}
-    >
+    <nav className="nb-nav" style={navVars}>
       {/* Logo -> Ana Sayfa */}
-      <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+      <a href="/" className="nb-logo-link">
         <PublicBrandLogo invert height={36} maxWidth={160} />
       </a>
 
       {/* Navigasyon Linkleri */}
-      <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "nowrap", justifyContent: "flex-end", flex: 1, minWidth: 0 }}>
+      <div className="nb-links-wrap">
         {links.map((l) => {
           const isActive = activePath === l.href;
           return (
             <a
               key={l.href}
               href={l.href}
-              style={{
-                color: isActive ? c.accent ?? "#D4AF37" : "rgba(255,255,255,0.75)",
-                textDecoration: "none",
-                fontWeight: isActive ? 800 : 600,
-                fontSize: 12,
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
-                borderBottom: isActive ? `2px solid ${c.accent ?? "#D4AF37"}` : "2px solid transparent",
-                transition: "all 0.15s",
-              }}
+              className={`nb-nav-link${isActive ? " nb-nav-link--active" : ""}`}
             >
               {l.label}
             </a>
           );
         })}
 
-        {/* Onboarding CTA'ları — employer + candidate register */}
-        {registerCtas.map((cta) => (
-          <a
-            key={cta.href}
-            href={cta.href}
-            className={`public-nav-cta public-nav-cta--${cta.key === "top_nav.public.employer_register" ? "employer" : "candidate"}`}
-          >
-            {cta.label}
-          </a>
-        ))}
+        {/* Kariyer CTA */}
+        <a href="/satin-alma-kariyerim" className="public-nav-cta public-nav-cta--career">
+          <span className="public-nav-cta__line">{isTurkish ? "Satın Alma" : "Procurement"}</span>
+          <span className="public-nav-cta__line">{isTurkish ? "Kariyerim" : "Career"}</span>
+        </a>
 
         {/* Sag CTA butonlari */}
-        <div style={{ marginLeft: 8, display: "flex", gap: 6, position: "relative", flexShrink: 0 }}>
-          {variant === "supplier" ? (
-            <a href="/supplier/login" style={ctaBtn(BRAND_COLORS.supplier)}>
-              {copy.supplierLogin}
-            </a>
-          ) : variant === "channel" ? (
-            <a href="/channel/login" style={ctaBtn(BRAND_COLORS.channel)}>
-              {copy.partnerLogin}
-            </a>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSystemLoginClick}
-              style={{
-                ...ctaBtn(BRAND_COLORS.strategic),
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              {copy.signIn}
-            </button>
-          )}
+        <div ref={loginContainerRef} className="nb-cta-wrap">
+          <button
+            type="button"
+            onClick={handleSystemLoginClick}
+            className="nb-cta-btn nb-cta-btn--system"
+            style={{ "--nb-cta-bg": BRAND_COLORS.strategic.ctaBg, "--nb-cta-text": BRAND_COLORS.strategic.ctaText } as CSSProperties}
+          >
+            <span>{isTurkish ? "Sisteme" : "System"}</span>
+            <span>{isTurkish ? "Giriş" : "Login"}</span>
+          </button>
           <LanguageSwitcher compact />
 
           {showLoginPopup && (
-            <div
-              style={{
-                position: "absolute",
-                top: "calc(100% + 10px)",
-                right: 0,
-                width: "min(340px, calc(100vw - 24px))",
-                background: "#ffffff",
-                borderRadius: 14,
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 18px 36px rgba(15, 23, 42, 0.2)",
-                padding: 12,
-                zIndex: 250,
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#334155", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
-                {copy.chooseLogin}
+            <div className="nb-popup">
+              <div className="nb-popup__title">{copy.chooseLogin}</div>
+              <div className="nb-popup__grid-8">
+                <a href="/strategic-partner-login" className="nb-popup-btn nb-popup-btn--strategic">{copy.strategicLogin}</a>
+                <a href="/supplier/login" className="nb-popup-btn nb-popup-btn--supplier">{copy.supplierLogin}</a>
+                <a href="/channel/login" className="nb-popup-btn nb-popup-btn--channel">{copy.partnerLogin}</a>
               </div>
-              <div style={{ display: "grid", gap: 8 }}>
-                <a href="/strategic-partner-login" style={popupBtn("#21453d", "#ffffff")}>{copy.strategicLogin}</a>
-                <a href="/supplier/login" style={popupBtn("#0284c7", "#ffffff")}>{copy.supplierLogin}</a>
-                <a href="/channel/login" style={popupBtn("#f59e0b", "#2f1a0d")}>{copy.partnerLogin}</a>
-              </div>
-              {registerCtas.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>
-                    Yeni Hesap
-                  </div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {registerCtas.map((cta) => (
-                      <a
-                        key={cta.href}
-                        href={cta.href}
-                        style={popupBtn(
-                          cta.key === "top_nav.public.employer_register" ? "#059669" : "#0284c7",
-                          "#ffffff",
-                        )}
-                      >
-                        {cta.label}
-                      </a>
-                    ))}
-                  </div>
+              <div className="nb-popup__section">
+                <div className="nb-popup__section-label">
+                  {isTurkish ? "İşveren & Kariyer" : "Employer & Career"}
                 </div>
-              )}
+                <div className="nb-popup__grid-6">
+                  <a href="/isveren-giris" className="nb-popup-btn nb-popup-btn--employer">
+                    {isTurkish ? "İşveren Giriş" : "Employer Login"}
+                  </a>
+                  <a href="/is-arayan-giris" className="nb-popup-btn nb-popup-btn--jobseeker">
+                    {isTurkish ? "İş Arıyorum Giriş" : "Job Seeker Login"}
+                  </a>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowLoginPopup(false)}
-                style={{
-                  width: "100%",
-                  marginTop: 10,
-                  border: "1px solid #e2e8f0",
-                  background: "#f8fafc",
-                  color: "#334155",
-                  borderRadius: 8,
-                  padding: "7px 10px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
+                className="nb-popup__close-btn"
               >
                 {copy.close}
               </button>
@@ -272,35 +215,4 @@ export default function NavBar({ variant = "neutral", activePath = "" }: NavBarP
       </div>
     </nav>
   );
-}
-
-function ctaBtn(c: { ctaBg: string; ctaText: string }) {
-  return {
-    background: c.ctaBg,
-    color: c.ctaText,
-    padding: "7px 14px",
-    borderRadius: 8,
-    textDecoration: "none",
-    fontWeight: 800,
-    fontSize: 13,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-  } as const;
-}
-
-function popupBtn(bg: string, color: string) {
-  return {
-    display: "block",
-    width: "100%",
-    textAlign: "center" as const,
-    background: bg,
-    color,
-    borderRadius: 8,
-    textDecoration: "none",
-    padding: "10px 12px",
-    fontWeight: 700,
-    fontSize: 13,
-    lineHeight: 1.25,
-    whiteSpace: "normal" as const,
-    overflowWrap: "anywhere" as const,
-  };
 }

@@ -35,7 +35,7 @@ describe("ProjectsTab permissions", () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText(/platform personeli proje portfoyunu inceleyebilir/i)).toBeInTheDocument();
+    expect(await screen.findByText(/platform personeli proje portföyünü inceleyebilir/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /yeni proje/i })).toBeDisabled();
     expect(screen.getAllByRole("link", { name: /detaylar/i }).length).toBeGreaterThan(0);
   });

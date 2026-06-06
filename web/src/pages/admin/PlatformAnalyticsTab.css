@@ -281,3 +281,330 @@
     gap: 6px;
   }
 }
+
+/* ── Ekosistem grafik · pa-* sınıfları ────────────────────────────────────── */
+
+.pa-band {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #475569;
+  text-transform: uppercase;
+  margin: 4px 0;
+}
+
+.pa-band svg {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.pa-grid4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.pa-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Çizgi grafik */
+.pa-chart {
+  overflow: hidden;
+}
+.pa-chart svg {
+  width: 100%;
+  height: var(--pa-chart-h, 240px);
+  display: block;
+}
+
+/* Lejant */
+.pa-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 8px;
+}
+
+.pa-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pa-legend i {
+  display: inline-block;
+  width: 13px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--leg-color);
+}
+
+.pa-gbars + .pa-legend {
+  margin-top: 10px;
+}
+
+/* Huni */
+.pa-funnel {
+  display: grid;
+  gap: 6px;
+}
+
+.pa-funnel__row {
+  display: grid;
+  grid-template-columns: 120px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+}
+
+.pa-funnel__lbl {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pa-funnel__track {
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 28px;
+  overflow: hidden;
+}
+
+.pa-funnel__bar {
+  height: 100%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  min-width: 6%;
+  width: var(--funnel-w);
+  background: var(--funnel-color);
+}
+
+.pa-funnel__bar b {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pa-funnel__conv {
+  font-size: 10px;
+  color: #94a3b8;
+  text-align: right;
+  font-weight: 700;
+}
+
+/* Grup çubuklar */
+.pa-gbars {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 140px;
+}
+
+.pa-gbars__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  height: 100%;
+}
+
+.pa-gbars__pair {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  flex: 1;
+  width: 100%;
+}
+
+.pa-gbars__b {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+}
+
+.pa-gbars__b--strategic { background: #1d4ed8; height: var(--ph); }
+.pa-gbars__b--supplier  { background: #be123c; height: var(--sh); }
+
+.pa-gbars__lbl {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Marka nokta renkleri */
+.pa-dot--strategic,
+.pa-legend .pa-dot--strategic { background: #1d4ed8; }
+.pa-dot--supplier,
+.pa-legend .pa-dot--supplier  { background: #be123c; }
+
+/* Şehir çubukları */
+.pa-city {
+  display: grid;
+  gap: 8px;
+}
+
+.pa-city__row {
+  display: grid;
+  grid-template-columns: 90px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.pa-city__name {
+  font-size: 12px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.pa-city__track {
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 8px;
+}
+
+.pa-city__bar {
+  background: #2563eb;
+  height: 100%;
+  border-radius: 4px;
+  width: var(--city-w);
+}
+
+.pa-city__n {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1d4ed8;
+  text-align: right;
+}
+
+/* Donut grafik */
+.pa-donut-svg {
+  display: block;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.pa-donut-wrap {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pa-donut-legend {
+  display: grid;
+  gap: 10px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.pa-donut-legend__item {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.pa-donut-legend__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--dot-bg);
+}
+
+.pa-donut-legend__label {
+  color: #475569;
+}
+
+.pa-donut-legend__val {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pa-donut-legend__val small {
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Periyot seçici */
+.pa-period {
+  display: flex;
+  gap: 2px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.pa-period button {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.pa-period button.on {
+  background: #fff;
+  color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Katkı ekonomisi */
+.pa-contrib {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.pa-tile {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.pa-tile b {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.pa-tile span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .pa-split { grid-template-columns: 1fr; }
+  .pa-gbars { height: 100px; }
+}
+
+@media (max-width: 600px) {
+  .pa-funnel__row { grid-template-columns: 72px 1fr 40px; }
+  .pa-grid4 { grid-template-columns: repeat(2, 1fr); }
+}

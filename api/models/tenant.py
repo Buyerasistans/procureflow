@@ -141,7 +141,13 @@ class Tenant(Base):
     roles: Mapped[list["Role"]] = relationship("Role", back_populates="tenant")
     projects: Mapped[list["Project"]] = relationship("Project", back_populates="tenant")
     suppliers: Mapped[list["Supplier"]] = relationship(
-        "Supplier", back_populates="tenant"
+        "Supplier", foreign_keys="Supplier.tenant_id", back_populates="tenant"
+    )
+    linked_as_supplier: Mapped["Supplier | None"] = relationship(
+        "Supplier",
+        foreign_keys="Supplier.linked_tenant_id",
+        back_populates="linked_tenant",
+        uselist=False,
     )
     quotes: Mapped[list["Quote"]] = relationship("Quote", back_populates="tenant")
     subscriptions: Mapped[list["TenantSubscription"]] = relationship(

@@ -17,6 +17,9 @@ vi.mock("../services/admin.service", () => ({
   addUserCompanyAssignment: vi.fn(),
   updateUserCompanyAssignment: vi.fn(),
   removeUserCompanyAssignment: vi.fn(),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 describe("PersonnelCreateModal permissions", () => {

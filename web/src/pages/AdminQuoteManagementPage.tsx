@@ -1,8 +1,9 @@
 // Admin Quote Management Page
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getRfqs, approveRfq, rejectRfq } from "../services/quote.service";
 import type { Rfq as Quote } from "../services/quote.service";
 import { QuoteStatusLabel, QuoteStatusColor, normalizeQuoteStatus } from "../types/quote.types";
+import "./AdminQuoteManagementPage.css";
 
 export default function AdminQuoteManagementPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -90,34 +91,26 @@ export default function AdminQuoteManagementPage() {
     }
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: 20 }}>Yükleniyor...</div>;
+  if (loading) return <div className="aqm-loading">Yükleniyor...</div>;
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="aqm-root">
       <h1>Yönetici - RFQ / Teklif Yönetimi</h1>
 
       {error && (
-        <div style={{ color: "red", padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px" }}>
-          {error}
-        </div>
+        <div className="aqm-error">{error}</div>
       )}
 
       {selectedQuotes.size > 0 && (
-        <div style={{ background: "#f0f4ff", padding: "16px", borderRadius: "8px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <div className="aqm-selection-panel">
+          <div className="aqm-selection-header">
             <strong>{selectedQuotes.size} RFQ / teklif seçili</strong>
             <button
+              type="button"
               onClick={() => setSelectedQuotes(new Set())}
-              style={{
-                padding: "4px 8px",
-                background: "transparent",
-                border: "1px solid #3b82f6",
-                color: "#3b82f6",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
+              className="aqm-clear-btn"
             >
               Temizle
             </button>
@@ -127,138 +120,86 @@ export default function AdminQuoteManagementPage() {
             placeholder="İşlem notu (opsiyonel)"
             value={actionReason}
             onChange={(e) => setActionReason(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
-              border: "1px solid #ddd",
-              marginBottom: "12px",
-              boxSizing: "border-box",
-              minHeight: "60px",
-            }}
+            className="aqm-reason-textarea"
           />
 
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              onClick={handleBulkApprove}
-              style={{
-                padding: "8px 16px",
-                background: "#10b981",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
+          <div className="aqm-action-row">
+            <button type="button" onClick={handleBulkApprove} className="aqm-approve-btn">
               Toplu Onayla
             </button>
-            <button
-              onClick={handleBulkReject}
-              style={{
-                padding: "8px 16px",
-                background: "#ef4444",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
+            <button type="button" onClick={handleBulkReject} className="aqm-reject-btn">
               Toplu Reddet
             </button>
           </div>
         </div>
       )}
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className="aqm-table-wrap">
+        <table className="aqm-table">
           <thead>
-            <tr style={{ background: "#f9fafb", borderBottom: "2px solid #ddd" }}>
-              <th style={{ padding: "12px", textAlign: "left" }}>
+            <tr className="aqm-thead-row">
+              <th className="aqm-th">
                 <input
                   type="checkbox"
+                  aria-label="Tümünü seç"
                   checked={selectedQuotes.size === quotes.length && quotes.length > 0}
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th style={{ padding: "12px", textAlign: "left" }}>ID</th>
-              <th style={{ padding: "12px", textAlign: "left" }}>Başlık</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Tutar</th>
-              <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
-              <th style={{ padding: "12px", textAlign: "left" }}>Oluşturan</th>
-              <th style={{ padding: "12px", textAlign: "left" }}>Tarih</th>
+              <th className="aqm-th">ID</th>
+              <th className="aqm-th">Başlık</th>
+              <th className="aqm-th aqm-th--right">Tutar</th>
+              <th className="aqm-th">Durum</th>
+              <th className="aqm-th">Oluşturan</th>
+              <th className="aqm-th">Tarih</th>
             </tr>
           </thead>
           <tbody>
             {quotes.map((quote) => {
               const quoteStatus = normalizeQuoteStatus(quote.status);
               return (
-              <tr
-                key={quote.id}
-                style={{
-                  borderBottom: "1px solid #eee",
-                  background: selectedQuotes.has(quote.id) ? "#f0f4ff" : "white",
-                }}
-              >
-                <td style={{ padding: "12px" }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedQuotes.has(quote.id)}
-                    onChange={() => toggleSelect(quote.id)}
-                  />
-                </td>
-                <td style={{ padding: "12px", fontFamily: "monospace", fontSize: "12px" }}>
-                  #{quote.id}
-                </td>
-                <td style={{ padding: "12px" }}>{quote.title}</td>
-                <td style={{ padding: "12px", textAlign: "right", fontWeight: "bold" }}>
-                  {(quote.total_amount ?? quote.amount ?? 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
-                </td>
-                <td style={{ padding: "12px" }}>
-                  <span
-                    style={{
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      background: QuoteStatusColor[quoteStatus],
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {QuoteStatusLabel[quoteStatus]}
-                  </span>
-                </td>
-                <td style={{ padding: "12px", fontSize: "12px" }}>
-                  Kullanıcı #{quote.created_by_id}
-                </td>
-                <td style={{ padding: "12px", fontSize: "12px" }}>
-                  {new Date(quote.created_at).toLocaleDateString("tr-TR")}
-                </td>
-              </tr>
-            )})}
+                <tr
+                  key={quote.id}
+                  className={selectedQuotes.has(quote.id) ? "aqm-row aqm-row--selected" : "aqm-row"}
+                >
+                  <td className="aqm-td">
+                    <input
+                      type="checkbox"
+                      checked={selectedQuotes.has(quote.id)}
+                      onChange={() => toggleSelect(quote.id)}
+                    />
+                  </td>
+                  <td className="aqm-td--mono">#{quote.id}</td>
+                  <td className="aqm-td">{quote.title}</td>
+                  <td className="aqm-td--amount">
+                    {(quote.total_amount ?? quote.amount ?? 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                  </td>
+                  <td className="aqm-td">
+                    <span
+                      className="aqm-status-badge"
+                      style={{ "--aqm-status-bg": QuoteStatusColor[quoteStatus] } as React.CSSProperties}
+                    >
+                      {QuoteStatusLabel[quoteStatus]}
+                    </span>
+                  </td>
+                  <td className="aqm-td--sm">Kullanıcı #{quote.created_by_id}</td>
+                  <td className="aqm-td--sm">
+                    {new Date(quote.created_at).toLocaleDateString("tr-TR")}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "8px",
-            marginTop: "20px",
-            alignItems: "center",
-          }}
-        >
+        <div className="aqm-pagination">
           <button
+            type="button"
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            style={{
-              padding: "8px 12px",
-              background: page === 1 ? "#f3f4f6" : "white",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              cursor: page === 1 ? "not-allowed" : "pointer",
-            }}
+            className="aqm-page-nav"
           >
             Önceki
           </button>
@@ -269,16 +210,9 @@ export default function AdminQuoteManagementPage() {
               pageNum <= totalPages && (
                 <button
                   key={pageNum}
+                  type="button"
                   onClick={() => setPage(pageNum)}
-                  style={{
-                    padding: "8px 12px",
-                    background: page === pageNum ? "#3b82f6" : "white",
-                    color: page === pageNum ? "white" : "black",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontWeight: page === pageNum ? "bold" : "normal",
-                  }}
+                  className={page === pageNum ? "aqm-page-btn aqm-page-btn--active" : "aqm-page-btn"}
                 >
                   {pageNum}
                 </button>
@@ -287,20 +221,15 @@ export default function AdminQuoteManagementPage() {
           })}
 
           <button
+            type="button"
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            style={{
-              padding: "8px 12px",
-              background: page === totalPages ? "#f3f4f6" : "white",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              cursor: page === totalPages ? "not-allowed" : "pointer",
-            }}
+            className="aqm-page-nav"
           >
             Sonraki
           </button>
 
-          <span style={{ marginLeft: "12px", color: "#666", fontSize: "14px" }}>
+          <span className="aqm-page-info">
             Sayfa {page} / {totalPages} (Toplam: {total})
           </span>
         </div>

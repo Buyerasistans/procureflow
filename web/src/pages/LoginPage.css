@@ -64,26 +64,91 @@
 }
 
 .login-page__entry-button--strategic {
-  color: var(--pf-surface);
-  background: #21453d;
+  color: #fff;
+  background: #134E37;
 }
 
 .login-page__entry-button--supplier {
-  color: var(--pf-surface);
-  background: #0284c7;
+  color: #fff;
+  background: #0E7490;
 }
 
 .login-page__entry-button--channel {
-  color: #2f1a0d;
-  background: var(--pf-amber-400);
+  color: #fff;
+  background: #7C2D12;
 }
 
-.login-page__footer-note {
-  margin-top: 16px;
+/* Divider */
+.login-page__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 0;
+}
+
+.login-page__divider::before,
+.login-page__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.login-page__divider-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.login-page__kariyer-note {
+  margin: 12px auto 0;
   text-align: center;
+  max-width: 520px;
   font-size: 13px;
   color: var(--pf-slate-500);
+  line-height: 1.6;
 }
+
+.login-page__kariyer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.login-page__kariyer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-page__inline-register {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.login-page__inline-register:hover {
+  color: #334155;
+}
+
+.login-page__entry-button--employer {
+  background: #5B21B6;
+  color: #fff;
+}
+
+.login-page__entry-button--candidate {
+  background: #9F1239;
+  color: #fff;
+}
+
 
 @media (max-width: 860px) {
   .login-page__card {
@@ -96,6 +161,10 @@
   }
 
   .login-page__entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-page__kariyer-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -1,0 +1,115 @@
+/* InternalUserActivationPage.css — namespace: iuap-* */
+
+/* ── Loading ── */
+.iuap-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+/* ── Root ── */
+.iuap-root {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #ecfeff 0%, #eff6ff 100%);
+  padding: 24px;
+}
+
+/* ── Card ── */
+.iuap-card {
+  width: min(560px, 100%);
+  background: white;
+  border-radius: 28px;
+  padding: 30px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+  border: 1px solid #dbeafe;
+}
+
+/* ── Header ── */
+.iuap-platform-name {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #8a5b2b;
+}
+
+.iuap-h1   { margin: 8px 0 6px; font-size: 30px; color: #0f172a; }
+.iuap-desc { margin: 0; color: #475569; }
+
+/* ── Profile info box ── */
+.iuap-profile {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.iuap-profile-header { display: flex; gap: 14px; align-items: center; }
+
+.iuap-logo-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.iuap-logo-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: #16302b;
+  color: white;
+  font-weight: 800;
+}
+
+.iuap-org-name  { font-weight: 700; color: #111827; }
+.iuap-workspace { margin-top: 4px; color: #475569; }
+.iuap-full-name { margin-top: 14px; font-weight: 700; color: #111827; }
+.iuap-email     { margin-top: 4px; color: #475569; }
+.iuap-role      { margin-top: 4px; color: #64748b; font-size: 13px; }
+
+/* ── Message boxes ── */
+.iuap-error {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.iuap-success {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ── Form ── */
+.iuap-form       { margin-top: 18px; display: grid; gap: 14px; }
+.iuap-label      { display: grid; gap: 6px; }
+.iuap-label-text { font-weight: 700; color: #334155; }
+
+.iuap-input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+}
+
+.iuap-submit-btn {
+  margin-top: 6px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.iuap-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }

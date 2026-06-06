@@ -11,6 +11,7 @@ export type AuthUser = {
   full_name?: string;
   scope_type?: string | null;
   role_profile_code?: string | null;
+  tenant_id?: number | null;
   department_id?: number | null;
   organization_name?: string | null;
   organization_logo_url?: string | null;

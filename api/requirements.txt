@@ -147,6 +147,8 @@ pygments==2.19.2
     # via pytest
 pynacl==1.6.2
     # via paramiko
+pyotp==2.9.0
+    # via -r requirements.in
 pyparsing==3.3.2
     # via ezdxf
 pytest==8.4.2
@@ -173,6 +175,8 @@ pyyaml==6.0.3
     # via
     #   pre-commit
     #   uvicorn
+qrcode==8.0.0
+    # via -r requirements.in
 rsa==4.9.1
     # via python-jose
 ruff==0.15.8

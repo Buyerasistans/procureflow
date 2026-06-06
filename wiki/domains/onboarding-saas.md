@@ -1,7 +1,7 @@
 ---
 title: Onboarding SaaS Domain
 owned_by: backend+frontend
-last_verified_at: 2026-05-24
+last_verified_at: 2026-06-05
 confidence: 0.82
 stale_after_days: 14
 source_files:

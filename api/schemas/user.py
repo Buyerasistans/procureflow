@@ -76,6 +76,8 @@ class ProfileOut(BaseModel):
     address: str | None = None
     hide_location: bool = False
     share_on_whatsapp: bool = True
+    totp_enabled: bool = False
+    login_notifications: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -92,5 +94,13 @@ class ProfileUpdate(BaseModel):
 
     full_name: str | None = None
     work_email: EmailStr | None = None
+    personal_phone: str | None = None
+    company_phone: str | None = None
+    company_phone_short: str | None = None
+    address: str | None = None
+    hide_location: bool | None = None
+    share_on_whatsapp: bool | None = None
+    photo: str | None = None
+    login_notifications: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)

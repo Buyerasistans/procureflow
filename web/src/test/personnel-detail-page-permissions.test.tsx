@@ -22,6 +22,9 @@ vi.mock("../services/admin.service", () => ({
   updateUserCompanyAssignment: vi.fn(),
   removeUserCompanyAssignment: vi.fn(),
   adminResetPassword: vi.fn(),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 function renderPage() {

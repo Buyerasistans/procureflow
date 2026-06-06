@@ -1,4 +1,12 @@
-﻿:root {
+﻿.route-fallback {
+  min-height: 40vh;
+  display: grid;
+  place-items: center;
+  color: #475569;
+  font-size: 14px;
+}
+
+:root {
   --text: #6b6375;
   --text-h: #08060d;
   --bg: var(--pf-surface);

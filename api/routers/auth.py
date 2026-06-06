@@ -8,7 +8,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from api.core.config import REFRESH_TOKEN_EXPIRE_DAYS
-from api.core.authz import normalized_system_role
+from api.core.authz import normalized_system_role, is_super_admin
 from api.core.deps import get_current_user
 from api.core.security import (
     create_access_token,
@@ -33,6 +33,8 @@ from api.services.work_mailbox_service import ensure_user_work_mailbox
 from api.models.assignment import CompanyRole
 from api.models.company import Company
 from api.models.tenant import Tenant
+from api.models.supplier import SupplierUser as SupplierUserModel, Supplier as SupplierModel
+from api.utils.captcha import verify_turnstile
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -145,6 +147,7 @@ def _build_auth_user_payload(db: Session, user: User) -> dict[str, str | int | N
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
+    captcha_token: str | None = None
 
 
 class ActivationVerifyIn(BaseModel):
@@ -161,6 +164,7 @@ class RegisterIn(BaseModel):
     password: str
     full_name: str
     user_type: Literal["employer", "candidate"]
+    captcha_token: str | None = None
 
 
 _USER_TYPE_ROLE_MAP: dict[str, str] = {
@@ -193,6 +197,8 @@ def _resolve_login_user(db: Session, email: str) -> User | None:
 
 @router.post("/login", response_model=TokenPairResponse)
 def login(data: LoginIn, db: Session = Depends(get_db)):
+    if not verify_turnstile(data.captcha_token):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="CAPTCHA doğrulaması başarısız.")
     user = _resolve_login_user(db, data.email)
 
     if user is None:
@@ -416,6 +422,8 @@ def register_individual(data: RegisterIn, db: Session = Depends(get_db)):
     No tenant affiliation is created. Returns a token pair on success
     so the caller can immediately use the session.
     """
+    if not verify_turnstile(data.captcha_token):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="CAPTCHA doğrulaması başarısız.")
     normalized_email = str(data.email).lower().strip()
 
     if db.query(User).filter(User.email == normalized_email).first() is not None:
@@ -479,4 +487,65 @@ def register_individual(data: RegisterIn, db: Session = Depends(get_db)):
         "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": auth_user,
+    }
+
+
+@router.post("/impersonate/{user_id}")
+def impersonate_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Super admin only — 30-minute token for viewing a user's panel in a new tab."""
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=403, detail="Sadece Super Admin bu işlemi yapabilir.")
+
+    target = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı veya pasif.")
+
+    auth_user = _build_auth_user_payload(db, target)
+    access_token = create_access_token(
+        sub=str(target.id),
+        role=target.role,
+        system_role=str(auth_user["system_role"]),
+    )
+
+    return {
+        "access_token": access_token,
+        "user": auth_user,
+    }
+
+
+@router.post("/impersonate-supplier/{supplier_user_id}")
+def impersonate_supplier_user(
+    supplier_user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Super admin only — supplier portal token for viewing a supplier user's panel."""
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=403, detail="Sadece Super Admin bu işlemi yapabilir.")
+
+    sup_user = (
+        db.query(SupplierUserModel)
+        .filter(SupplierUserModel.id == supplier_user_id, SupplierUserModel.is_active.is_(True))
+        .first()
+    )
+    if not sup_user:
+        raise HTTPException(status_code=404, detail="Tedarikçi kullanıcısı bulunamadı veya pasif.")
+
+    supplier = db.query(SupplierModel).filter(SupplierModel.id == sup_user.supplier_id).first()
+    access_token = create_access_token(sub=str(sup_user.email), role="supplier")
+
+    return {
+        "access_token": access_token,
+        "user": {
+            "id": sup_user.id,
+            "name": sup_user.name,
+            "email": sup_user.email,
+            "supplier_id": sup_user.supplier_id,
+            "supplier_name": supplier.company_name if supplier else None,
+            "role": "supplier",
+        },
     }

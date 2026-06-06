@@ -19,6 +19,7 @@ ADMIN_ASSIGNABLE_SYSTEM_ROLES = TENANT_ADMIN_SYSTEM_ROLES | {
     "platform_support",
     "platform_operator",
     "finance_officer",
+    "ik_admin",
 }
 
 # ---------------------------------------------------------------------------
@@ -30,6 +31,19 @@ TALENT_MEMBER_SYSTEM_ROLES = {"talent_member", "candidate_user"}
 
 # İşveren tenant yöneticisi/işe alım — iş ilanı oluşturur, başvuruları yönetir
 EMPLOYER_ADMIN_SYSTEM_ROLES = {"employer_company_admin", "employer_recruiter"}
+
+# Platform İK Admin — kariyer modülünü yönetir, IK kullanıcıları yetkilendirir
+# Tenant bağımsız, /platform-login üzerinden giriş
+IK_ADMIN_SYSTEM_ROLES = {"ik_admin"}
+
+# İnsan Kaynakları rolleri — tenant kullanıcısı, business_role ile belirlenir
+# Kariyer modülü: iş ilanı oluşturma, ik workspace erişimi
+HR_BUSINESS_ROLES = {
+    "ik_yoneticisi",   # İK Yöneticisi
+    "ik_uzmani",       # İK Uzmanı
+    "hr_manager",      # İngilizce alias
+    "hr_specialist",   # İngilizce alias
+}
 
 # Referral/kanal iş ortağı — görevlere katkı sunar
 REFERRAL_PARTNER_SYSTEM_ROLES = {"referral_partner"}
@@ -238,6 +252,26 @@ def is_employer_admin(user: User) -> bool:
     return normalized_system_role(user) in EMPLOYER_ADMIN_SYSTEM_ROLES
 
 
+def is_ik_admin(user: User) -> bool:
+    """Platform İK Admin — kariyer modülünü yönetir, IK kullanıcıları yetkilendirir."""
+    return normalized_system_role(user) in IK_ADMIN_SYSTEM_ROLES
+
+
+def is_hr_member(user: User) -> bool:
+    """İK rolü — iş ilanı oluşturabilir, kariyer modülüne erişebilir."""
+    return normalized_role(user) in HR_BUSINESS_ROLES
+
+
+def can_manage_kariyer_module(user: User) -> bool:
+    """Kariyer ve iş piyasası yönetim sekmesine erişim."""
+    return is_super_admin(user) or is_ik_admin(user)
+
+
+def can_manage_ik_users(user: User) -> bool:
+    """IK kullanıcı yetkilendirme — IK Admin kendi altına IK Yönetici/Uzmanı oluşturabilir."""
+    return is_super_admin(user) or is_ik_admin(user)
+
+
 def is_referral_partner(user: User) -> bool:
     return normalized_system_role(user) in REFERRAL_PARTNER_SYSTEM_ROLES
 
@@ -272,9 +306,11 @@ def can_post_procurement_job(user: User) -> bool:
     """İş ilanı oluşturma yetkisi."""
     return (
         is_super_admin(user)
+        or is_ik_admin(user)
         or is_employer_admin(user)
         or is_tenant_admin(user)
         or is_platform_staff(user)
+        or is_hr_member(user)
     )
 
 
@@ -287,9 +323,33 @@ def can_access_talent_admin(user: User) -> bool:
     """Talent ekosistemi yönetim paneline erişim."""
     return (
         is_super_admin(user)
+        or is_ik_admin(user)
         or is_moderator_compliance(user)
         or is_platform_staff(user)
     )
+
+
+# ---------------------------------------------------------------------------
+# Dual-Role: aynı firma hem Tedarikçi hem Stratejik Partner
+# ---------------------------------------------------------------------------
+
+
+def is_dual_role_active(supplier) -> bool:
+    """Supplier objesinin dual-role bağlantısı platform tarafından aktifleştirilmiş mi?"""
+    return (
+        getattr(supplier, "linked_tenant_id", None) is not None
+        and getattr(supplier, "dual_role_status", None) == "active"
+    )
+
+
+def can_request_dual_role(user: User) -> bool:
+    """Dual-role başvurusu yapabilir mi? Tenant admin veya owner."""
+    return is_tenant_admin(user) or is_tenant_owner(user)
+
+
+def can_approve_dual_role(user: User) -> bool:
+    """Dual-role başvurusunu onaylayabilir mi? Platform staff."""
+    return is_super_admin(user) or is_platform_staff(user)
 
 
 def resolve_requested_user_system_role(

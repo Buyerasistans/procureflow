@@ -1,0 +1,155 @@
+/* SupplierRegisterPage.css — sreg-* namespace */
+
+.sreg-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.sreg-card {
+  background: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+}
+
+.sreg-card h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  color: #333;
+}
+
+.sreg-card__subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+/* ── Messages ── */
+.sreg-msg {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.sreg-msg--error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.sreg-msg--success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+/* ── Loading ── */
+.sreg-loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* ── Invite summary ── */
+.sreg-invite-summary {
+  margin-bottom: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #bfdbfe;
+  color: #334155;
+  font-size: 13px;
+}
+
+.sreg-invite-summary strong {
+  color: #0f172a;
+}
+
+.sreg-invite-summary__row {
+  margin-top: 6px;
+}
+
+.sreg-invite-summary ul {
+  margin: 14px 0 0 18px;
+  padding: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* ── Info block ── */
+.sreg-info-block {
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #666;
+}
+
+.sreg-info-block p {
+  margin: 0 0 8px;
+}
+
+.sreg-info-block__last {
+  margin-bottom: 0 !important;
+}
+
+/* ── Form ── */
+.sreg-form-group {
+  margin-bottom: 20px;
+}
+
+.sreg-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.sreg-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.sreg-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.sreg-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sreg-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.sreg-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .sreg-card {
+    padding: 24px 20px;
+  }
+}

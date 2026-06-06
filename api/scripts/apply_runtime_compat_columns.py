@@ -139,6 +139,12 @@ STATEMENTS = [
     "ALTER TABLE system_email_messages ADD COLUMN IF NOT EXISTS is_starred BOOLEAN DEFAULT FALSE NOT NULL",
     "ALTER TABLE system_email_messages ADD COLUMN IF NOT EXISTS is_important BOOLEAN DEFAULT FALSE NOT NULL",
     "CREATE INDEX IF NOT EXISTS ix_system_email_messages_thread_key ON system_email_messages(thread_key)",
+    # Social login columns
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_id ON users(google_id)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_id VARCHAR(255)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_linkedin_id ON users(linkedin_id)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_login_only BOOLEAN DEFAULT FALSE NOT NULL",
 ]
 
 

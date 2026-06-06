@@ -1,21 +1,10 @@
-/**
- * HelpCenter - Sag alt kosede sabit "?" yardim butonu.
- * Acildiginda:
- *   1. Arama kutusu + kategorilere gore makaleler - buyerasistans.info/docs'a yonlendirir
- *   2. "Cevabi bulamadim" - SupportTicketWidget (destek talebi)
- *
- * App.tsx'e global olarak eklenebilir.
- */
 import { useState, useMemo } from "react";
 import SupportTicketWidget from "./SupportTicketWidget";
-import { useLocale } from "../context/LocaleContext";
-import { usePublicTranslations } from "../hooks/usePublicTranslations";
+import "./HelpCenter.css";
 
 const DOCS_BASE = "https://buyerasistans.info/docs";
 
-// ---------------------------------------------------------------------------
-// Makale katalogu - kilavuz makaleler (buyerasistans.info/docs rotalarina bagli)
-// ---------------------------------------------------------------------------
+// ── Makale katalogu ──────────────────────────────────────────────────────────
 
 interface HelpArticle {
   id: string;
@@ -23,232 +12,331 @@ interface HelpArticle {
   summary: string;
   slug: string;
   category: string;
+  icon: string;
 }
 
 const ARTICLES: HelpArticle[] = [
   // Başlangıç
-  { id: "a1", title: "Aktivasyon nasıl yapılır?", summary: "Aktivasyon mailinden hesabınızı nasıl aktive edersiniz.", slug: "aktivasyon", category: "Başlangıç" },
-  { id: "a2", title: "İlk girişten sonra ne yapmalıyım?", summary: "Aktivasyon sonrası tamamlamanız gereken adımlar.", slug: "aktivasyon/baslangic", category: "Başlangıç" },
-  { id: "a3", title: "Şifremi nasıl değiştiririm?", summary: "Profil sayfasından şifre güncelleme adımları.", slug: "hesap/sifre", category: "Hesap" },
+  { id: "a1", icon: "🚀", title: "Aktivasyon nasıl yapılır?",          summary: "Aktivasyon mailinden hesabınızı aktive etme adımları.",        slug: "aktivasyon",                          category: "Başlangıç" },
+  { id: "a2", icon: "📋", title: "İlk girişten sonra ne yapmalıyım?",  summary: "Tamamlamanız gereken ilk kurulum adımları.",                    slug: "aktivasyon/baslangic",                category: "Başlangıç" },
+  { id: "a3", icon: "🔑", title: "Şifremi nasıl değiştiririm?",        summary: "Profil sayfasından güvenli şifre güncelleme.",                  slug: "hesap/sifre",                         category: "Hesap" },
+  { id: "a4", icon: "👤", title: "Profil bilgilerimi güncelleyebilir miyim?", summary: "Ad, telefon, adres ve fotoğraf güncelleme.",             slug: "hesap/profil",                        category: "Hesap" },
 
   // Stratejik Partner
-  { id: "b1", title: "Şirket bilgilerimi nasıl güncellerim?", summary: "Vergi no, adres ve telefon bilgisi güncelleme.", slug: "stratejik-ortak/sirket-bilgileri", category: "Stratejik Partner" },
-  { id: "b2", title: "Kullanıcı nasıl davet ederim?", summary: "Ekibinizi platforma ekleme adımları.", slug: "stratejik-ortak/kullanici-daveti", category: "Stratejik Partner" },
-  { id: "b3", title: "Tedarikçi nasıl eklenir?", summary: "Tedarikçi kaydı oluşturma ve yönetimi.", slug: "stratejik-ortak/tedarikci-ekleme", category: "Stratejik Partner" },
-  { id: "b4", title: "Teklif talebi (RFQ) nasıl oluşturulur?", summary: "Satın alma talebi oluşturma ve tedarikçilere gönderme.", slug: "stratejik-ortak/ilk-teklif", category: "Stratejik Partner" },
+  { id: "b1", icon: "🏢", title: "Şirket bilgilerimi nasıl güncellerim?", summary: "Vergi no, adres ve telefon bilgisi güncelleme.",            slug: "stratejik-ortak/sirket-bilgileri",   category: "Stratejik Partner" },
+  { id: "b2", icon: "✉️", title: "Kullanıcı nasıl davet ederim?",       summary: "Ekibinizi platforma ekleme ve rol atama.",                    slug: "stratejik-ortak/kullanici-daveti",   category: "Stratejik Partner" },
+  { id: "b3", icon: "🤝", title: "Tedarikçi nasıl eklenir?",            summary: "Tedarikçi kaydı oluşturma ve ilişki yönetimi.",               slug: "stratejik-ortak/tedarikci-ekleme",  category: "Stratejik Partner" },
+  { id: "b4", icon: "📝", title: "Teklif talebi (RFQ) nasıl oluşturulur?", summary: "Satın alma talebi açma ve tedarikçilere gönderme.",       slug: "stratejik-ortak/ilk-teklif",        category: "Stratejik Partner" },
 
   // Tedarikçi
-  { id: "c1", title: "Tedarikçi profili nasıl tamamlanır?", summary: "İletişim, banka ve belge bilgilerini doldurma.", slug: "tedarikci/profil", category: "Tedarikçi" },
-  { id: "c2", title: "Teklif nasıl verilir?", summary: "Açık teklif taleplerine yanıt verme.", slug: "tedarikci/teklif-verme", category: "Tedarikçi" },
-  { id: "c3", title: "Belge yükleme nasıl yapılır?", summary: "Zorunlu evrakları sisteme ekleme.", slug: "tedarikci/belgeler", category: "Tedarikçi" },
+  { id: "c1", icon: "🗂️", title: "Tedarikçi profili nasıl tamamlanır?",summary: "İletişim, banka ve belge bilgilerini doldurma.",               slug: "tedarikci/profil",                  category: "Tedarikçi" },
+  { id: "c2", icon: "💬", title: "Teklif nasıl verilir?",               summary: "Açık teklif taleplerine yanıt verme.",                        slug: "tedarikci/teklif-verme",             category: "Tedarikçi" },
+  { id: "c3", icon: "📎", title: "Belge yükleme nasıl yapılır?",        summary: "Zorunlu evrakları sisteme ekleme.",                           slug: "tedarikci/belgeler",                 category: "Tedarikçi" },
 
-  // Fatura & Odeme
-  { id: "d1", title: "Fatura nereden goruntulenir?", summary: "Abonelik faturalari ve odeme gecmisi.", slug: "fatura/goruntuleme", category: "Fatura & Odeme" },
-  { id: "d2", title: "Odeme yontemi nasil degistirilir?", summary: "Kredi karti veya banka havalesi guncelleme.", slug: "fatura/odeme-yontemi", category: "Fatura & Odeme" },
+  // Fatura & Ödeme
+  { id: "d1", icon: "🧾", title: "Fatura nereden görüntülenir?",        summary: "Abonelik faturaları ve ödeme geçmişine erişim.",              slug: "fatura/goruntuleme",                 category: "Fatura & Ödeme" },
+  { id: "d2", icon: "💳", title: "Ödeme yöntemi nasıl değiştirilir?",   summary: "Kredi kartı veya banka havalesi güncelleme.",                 slug: "fatura/odeme-yontemi",               category: "Fatura & Ödeme" },
+  { id: "d3", icon: "↩️", title: "İade nasıl talep edilir?",            summary: "İade koşulları ve başvuru süreci.",                           slug: "fatura/iade",                        category: "Fatura & Ödeme" },
 
   // Destek
-  { id: "e1", title: "Destek talebi nasil acilir?", summary: "Platform personeline talep iletme adimlari.", slug: "destek/talep-acma", category: "Destek" },
-  { id: "e2", title: "SLA süreleri nedir?", summary: "Önceliğe göre yanıt ve çözüm süreleri.", slug: "destek/sla", category: "Destek" },
+  { id: "e1", icon: "🎫", title: "Destek talebi nasıl açılır?",         summary: "Platform personeline talep iletme adımları.",                 slug: "destek/talep-acma",                  category: "Destek" },
+  { id: "e2", icon: "⏱️", title: "SLA süreleri nedir?",                 summary: "Önceliğe göre yanıt ve çözüm süreleri.",                     slug: "destek/sla",                         category: "Destek" },
 
   // İş Ortağı
-  { id: "f1", title: "İş Ortağı programına nasıl katılırım?", summary: "Program koşulları ve kayıt adımları.", slug: "is-ortagi/program-kosullari", category: "İş Ortağı" },
+  { id: "f1", icon: "🌐", title: "İş Ortağı programına nasıl katılırım?", summary: "Program koşulları ve kayıt adımları.",                     slug: "is-ortagi/program-kosullari",        category: "İş Ortağı" },
+  { id: "f2", icon: "💰", title: "Komisyon nasıl hesaplanır?",           summary: "Referans komisyon oranları ve ödeme takvimi.",               slug: "is-ortagi/komisyon",                 category: "İş Ortağı" },
 ];
 
 const CATEGORIES = [...new Set(ARTICLES.map((a) => a.category))];
 
-// ---------------------------------------------------------------------------
-// Bilesen
-// ---------------------------------------------------------------------------
+const CAT_ICONS: Record<string, string> = {
+  "Başlangıç":         "🚀",
+  "Hesap":             "👤",
+  "Stratejik Partner": "🏢",
+  "Tedarikçi":         "🤝",
+  "Fatura & Ödeme":    "💳",
+  "Destek":            "🎫",
+  "İş Ortağı":         "🌐",
+};
 
-type Panel = "search" | "ticket";
+// ── Yasal belgeler ────────────────────────────────────────────────────────────
+
+const LEGAL_DOCS = [
+  {
+    href: "/gizlilik-politikasi",
+    icon: "🔒",
+    colorClass: "hc-legal-link__icon--blue",
+    title: "Gizlilik Politikası",
+    sub: "Kişisel verilerinizin nasıl korunduğu",
+  },
+  {
+    href: "/kullanim-kosullari",
+    icon: "📄",
+    colorClass: "hc-legal-link__icon--green",
+    title: "Kullanım Koşulları",
+    sub: "Platform kullanım kuralları ve sözleşme",
+  },
+  {
+    href: "/iade-ve-odeme-politikasi",
+    icon: "💳",
+    colorClass: "hc-legal-link__icon--orange",
+    title: "İade ve Ödeme Politikası",
+    sub: "Ödeme yöntemleri, iade ve iptal koşulları",
+  },
+  {
+    href: "/cerez-politikasi",
+    icon: "🍪",
+    colorClass: "hc-legal-link__icon--purple",
+    title: "Çerez Politikası",
+    sub: "Çerez kullanımı ve yönetim seçenekleri",
+  },
+];
+
+// ── Bileşen ───────────────────────────────────────────────────────────────────
+
+type Tab = "articles" | "support" | "legal";
 
 export default function HelpCenter() {
-  const { locale } = useLocale();
-  const t = usePublicTranslations("help_center", locale, {
-    title: "Yardim Merkezi",
-    subtitle: "Nasıl yardımcı olabiliriz?",
-    articles_tab: "Makaleler",
-    ticket_tab: "Destek Talebi",
-    search_placeholder: "Kılavuzlarda ara...",
-    all_categories: "Tümü",
-    not_found: "Aranan kilavuz bulunamadi.",
-    missing_prompt: "Aradiginizi bulamadin mi?",
-    create_ticket: "Destek Talebi Olustur",
-    view_all_docs: "Tüm Kılavuzları Görüntüle (buyerasistans.info/docs)",
-  });
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<Panel>("search");
+  const [open, setOpen]   = useState(false);
+  const [tab, setTab]     = useState<Tab>("articles");
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [cat, setCat]     = useState<string | null>(null);
 
-  const filteredArticles = useMemo(() => {
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return ARTICLES.filter((a) => {
-      const matchQuery = !q || a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q);
-      const matchCat = !activeCategory || a.category === activeCategory;
-      return matchQuery && matchCat;
+      const matchQ   = !q || a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q);
+      const matchCat = !cat || a.category === cat;
+      return matchQ && matchCat;
     });
-  }, [query, activeCategory]);
+  }, [query, cat]);
 
   return (
     <>
-      {/* Floating buton */}
+      {/* FAB */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Yardim merkezi"
-        style={{
-          position: "fixed",
-          bottom: 28,
-          right: 28,
-          zIndex: 9000,
-          width: 52,
-          height: 52,
-          borderRadius: "50%",
-          border: "none",
-          background: open ? "#1d4ed8" : "linear-gradient(135deg, #1d4ed8, #3b82f6)",
-          color: "white",
-          fontSize: 22,
-          fontWeight: 900,
-          cursor: "pointer",
-          boxShadow: "0 8px 24px rgba(29, 78, 216, 0.38)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "all 0.2s",
-        }}
+        aria-label="Yardım merkezi"
+        className={`hc-fab${open ? " hc-fab--open" : ""}`}
       >
-        {open ? "x" : "?"}
+        {open
+          ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        }
       </button>
 
       {/* Panel */}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 92,
-            right: 28,
-            zIndex: 8999,
-            width: 360,
-            maxWidth: "calc(100vw - 40px)",
-            maxHeight: "70vh",
-            borderRadius: 20,
-            background: "white",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 24px 60px rgba(15, 23, 42, 0.18)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          {/* Panel basligi */}
-          <div style={{ padding: "16px 18px 12px", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", color: "#1d4ed8", marginBottom: 4 }}>
-              {t.title}
+        <div className="hc-panel" role="dialog" aria-label="Yardım Merkezi">
+
+          {/* Header */}
+          <div className="hc-header">
+            <div className="hc-header__top">
+              <div className="hc-header__brand">
+                <span className="hc-header__logo">BA</span>
+                <span className="hc-header__name">Buyer Asistans</span>
+              </div>
+              <button type="button" className="hc-header__close" onClick={() => setOpen(false)} aria-label="Kapat">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{t.subtitle}</div>
-            {/* Tab */}
-            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+
+            <p className="hc-header__title">Nasıl yardımcı olabiliriz?</p>
+            <p className="hc-header__sub">Kılavuzlar, destek ve yasal belgeler</p>
+
+            {tab === "articles" && (
+              <div className="hc-searchbar">
+                <span className="hc-searchbar__icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </span>
+                <input
+                  className="hc-searchbar__input"
+                  placeholder="Kılavuzlarda ara..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  autoComplete="off"
+                />
+                {query && (
+                  <button type="button" className="hc-searchbar__clear" onClick={() => setQuery("")}>×</button>
+                )}
+              </div>
+            )}
+
+            <div className="hc-tabs">
               <button
                 type="button"
-                onClick={() => setPanel("search")}
-                style={{ padding: "5px 12px", borderRadius: 8, border: "none", background: panel === "search" ? "#1d4ed8" : "#f1f5f9", color: panel === "search" ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                className={`hc-tab${tab === "articles" ? " hc-tab--active" : ""}`}
+                onClick={() => setTab("articles")}
               >
-                {t.articles_tab}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Makaleler
               </button>
               <button
                 type="button"
-                onClick={() => setPanel("ticket")}
-                style={{ padding: "5px 12px", borderRadius: 8, border: "none", background: panel === "ticket" ? "#1d4ed8" : "#f1f5f9", color: panel === "ticket" ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 12 }}
+                className={`hc-tab${tab === "support" ? " hc-tab--active" : ""}`}
+                onClick={() => setTab("support")}
               >
-                {t.ticket_tab}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Destek Talebi
+              </button>
+              <button
+                type="button"
+                className={`hc-tab${tab === "legal" ? " hc-tab--active" : ""}`}
+                onClick={() => setTab("legal")}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Yasal
               </button>
             </div>
           </div>
 
-          {/* Panel icerigi - kaydirilabilir */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
-            {panel === "search" ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                {/* Arama */}
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={t.search_placeholder}
-                  style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #dbe3ee", color: "#0f172a", background: "#f8fafc", fontSize: 13, width: "100%", boxSizing: "border-box" }}
-                />
+          {/* Body */}
+          <div className="hc-body">
 
+            {/* ── Makaleler ── */}
+            {tab === "articles" && (
+              <div className="hc-articles-panel">
                 {/* Kategori filtreleri */}
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div className="hc-cats">
                   <button
                     type="button"
-                    onClick={() => setActiveCategory(null)}
-                    style={{ padding: "3px 10px", borderRadius: 999, border: "none", background: !activeCategory ? "#1d4ed8" : "#e2e8f0", color: !activeCategory ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 11 }}
+                    className={`hc-cat-btn${!cat ? " hc-cat-btn--active" : ""}`}
+                    onClick={() => setCat(null)}
                   >
-                    {t.all_categories}
+                    Tümü
                   </button>
-                  {CATEGORIES.map((cat) => (
+                  {CATEGORIES.map((c) => (
                     <button
-                      key={cat}
+                      key={c}
                       type="button"
-                      onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
-                      style={{ padding: "3px 10px", borderRadius: 999, border: "none", background: cat === activeCategory ? "#1d4ed8" : "#e2e8f0", color: cat === activeCategory ? "white" : "#334155", fontWeight: 700, cursor: "pointer", fontSize: 11 }}
+                      className={`hc-cat-btn${cat === c ? " hc-cat-btn--active" : ""}`}
+                      onClick={() => setCat(cat === c ? null : c)}
                     >
-                      {cat}
+                      {CAT_ICONS[c] && <span>{CAT_ICONS[c]}</span>}
+                      {c}
                     </button>
                   ))}
                 </div>
 
+                {/* Sonuç sayısı */}
+                {query && (
+                  <div className="hc-result-count">
+                    {filtered.length > 0
+                      ? `${filtered.length} sonuç bulundu`
+                      : "Sonuç bulunamadı"}
+                  </div>
+                )}
+
                 {/* Makale listesi */}
-                {filteredArticles.length === 0 ? (
-                  <div style={{ color: "#64748b", fontSize: 13, padding: "12px 0" }}>
-                    {t.not_found}
+                {filtered.length === 0 ? (
+                  <div className="hc-not-found">
+                    <div className="hc-not-found__icon">🔍</div>
+                    <div>"{query}" için sonuç bulunamadı.</div>
+                    <div className="hc-not-found__hint">Farklı bir kelime deneyin veya destek talebi açın.</div>
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {filteredArticles.map((article) => (
+                  <div className="hc-article-list">
+                    {filtered.map((article) => (
                       <a
                         key={article.id}
                         href={`${DOCS_BASE}/${article.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ borderRadius: 12, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "10px 12px", textDecoration: "none", display: "block", transition: "background 0.15s" }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#eff6ff"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#f8fafc"; }}
+                        className="hc-article-link"
                       >
-                        <div style={{ fontWeight: 700, color: "#1d4ed8", fontSize: 13 }}>{article.title}</div>
-                        <div style={{ color: "#64748b", fontSize: 12, marginTop: 2 }}>{article.summary}</div>
+                        <div className="hc-article-link__icon">{article.icon}</div>
+                        <div className="hc-article-link__content">
+                          <div className="hc-article-link__title">{article.title}</div>
+                          <div className="hc-article-link__summary">{article.summary}</div>
+                        </div>
+                        <div className="hc-article-link__arrow">›</div>
                       </a>
                     ))}
                   </div>
                 )}
 
-                {/* Destek talebi CTA */}
-                <div style={{ borderRadius: 14, border: "1px solid #bfdbfe", background: "#eff6ff", padding: "12px 14px", marginTop: 4 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1e3a8a", marginBottom: 6 }}>
-                    {t.missing_prompt}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setPanel("ticket")}
-                    style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: "#1d4ed8", color: "white", fontWeight: 800, cursor: "pointer", fontSize: 13 }}
-                  >
-                    {t.create_ticket}
+                {/* CTA */}
+                <div className="hc-cta">
+                  <p className="hc-cta__title">Aradığınızı bulamadınız mı?</p>
+                  <p className="hc-cta__sub">Destek ekibimiz ortalama 4 saatte yanıtlıyor.</p>
+                  <button type="button" className="hc-cta__btn" onClick={() => setTab("support")}>
+                    Destek Talebi Oluştur
                   </button>
                 </div>
 
-                {/* Tam dokumantasyon linki */}
-                <a
-                  href={DOCS_BASE}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textAlign: "center", color: "#1d4ed8", fontWeight: 700, fontSize: 12, textDecoration: "underline", display: "block", paddingBottom: 4 }}
-                >
-                  {t.view_all_docs}
+                <a href={DOCS_BASE} target="_blank" rel="noopener noreferrer" className="hc-docs-link">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                  Tüm Kılavuzları Görüntüle (buyerasistans.info/docs)
                 </a>
               </div>
-            ) : (
-              <SupportTicketWidget embed source="help_center" />
+            )}
+
+            {/* ── Destek Talebi ── */}
+            {tab === "support" && (
+              <div className="hc-support-wrapper">
+                <SupportTicketWidget embed source="help_center" />
+              </div>
+            )}
+
+            {/* ── Yasal ── */}
+            {tab === "legal" && (
+              <div className="hc-legal-panel">
+                <p className="hc-legal-section-title">Platform Politikaları</p>
+
+                {LEGAL_DOCS.map((doc) => (
+                  <a key={doc.href} href={doc.href} target="_blank" rel="noopener noreferrer" className="hc-legal-link">
+                    <div className={`hc-legal-link__icon ${doc.colorClass}`}>
+                      {doc.icon}
+                    </div>
+                    <div className="hc-legal-link__content">
+                      <div className="hc-legal-link__title">{doc.title}</div>
+                      <div className="hc-legal-link__sub">{doc.sub}</div>
+                    </div>
+                    <div className="hc-legal-link__arrow">›</div>
+                  </a>
+                ))}
+
+                <div className="hc-legal-contact">
+                  <p className="hc-legal-contact__title">✉️ KVKK & Hukuki İletişim</p>
+                  <div className="hc-legal-contact__row">
+                    <a href="mailto:kvkk@buyerasistans.com.tr">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                      </svg>
+                      kvkk@buyerasistans.com.tr
+                    </a>
+                    <a href="mailto:hukuk@buyerasistans.com.tr">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                      </svg>
+                      hukuk@buyerasistans.com.tr
+                    </a>
+                    <a href="mailto:finans@buyerasistans.com.tr">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                      </svg>
+                      finans@buyerasistans.com.tr (Ödeme / İade)
+                    </a>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

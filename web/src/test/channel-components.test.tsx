@@ -21,7 +21,7 @@ describe("Channel component level coverage", () => {
   it("PartnerSummaryCard ozet metriklerini gosterir", () => {
     render(<PartnerSummaryCard summary={channelPartnerSummaryMock} loading={false} />);
 
-    expect(screen.getByText(/is ortagi ozet karti/i)).toBeInTheDocument();
+    expect(screen.getByText(/İş Ortağı Özet Kartı/)).toBeInTheDocument();
     expect(screen.getByText(/son 30 gun yeni musteri/i)).toBeInTheDocument();
     expect(screen.getByText(/1\.600 ₺/)).toBeInTheDocument();
   });

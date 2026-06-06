@@ -1,0 +1,59 @@
+/* EmailAccountsTab — eat-* namespace */
+.eat-message {
+  color: green;
+  margin-bottom: 8px;
+}
+.eat-table {
+  width: 100%;
+  margin-bottom: 20px;
+  border-collapse: collapse;
+}
+.eat-thead-row {
+  background: #f1f5f9;
+}
+.eat-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+.eat-td--bold {
+  font-weight: bold;
+}
+.eat-td--desc {
+  color: #64748b;
+  font-size: 13px;
+}
+.eat-pwd-input {
+  width: 140px;
+}
+.eat-delete-btn {
+  margin-left: 8px;
+}
+.eat-form-wrap {
+  margin-top: 24px;
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+.eat-form-title {
+  margin-bottom: 12px;
+}
+.eat-form-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.eat-input--email {
+  width: 220px;
+}
+.eat-input--pwd {
+  width: 140px;
+}
+.eat-input--desc {
+  width: 220px;
+}
+.eat-form-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 8px;
+}

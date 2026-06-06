@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import {
   extractTalentError,
@@ -165,7 +166,6 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
               type="checkbox"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              style={{ marginRight: 6 }}
             />
             Profili herkese açık göster
           </label>
@@ -304,7 +304,6 @@ function EditForm({ profile, onSuccess, onCancel }: EditFormProps) {
               type="checkbox"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              style={{ marginRight: 6 }}
             />
             Profili herkese açık göster
           </label>
@@ -469,9 +468,8 @@ function ProfileView({ profile, onProfileUpdate }: ProfileViewProps) {
               </span>
             </div>
             <button
-              className="talent-form__btn talent-form__btn--secondary"
+              className="talent-form__btn talent-form__btn--secondary talent-form__btn--compact"
               onClick={() => setEditing(true)}
-              style={{ padding: "6px 14px", fontSize: 13 }}
             >
               Düzenle
             </button>
@@ -486,7 +484,7 @@ function ProfileView({ profile, onProfileUpdate }: ProfileViewProps) {
             )}
             {profile.is_public && <span className="talent-card__badge">Herkese Açık</span>}
             {profile.linkedin_url && (
-              <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#1d4ed8" }}>
+              <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
                 LinkedIn ↗
               </a>
             )}
@@ -547,8 +545,11 @@ function ProfileView({ profile, onProfileUpdate }: ProfileViewProps) {
 // ---------------------------------------------------------------------------
 
 export default function TalentProfilePage() {
+  const [searchParams] = useSearchParams();
+  const showWelcome = searchParams.get("welcome") === "1";
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+
   const [profile, setProfile] = useState<TalentProfile | null>(null);
-  // null = loading, false = no profile, TalentProfile = loaded
   const [loadState, setLoadState] = useState<"loading" | "no_profile" | "loaded">("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -596,6 +597,22 @@ export default function TalentProfilePage() {
 
   return (
     <div className="talent-page">
+      {showWelcome && !welcomeDismissed && (
+        <div className="talent-page__welcome-banner">
+          <div className="talent-page__welcome-banner__content">
+            <strong>Hesabınız oluşturuldu!</strong>
+            {" "}Profilinizi tamamlayarak iş fırsatlarına erişmeye başlayın.
+          </div>
+          <button
+            type="button"
+            className="talent-page__welcome-banner__close"
+            onClick={() => setWelcomeDismissed(true)}
+            aria-label="Kapat"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <h1 className="talent-page__title">Talent Profilim</h1>
       {error && <div className="talent-page__error">{error}</div>}
 

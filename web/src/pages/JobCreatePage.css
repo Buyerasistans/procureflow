@@ -1,0 +1,244 @@
+.job-create {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.job-create__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.job-create__back-link {
+  font-size: 0.875rem;
+  color: var(--color-primary, #2563eb);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.job-create__back-link:hover {
+  text-decoration: underline;
+}
+
+.job-create__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+.job-create__error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.job-create__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.job-create__section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+.job-create__section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.job-create__row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.job-create__row .job-create__field {
+  flex: 1;
+  min-width: 160px;
+}
+
+.job-create__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.job-create__field:last-child {
+  margin-bottom: 0;
+}
+
+.job-create__row .job-create__field:last-child {
+  margin-bottom: 0;
+}
+
+.job-create__field--narrow {
+  flex: 0 0 140px;
+  min-width: 120px;
+}
+
+.job-create__field--grow {
+  flex: 2;
+}
+
+.job-create__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.job-create__label span {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.job-create__input,
+.job-create__select,
+.job-create__textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.job-create__input:focus,
+.job-create__select:focus,
+.job-create__textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.job-create__textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.job-create__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.job-create__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.job-create__btn--cancel {
+  background: #fff;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.job-create__btn--cancel:hover {
+  background: #f9fafb;
+}
+
+.job-create__btn--submit {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.job-create__btn--submit:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.job-create__btn--submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.job-create__forbidden {
+  max-width: 480px;
+  margin: 4rem auto;
+  text-align: center;
+  color: #6b7280;
+}
+
+.job-create__forbidden p {
+  margin-bottom: 1rem;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .job-create {
+    padding: 1.25rem 1rem;
+  }
+
+  .job-create__section {
+    padding: 1rem 1.25rem;
+  }
+
+  .job-create__row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .job-create__row .job-create__field {
+    min-width: unset;
+    margin-bottom: 1rem;
+  }
+
+  .job-create__field--narrow {
+    flex: unset;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .job-create {
+    padding: 1rem 0.75rem;
+  }
+
+  .job-create__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .job-create__title {
+    font-size: 1.25rem;
+  }
+
+  .job-create__actions {
+    flex-direction: column-reverse;
+  }
+
+  .job-create__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

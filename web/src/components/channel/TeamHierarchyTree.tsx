@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import type { CSSProperties } from "react";
 import type { TeamHierarchyNode } from "../../services/profile.service";
+import "./TeamHierarchyTree.css";
 
 interface TeamHierarchyTreeProps {
   nodes: TeamHierarchyNode[];
@@ -24,7 +26,6 @@ function buildTree(
   nodes: TeamHierarchyNode[],
   rootUserId: number
 ): TeamHierarchyNode[] {
-  // Köke göre DFS sırası
   const childMap: Record<number, TeamHierarchyNode[]> = {};
   for (const node of nodes) {
     const parentKey = node.parent_user_id ?? -1;
@@ -44,7 +45,6 @@ function buildTree(
   }
   visit(rootUserId);
 
-  // Kök bulunamazsa düz liste döndür
   if (ordered.length === 0) return nodes;
   return ordered;
 }
@@ -57,92 +57,40 @@ interface NodeRowProps {
 }
 
 function NodeRow({ node, hasChildren, isExpanded, onToggle }: NodeRowProps) {
-  const roleLabel =
-    ROLE_LABELS[node.role_profile_code] ?? node.role_profile_code;
+  const roleLabel = ROLE_LABELS[node.role_profile_code] ?? node.role_profile_code;
   const roleColor = ROLE_COLORS[node.role_profile_code] ?? "#6b7280";
   const indent = node.depth * 24;
 
   return (
     <div
       data-testid="hierarchy-node"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "6px 4px",
-        borderBottom: "1px solid #f3f4f6",
-        paddingLeft: indent + 4,
-      }}
+      className="tht-node"
+      style={{ "--tht-indent": (indent + 4) + "px" } as CSSProperties}
     >
-      {/* Genişlet/Daralt butonu */}
       <button
         onClick={hasChildren ? onToggle : undefined}
         aria-label={hasChildren ? (isExpanded ? "Daralt" : "Genislet") : undefined}
-        style={{
-          width: 20,
-          height: 20,
-          border: "none",
-          background: "transparent",
-          cursor: hasChildren ? "pointer" : "default",
-          color: hasChildren ? "#6b7280" : "transparent",
-          fontSize: 12,
-          lineHeight: 1,
-          padding: 0,
-          flexShrink: 0,
-        }}
+        className={`tht-toggle-btn${hasChildren ? " tht-toggle-btn--has-children" : ""}`}
       >
         {hasChildren ? (isExpanded ? "▼" : "▶") : "•"}
       </button>
 
-      {/* Rol etiketi */}
       <span
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          color: "#fff",
-          backgroundColor: roleColor,
-          borderRadius: 4,
-          padding: "2px 6px",
-          whiteSpace: "nowrap",
-          flexShrink: 0,
-        }}
+        className="tht-role-badge"
+        style={{ "--tht-role-color": roleColor } as CSSProperties}
       >
         {roleLabel}
       </span>
 
-      {/* İsim */}
-      <span
-        style={{
-          fontSize: 13,
-          fontWeight: node.depth === 0 ? 700 : 400,
-          color: node.is_active ? "#111827" : "#9ca3af",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          flex: 1,
-        }}
-      >
+      <span className={`tht-name${node.depth === 0 ? " tht-name--root" : ""}${!node.is_active ? " tht-name--inactive" : ""}`}>
         {node.display_name}
         {!node.is_active && (
-          <span style={{ marginLeft: 6, fontSize: 10, color: "#ef4444" }}>
-            (pasif)
-          </span>
+          <span className="tht-pasif-badge">(pasif)</span>
         )}
       </span>
 
-      {/* Referral sayısı */}
       {node.referral_count > 0 && (
-        <span
-          style={{
-            fontSize: 11,
-            color: "#047857",
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
-        >
-          {node.referral_count} referral
-        </span>
+        <span className="tht-referral">{node.referral_count} referral</span>
       )}
     </div>
   );
@@ -151,7 +99,6 @@ function NodeRow({ node, hasChildren, isExpanded, onToggle }: NodeRowProps) {
 export function TeamHierarchyTree({ nodes, rootUserId }: TeamHierarchyTreeProps) {
   const orderedNodes = buildTree(nodes, rootUserId);
 
-  // expandedSet — collapsed olan node'ların child'larını gizler
   const [collapsedIds, setCollapsedIds] = useState<Set<number>>(new Set());
 
   const childMap: Record<number, boolean> = {};
@@ -174,7 +121,6 @@ export function TeamHierarchyTree({ nodes, rootUserId }: TeamHierarchyTreeProps)
   }
 
   function isHidden(node: TeamHierarchyNode): boolean {
-    // Kendi üst zincirinde collapsed olan varsa gizle
     let current = node.parent_user_id;
     while (current !== null && current !== undefined) {
       if (collapsedIds.has(current)) return true;
@@ -185,23 +131,11 @@ export function TeamHierarchyTree({ nodes, rootUserId }: TeamHierarchyTreeProps)
   }
 
   if (orderedNodes.length === 0) {
-    return (
-      <p style={{ color: "#9ca3af", fontSize: 13 }}>
-        Henüz ekip üyesi yok.
-      </p>
-    );
+    return <p className="tht-empty">Henüz ekip üyesi yok.</p>;
   }
 
   return (
-    <div
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 8,
-        overflow: "hidden",
-        fontSize: 13,
-      }}
-      aria-label="Ekip Hiyerarsi Agaci"
-    >
+    <div className="tht-tree" aria-label="Ekip Hiyerarsi Agaci">
       {orderedNodes.map((node) =>
         isHidden(node) ? null : (
           <NodeRow

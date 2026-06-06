@@ -187,8 +187,8 @@ describe("RoleDepartmentGovernanceTab", () => {
 
     expect(screen.getByRole("button", { name: /stratejik partner rolleri/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /super admin ve panel personelleri/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /tedarikci rolleri/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /is ortagi rolleri/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tedarikçi Rolleri/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /İş Ortağı Rolleri/ })).not.toBeInTheDocument();
 
     const companySelector = await screen.findByRole("combobox");
     expect(companySelector).toBeInTheDocument();
@@ -224,9 +224,9 @@ describe("RoleDepartmentGovernanceTab", () => {
       />,
     );
 
-    expect(await screen.findByText(/ust rol: partner ana yonetici/i)).toBeInTheDocument();
-    // id/ust/alt rol info is split across elements - check individually
-    expect(screen.getByText(/kok/i)).toBeInTheDocument();
+    expect(await screen.findByText(/üst rol: partner ana yonetici/i)).toBeInTheDocument();
+    // id/üst/alt rol info is split across elements - check individually
+    expect(screen.getByText(/Kök/)).toBeInTheDocument();
     expect(screen.getByText(/endirek satin alma/i)).toBeInTheDocument();
     expect(screen.getByText(/teknik satin alma/i)).toBeInTheDocument();
   });
@@ -260,7 +260,7 @@ describe("RoleDepartmentGovernanceTab", () => {
     await user.type(screen.getByLabelText(/rol adi/i), "Kategori Lideri");
     await user.selectOptions(screen.getByLabelText(/hiyerarsi konumu/i), "1");
     await user.click(screen.getByLabelText(/rol yonetimi/i));
-    await user.click(screen.getByRole("button", { name: /rolu kaydet/i }));
+    await user.click(screen.getByRole("button", { name: /Rolü Kaydet/ }));
 
     await waitFor(() => {
       expect(getPermissions).toHaveBeenCalled();
@@ -295,13 +295,13 @@ describe("RoleDepartmentGovernanceTab", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /tedarikci rolleri/i }));
+    await user.click(screen.getByRole("button", { name: /Tedarikçi Rolleri/ }));
     const supplierCompanySelect = await screen.findByRole("combobox");
     expect(screen.getByRole("option", { name: /supplier company/i })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /channel company/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /procureflow demo tenant ltd/i })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /is ortagi rolleri/i }));
+    await user.click(screen.getByRole("button", { name: /İş Ortağı Rolleri/ }));
     expect(supplierCompanySelect).toBeInTheDocument();
     expect(screen.getByRole("option", { name: /channel company/i })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /supplier company/i })).not.toBeInTheDocument();

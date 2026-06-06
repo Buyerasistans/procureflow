@@ -368,10 +368,10 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
 
                         <div className="quote-list__card-footer">
                           <Link to={`/quotes/${quote.id}`} className="quote-list__link">
-                            Görüntüle
+                            Goruntule
                           </Link>
                           <Link to={`/quotes/${quote.id}/comparison`} className="quote-list__link quote-list__link--secondary">
-                            Karşılaştırma
+                            Karsilastirma
                           </Link>
                           <span className="quote-list__date">{new Date(quote.created_at).toLocaleDateString("tr-TR")}</span>
                         </div>
@@ -460,7 +460,7 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
                       <td className="quote-list__table-td quote-list__table-td--center">
                         <div className="quote-list__actions">
                           <Link to={`/quotes/${quote.id}`} className="quote-list__link">
-                            Görüntüle
+                            Goruntule
                           </Link>
                           {canManageQuotes ? (
                             <>

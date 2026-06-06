@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { http } from "../lib/http";
+import "./TrialStatusWidget.css";
 
 interface TrialStatus {
   tenant_id: number;
@@ -54,51 +56,15 @@ export function TrialStatusWidget({ tenantId, onTrialEnding }: TrialStatusWidget
   };
 
   if (loading) {
-    return (
-      <div
-        style={{
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#f3f4f6",
-          color: "#6b7280",
-          textAlign: "center",
-        }}
-      >
-        Yükleniyor...
-      </div>
-    );
+    return <div className="tsw-loading">Yükleniyor...</div>;
   }
 
   if (error || !trialStatus) {
-    return (
-      <div
-        style={{
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#fee2e2",
-          color: "#991b1b",
-          fontSize: "14px",
-        }}
-      >
-        {error || "Trial durumu gösterilemiyor"}
-      </div>
-    );
+    return <div className="tsw-error">{error || "Trial durumu gösterilemiyor"}</div>;
   }
 
   if (!trialStatus.is_trial_active) {
-    return (
-      <div
-        style={{
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#dbeafe",
-          color: "#0c4a6e",
-          fontSize: "14px",
-        }}
-      >
-        Trial dönemini tamamladınız. Aboneliğiniz aktif durumda.
-      </div>
-    );
+    return <div className="tsw-inactive">Trial dönemini tamamladınız. Aboneliğiniz aktif durumda.</div>;
   }
 
   const progressPercent = (
@@ -108,242 +74,79 @@ export function TrialStatusWidget({ tenantId, onTrialEnding }: TrialStatusWidget
   const isEnding = trialStatus.days_remaining <= 3;
   const isVeryEnding = trialStatus.days_remaining <= 1;
 
+  const cardClass = `tsw-card${isVeryEnding ? " tsw-card--very-ending" : isEnding ? " tsw-card--ending" : ""}`;
+  const daysClass = `tsw-days-count${isVeryEnding ? " tsw-days-count--very-ending" : isEnding ? " tsw-days-count--ending" : ""}`;
+  const fillClass = `tsw-progress-fill${isVeryEnding ? " tsw-progress-fill--very-ending" : isEnding ? " tsw-progress-fill--ending" : ""}`;
+
   return (
-    <div
-      style={{
-        borderRadius: "8px",
-        backgroundColor: isVeryEnding ? "#fef2f2" : isEnding ? "#fffbeb" : "#f0fdf4",
-        border: `1px solid ${
-          isVeryEnding ? "#fecaca" : isEnding ? "#fde68a" : "#bbf7d0"
-        }`,
-        padding: "16px",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "start",
-          marginBottom: "12px",
-        }}
-      >
+    <div className={cardClass}>
+      <div className="tsw-header">
         <div>
-          <h3
-            style={{
-              margin: "0 0 4px 0",
-              fontSize: "16px",
-              fontWeight: "600",
-              color: "#1f2937",
-            }}
-          >
-            🎉 Trial Dönem
-          </h3>
-          <p style={{ margin: 0, fontSize: "13px", color: "#6b7280" }}>
+          <h3 className="tsw-header__title">🎉 Trial Dönem</h3>
+          <p className="tsw-header__dates">
             {trialStatus.trial_start_date} - {trialStatus.trial_end_date}
           </p>
         </div>
-        <div
-          style={{
-            textAlign: "right",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "28px",
-              fontWeight: "700",
-              color: isVeryEnding ? "#dc2626" : isEnding ? "#d97706" : "#16a34a",
-              margin: "0 0 4px 0",
-            }}
-          >
-            {trialStatus.days_remaining}
-          </div>
-          <div style={{ fontSize: "12px", color: "#6b7280" }}>
-            gün kaldı
-          </div>
+        <div className="tsw-header__right">
+          <div className={daysClass}>{trialStatus.days_remaining}</div>
+          <div className="tsw-days-label">gün kaldı</div>
         </div>
       </div>
 
-      {/* Warning Messages */}
       {isVeryEnding && (
-        <div
-          style={{
-            marginBottom: "12px",
-            padding: "8px 12px",
-            backgroundColor: "#fee2e2",
-            borderRadius: "4px",
-            color: "#991b1b",
-            fontSize: "13px",
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-          }}
-        >
+        <div className="tsw-warn tsw-warn--urgent">
           <span>⚠️</span>
-          <span>
-            Trial dönemi sona geliyor. Lütfen ödeme yönteminizi güncelleyin.
-          </span>
+          <span>Trial dönemi sona geliyor. Lütfen ödeme yönteminizi güncelleyin.</span>
         </div>
       )}
       {isEnding && !isVeryEnding && (
-        <div
-          style={{
-            marginBottom: "12px",
-            padding: "8px 12px",
-            backgroundColor: "#fef3c7",
-            borderRadius: "4px",
-            color: "#92400e",
-            fontSize: "13px",
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-          }}
-        >
+        <div className="tsw-warn tsw-warn--ending">
           <span>ℹ️</span>
-          <span>
-            {trialStatus.days_remaining} günde trial bitecek ve abonelik başlayacak.
-          </span>
+          <span>{trialStatus.days_remaining} günde trial bitecek ve abonelik başlayacak.</span>
         </div>
       )}
 
-      {/* Progress Bar */}
-      <div style={{ marginBottom: "16px" }}>
-        <div
-          style={{
-            height: "6px",
-            backgroundColor: "#e5e7eb",
-            borderRadius: "3px",
-            overflow: "hidden",
-          }}
-        >
+      <div className="tsw-progress-wrap">
+        <div className="tsw-progress-track">
           <div
-            style={{
-              height: "100%",
-              backgroundColor: isVeryEnding ? "#dc2626" : isEnding ? "#d97706" : "#10b981",
-              width: `${progressPercent}%`,
-              transition: "width 0.3s ease",
-            }}
+            className={fillClass}
+            style={{ "--tsw-fill-w": `${progressPercent}%` } as CSSProperties}
           />
         </div>
       </div>
 
-      {/* Current Limits */}
-      <div style={{ marginBottom: "12px" }}>
-        <h4
-          style={{
-            margin: "0 0 8px 0",
-            fontSize: "13px",
-            fontWeight: "600",
-            color: "#1f2937",
-            textTransform: "uppercase",
-          }}
-        >
-          Trial Süresi Limitler
-        </h4>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+      <div className="tsw-limits">
+        <h4 className="tsw-limits__title">Trial Süresi Limitler</h4>
+        <div className="tsw-limits__grid">
           {Object.entries(trialStatus.trial_limits).map(([key, value]) => (
-            <div
-              key={key}
-              style={{
-                padding: "8px",
-                backgroundColor: "#f3f4f6",
-                borderRadius: "4px",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  color: "#1f2937",
-                  margin: "0 0 4px 0",
-                }}
-              >
-                {value}
-              </div>
-              <div style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
-                {key === "suppliers"
-                  ? "Tedarikçi"
-                  : key === "projects"
-                    ? "Proje"
-                    : "Kullanıcı"}
+            <div key={key} className="tsw-limit-card">
+              <div className="tsw-limit-card__value">{value}</div>
+              <div className="tsw-limit-card__label">
+                {key === "suppliers" ? "Tedarikçi" : key === "projects" ? "Proje" : "Kullanıcı"}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Post-Trial Limits Preview */}
-      <div style={{ paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.1)" }}>
-        <h4
-          style={{
-            margin: "0 0 8px 0",
-            fontSize: "13px",
-            fontWeight: "600",
-            color: "#1f2937",
-            textTransform: "uppercase",
-          }}
-        >
-          Abonelik Sonrası Limitler
-        </h4>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+      <div className="tsw-section">
+        <h4 className="tsw-limits__title">Abonelik Sonrası Limitler</h4>
+        <div className="tsw-limits__grid">
           {Object.entries(trialStatus.post_trial_limits).map(([key, value]) => (
-            <div
-              key={key}
-              style={{
-                padding: "8px",
-                backgroundColor: "#f0fdf4",
-                borderRadius: "4px",
-                textAlign: "center",
-                border: "1px solid #bbf7d0",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  color: "#16a34a",
-                  margin: "0 0 4px 0",
-                }}
-              >
+            <div key={key} className="tsw-limit-card tsw-limit-card--post">
+              <div className="tsw-limit-card__value tsw-limit-card__value--post">
                 {value === Infinity ? "∞" : value}
               </div>
-              <div style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
-                {key === "suppliers"
-                  ? "Tedarikçi"
-                  : key === "projects"
-                    ? "Proje"
-                    : "Kullanıcı"}
+              <div className="tsw-limit-card__label">
+                {key === "suppliers" ? "Tedarikçi" : key === "projects" ? "Proje" : "Kullanıcı"}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* CTA */}
-      <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.1)" }}>
-        <button
-          style={{
-            width: "100%",
-            padding: "10px 16px",
-            backgroundColor: "#4f46e5",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            fontWeight: "600",
-            fontSize: "14px",
-            cursor: "pointer",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              "#4338ca";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              "#4f46e5";
-          }}
-        >
+      <div className="tsw-section--top">
+        <button className="tsw-cta-btn">
           → Premium Özellik Satın Al
         </button>
       </div>

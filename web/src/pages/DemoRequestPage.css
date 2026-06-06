@@ -1,0 +1,211 @@
+/* DemoRequestPage.css — namespace: drp-* */
+
+/* ── Root ── */
+.drp-root {
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: #f0fdf4;
+}
+
+.drp-root--supplier { background: #f0f9ff; }
+
+/* ── Hero ── */
+.drp-hero {
+  background: linear-gradient(135deg, #112a25 0%, #1e4a3d 100%);
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.drp-root--supplier .drp-hero {
+  background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 100%);
+}
+
+.drp-hero-inner { max-width: 700px; margin: 0 auto; }
+
+.drp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #D4AF37;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.drp-root--supplier .drp-hero-badge {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.35);
+  color: #0ea5e9;
+}
+
+.drp-hero-h1 {
+  margin: 0 0 10px;
+  font-size: clamp(22px, 4vw, 36px);
+  font-weight: 900;
+  color: #fff;
+}
+
+.drp-hero-lead { margin: 0; color: rgba(255, 255, 255, 0.75); font-size: 15px; line-height: 1.6; }
+
+/* ── Mode switcher ── */
+.drp-mode-row {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.drp-mode-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.drp-mode-btn--strategic-active { background: #D4AF37; color: #112a25; border: none; }
+.drp-mode-btn--supplier-active  { background: #0ea5e9; color: #fff;    border: none; }
+
+/* ── Content grid ── */
+.drp-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* ── Description article ── */
+.drp-desc-article {
+  background: #fff;
+  border: 1px solid #dcfce7;
+  border-left: 4px solid #D4AF37;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.drp-root--supplier .drp-desc-article {
+  border-color: #e0f2fe;
+  border-left-color: #0ea5e9;
+}
+
+.drp-article-h2 { margin-top: 0; font-size: 20px; color: #0f172a; font-weight: 900; }
+
+.drp-scope-list { margin: 0 0 16px; padding-left: 20px; line-height: 2; font-size: 14px; color: #334155; }
+
+.drp-scope-info {
+  background: #f0fdf4;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.drp-root--supplier .drp-scope-info { background: #f0f9ff; }
+
+/* ── Form article ── */
+.drp-form-article {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Summary box ── */
+.drp-summary-box {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  padding: 14px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.drp-root--supplier .drp-summary-box { border-color: #bae6fd; background: #f0f9ff; }
+
+.drp-summary-note { margin-top: 6px; }
+
+/* ── Sent confirmation ── */
+.drp-sent {
+  background: #ecfdf5;
+  border: 1px solid #86efac;
+  color: #166534;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ── Form inputs ── */
+.drp-form { display: grid; gap: 10px; }
+
+.drp-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.drp-textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.drp-form-error {
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.drp-submit-btn {
+  background: linear-gradient(135deg, #112a25 0%, #1e4a3d 100%);
+  color: #D4AF37;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.drp-root--supplier .drp-submit-btn {
+  background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 100%);
+  color: #0ea5e9;
+}
+
+/* ── Footer ── */
+.drp-footer {
+  background: #112a25;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+}
+
+.drp-root--supplier .drp-footer { background: #1a3a5c; }

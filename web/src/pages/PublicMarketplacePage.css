@@ -1,0 +1,274 @@
+/* PublicMarketplacePage.css — namespace: pmp-* */
+
+/* ── Root ── */
+.pmp-root {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Main ── */
+.pmp-main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+}
+
+/* ── Section Header Card ── */
+.pmp-section-header {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.pmp-title   { margin: 0; font-size: 30px; color: #0f172a; }
+.pmp-subtitle { margin-top: 8px; color: #64748b; }
+
+/* ── View Toggle ── */
+.pmp-view-toggle {
+  margin-top: 12px;
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pmp-view-btn {
+  border: none;
+  background: #fff;
+  color: #334155;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pmp-view-btn--active { background: #1d4ed8; color: #fff; }
+
+/* ── Grid Section ── */
+.pmp-section-grid {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.pmp-section-grid--list  { grid-template-columns: 1fr; }
+.pmp-section-grid--cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+/* ── Offer Message Banner ── */
+.pmp-offer-msg {
+  grid-column: 1 / -1;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 12px;
+  color: #9a3412;
+}
+
+.pmp-offer-msg-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pmp-offer-login-link {
+  background: #1d4ed8;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.pmp-offer-upgrade-link {
+  background: #0f766e;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.pmp-offer-close-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+/* ── Article Card ── */
+.pmp-article {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+/* ── Offers mode row ── */
+.pmp-row-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pmp-info { min-width: 0; }
+
+.pmp-offer-title  { font-weight: 800; color: #0f172a; text-align: left; }
+.pmp-offer-meta   { color: #475569; margin-top: 6px; text-align: left; }
+.pmp-offer-city   { color: #64748b; margin-top: 4px; text-align: left; }
+.pmp-offer-stats  { margin-top: 8px; color: #0b5d4a; font-weight: 700; text-align: left; }
+
+.pmp-offer-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pmp-files-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pmp-offer-btn {
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pmp-offer-btn--allowed { border: 1px solid #16a34a; background: #16a34a; color: #fff; }
+.pmp-offer-btn--blocked { border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; }
+
+.pmp-bidders-btn {
+  border: 1px solid #334155;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.pmp-file-list {
+  margin-top: 8px;
+  padding-left: 18px;
+  color: #475569;
+  font-size: 13px;
+}
+
+/* ── Avatar ── */
+.pmp-avatar {
+  border-radius: 10px;
+  border: 1px solid #dbe2ef;
+  flex-shrink: 0;
+}
+
+.pmp-avatar--lg { width: 72px; height: 72px; }
+.pmp-avatar--sm { width: 54px; height: 54px; }
+
+.pmp-avatar-img {
+  object-fit: contain;
+  background: #fff;
+}
+
+.pmp-avatar-initials {
+  background: linear-gradient(135deg, #0f172a, #1d4ed8);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.pmp-avatar--lg.pmp-avatar-initials { font-size: 27px; }
+.pmp-avatar--sm.pmp-avatar-initials { font-size: 20px; }
+
+/* ── Entity (suppliers / strategic / channels) ── */
+.pmp-entity-header {
+  display: flex;
+  gap: 12px;
+}
+
+.pmp-entity-header--list {
+  align-items: center;
+  flex-direction: row;
+}
+
+.pmp-entity-header--grid {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.pmp-entity-name {
+  font-weight: 800;
+  color: #0f172a;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.25;
+}
+
+.pmp-entity-name--list { max-width: 420px; }
+.pmp-entity-name--grid { max-width: 100%; }
+
+.pmp-entity-meta  { color: #475569; margin-top: 6px; }
+.pmp-entity-score { margin-top: 4px; color: #0b5d4a; font-weight: 700; }
+
+/* ── Bidder Modal ── */
+.pmp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.pmp-modal {
+  width: min(560px, 100%);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  padding: 14px;
+}
+
+.pmp-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pmp-modal-title {
+  font-weight: 800;
+  color: #1e3a8a;
+  font-size: 20px;
+}
+
+.pmp-modal-close-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.pmp-modal-list {
+  margin-top: 12px;
+  margin-bottom: 0;
+  padding-left: 18px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.8;
+}

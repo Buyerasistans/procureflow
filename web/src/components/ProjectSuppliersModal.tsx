@@ -1,195 +1,7 @@
 import { useState, useEffect } from "react";
-import styled from "styled-components";
 import { http } from "../lib/http";
 import type { Supplier as SupplierRecord } from "../types/supplier";
-
-const Backdrop = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const Modal = styled.div`
-  background-color: white;
-  padding: 30px;
-  border-radius: 8px;
-  max-width: 700px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-
-  h3 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 18px;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-
-  h2 {
-    margin: 0;
-    font-size: 20px;
-  }
-`;
-
-const CloseButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-
-  &:hover {
-    color: #333;
-  }
-`;
-
-const FilterSection = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-
-  button {
-    padding: 8px 16px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-    font-size: 13px;
-
-    &.active {
-      background-color: #3b82f6;
-      color: white;
-      border-color: #3b82f6;
-    }
-
-    &:hover:not(.active) {
-      background-color: #f0f0f0;
-    }
-  }
-`;
-
-const SupplierList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-`;
-
-const SupplierItem = styled.label<{ selected?: boolean }>`
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border: 2px solid ${(props) => (props.selected ? "#3b82f6" : "#e0e0e0")};
-  border-radius: 4px;
-  background-color: ${(props) => (props.selected ? "#f0f7ff" : "white")};
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: #3b82f6;
-  }
-
-  input {
-    margin-right: 12px;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-  }
-`;
-
-const SupplierInfo = styled.div`
-  flex: 1;
-
-  .name {
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-
-  .details {
-    font-size: 13px;
-    color: #666;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
-
-  button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-
-    &.send {
-      background-color: #3b82f6;
-      color: white;
-
-      &:hover {
-        background-color: #2563eb;
-      }
-
-      &:disabled {
-        background-color: #9ca3af;
-        cursor: not-allowed;
-      }
-    }
-
-    &.cancel {
-      background-color: #e5e7eb;
-      color: #333;
-
-      &:hover {
-        background-color: #d1d5db;
-      }
-    }
-  }
-`;
-
-const LoadingMessage = styled.div`
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-  padding: 20px;
-`;
-
-const ErrorMessage = styled.div`
-  background-color: #fee2e2;
-  color: #991b1b;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-`;
-
-const SuccessMessage = styled.div`
-  background-color: #d1fae5;
-  color: #065f46;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-`;
+import "./ProjectSuppliersModal.css";
 
 type SupplierSourceType = "all" | "private" | "platform_network";
 
@@ -292,42 +104,46 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
   };
 
   return (
-    <Backdrop onClick={onClose}>
-      <Modal onClick={(e) => e.stopPropagation()}>
-        <Header>
+    <div className="psm-backdrop" onClick={onClose}>
+      <div className="psm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="psm-header">
           <h2>📧 Projeye Tedarikçi Ekle</h2>
-          <CloseButton onClick={onClose}>✕</CloseButton>
-        </Header>
+          <button type="button" className="psm-close" onClick={onClose}>✕</button>
+        </div>
 
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        {success && <SuccessMessage>{success}</SuccessMessage>}
+        {error && <div className="psm-msg psm-msg--error">{error}</div>}
+        {success && <div className="psm-msg psm-msg--success">{success}</div>}
 
         <h3>Kaynak Seç</h3>
-        <FilterSection>
+        <div className="psm-filters">
           <button
-            className={selectedSourceType === "all" ? "active" : ""}
+            type="button"
+            className={`psm-filter-btn${selectedSourceType === "all" ? " psm-filter-btn--active" : ""}`}
             onClick={() => setSelectedSourceType("all")}
           >
             Tümü ({sourceSummary.all})
           </button>
           <button
-            className={selectedSourceType === "private" ? "active" : ""}
+            type="button"
+            className={`psm-filter-btn${selectedSourceType === "private" ? " psm-filter-btn--active" : ""}`}
             onClick={() => setSelectedSourceType("private")}
           >
             Private Supplier ({sourceSummary.private})
           </button>
           <button
-            className={selectedSourceType === "platform_network" ? "active" : ""}
+            type="button"
+            className={`psm-filter-btn${selectedSourceType === "platform_network" ? " psm-filter-btn--active" : ""}`}
             onClick={() => setSelectedSourceType("platform_network")}
           >
             Platform Ağı ({sourceSummary.platform_network})
           </button>
-        </FilterSection>
+        </div>
 
         <h3>Kategori Seç (Opsiyonel)</h3>
-        <FilterSection>
+        <div className="psm-filters">
           <button
-            className={!selectedCategory ? "active" : ""}
+            type="button"
+            className={`psm-filter-btn${!selectedCategory ? " psm-filter-btn--active" : ""}`}
             onClick={() => setSelectedCategory(null)}
           >
             Tümü ({suppliers.filter((s) => s.is_active).length})
@@ -335,34 +151,35 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
           {categories.map((cat) => (
             <button
               key={cat}
-              className={selectedCategory === cat ? "active" : ""}
+              type="button"
+              className={`psm-filter-btn${selectedCategory === cat ? " psm-filter-btn--active" : ""}`}
               onClick={() => setSelectedCategory(cat)}
             >
               {cat} ({suppliers.filter((s) => getSupplierCategories(s).includes(cat) && s.is_active).length})
             </button>
           ))}
-        </FilterSection>
+        </div>
 
         <h3>Tedarikçileri Seç</h3>
         {loading ? (
-          <LoadingMessage>Tedarikçiler yükleniyor...</LoadingMessage>
+          <div className="psm-loading">Tedarikçiler yükleniyor...</div>
         ) : filteredSuppliers.length === 0 ? (
-          <LoadingMessage>Bu kategoride tedarikçi bulunamadı</LoadingMessage>
+          <div className="psm-loading">Bu kategoride tedarikçi bulunamadı</div>
         ) : (
-          <SupplierList>
+          <div className="psm-supplier-list">
             {filteredSuppliers.map((supplier) => (
-              <SupplierItem
+              <label
                 key={supplier.id}
-                selected={selectedSuppliers.includes(supplier.id)}
+                className={`psm-supplier-item${selectedSuppliers.includes(supplier.id) ? " psm-supplier-item--selected" : ""}`}
               >
                 <input
                   type="checkbox"
                   checked={selectedSuppliers.includes(supplier.id)}
                   onChange={() => handleSelectSupplier(supplier.id)}
                 />
-                <SupplierInfo>
-                  <div className="name">{supplier.company_name}</div>
-                  <div className="details">
+                <div className="psm-supplier-info">
+                  <div className="psm-supplier-info__name">{supplier.company_name}</div>
+                  <div className="psm-supplier-info__details">
                     <div>📧 {supplier.email}</div>
                     <div>📞 {supplier.phone}</div>
                     {getSupplierCategories(supplier).length > 0 && <div>📂 {getSupplierCategories(supplier).join(", ")}</div>}
@@ -372,25 +189,26 @@ export function ProjectSuppliersModal({ projectId, onClose, onSuccess }: Project
                         : "🏢 Private Supplier"}
                     </div>
                   </div>
-                </SupplierInfo>
-              </SupplierItem>
+                </div>
+              </label>
             ))}
-          </SupplierList>
+          </div>
         )}
 
-        <ActionButtons>
-          <button className="cancel" onClick={onClose}>
+        <div className="psm-actions">
+          <button type="button" className="psm-action-btn psm-action-btn--cancel" onClick={onClose}>
             İptal
           </button>
           <button
-            className="send"
+            type="button"
+            className="psm-action-btn psm-action-btn--send"
             onClick={handleSendInvitations}
             disabled={selectedSuppliers.length === 0 || sending}
           >
             {sending ? "Gönderiliyor..." : `Davetiye Gönder (${selectedSuppliers.length})`}
           </button>
-        </ActionButtons>
-      </Modal>
-    </Backdrop>
+        </div>
+      </div>
+    </div>
   );
 }

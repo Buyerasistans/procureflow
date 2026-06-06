@@ -1,7 +1,7 @@
 ---
 title: Payment & Billing Domain
 owned_by: backend+finance
-last_verified_at: 2026-05-21
+last_verified_at: 2026-06-05
 confidence: 0.70
 stale_after_days: 10
 source_files:

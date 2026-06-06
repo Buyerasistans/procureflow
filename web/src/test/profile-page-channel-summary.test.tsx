@@ -103,7 +103,7 @@ describe("ProfilePage channel summary cards", () => {
 
     render(<ProfilePage />);
 
-    await waitFor(() => expect(screen.getByText(/is ortagi ozet karti/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/İş Ortağı Özet Kartı/)).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText("11")).toBeInTheDocument());
     expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByText(/son 30 gun yeni musteri/i)).toBeInTheDocument();
@@ -145,7 +145,7 @@ describe("ProfilePage channel summary cards", () => {
     render(<ProfilePage />);
 
     await waitFor(() => expect(screen.getByText(/temel bilgiler/i)).toBeInTheDocument());
-    expect(screen.queryByText(/is ortagi ozet karti/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/İş Ortağı Özet Kartı/)).not.toBeInTheDocument();
     expect(mockGetChannelProfileSummary).not.toHaveBeenCalled();
     expect(mockGetChannelReferralLinks).not.toHaveBeenCalled();
     expect(mockGetChannelConversionMetrics).not.toHaveBeenCalled();

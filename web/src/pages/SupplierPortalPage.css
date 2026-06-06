@@ -1,0 +1,100 @@
+/* SupplierPortalPage.css — spp-* namespace */
+
+.spp-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+}
+
+.spp-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.spp-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 40px;
+  text-align: center;
+}
+
+.spp-header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.spp-header p {
+  margin: 10px 0 0;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+.spp-content {
+  padding: 40px;
+}
+
+.spp-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.spp-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.spp-loading__icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+/* ── Stats grid ── */
+.spp-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.spp-stat-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.spp-stat-card__number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.spp-stat-card__label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .spp-header {
+    padding: 24px 20px;
+  }
+
+  .spp-header h1 {
+    font-size: 24px;
+  }
+
+  .spp-content {
+    padding: 20px;
+  }
+}

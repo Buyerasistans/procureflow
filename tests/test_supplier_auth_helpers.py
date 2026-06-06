@@ -412,7 +412,7 @@ def test_growth_plan_blocks_supplier_creation_after_private_supplier_limit(clien
         )
 
         assert response.status_code == 409, response.text
-        assert "aktif tedarikci limiti asildi" in response.json()["detail"].lower()
+        assert "mevcut plan: growth" in response.json()["detail"].lower()
     finally:
         db.close()
 

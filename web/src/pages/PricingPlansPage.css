@@ -1,0 +1,94 @@
+/* PricingPlansPage.css — namespace: ppp-* */
+
+/* ── Root ── */
+.ppp-root {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #ecfeff, #f8fafc);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Main / container ── */
+.ppp-main      { padding: 42px 20px; }
+.ppp-container { max-width: 1080px; margin: 0 auto; }
+
+/* ── Page header ── */
+.ppp-h1   { font-size: 38px; color: #0f172a; margin-bottom: 8px; }
+.ppp-lead { color: #475569; margin-bottom: 24px; line-height: 1.7; }
+
+/* ── Sections ── */
+.ppp-section    { margin-bottom: 24px; }
+.ppp-section-h2 { color: #0f172a; margin-bottom: 12px; }
+
+/* ── Plan grid ── */
+.ppp-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+/* ── Plan card ── */
+.ppp-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ppp-card--featured-strategic { border: 2px solid #0f766e; }
+.ppp-card--featured-supplier  { border: 2px solid #0284c7; }
+
+/* ── Plan content ── */
+.ppp-plan-h3   { margin: 0; color: #0f172a; font-size: 22px; }
+.ppp-plan-desc { color: #475569; font-size: 14px; margin-top: 8px; }
+
+.ppp-plan-price--strategic { color: #064e3b; font-weight: 800; margin-top: 6px; }
+.ppp-plan-price--supplier  { color: #0c4a6e; font-weight: 800; margin-top: 6px; }
+
+.ppp-plan-features { padding-left: 18px; color: #334155; font-size: 14px; line-height: 1.6; }
+
+/* ── Button row ── */
+.ppp-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+/* ── Buttons ── */
+.ppp-btn-primary {
+  background: #0f766e;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.ppp-btn-supplier {
+  background: #0284c7;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.ppp-btn-outline {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+/* ── Info box ── */
+.ppp-info-box {
+  margin-top: 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.ppp-info-h2 { margin-top: 0; color: #0f172a; }
+.ppp-info-p  { color: #475569; font-size: 14px; line-height: 1.7; margin: 0; }

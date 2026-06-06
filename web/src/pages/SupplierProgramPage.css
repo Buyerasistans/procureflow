@@ -1,0 +1,406 @@
+/* SupplierProgramPage.css — namespace: spp-* */
+
+/* ── Root ── */
+.spp-root {
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: #f0f9ff;
+}
+
+/* ── Hero ── */
+.spp-hero {
+  background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 55%, #1a3a5c 100%);
+  color: #f0f9ff;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.spp-hero-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.spp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  color: #0ea5e9;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.spp-hero-title {
+  margin: 0 0 16px;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900;
+  line-height: 1.08;
+  color: #fff;
+}
+
+.spp-hero-title-accent {
+  color: #0ea5e9;
+}
+
+.spp-hero-desc {
+  margin: 0 auto 32px;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  max-width: 700px;
+}
+
+.spp-hero-info-box {
+  max-width: 760px;
+  margin: 0 auto 28px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  padding: 16px 18px;
+  text-align: left;
+}
+
+.spp-hero-info-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #0ea5e9;
+}
+
+.spp-hero-info-text {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.spp-hero-ctas {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.spp-hero-cta-primary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.spp-hero-cta-demo {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.spp-hero-cta-plans {
+  background: transparent;
+  color: #0ea5e9;
+  border: 1px solid #0ea5e9;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ── Features ── */
+.spp-features-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 52px 24px;
+}
+
+.spp-features-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.spp-features-subtitle {
+  text-align: center;
+  color: #64748b;
+  margin: 0 0 32px;
+  font-size: 15px;
+}
+
+.spp-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.spp-feature-card {
+  background: #fff;
+  border-top: 1px solid #e0f2fe;
+  border-right: 1px solid #e0f2fe;
+  border-bottom: 1px solid #e0f2fe;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.spp-feature-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.spp-feature-name {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.spp-feature-desc {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* ── Matching Details ── */
+.spp-matching-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.spp-matching-card {
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.spp-matching-title {
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.spp-matching-desc {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* ── Plans ── */
+.spp-plans-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 52px;
+}
+
+.spp-plans-header {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.spp-plans-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+  text-align: center;
+}
+
+.spp-plans-subtitle {
+  margin: 0;
+  text-align: center;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.spp-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.spp-plan-card {
+  border-radius: 18px;
+  background: #fff;
+  padding: 18px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+}
+
+.spp-plan-card--free  { border: 1px solid rgba(2, 132, 199, 0.2); }
+.spp-plan-card--prime { border: 1px solid rgba(124, 58, 237, 0.2); }
+
+.spp-plan-name {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.spp-plan-card--free  .spp-plan-name { color: #0284c7; }
+.spp-plan-card--prime .spp-plan-name { color: #7c3aed; }
+
+.spp-plan-price {
+  margin-top: 10px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.spp-plan-features {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: #475569;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* ── Steps ── */
+.spp-steps-section {
+  background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 100%);
+  padding: 52px 24px;
+}
+
+.spp-steps-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.spp-steps-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 32px;
+}
+
+.spp-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.spp-step-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 14px;
+  padding: 22px;
+  text-align: center;
+}
+
+.spp-step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 15px;
+  margin: 0 auto 14px;
+}
+
+.spp-step-name {
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.spp-step-desc {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── CTA Section ── */
+.spp-cta-section {
+  text-align: center;
+  padding: 52px 24px;
+  background: #fff;
+}
+
+.spp-cta-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.spp-cta-subtitle {
+  color: #64748b;
+  margin-bottom: 28px;
+  font-size: 15px;
+}
+
+.spp-cta-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.spp-cta-register {
+  background: linear-gradient(135deg, #1a3a5c 0%, #1e4976 100%);
+  color: #0ea5e9;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.spp-cta-demo {
+  background: #0ea5e9;
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.spp-cta-login {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── Footer ── */
+.spp-footer {
+  background: #1a3a5c;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+}

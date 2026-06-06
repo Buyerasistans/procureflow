@@ -1,0 +1,211 @@
+/* ── ChannelPartnerRegisterPage (cpr-) ── */
+
+.cpr-prefill-notice {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.cpr-root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.cpr-page {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.cpr-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.10);
+  padding: 40px 44px;
+  width: 100%;
+  max-width: 580px;
+}
+
+.cpr-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.cpr-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.cpr-title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.cpr-subtitle {
+  color: #6b7280;
+  font-size: 0.9375rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cpr-info-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cpr-info-box--prominent {
+  background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-top: -4px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 14px 32px rgba(245, 158, 11, 0.12);
+  border-color: #fcd34d;
+  background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
+}
+
+.cpr-info-row {
+  display: flex;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #78350f;
+  align-items: flex-start;
+}
+
+.cpr-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cpr-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.cpr-input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  font-size: 0.875rem;
+  outline: none;
+  font-family: inherit;
+  color: #111827;
+}
+
+.cpr-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  margin-top: 16px;
+}
+
+.cpr-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  gap: 12px;
+}
+
+.cpr-btn--primary {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cpr-btn--secondary {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.cpr-done {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.cpr-done__icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+}
+
+.cpr-done__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+.cpr-done__msg {
+  color: #6b7280;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+
+.cpr-done__box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 0.875rem;
+  color: #166534;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.cpr-done__box-msg {
+  margin-top: 8px;
+}
+
+.cpr-link-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}

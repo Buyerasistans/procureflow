@@ -27,7 +27,7 @@ class CampaignProgram(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     audience_type: Mapped[str] = mapped_column(
-        String(30), nullable=False, comment="supplier | channel"
+        String(30), nullable=False, comment="supplier | channel | partner | dual_role | cross_sell"
     )
     trigger_event: Mapped[str] = mapped_column(
         String(50),

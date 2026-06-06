@@ -1,7 +1,7 @@
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import NavBar from "../components/NavBar";
-import { BRAND_COLORS } from "../components/nav-brand-colors";
 import { http } from "../lib/http";
+import "./DemoRequestPage.css";
 
 export default function DemoRequestPage() {
   const [sent, setSent] = useState(false);
@@ -15,7 +15,6 @@ export default function DemoRequestPage() {
   const requestedAddon = searchParams.get("addon") || "";
   const requestedAddonCode = searchParams.get("addonKey") || "";
   const isSupplierDemo = audience === "supplier";
-  const c = isSupplierDemo ? BRAND_COLORS.supplier : BRAND_COLORS.strategic;
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -68,41 +67,43 @@ export default function DemoRequestPage() {
   }
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", minHeight: "100vh", background: isSupplierDemo ? "#f0f9ff" : "#f0fdf4" }}>
+    <div className={isSupplierDemo ? "drp-root drp-root--supplier" : "drp-root"}>
       <NavBar variant={isSupplierDemo ? "supplier" : "strategic"} activePath="/demo" />
 
-      {/* Hero Banner */}
-      <section style={{ background: `linear-gradient(135deg, ${c.bg} 0%, ${isSupplierDemo ? "#1e4976" : "#1e4a3d"} 100%)`, padding: "40px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `rgba(${isSupplierDemo ? "14,165,233" : "212,175,55"},0.12)`, border: `1px solid rgba(${isSupplierDemo ? "14,165,233" : "212,175,55"},0.35)`, color: c.accent, borderRadius: 999, padding: "6px 16px", fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase" as const, marginBottom: 16 }}>
+      <section className="drp-hero">
+        <div className="drp-hero-inner">
+          <div className="drp-hero-badge">
             {isSupplierDemo ? "Tedarikçi Demosu" : "Stratejik Partner Demosu"}
           </div>
-          <h1 style={{ margin: "0 0 10px", fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 900, color: "#fff" }}>
+          <h1 className="drp-hero-h1">
             {isSupplierDemo ? "Tedarikçi Deneyimini Birlikte Keşfedelim" : "Kurumsal Demo - Sizin Sürecinizle"}
           </h1>
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.75)", fontSize: 15, lineHeight: 1.6 }}>
+          <p className="drp-hero-lead">
             {isSupplierDemo
               ? "Teklif yanit akislari, kategori gorunurlugu ve performans panelini canli inceleyin."
               : "Sektorunuze ozel 45 dakikalik canli senaryo, gap analizi ve 90 gunluk onboarding plani."}
           </p>
-          {/* Mod degistirici */}
-          <div style={{ marginTop: 20, display: "flex", gap: 10, justifyContent: "center" }}>
-            <a href="/demo?audience=strategic" style={{ background: !isSupplierDemo ? BRAND_COLORS.strategic.accent : "rgba(255,255,255,0.12)", color: !isSupplierDemo ? BRAND_COLORS.strategic.bg : "rgba(255,255,255,0.75)", padding: "8px 18px", borderRadius: 8, textDecoration: "none", fontWeight: 800, fontSize: 13, border: !isSupplierDemo ? "none" : "1px solid rgba(255,255,255,0.2)" }}>
+          <div className="drp-mode-row">
+            <a
+              href="/demo?audience=strategic"
+              className={!isSupplierDemo ? "drp-mode-btn drp-mode-btn--strategic-active" : "drp-mode-btn"}
+            >
               Stratejik Partner Demosu
             </a>
-            <a href="/demo?audience=supplier" style={{ background: isSupplierDemo ? BRAND_COLORS.supplier.accent : "rgba(255,255,255,0.12)", color: isSupplierDemo ? "#fff" : "rgba(255,255,255,0.75)", padding: "8px 18px", borderRadius: 8, textDecoration: "none", fontWeight: 800, fontSize: 13, border: isSupplierDemo ? "none" : "1px solid rgba(255,255,255,0.2)" }}>
+            <a
+              href="/demo?audience=supplier"
+              className={isSupplierDemo ? "drp-mode-btn drp-mode-btn--supplier-active" : "drp-mode-btn"}
+            >
               Tedarikçi Demosu
             </a>
           </div>
         </div>
       </section>
 
-      {/* Icerik + Form */}
-      <section style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-        {/* Aciklama kutusu */}
-        <article style={{ background: "#fff", borderTop: `1px solid ${isSupplierDemo ? "#e0f2fe" : "#dcfce7"}`, borderRight: `1px solid ${isSupplierDemo ? "#e0f2fe" : "#dcfce7"}`, borderBottom: `1px solid ${isSupplierDemo ? "#e0f2fe" : "#dcfce7"}`, borderLeft: `4px solid ${c.accent}`, borderRadius: 16, padding: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
-          <h2 style={{ marginTop: 0, fontSize: 20, color: "#0f172a", fontWeight: 900 }}>Demo Kapsami</h2>
-          <ul style={{ margin: "0 0 16px", paddingLeft: 20, lineHeight: 2, fontSize: 14, color: "#334155" }}>
+      <section className="drp-content">
+        <article className="drp-desc-article">
+          <h2 className="drp-article-h2">Demo Kapsami</h2>
+          <ul className="drp-scope-list">
             {isSupplierDemo ? (
               <>
                 <li>Tedarikçi onboarding ve profil devreye alma</li>
@@ -121,33 +122,32 @@ export default function DemoRequestPage() {
               </>
             )}
           </ul>
-          <div style={{ background: isSupplierDemo ? "#f0f9ff" : "#f0fdf4", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#334155", lineHeight: 1.6 }}>
+          <div className="drp-scope-info">
             <strong>Sure:</strong> ~45 dakika &nbsp;|&nbsp; <strong>Format:</strong> Online / Yerinde
           </div>
         </article>
 
-        {/* Form */}
-        <article style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
-          <h2 style={{ marginTop: 0, fontSize: 20, color: "#0f172a", fontWeight: 900 }}>Demo Talep Formu</h2>
-          <div style={{ marginBottom: 16, borderRadius: 12, border: `1px solid ${isSupplierDemo ? "#bae6fd" : "#bbf7d0"}`, background: isSupplierDemo ? "#f0f9ff" : "#f0fdf4", padding: 14, color: "#334155", fontSize: 13, lineHeight: 1.6 }}>
+        <article className="drp-form-article">
+          <h2 className="drp-article-h2">Demo Talep Formu</h2>
+          <div className="drp-summary-box">
             <strong>Talep Özeti:</strong> {requestSummary}
-            <div style={{ marginTop: 6 }}>{requestNote}</div>
+            <div className="drp-summary-note">{requestNote}</div>
           </div>
           {sent ? (
-            <div style={{ background: "#ecfdf5", border: "1px solid #86efac", color: "#166534", borderRadius: 10, padding: 16, fontSize: 14, lineHeight: 1.7 }}>
+            <div className="drp-sent">
               [OK] <strong>Talebiniz alindi!</strong> En kisa surede ekibimiz size donus yapacak.
             </div>
           ) : (
-            <form data-telemetry-name="demo-request-form" onSubmit={handleSubmit} style={{ display: "grid", gap: 10 }}>
-              <input required value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Ad Soyad *" style={inputStyle} />
-              <input required type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} placeholder="İş e-postası *" style={inputStyle} />
-              <input value={form.companyName} onChange={(event) => setForm((current) => ({ ...current, companyName: event.target.value }))} placeholder="Firma" style={inputStyle} />
-              <input value={form.roleTitle} onChange={(event) => setForm((current) => ({ ...current, roleTitle: event.target.value }))} placeholder={isSupplierDemo ? "Ürün / Hizmet Kategorisi" : "Pozisyon"} style={inputStyle} />
-              <input value={form.monthlyVolumeNote} onChange={(event) => setForm((current) => ({ ...current, monthlyVolumeNote: event.target.value }))} placeholder={isSupplierDemo ? "Yillik ihale yanit adedi" : "Aylik ihale adedi"} style={inputStyle} />
-              <input value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Telefon" style={inputStyle} />
-              <textarea value={form.note || requestNote} onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Notunuz" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} />
-              {error ? <div style={{ borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2", color: "#b91c1c", padding: 12, fontSize: 13 }}>{error}</div> : null}
-              <button type="submit" style={{ background: `linear-gradient(135deg, ${c.bg} 0%, ${isSupplierDemo ? "#1e4976" : "#1e4a3d"} 100%)`, color: isSupplierDemo ? c.accent : c.accent, border: "none", borderRadius: 10, padding: "12px 16px", fontWeight: 800, cursor: "pointer", fontSize: 15, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+            <form data-telemetry-name="demo-request-form" onSubmit={handleSubmit} className="drp-form">
+              <input required value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Ad Soyad *" className="drp-input" />
+              <input required type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} placeholder="İş e-postası *" className="drp-input" />
+              <input value={form.companyName} onChange={(event) => setForm((current) => ({ ...current, companyName: event.target.value }))} placeholder="Firma" className="drp-input" />
+              <input value={form.roleTitle} onChange={(event) => setForm((current) => ({ ...current, roleTitle: event.target.value }))} placeholder={isSupplierDemo ? "Ürün / Hizmet Kategorisi" : "Pozisyon"} className="drp-input" />
+              <input value={form.monthlyVolumeNote} onChange={(event) => setForm((current) => ({ ...current, monthlyVolumeNote: event.target.value }))} placeholder={isSupplierDemo ? "Yillik ihale yanit adedi" : "Aylik ihale adedi"} className="drp-input" />
+              <input value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Telefon" className="drp-input" />
+              <textarea value={form.note || requestNote} onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Notunuz" rows={3} className="drp-textarea" />
+              {error && <div className="drp-form-error">{error}</div>}
+              <button type="submit" className="drp-submit-btn">
                 {submitting ? "Talep Kaydediliyor..." : "Talep Gönder"}
               </button>
             </form>
@@ -155,18 +155,9 @@ export default function DemoRequestPage() {
         </article>
       </section>
 
-      <footer style={{ background: c.bg, color: "rgba(255,255,255,0.55)", textAlign: "center", padding: "20px", fontSize: 13 }}>
+      <footer className="drp-footer">
         (c) {new Date().getFullYear()} BUYER ASISTANS | Demo Talebi
       </footer>
     </div>
   );
 }
-
-const inputStyle: CSSProperties = {
-  border: "1px solid #cbd5e1",
-  borderRadius: 8,
-  padding: "10px 12px",
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box" as const,
-};

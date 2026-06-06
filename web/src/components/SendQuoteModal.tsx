@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { http } from "../lib/http";
 import { resolveApprovalRoleLabel } from "../auth/permissions";
 import type { QuotePendingApprovalLike } from "../types/approval";
+import "./SendQuoteModal.css";
 
 type SupplierSourceType = "all" | "private" | "platform_network";
 
@@ -187,231 +189,172 @@ export default function SendQuoteModal({ quote, quoteId, projectId, suppliers, o
     }
   };
 
+  const isSubmitDisabled = sending || loadingSentSuppliers || pendingApprovals.length > 0;
+
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.45)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 1200,
-        padding: "16px",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "min(760px, 100%)",
-          maxHeight: "85vh",
-          overflow: "auto",
-          background: "#fff",
-          borderRadius: "10px",
-          border: "1px solid #e5e7eb",
-          padding: "18px",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h3 style={{ margin: 0 }}>Teklifi Tedarikçilere Gönder</h3>
-          <button onClick={onClose} style={{ border: "none", background: "transparent", fontSize: "18px", cursor: "pointer" }}>✕</button>
+    <div className="sqm-overlay" onClick={onClose}>
+      <div className="sqm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="sqm-header">
+          <h3 className="sqm-title">Teklifi Tedarikçilere Gönder</h3>
+          <button className="sqm-close-btn" onClick={onClose}>✕</button>
         </div>
 
-        <div style={{ fontSize: "13px", color: "#4b5563", marginBottom: "12px" }}>
+        <div className="sqm-subtitle">
           Proje ID: {projectId} - Sadece bu projeye eklenen tedarikçiler listelenir.
         </div>
 
-        <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px", border: "1px solid #e5e7eb", background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+        <div className="sqm-visibility-note">
           Görünürlük kuralı: Platform ağı tedarikçileri her zaman görünür. Private tedarikçiler yalnızca mevcut tenant tarafından davet edildiyse listelenir.
         </div>
 
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
-          <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: "#f8fafc", color: "#334155", fontSize: "12px", fontWeight: 700 }}>
+        <div className="sqm-badges">
+          <span className="sqm-badge">
             Plan: {quote.package_plan_name || quote.package_plan_code || "starter"}
           </span>
-          <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: platformNetworkEligible ? "#ecfdf5" : "#fff7ed", color: platformNetworkEligible ? "#166534" : "#9a3412", fontSize: "12px", fontWeight: 700 }}>
+          <span className={`sqm-badge ${platformNetworkEligible ? "sqm-badge--network-ok" : "sqm-badge--network-warn"}`}>
             {platformNetworkEligible ? "Platform Ağı Açık" : "Platform Ağı Kapalı"}
           </span>
           {premiumCodes.length > 0 ? (
-            <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, background: "#fff7ed", color: "#b45309", fontSize: "12px", fontWeight: 700 }}>
+            <span className="sqm-badge sqm-badge--premium">
               Premium: {premiumCodes.join(", ")}
             </span>
           ) : null}
         </div>
 
         {loadingSentSuppliers && (
-          <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>
+          <div className="sqm-loading-hint">
             Daha önce gönderilen tedarikçiler kontrol ediliyor...
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "8px", marginBottom: "12px" }}>
+        <div className="sqm-source-grid">
           {[
             { key: "all", label: "Tum Kaynaklar", value: sourceSummary.all, color: "#0f172a" },
             { key: "private", label: "Private Supplier", value: sourceSummary.private, color: "#7c3aed" },
-            { key: "platform_network", label: "Platform Ağı", value: sourceSummary.platform_network, color: "#0f766e" },
+            { key: "platform_network", label: "Platform Agi", value: sourceSummary.platform_network, color: "#0f766e" },
           ].map((item) => (
             <button
               key={item.key}
               type="button"
               onClick={() => setSelectedSourceType(item.key as SupplierSourceType)}
-              style={{
-                border: selectedSourceType === item.key ? `2px solid ${item.color}` : "1px solid #d1d5db",
-                borderRadius: "14px",
-                padding: "10px 12px",
-                cursor: "pointer",
-                background: "#fff",
-                color: item.color,
-                fontSize: "12px",
-                fontWeight: 700,
-                textAlign: "left",
-              }}
+              className={`sqm-src-btn${selectedSourceType === item.key ? " sqm-src-btn--active" : ""}`}
+              style={{ "--sqm-src-color": item.color } as CSSProperties}
             >
-              <div style={{ textTransform: "uppercase", letterSpacing: "1px" }}>{item.label}</div>
-              <div style={{ marginTop: "6px", fontSize: "22px", fontWeight: 900 }}>{item.value}</div>
+              <div className="sqm-src-btn__label">{item.label}</div>
+              <div className="sqm-src-btn__value">{item.value}</div>
             </button>
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
+        <div className="sqm-cat-list">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              style={{
-                border: "1px solid #d1d5db",
-                borderRadius: "999px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                background: selectedCategory === cat ? "#2563eb" : "#fff",
-                color: selectedCategory === cat ? "#fff" : "#1f2937",
-                fontSize: "12px",
-                fontWeight: 600,
-              }}
+              className={`sqm-cat-btn${selectedCategory === cat ? " sqm-cat-btn--active" : ""}`}
             >
               {cat === "all" ? "Tüm Kategoriler" : cat}
             </button>
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
-          <button type="button" onClick={selectAllVisible} style={{ border: "1px solid #d1d5db", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", background: "#fff" }}>
+        <div className="sqm-actions-bar">
+          <button type="button" onClick={selectAllVisible} className="sqm-action-btn">
             Görünenleri Seç
           </button>
-          <button type="button" onClick={clearSelection} style={{ border: "1px solid #d1d5db", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", background: "#fff" }}>
+          <button type="button" onClick={clearSelection} className="sqm-action-btn">
             Seçimi Temizle
           </button>
         </div>
 
-        {error && <div style={{ background: "#fee2e2", color: "#991b1b", padding: "10px", borderRadius: "6px", marginBottom: "10px" }}>{error}</div>}
+        {error && <div className="sqm-error">{error}</div>}
 
         {pendingApprovals.length > 0 && (
-          <div style={{ background: "#fff7ed", color: "#9a3412", padding: "10px", borderRadius: "6px", marginBottom: "10px", border: "1px solid #fdba74" }}>
-            <div style={{ fontWeight: 700, marginBottom: "6px" }}>
+          <div className="sqm-approval-warn">
+            <div className="sqm-approval-warn__title">
               Tedarikçiye gönderim henüz açılamaz
             </div>
             {pendingApprovals.map((approval) => (
-              <div key={approval.id} style={{ fontSize: "12px" }}>
+              <div key={approval.id} className="sqm-approval-warn__item">
                 Seviye {approval.level}: {resolveApprovalRoleLabel(approval)} onayı bekleniyor
               </div>
             ))}
           </div>
         )}
 
-        <div style={{ background: "#eff6ff", color: "#1d4ed8", padding: "10px", borderRadius: "6px", marginBottom: "10px", border: "1px solid #bfdbfe" }}>
-          <div style={{ fontWeight: 700, marginBottom: "6px" }}>
+        <div className="sqm-pkg-rule">
+          <div className="sqm-pkg-rule__title">
             Paket kurali
           </div>
-          <div style={{ fontSize: "12px", lineHeight: 1.6 }}>
+          <div className="sqm-pkg-rule__body">
             Private supplier seçimleri her pakette gönderilebilir. Platform Ağı seçimleri ise Growth, Enterprise veya aktif premium entitlement gerektirir. Uygun olmayan seçimlerde backend gönderimi bloke eder.
           </div>
           {quote.entitlement_summary ? (
-            <div style={{ marginTop: "6px", fontSize: "12px", lineHeight: 1.6, color: platformNetworkEligible ? "#166534" : "#9a3412" }}>
+            <div className={`sqm-pkg-rule__entitlement ${platformNetworkEligible ? "sqm-pkg-rule__entitlement--ok" : "sqm-pkg-rule__entitlement--warn"}`}>
               {quote.entitlement_summary}
             </div>
           ) : null}
         </div>
 
-        <div style={{ display: "grid", gap: "8px", marginBottom: "12px" }}>
+        <div className="sqm-supplier-list">
           {visibleSuppliers.length === 0 ? (
-            <div style={{ color: "#6b7280", fontSize: "13px", padding: "8px" }}>Bu filtrede tedarikçi yok.</div>
+            <div className="sqm-supplier-empty">Bu filtrede tedarikçi yok.</div>
           ) : (
             visibleSuppliers.map((s) => {
               const isPlatformNetworkSupplier = (s.source_type || "private") === "platform_network";
               const isBlockedByPlan = isPlatformNetworkSupplier && !platformNetworkEligible;
               const isDisabled = alreadySentSupplierIds.includes(s.supplier_id) || pendingApprovals.length > 0 || isBlockedByPlan;
               return (
-              <label
-                key={s.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  padding: "10px",
-                  cursor: isDisabled ? "not-allowed" : "pointer",
-                  opacity: isDisabled ? 0.6 : 1,
-                  background: isDisabled ? "#f9fafb" : "#fff",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedSupplierIds.includes(s.supplier_id)}
-                  disabled={isDisabled}
-                  onChange={() => toggleSupplier(s.supplier_id)}
-                />
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <strong style={{ fontSize: "14px" }}>{s.supplier_name}</strong>
-                  <span style={{ fontSize: "12px", color: "#6b7280" }}>{s.supplier_email}</span>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
-                    {getSupplierCategories(s).length > 0 ? getSupplierCategories(s).map((item) => (
-                      <span
-                        key={`${s.supplier_id}-${item}`}
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          color: "#1d4ed8",
-                          background: "#eff6ff",
-                          border: "1px solid #bfdbfe",
-                          borderRadius: "999px",
-                          padding: "3px 8px",
-                        }}
-                      >
-                        {item}
+                <label
+                  key={s.id}
+                  className={`sqm-supplier-row${isDisabled ? " sqm-supplier-row--disabled" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSupplierIds.includes(s.supplier_id)}
+                    disabled={isDisabled}
+                    onChange={() => toggleSupplier(s.supplier_id)}
+                  />
+                  <div className="sqm-supplier-info">
+                    <strong className="sqm-supplier-name">{s.supplier_name}</strong>
+                    <span className="sqm-supplier-email">{s.supplier_email}</span>
+                    <div className="sqm-cat-tags">
+                      {getSupplierCategories(s).length > 0 ? getSupplierCategories(s).map((item) => (
+                        <span key={`${s.supplier_id}-${item}`} className="sqm-cat-tag">
+                          {item}
+                        </span>
+                      )) : <span className="sqm-no-cats">Kategori yok</span>}
+                    </div>
+                    <span className={`sqm-source-label ${s.source_type === "platform_network" ? "sqm-source-label--network" : "sqm-source-label--private"}`}>
+                      {s.source_type === "platform_network" ? "Platform Ağı" : "Private Supplier"}
+                    </span>
+                    {alreadySentSupplierIds.includes(s.supplier_id) && (
+                      <span className="sqm-already-sent">
+                        Bu tedarikçiye daha önce gönderildi
                       </span>
-                    )) : <span style={{ fontSize: "12px", color: "#6b7280" }}>Kategori yok</span>}
+                    )}
+                    {isBlockedByPlan && (
+                      <span className="sqm-blocked">
+                        Mevcut paket bu platform ağı supplier secimine izin vermiyor
+                      </span>
+                    )}
                   </div>
-                  <span style={{ fontSize: "12px", color: s.source_type === "platform_network" ? "#0f766e" : "#7c3aed", fontWeight: 600 }}>
-                    {s.source_type === "platform_network" ? "Platform Ağı" : "Private Supplier"}
-                  </span>
-                  {alreadySentSupplierIds.includes(s.supplier_id) && (
-                    <span style={{ fontSize: "12px", color: "#92400e", fontWeight: 600 }}>
-                      Bu tedarikçiye daha önce gönderildi
-                    </span>
-                  )}
-                  {isBlockedByPlan && (
-                    <span style={{ fontSize: "12px", color: "#b91c1c", fontWeight: 600 }}>
-                      Mevcut paket bu platform ağı supplier secimine izin vermiyor
-                    </span>
-                  )}
-                </div>
-              </label>
-            );})
+                </label>
+              );
+            })
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button type="button" onClick={onClose} style={{ padding: "8px 14px", borderRadius: "6px", border: "1px solid #d1d5db", background: "#fff", cursor: "pointer" }}>
+        <div className="sqm-footer">
+          <button type="button" onClick={onClose} className="sqm-cancel-btn">
             İptal
           </button>
           <button
             type="button"
             onClick={handleSend}
-            disabled={sending || loadingSentSuppliers || pendingApprovals.length > 0 || selectedSupplierIds.length === 0}
-            style={{ padding: "8px 14px", borderRadius: "6px", border: "none", background: sending || loadingSentSuppliers || pendingApprovals.length > 0 ? "#9ca3af" : "#2563eb", color: "#fff", cursor: sending || loadingSentSuppliers || pendingApprovals.length > 0 ? "not-allowed" : "pointer", fontWeight: 700 }}
+            disabled={isSubmitDisabled || selectedSupplierIds.length === 0}
+            className={`sqm-submit-btn${isSubmitDisabled ? " sqm-submit-btn--disabled" : ""}`}
           >
             {sending ? "Gönderiliyor..." : `Gönder (${selectedSupplierIds.length})`}
           </button>

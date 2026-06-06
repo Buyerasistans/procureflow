@@ -1,0 +1,79 @@
+/* PremiumMarketplace — pm-* namespace */
+.pm-loading {
+  padding: 16px; border-radius: 8px;
+  background-color: #f3f4f6; color: #6b7280; text-align: center;
+}
+.pm-error {
+  padding: 16px; border-radius: 8px;
+  background-color: #fee2e2; color: #991b1b; font-size: 14px;
+}
+.pm-list { display: flex; flex-direction: column; gap: 20px; }
+.pm-section-title { margin: 0 0 8px 0; color: #1f2937; font-size: 20px; font-weight: 600; }
+.pm-section-desc { margin: 0 0 16px 0; color: #6b7280; font-size: 14px; }
+.pm-active-section {
+  padding: 16px; background-color: #f0fdf4;
+  border: 1px solid #bbf7d0; border-radius: 8px;
+}
+.pm-active-section__title {
+  margin: 0 0 12px 0; color: #15803d; font-size: 14px;
+  font-weight: 600; text-transform: uppercase;
+}
+.pm-active-list { display: flex; flex-direction: column; gap: 8px; }
+.pm-active-item {
+  padding: 8px 12px; background-color: #ecfdf5; border-radius: 4px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pm-active-item__name { margin: 0 0 2px 0; color: #15803d; font-weight: 600; font-size: 14px; }
+.pm-active-item__expires { margin: 0; color: #6b7280; font-size: 12px; }
+.pm-active-badge {
+  padding: 4px 8px; background-color: #10b981; color: white;
+  border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.pm-avail-title {
+  margin: 0 0 12px 0; color: #1f2937; font-size: 14px;
+  font-weight: 600; text-transform: uppercase;
+}
+.pm-avail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.pm-feat-card {
+  padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;
+  background-color: #ffffff; transition: all 0.2s; cursor: default;
+  display: flex; flex-direction: column;
+}
+.pm-feat-card:not(.pm-feat-card--active):hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.pm-feat-card--active { border: 2px solid #10b981; background-color: #f0fdf4; }
+.pm-feat-card__header { margin-bottom: 12px; }
+.pm-feat-card__icon { font-size: 24px; margin-bottom: 8px; }
+.pm-feat-card__name { margin: 0 0 4px 0; color: #1f2937; font-size: 16px; font-weight: 600; }
+.pm-feat-card__desc { margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4; }
+.pm-feat-card__price-section {
+  margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;
+}
+.pm-feat-card__price-label {
+  margin: 0 0 4px 0; color: #6b7280; font-size: 12px;
+  text-transform: uppercase; font-weight: 600;
+}
+.pm-feat-card__price-value { margin: 0; color: #1f2937; font-size: 18px; font-weight: 700; }
+.pm-feat-card__price-period { font-size: 13px; color: #6b7280; font-weight: 400; }
+.pm-feat-card__active-badge {
+  margin-bottom: 12px; padding: 8px; background-color: #ecfdf5;
+  border-radius: 4px; text-align: center;
+}
+.pm-feat-card__active-label { margin: 0; color: #10b981; font-size: 12px; font-weight: 600; }
+.pm-feat-card__cta-btn {
+  margin-top: auto; padding: 10px 16px;
+  background-color: #4f46e5; color: white; border: none; border-radius: 6px;
+  font-weight: 600; font-size: 14px; cursor: pointer; opacity: 1; transition: all 0.2s;
+}
+.pm-feat-card__cta-btn:hover:not(:disabled) { background-color: #4338ca; }
+.pm-feat-card__cta-btn--activating { cursor: not-allowed; opacity: 0.6; }
+.pm-empty {
+  padding: 32px; text-align: center;
+  background-color: #f3f4f6; border-radius: 8px; color: #6b7280;
+}

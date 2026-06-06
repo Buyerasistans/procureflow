@@ -1,0 +1,66 @@
+/* OnboardingChecklist — oc-* namespace */
+.oc-card {
+  border-radius: 20px;
+  border: 1px solid #fde68a;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef9c3 100%);
+  padding: 18px 22px;
+  box-shadow: 0 8px 24px rgba(251,191,36,0.12);
+  margin-bottom: 24px;
+}
+.oc-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.oc-header__eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #92400e; margin-bottom: 4px; }
+.oc-header__title { font-size: 17px; font-weight: 900; color: #0f172a; }
+.oc-header__actions { display: flex; gap: 6px; }
+.oc-btn {
+  padding: 6px 12px; border-radius: 8px; border: 1px solid #fcd34d;
+  background: white; color: #92400e; font-weight: 700; cursor: pointer; font-size: 12px;
+}
+.oc-progress { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+.oc-progress__track { flex: 1; height: 8px; border-radius: 999px; background: #fde68a; overflow: hidden; }
+.oc-progress__fill {
+  height: 100%;
+  width: var(--oc-fill-w, 0%);
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.oc-progress__label { font-size: 12px; font-weight: 800; color: #92400e; white-space: nowrap; }
+.oc-steps { margin-top: 14px; display: grid; gap: 8px; }
+.oc-step {
+  border-radius: 14px;
+  border: 1px solid #fde68a;
+  background: white;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: background 0.2s;
+}
+.oc-step--done { border-color: #bbf7d0; background: #f0fdf4; }
+.oc-step__check {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid #fcd34d; background: white; color: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 1; font-size: 13px; font-weight: 800; margin-top: 2px;
+}
+.oc-step__check--done { border-color: #22c55e; background: #22c55e; }
+.oc-step__check--locked { cursor: not-allowed; opacity: 0.75; }
+.oc-step__body { flex: 1; min-width: 0; }
+.oc-step__title { font-weight: 700; font-size: 14px; color: #0f172a; }
+.oc-step__title--done { color: #15803d; text-decoration: line-through; }
+.oc-step__verified { color: #15803d; font-size: 11px; font-weight: 700; margin-top: 2px; }
+.oc-step__desc { color: #64748b; font-size: 12px; margin-top: 2px; }
+.oc-step__actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+.oc-step__action-btn {
+  padding: 5px 10px; border-radius: 8px; border: none;
+  background: #f59e0b; color: white; font-weight: 700; cursor: pointer;
+  font-size: 12px; text-decoration: none; display: inline-block;
+}
+.oc-step__doc-link {
+  padding: 5px 10px; border-radius: 8px; border: 1px solid #fcd34d;
+  background: white; color: #92400e; font-weight: 700;
+  font-size: 12px; text-decoration: none; display: inline-block;
+}
+.oc-footer { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.oc-footer__hint { color: #92400e; font-size: 12px; }
+.oc-footer__link { color: #d97706; font-size: 12px; font-weight: 700; text-decoration: underline; }

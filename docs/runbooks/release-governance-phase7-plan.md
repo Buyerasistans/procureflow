@@ -136,7 +136,32 @@ Program kapsamı dışında olduklarından, PHASE 7 PR'ine dahil edilmezler.
 | A3 | Unrelated dirty files karara bağlama + PR description taslağı | COMPLETE (d267e6d) |
 | A4 | PR open + CI watch | BLOCKED — CI test failure, Atomik-4B gerekli |
 | A4B | CI remediation: navigation-policy test fix | COMPLETE (44eb67f) — 22/22 PASS |
-| A5 | Post-merge: G7 roadmap entry + PHASE 8 bootstrap | OPSIYONEL |
+| A5 | PR merge + closure | COMPLETE (46d3c90) — PHASE 7 CLOSED |
+
+### Atomik-5 Execution Notu — COMPLETE / PHASE 7 CLOSED
+
+**PR:** https://github.com/Buyerasistans/procureflow/pull/27
+**Merge commit SHA:** `46d3c90ca072c44f8b9af6e9fed2ef6a20df8c02`
+**Merged at:** 2026-05-27
+**Merge method:** merge commit
+**Scope:** 313 dosya, 26546 ekleme, 5822 silme
+
+**Go/No-Go Final State:**
+| # | Koşul | Sonuç |
+|---|---|---|
+| 1 | type-check 0 error | ✓ DONE |
+| 2 | build başarılı | ✓ DONE |
+| 3 | E2E gate PHASE 5 ≥ 16/16 | ✓ DONE |
+| 4 | E2E gate PHASE 6 ≥ 19/19 | ✓ DONE |
+| 5 | Unrelated dirty files scope dışında | ✓ DONE |
+| 6 | PR description tamamlandı | ✓ DONE |
+| 7 | CI program-caused kırık fix'lendi | ✓ DONE (44eb67f) |
+| MERGE | PR #27 → main | ✓ MERGED (46d3c90) |
+
+**Post-merge:**
+- enforce_admins: True — geri etkinleştirildi
+- stash@{0}: korunuyor (15 unrelated tracked dirty files — post-merge ayrı branch'e alınacak)
+- PHASE 8 scope: G7 job search/filter UI + DRY refactor (isEmployerAdmin, ApplyForm)
 
 ### Atomik-4B Execution Notu — COMPLETE
 

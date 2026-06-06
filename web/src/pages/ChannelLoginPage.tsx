@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NavBar from "../components/NavBar";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import TurnstileWidget from "../components/TurnstileWidget";
+import "./ChannelLoginPage.css";
 
 export default function ChannelLoginPage() {
   const navigate = useNavigate();
@@ -13,14 +16,16 @@ export default function ChannelLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) { setError("Lütfen robot olmadığınızı doğrulayın."); return; }
     setError(null);
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, captchaToken);
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
       navigate(from || "/app", { replace: true });
     } catch (err) {
@@ -32,138 +37,77 @@ export default function ChannelLoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(circle at top left, rgba(245, 158, 11, 0.2), transparent 30%), linear-gradient(135deg, #fff7ed 0%, #ffedd5 48%, #fef3c7 100%)" }}>
+    <div className="clp-root">
       <NavBar variant="channel" activePath="/channel/login" />
-      <div
-        style={{
-          minHeight: "calc(100vh - 60px)",
-          display: "grid",
-          placeItems: "center",
-          padding: 24,
-        }}
-      >
-      <div
-        style={{
-          width: "min(1120px, 100%)",
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(320px, 1fr)",
-          background: "rgba(255,255,255,0.88)",
-          border: "1px solid rgba(255,255,255,0.7)",
-          borderRadius: 32,
-          overflow: "hidden",
-          boxShadow: "0 30px 90px rgba(52, 73, 94, 0.18)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            padding: 56,
-            color: "white",
-            background:
-              "radial-gradient(circle at top right, rgba(245, 158, 11, 0.28), transparent 24%), radial-gradient(circle at bottom left, rgba(251, 191, 36, 0.22), transparent 26%), linear-gradient(135deg, #2f1a0d 0%, #4b2a12 52%, #6b3a14 100%)",
-          }}
-        >
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <PublicBrandLogo height={44} maxWidth={220} />
-            <h1 style={{ margin: "22px 0 12px", fontSize: 50, lineHeight: 1.02, fontWeight: 900 }}>
-              İş Ortağı Programı
-            </h1>
-            <p style={{ margin: 0, maxWidth: 560, fontSize: 16, lineHeight: 1.7, color: "#fdecd3" }}>
-              İş ortakları bu alandan giriş yaparak lead, portföy ve hakediş
-              süreçlerini kendi panelinden yönetir.
-            </p>
-          </div>
-        </div>
-
-        <div style={{ padding: "52px 44px" }}>
-          <div style={{ maxWidth: 420, margin: "0 auto" }}>
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase", color: "#92400e" }}>
-                İş Ortağı girişi
-              </div>
-              <h2 style={{ margin: "10px 0 8px", fontSize: 34, lineHeight: 1.08, color: "#0f172a" }}>Hesabınla devam et</h2>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: "#64748b" }}>
-                İş ortağı hesabı olan kullanıcılar bu ekran üzerinden ilgili ortaklık paneline erişir.
+      <div className="clp-center">
+        <div className="clp-card">
+          <div className="clp-brand">
+            <div className="clp-brand-content">
+              <PublicBrandLogo height={32} maxWidth={200} invert />
+              <h1 className="clp-brand-h1">İş Ortağı Programı</h1>
+              <p className="clp-brand-lead">
+                İş ortakları bu alandan giriş yaparak lead, portföy ve hakediş
+                süreçlerini kendi panelinden yönetir.
               </p>
             </div>
+          </div>
 
-            <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>E-posta</span>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    borderRadius: 18,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    fontSize: 14,
-                  }}
-                />
-              </label>
+          <div className="clp-form-panel">
+            <div className="clp-form-inner">
+              <div className="clp-form-header">
+                <div className="clp-eyebrow">İş Ortağı girişi</div>
+                <h2 className="clp-form-h2">Hesabınla devam et</h2>
+                <p className="clp-form-desc">
+                  İş ortağı hesabı olan kullanıcılar bu ekran üzerinden ilgili ortaklık paneline erişir.
+                </p>
+              </div>
 
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Şifre</span>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    borderRadius: 18,
-                    border: "1px solid #e2e8f0",
-                    background: "#f8fafc",
-                    fontSize: 14,
-                  }}
-                />
-              </label>
+              <SocialLoginButtons />
 
-              {error && (
-                <div style={{ borderRadius: 18, border: "1px solid #fecaca", background: "#fff1f2", padding: "12px 14px", color: "#be123c", fontSize: 14 }}>
-                  {error}
-                </div>
-              )}
+              <form onSubmit={onSubmit} className="clp-form">
+                <label className="clp-label">
+                  <span className="clp-label-text">E-posta</span>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="clp-input"
+                  />
+                </label>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                style={{
-                  width: "100%",
-                  padding: "14px 18px",
-                  borderRadius: 18,
-                  border: "none",
-                  background: "#f59e0b",
-                  color: "#2f1a0d",
-                  fontWeight: 800,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  opacity: submitting ? 0.7 : 1,
-                }}
-              >
-                {submitting ? "Giriş yapılıyor..." : "Giriş yap"}
-              </button>
-            </form>
+                <label className="clp-label">
+                  <span className="clp-label-text">Şifre</span>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="clp-input"
+                  />
+                </label>
 
-            <div style={{ marginTop: 18, borderRadius: 22, border: "1px solid #e2e8f0", background: "#f8fafc", padding: "16px 18px", color: "#475569", fontSize: 14, lineHeight: 1.7 }}>
-              İş ortağı hesabınız varsa bu ekrandan giriş yapabilirsiniz.
+                <TurnstileWidget onSuccess={setCaptchaToken} />
+
+                {error && <div className="clp-error">{error}</div>}
+
+                <button type="submit" disabled={submitting} className="clp-submit-btn">
+                  {submitting ? "Giriş yapılıyor..." : "Giriş yap"}
+                </button>
+              </form>
+
+              <div className="clp-info-box">
+                İş ortağı hesabınız varsa bu ekrandan giriş yapabilirsiniz.
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

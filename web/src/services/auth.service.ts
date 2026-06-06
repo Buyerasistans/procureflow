@@ -2,7 +2,7 @@
 import axios from "axios";
 import { http } from "../lib/http";
 import { setSupplierAccessToken } from "../lib/session";
-import { clearAccessToken } from "../lib/token";
+import { clearAccessToken, setAccessToken, setRefreshToken } from "../lib/token";
 import { getRefreshToken } from "../lib/token";
 import type { AuthUser } from "../context/auth-types";
 
@@ -33,6 +33,10 @@ type SupplierLoginResponse = {
 export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
+  user: AuthUser | null;
+};
+
+export type RegisterResponse = {
   user: AuthUser | null;
 };
 
@@ -115,23 +119,27 @@ export async function registerUser(
   email: string,
   password: string,
   userType: "employer" | "candidate",
-): Promise<LoginResponse> {
+  captchaToken?: string,
+): Promise<RegisterResponse> {
   try {
-    const res = await http.post<LoginApiResponse>("/auth/register", {
+    const body: Record<string, string> = {
       full_name: fullName,
       email,
       password,
       user_type: userType,
-    });
+    };
+    if (captchaToken) body.captcha_token = captchaToken;
+    const res = await http.post<LoginApiResponse>("/auth/register", body);
     const data = res.data;
 
     if (!data?.access_token || !data?.refresh_token) {
       throw new Error("Kayıt yanıtında token bilgisi eksik.");
     }
 
+    setAccessToken(data.access_token);
+    setRefreshToken(data.refresh_token);
+
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
       user: normalizeAuthUser(data.user ?? null),
     };
   } catch (error: unknown) {

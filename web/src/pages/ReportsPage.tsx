@@ -9,7 +9,7 @@ export default function ReportsPage() {
   const roleIcon = getRoleIcon(normalizedBusinessRole(user));
 
   return (
-    <div style={{ fontFamily: "Arial" }}>
+    <div>
       <WorkspaceHeroCard
         title="Raporlar"
         subtitle={`${roleIcon} Platform Super Admin • ${roleLabel}`}

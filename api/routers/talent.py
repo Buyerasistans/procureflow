@@ -21,6 +21,7 @@ from api.schemas.talent import (
     TalentProfileCreate,
     TalentProfileOut,
     TalentProfileUpdate,
+    TalentPublicProfileOut,
 )
 
 router = APIRouter(prefix="/talent", tags=["talent"])
@@ -136,6 +137,37 @@ def update_my_talent_profile(
     db.commit()
     db.refresh(profile)
     return TalentProfileOut.model_validate(profile)
+
+
+# ---------------------------------------------------------------------------
+# GET /talent/public/{profile_id}  — kimlik doğrulama gerekmez
+# ---------------------------------------------------------------------------
+
+
+@router.get("/public/{profile_id}", response_model=TalentPublicProfileOut)
+def get_public_talent_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+) -> TalentPublicProfileOut:
+    """
+    Herkese açık talent profil görünümü.
+    Sadece is_public=True ve kyc_status='approved' olan profiller görünür.
+    Hassas bilgiler (user_id, linkedin, earnings) döndürülmez.
+    """
+    profile = db.query(TalentProfile).filter(
+        TalentProfile.id == profile_id,
+        TalentProfile.is_public.is_(True),
+        TalentProfile.kyc_status == "approved",
+        TalentProfile.is_active.is_(True),
+    ).first()
+
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_err("TALENT_PROFILE_NOT_FOUND", "Profil bulunamadı veya herkese açık değil"),
+        )
+
+    return TalentPublicProfileOut.model_validate(profile)
 
 
 # ---------------------------------------------------------------------------

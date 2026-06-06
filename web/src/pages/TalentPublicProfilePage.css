@@ -1,0 +1,228 @@
+.tpp {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.tpp__loading {
+  padding: 80px 24px;
+  text-align: center;
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.tpp__not-found {
+  padding: 80px 24px;
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.tpp__not-found-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.tpp__not-found-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 10px;
+}
+
+.tpp__not-found-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.tpp__back-link {
+  color: #0284c7;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tpp__back-link:hover { text-decoration: underline; }
+
+/* Main layout */
+.tpp__main {
+  max-width: 860px;
+  margin: 40px auto;
+  padding: 0 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Profile card */
+.tpp__card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.tpp__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.tpp__info {
+  flex: 1;
+}
+
+.tpp__header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.tpp__name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.tpp__availability {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tpp__availability--open { background: #dcfce7; color: #166534; }
+.tpp__availability--closed { background: #f1f5f9; color: #64748b; }
+
+.tpp__experience {
+  font-size: 0.875rem;
+  color: #0284c7;
+  font-weight: 600;
+  margin: 4px 0 8px;
+}
+
+.tpp__bio {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Sections */
+.tpp__section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.tpp__section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tpp__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tpp__tag {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tpp__tag--skill { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.tpp__tag--category { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+/* CTA */
+.tpp__cta {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.tpp__cta-guest,
+.tpp__cta-authenticated {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tpp__cta-text {
+  font-size: 0.9rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tpp__cta-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.tpp__cta-btn--primary { background: #0284c7; color: #fff; }
+.tpp__cta-btn--primary:hover { background: #0369a1; }
+.tpp__cta-btn--secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+.tpp__cta-btn--secondary:hover { background: #e2e8f0; }
+
+.tpp__footer-note {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.tpp__footer-note a {
+  color: #0284c7;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .tpp__card {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tpp__header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .tpp__main {
+    margin: 16px auto;
+  }
+}

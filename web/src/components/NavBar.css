@@ -1,3 +1,110 @@
+/* NavBar — nb-* namespace */
+.nb-nav {
+  background: var(--nb-bg);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  font-family: 'Segoe UI', sans-serif;
+}
+.nb-logo-link { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+.nb-links-wrap { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; justify-content: flex-end; flex: 1; min-width: 0; }
+.nb-nav-link {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.nb-nav-link--active {
+  color: var(--nb-accent, #D4AF37);
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom-color: var(--nb-accent, #D4AF37);
+}
+.nb-cta-wrap { margin-left: 8px; display: flex; gap: 6px; position: relative; flex-shrink: 0; }
+.nb-cta-btn {
+  background: var(--nb-cta-bg);
+  color: var(--nb-cta-text);
+  padding: 7px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.nb-cta-btn--system {
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+  padding: 5px 14px;
+  gap: 0;
+}
+.nb-popup {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 260px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.2);
+  padding: 12px;
+  z-index: 250;
+}
+.nb-popup__title { font-size: 12px; font-weight: 800; color: #334155; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+.nb-popup__grid-8 { display: grid; gap: 8px; }
+.nb-popup__section { margin-top: 10px; }
+.nb-popup__section-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.nb-popup__grid-6 { display: grid; gap: 6px; }
+.nb-popup-btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 8px;
+  text-decoration: none;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nb-popup-btn--strategic { background: #134E37; color: #fff; }
+.nb-popup-btn--supplier  { background: #0E7490; color: #fff; }
+.nb-popup-btn--channel   { background: #7C2D12; color: #fff; }
+.nb-popup-btn--employer  { background: #5B21B6; color: #fff; }
+.nb-popup-btn--jobseeker { background: #9F1239; color: #fff; }
+.nb-popup__close-btn {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .public-nav-cta {
   display: inline-flex;
   align-items: center;
@@ -33,4 +140,33 @@
 
 .public-nav-cta--candidate {
   background: rgba(2, 132, 199, 0.92);
+}
+
+.public-nav-cta--career {
+  background: #059669;
+  color: #fff;
+  font-weight: 800;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.15;
+  text-align: center;
+  padding: 5px 12px;
+}
+
+.public-nav-cta__line {
+  display: block;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .nb-nav                   { padding: 0 14px; }
+  .nb-nav-link              { display: none; }
+  .public-nav-cta--career   { display: none; }
+}
+
+@media (max-width: 480px) {
+  .nb-popup {
+    width: min(calc(100vw - 28px), 260px);
+    right: -6px;
+  }
 }

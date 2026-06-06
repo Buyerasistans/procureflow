@@ -1,0 +1,242 @@
+/* ProfilePage.css — namespace: prp-* */
+
+/* ── Loading ── */
+.prp-loading {
+  padding: 20px;
+  text-align: center;
+}
+
+.prp-loading-inner {
+  display: inline-block;
+}
+
+/* ── Root ── */
+.prp-root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ── Page Header ── */
+.prp-page-header {
+  margin-bottom: 30px;
+}
+
+.prp-page-title {
+  margin-bottom: 8px;
+}
+
+.prp-page-subtitle {
+  color: #666;
+  margin: 0;
+}
+
+/* ── Message Banner ── */
+.prp-message {
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.prp-message--success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.prp-message--error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Social Card ── */
+.prp-social-card {
+  background: #fff;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.prp-social-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prp-social-card-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* ── Generic inline labels / badges ── */
+.prp-badge-sm {
+  font-size: 12px;
+  color: #475569;
+}
+
+.prp-badge-muted {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.prp-badge-subtle {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ── Loading / empty text ── */
+.prp-muted-text {
+  color: #9ca3af;
+  font-size: 13px;
+  margin: 0;
+}
+
+.prp-muted-text-sm {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.prp-team-info {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+/* ── Card (profile / password section) ── */
+.prp-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.prp-card--mb {
+  margin-bottom: 20px;
+}
+
+.prp-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.prp-card-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* ── Edit / action button (blue) ── */
+.prp-edit-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* ── Form ── */
+.prp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prp-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.prp-form-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.prp-form-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.prp-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Submit buttons ── */
+.prp-submit-btn {
+  padding: 8px 16px;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.prp-submit-btn--save { background: #10b981; }
+.prp-submit-btn--pwd  { background: #ef4444; }
+
+.prp-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Cancel button ── */
+.prp-cancel-btn {
+  padding: 8px 16px;
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ── Profile info grid ── */
+.prp-info-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 16px 24px;
+  line-height: 1.8;
+}
+
+.prp-status--active   { color: #10b981; }
+.prp-status--inactive { color: #ef4444; }
+
+/* ── Contact links ── */
+.prp-contact-link {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.12s;
+}
+
+.prp-contact-link:hover { color: #1e3a8a; text-decoration: underline; }
+
+.prp-contact-link--wa { color: #16a34a; }
+.prp-contact-link--wa:hover { color: #15803d; }
+
+.prp-phone-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Password section static / hint ── */
+.prp-form-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+}
+
+.prp-static-text {
+  color: #666;
+  margin: 0;
+}

@@ -11,6 +11,10 @@
   height: 24px;
 }
 
+.public-brand-logo--h32 {
+  height: 32px;
+}
+
 .public-brand-logo--h26 {
   height: 26px;
 }
@@ -49,6 +53,10 @@
 
 .public-brand-logo--mw168 {
   max-width: 168px;
+}
+
+.public-brand-logo--mw200 {
+  max-width: 200px;
 }
 
 .public-brand-logo--mw220 {

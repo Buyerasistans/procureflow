@@ -1,0 +1,135 @@
+/* SupplierFinancePage.css — sfp-* namespace */
+
+.sfp-page {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px 50px;
+  display: grid;
+  gap: 16px;
+}
+
+.sfp-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.sfp-card h3 {
+  margin-top: 0;
+}
+
+/* ── Header row ── */
+.sfp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sfp-header h2 {
+  margin: 0;
+}
+
+/* ── Grid ── */
+.sfp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+/* ── Labels + inputs ── */
+.sfp-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.sfp-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+/* ── Buttons ── */
+.sfp-btn {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sfp-btn--primary {
+  border: 0;
+  background: #2563eb;
+  color: #fff;
+}
+
+.sfp-btn--primary:hover {
+  background: #1d4ed8;
+}
+
+/* ── Action row ── */
+.sfp-action-row {
+  margin-top: 8px;
+}
+
+/* ── Messages ── */
+.sfp-msg {
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.sfp-msg--error {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.sfp-msg--mt {
+  margin-top: 10px;
+}
+
+/* ── Item lists ── */
+.sfp-item-list {
+  display: grid;
+  gap: 8px;
+}
+
+.sfp-item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.sfp-item-row__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sfp-empty {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .sfp-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sfp-item-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

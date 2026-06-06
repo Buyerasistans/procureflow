@@ -70,19 +70,24 @@ Frontend build başarılı olsa da lint sorunları mevcut:
 - Lvl 9: Teknik Uzman `firma_teknik@`
 - Lvl ★: Özel Stratejik Partner Rolü `firma_ozel@`
 - Lvl ★: Finans İzleyici `firma_finans@`
+- Lvl ★: İK Yöneticisi `firma_ik_yoneticisi@` — business_role: ik_yoneticisi, iş ilanı verme yetkisi
+- Lvl ★: İK Uzmanı `firma_ik_uzmani@` — business_role: ik_uzmani, temel workspace + iş ilanı
 
 ### Tedarikçi Rolleri (Lvl 0→7 + özel)
 
-- Lvl 0: Tedarikçi Admin `firma_admin@`
-- Lvl 1: Pazarlama Müdürü `firma_mudur@`
-- Lvl 2: Pazarlama Müdür Yardımcısı `firma_mudur_yrd@`
-- Lvl 3: Pazarlama Yöneticisi `firma_yonetici@`
-- Lvl 4: Kıdemli Pazarlama Uzmanı `firma_kidemli_uzm@`
-- Lvl 5: Pazarlama Uzmanı `firma_uzman@`
-- Lvl 6: Teknik Uzman ve Mimar `firma_teknik@`
-- Lvl 7: Teklif Uzmanı `firma_teklif@` ⚠️ teklif akışı kritik — dokunma
-- Lvl ★: Özel Tedarikçi Rolü `firma_ozel@`
-- Lvl ★: Finans İzleyici `firma_finans@`
+Demo tenant: **BA Demo Tedarikçi Firma** (slug: `demo-tedarikci-firma`, prefix: `tedarikci_`)
+
+- Lvl 0: Tedarikçi Admin `tedarikci_admin@`
+- Lvl 1: Pazarlama Müdürü `tedarikci_mudur@`
+- Lvl 2: Pazarlama Müdür Yardımcısı `tedarikci_mudur_yrd@`
+- Lvl 3: Pazarlama Yöneticisi `tedarikci_yonetici@`
+- Lvl 4: Kıdemli Pazarlama Uzmanı `tedarikci_kidemli_uzm@`
+- Lvl 5: Pazarlama Uzmanı `tedarikci_uzman@`
+- Lvl 6: Teknik Uzman ve Mimar `tedarikci_teknik@`
+- Lvl 7: Teklif Uzmanı `tedarikci_teklif@` ⚠️ teklif akışı kritik — dokunma
+- Lvl ★: Özel Tedarikçi Rolü `tedarikci_ozel@`
+- Lvl ★: Finans İzleyici `tedarikci_finans@`
+- Lvl ★: İK Yöneticisi `tedarikci_ik_yoneticisi@` — business_role: ik_yoneticisi
 
 ### İş Ortağı (Kanal) Rolleri (Lvl 0→4)
 
@@ -91,6 +96,7 @@ Frontend build başarılı olsa da lint sorunları mevcut:
 - Lvl 2: Kanal Temsilcisi `firma_temsilci@`
 - Lvl 3: Kanal Finans `firma_kanal_finans@`
 - Lvl ★: Özel Kanal Rolü `firma_ozel_kanal@`
+- Lvl ★: İK Yöneticisi `firma_ik_yoneticisi@` — business_role: ik_yoneticisi
 
 ### Demo tenant email prefix tablosu
 
@@ -98,6 +104,7 @@ Frontend build başarılı olsa da lint sorunları mevcut:
 |--------|--------|
 | BA Demo Stratejik Ortak | `firma_` |
 | BA Demo İş Ortağı | `firma_` |
+| BA Demo Tedarikçi Firma | `tedarikci_` |
 | Kanal Ana Yönetici Demo | `kanal_` |
 | OLİMPOS TEKNOLOJİ | `olimpos_` |
 | Poseydon | `poseydon_` |

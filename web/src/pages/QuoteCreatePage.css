@@ -1,0 +1,388 @@
+/* QuoteCreatePage.css — namespace: qcp-* */
+
+/* ── Root ── */
+.qcp-root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* ── Header ── */
+.qcp-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.qcp-back-btn {
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.qcp-page-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.qcp-subtitle {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* ── Error Box ── */
+.qcp-error-box {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.qcp-cta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.qcp-cta-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  color: #fff;
+}
+
+.qcp-cta-link--upgrade { background: #991b1b; }
+.qcp-cta-link--addon   { background: #7c2d12; }
+
+/* ── Card ── */
+.qcp-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.qcp-card--readonly {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+/* ── Section Title ── */
+.qcp-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #3b82f6;
+  display: inline-block;
+}
+
+/* ── Form Fields ── */
+.qcp-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #374151;
+}
+
+.qcp-input,
+.qcp-select,
+.qcp-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.qcp-select  { background: #fff; }
+.qcp-textarea { resize: vertical; }
+
+.qcp-mb { margin-bottom: 12px; }
+
+/* ── Grids ── */
+.qcp-row-2 { display: grid; grid-template-columns: 1fr 1fr;       gap: 12px; }
+.qcp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr;   gap: 12px; }
+
+/* ── Hint Text ── */
+.qcp-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.qcp-hint--warn { color: #92400e; }
+
+/* ── Items Header ── */
+.qcp-items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.qcp-tab-row { display: flex; gap: 4px; }
+
+.qcp-tab-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.qcp-tab-btn--active { background: #3b82f6; color: #fff; }
+
+/* ── Excel Mode ── */
+.qcp-excel-input { margin-bottom: 8px; }
+.qcp-excel-info  { font-size: 13px; color: #059669; margin-top: 4px; }
+.qcp-excel-hint  { font-size: 12px; color: #6b7280; margin-top: 8px; }
+
+/* ── Table ── */
+.qcp-table-wrap { overflow-x: auto; }
+
+.qcp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.qcp-th {
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+/* Per-column widths */
+.qcp-table th:nth-child(1)  { width: 50px; }
+.qcp-table th:nth-child(2)  { min-width: 180px; }
+.qcp-table th:nth-child(3)  { width: 60px; }
+.qcp-table th:nth-child(4)  { width: 70px; }
+.qcp-table th:nth-child(5)  { width: 100px; }
+.qcp-table th:nth-child(6)  { width: 120px; }
+.qcp-table th:nth-child(7)  { width: 86px; }
+.qcp-table th:nth-child(8)  { width: 110px; }
+.qcp-table th:nth-child(9)  { width: 130px; }
+.qcp-table th:nth-child(10) { width: 36px; }
+
+.qcp-td { padding: 6px 4px; }
+.qcp-td--total { font-weight: 600; white-space: nowrap; }
+.qcp-td--meta  { padding-top: 0; }
+
+/* ── Item Rows ── */
+.qcp-item-row {
+  border-bottom: 1px solid #f3f4f6;
+  background: transparent;
+  font-weight: 400;
+}
+
+.qcp-item-row--header {
+  border-bottom: 2px solid #eab308;
+  background: #fef3c7;
+  font-weight: 700;
+}
+
+.qcp-meta-row { border-bottom: 1px solid #f3f4f6; }
+
+/* ── Cell Inputs ── */
+.qcp-cell-input {
+  width: 100%;
+  padding: 5px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.qcp-cell-input--static {
+  display: inline-block;
+  background: #f9fafb;
+  text-align: center;
+}
+
+.qcp-cell-input--file { padding: 4px; }
+
+.qcp-cell-input--w44 { width: 44px; }
+.qcp-cell-input--w58 { width: 58px; }
+.qcp-cell-input--w64 { width: 64px; }
+.qcp-cell-input--w82 { width: 82px; }
+.qcp-cell-input--w92 { width: 92px; }
+
+.qcp-cell-textarea { resize: vertical; }
+
+/* Description input fill */
+.qcp-desc-input-wrap { width: 100%; }
+
+/* ── Description Cell ── */
+.qcp-desc-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Toggle / Group ── */
+.qcp-toggle-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.qcp-group-badge {
+  font-size: 11px;
+  background: #f59e0b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-weight: 700;
+}
+
+.qcp-group-total-label {
+  font-size: 11px;
+  color: #92400e;
+  font-weight: 700;
+}
+
+/* ── Remove Item Button ── */
+.qcp-remove-btn {
+  padding: 4px 7px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ── Meta Grid ── */
+.qcp-meta-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.qcp-item-img {
+  width: 100%;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Image preview wrapper */
+.qcp-img-preview { margin-top: 6px; }
+
+.qcp-remove-img-btn {
+  margin-top: 4px;
+  width: 100%;
+  padding: 5px 6px;
+  border: 1px solid #fdba74;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #fff7ed;
+  color: #9a3412;
+  box-sizing: border-box;
+}
+
+/* ── Tfoot ── */
+.qcp-tfoot-label-net {
+  padding: 10px 8px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.qcp-tfoot-label {
+  padding: 6px 8px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.qcp-tfoot-net   { padding: 10px 4px; font-weight: 700; font-size: 14px; color: #1d4ed8; }
+.qcp-tfoot-vat   { padding: 6px 4px;  font-weight: 700; font-size: 14px; color: #b45309; }
+.qcp-tfoot-gross { padding: 6px 4px;  font-weight: 700; font-size: 14px; color: #15803d; }
+
+/* ── Add Row ── */
+.qcp-add-row {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.qcp-add-group-btn {
+  padding: 7px 14px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px dashed #f59e0b;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.qcp-add-item-btn {
+  padding: 7px 14px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px dashed #93c5fd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Bottom Actions ── */
+.qcp-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.qcp-btn {
+  padding: 9px 20px;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.qcp-btn--cancel  { background: #6b7280; }
+.qcp-btn--save    { background: #10b981; }
+.qcp-btn--loading { background: #9ca3af; cursor: not-allowed; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .qcp-root { padding: 12px 8px; }
+  .qcp-row-2 { grid-template-columns: 1fr; }
+  .qcp-row-3 { grid-template-columns: 1fr; }
+  .qcp-meta-grid { grid-template-columns: 1fr; }
+}

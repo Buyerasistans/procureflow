@@ -19,6 +19,9 @@ vi.mock('../services/admin.service', () => ({
       updated_at: '2026-04-15T10:00:00Z',
     },
   ]),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 vi.mock('../lib/token', () => ({
@@ -259,8 +262,8 @@ describe('DiscoveryLab', () => {
         })
       );
     });
-    expect(screen.getByText(/Teknik kilit atıldı ve satın alma aktarımı kuyruğa alındı: DL-TRANSFER1/i)).toBeInTheDocument();
-    expect(screen.getByText('Teknik Kilit ve Satın Alma Aktarımı')).toBeInTheDocument();
+    expect(await screen.findByText(/Teknik kilit atıldı ve satın alma aktarımı kuyruğa alındı: DL-TRANSFER1/i)).toBeInTheDocument();
+    expect(await screen.findByText('Teknik Kilit ve Satın Alma Aktarımı')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /oluşan rfq'yu aç/i })).toHaveAttribute('href', '/quotes/77');
     expect(assignMock).toHaveBeenCalledWith('/quotes/77');
     expect(localStorage.getItem('pf_discovery_lab_auto_open_quote')).toBe('true');

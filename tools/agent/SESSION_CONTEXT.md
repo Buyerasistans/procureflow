@@ -1,15 +1,15 @@
 ﻿# AUTO-GENERATED. DO NOT COMMIT.
 # SESSION CONTEXT
 
-- Time: 2026-05-24 00:12:43
-- Branch: pr/strict-gate-payment-clean-v2
+- Time: 2026-06-04 09:23:13
+- Branch: feat/strategic-partner-governance-redesign
 - Base Ref: origin/main
 - Domain: payment-billing
-- Task: Kaldım yerden devam
+- Task: Kaldm yerden devam
 
 ## Must Read
 - wiki/domains/payment-billing.md
-- wiki/changelog/2026-05-24.md
+- wiki/changelog/2026-06-04.md
 - tools/agent/RUNBOOK.md
 
 ## Rules

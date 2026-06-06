@@ -400,7 +400,7 @@ export function RolesTab({
                     onClick={handleRequestRole}
                     className="roles-tab__button roles-tab__button--info"
                   >
-                    Onaya Gönder
+                    Onaya Gonder
                   </button>
                 ) : null}
                 <button

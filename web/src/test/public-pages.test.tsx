@@ -84,14 +84,14 @@ describe("Public pages", () => {
     const { rerender, container } = render(<SolutionsPage />);
 
     expect(screen.getByRole("heading", { name: /çözümler/i })).toBeInTheDocument();
-    expect(screen.getByText(/teklifler akisina git/i)).toBeInTheDocument();
-    expect(screen.getByText(/tedarikciler sayfasina git/i)).toBeInTheDocument();
+    expect(screen.getByText(/Teklifler Akışına Git/)).toBeInTheDocument();
+    expect(screen.getByText(/Tedarikçiler Sayfasına Git/)).toBeInTheDocument();
 
     rerender(<PricingPage />);
 
     expect(screen.getByRole("heading", { name: /fiyatlandırma|fiyatlandirma/i })).toBeInTheDocument();
     expect(screen.getByText(/stratejik partner planlari/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /tedarikci planlari/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Tedarikçi Planları/ })).toBeInTheDocument();
     expect(container.querySelectorAll('a[href*="/teklifler#planlar"]').length).toBeGreaterThan(0);
   });
 

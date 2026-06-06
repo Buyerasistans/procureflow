@@ -1,7 +1,7 @@
 ﻿// FILE: web\src\components\AppLayout.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, Mail } from "lucide-react";
+import { BarChart3, Brain, Briefcase, ChevronDown, FileText, Globe2, Home, Mail, Shield, User, Wallet } from "lucide-react";
 
 import { useAuth } from "../hooks/useAuth";
 import { notify } from "../lib/notify";
@@ -66,7 +66,16 @@ export default function AppLayout() {
   const [workspacePanelConfig, setWorkspacePanelConfig] = useState<WorkspacePanelConfig | null>(null);
   const workspaceName = user?.organization_name || user?.platform_name || "Buyera Asistans";
   const workspaceLabelFallback = getWorkspaceLabelFallback(user);
-  const logoUrl = user?.organization_logo_url;
+  const logoUrl = (() => {
+    const raw = user?.organization_logo_url?.trim();
+    if (!raw) return null;
+    try {
+      const parsed = new URL(raw);
+      return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : null;
+    } catch {
+      return null;
+    }
+  })();
 
   function handleLogout() {
     logout();
@@ -101,6 +110,30 @@ export default function AppLayout() {
     () => new URLSearchParams(location.search).get("embedded") === "1",
     [location.search],
   );
+  const isAdminPath = location.pathname.startsWith("/admin");
+  const navStyle: "sidebar" | "top" = (() => {
+    try { return (localStorage.getItem("pf_nav_style") as "sidebar" | "top") || "sidebar"; } catch { return "sidebar"; }
+  })();
+
+  const navLabelMap: Record<string, string> = {
+    Dashboard: shellT.dashboard,
+    Teklifler: shellT.quotes,
+    Raporlar: shellT.reports,
+    "AI Keşif Lab": shellT.ai_lab,
+  };
+
+  function navIcon(route: string) {
+    const p = { size: 16, strokeWidth: 2.2 } as const;
+    if (route === "/dashboard") return <Home {...p} />;
+    if (route === "/quotes") return <FileText {...p} />;
+    if (route.startsWith("/admin")) return <Shield {...p} />;
+    if (route.includes("discovery-lab")) return <Brain {...p} />;
+    if (route === "/reports") return <BarChart3 {...p} />;
+    if (route === "/jobs") return <Briefcase {...p} />;
+    if (route.includes("talent")) return <User {...p} />;
+    if (route.includes("payout")) return <Wallet {...p} />;
+    return <Globe2 {...p} />;
+  }
 
   const roleBasedHeaderGradient = isChannelWorkspaceUser
     ? "linear-gradient(135deg, #2f1a0d 0%, #4b2a12 52%, #6b3a14 100%)"
@@ -222,8 +255,165 @@ export default function AppLayout() {
     );
   }
 
+  // Admin path: AdminShell provides its own full layout (sidebar + topbar)
+  if (isAdminPath) {
+    return <Outlet />;
+  }
+
+  // Top nav fallback — kullanıcı ayarlardan "Üst Navigasyon" seçtiyse
+  if (navStyle === "top") {
+    return (
+      <div className="app-layout app-layout__theme">
+        <style>{`
+          .app-layout__theme {
+            --app-layout-header-gradient: ${headerGradient};
+            --app-layout-header-text: ${headerTextColor};
+            --app-layout-nav-chip-bg: ${navChipBackground};
+            --app-layout-nav-chip-color: ${navChipColor};
+          }
+        `}</style>
+
+        <header className="app-layout__header">
+          <div className="app-layout__header-left">
+            <div className="app-layout__brand-stack">
+              <div className="app-layout__brand-logo-row">
+                <PublicBrandLogo height={34} maxWidth={168} invert />
+              </div>
+              <div className="app-layout__workspace-row">
+                {logoUrl ? (
+                  <div
+                    className="app-layout__workspace-logo"
+                    style={{ backgroundImage: `url(${JSON.stringify(logoUrl)})` }}
+                    role="img"
+                    aria-label={workspaceName}
+                  />
+                ) : (
+                  <div className="app-layout__workspace-fallback">
+                    {workspaceName.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="app-layout__workspace-copy">
+                  <div className="app-layout__workspace-name">{workspaceName}</div>
+                  <div className="app-layout__workspace-label">{workspaceLabelFallback}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="app-layout__nav-row">
+              {visibleItems.map((item) => {
+                const itemLabel = navLabelMap[item.label] ?? item.label;
+                return (
+                  <Link key={item.route} to={item.route} className="app-layout__nav-chip">
+                    {itemLabel}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="app-layout__actions">
+            <LanguageSwitcher />
+            <button
+              type="button"
+              onClick={() => setMenuOpen((c) => !c)}
+              className="app-layout__user-button"
+            >
+              {roleIcon} {user?.full_name || user?.email}
+            </button>
+
+            {canUseMailCenter && (
+              <div className="app-layout__mail-group">
+                <button
+                  type="button"
+                  onClick={() => openMail()}
+                  className={`app-layout__mail-button ${mailUnreadCount > 0 ? "app-layout__mail-button--unread" : "app-layout__mail-button--read"}`}
+                >
+                  <Mail size={16} />
+                  <span className="app-layout__mail-title">Mail</span>
+                  {mailUnreadCount > 0 && <span className="app-layout__mail-badge">{mailUnreadCount}</span>}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMailMenuOpen((c) => !c)}
+                  aria-label={mailMenuOpen ? "Mail seçeneklerini kapat" : "Mail seçeneklerini aç"}
+                  className={`app-layout__mail-button app-layout__mail-button-toggle ${mailUnreadCount > 0 ? "app-layout__mail-button--unread" : "app-layout__mail-button--read"}`}
+                >
+                  <ChevronDown size={14} />
+                </button>
+                {mailMenuOpen && (
+                  <div className="app-layout__mail-popover">
+                    <div className="app-layout__mail-popover-header">
+                      <div className="app-layout__mail-popover-title">{shellT.mail_summary}</div>
+                      <div className="app-layout__mail-popover-subtitle">
+                        {shellT.mail_priority}: {personalMailAddress || workMailAddress || "profil emaili"}
+                      </div>
+                      {!isSuperAdmin && (
+                        <div className="app-layout__mail-popover-status">
+                          {scopeLabel} {shellT.dashboard_mail_button}:{" "}
+                          {dashboardMailButtonEnabled ? shellT.active : shellT.passive}
+                        </div>
+                      )}
+                    </div>
+                    {mailAccounts.length === 0 ? (
+                      <div className="app-layout__mail-popover-empty">{shellT.mailbox_not_found}</div>
+                    ) : (
+                      mailAccounts.map((account) => (
+                        <button
+                          key={account.id}
+                          type="button"
+                          onClick={() => openMail(account.id)}
+                          className={`app-layout__mail-option ${preferredMailAccount?.id === account.id ? "app-layout__mail-option--selected" : ""}`}
+                        >
+                          <span className="app-layout__mail-option-email">{account.email}</span>
+                          <span className={`app-layout__mail-option-count ${account.unread_count > 0 ? "app-layout__mail-option-count--unread" : ""}`}>
+                            {account.unread_count}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                    <div className="app-layout__mail-popover-footer">
+                      İş maili tanımlanırsa header önce o mailbox hesabını açar.
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {menuOpen && (
+              <div className="app-layout__menu-popover">
+                <div className="app-layout__menu-body">
+                  <div className="app-layout__menu-role">
+                    {roleIcon} {roleLabel} • {user?.platform_name || "Buyera Asistans"}
+                  </div>
+                  <button type="button" onClick={handleProfileClick} className="app-layout__menu-button app-layout__menu-button--profile">
+                    👤 {shellT.profile}
+                  </button>
+                  <button type="button" onClick={handleLogout} className="app-layout__menu-button app-layout__menu-button--logout">
+                    🚪 {shellT.logout}
+                  </button>
+                </div>
+              </div>
+            )}
+            {menuOpen && <div onClick={() => setMenuOpen(false)} className="app-layout__overlay" />}
+            {canUseMailCenter && mailMenuOpen && (
+              <div onClick={() => setMailMenuOpen(false)} className="app-layout__overlay app-layout__overlay--mail" />
+            )}
+          </div>
+        </header>
+
+        <main className="app-layout__main">
+          <Outlet />
+        </main>
+
+        {canUseMailCenter && (
+          <MailCenterPopup isOpen={mailPopupOpen} initialAccountId={mailPopupAccountId} onClose={() => setMailPopupOpen(false)} />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="app-layout app-layout__theme">
+    <div className="app-layout app-layout--sidebar app-layout__theme">
       <style>{`
         .app-layout__theme {
           --app-layout-header-gradient: ${headerGradient};
@@ -233,161 +423,175 @@ export default function AppLayout() {
         }
       `}</style>
 
-      <header className="app-layout__header">
-        <div className="app-layout__header-left">
-          <div className="app-layout__brand-stack">
-            <div className="app-layout__brand-logo-row">
-              <PublicBrandLogo height={34} maxWidth={168} invert />
-            </div>
-            <div className="app-layout__workspace-row">
-              {logoUrl ? (
-                <img src={logoUrl} alt={workspaceName} className="app-layout__workspace-logo" />
-              ) : (
-                <div className="app-layout__workspace-fallback">
-                  {workspaceName.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              <div className="app-layout__workspace-copy">
-                <div className="app-layout__workspace-name">{workspaceName}</div>
-                <div className="app-layout__workspace-label">{workspaceLabelFallback}</div>
-              </div>
-            </div>
-          </div>
+      {/* ── SIDEBAR ── */}
+      <aside className="app-layout__sidebar">
+        <div className="app-layout__sb-brand">
+          <PublicBrandLogo height={26} maxWidth={130} invert />
+        </div>
 
-          <div className="app-layout__nav-row">
-            {visibleItems.map((item) => {
-              const labelMap: Record<string, string> = {
-                Dashboard: shellT.dashboard,
-                Teklifler: shellT.quotes,
-                Raporlar: shellT.reports,
-                "AI Keşif Lab": shellT.ai_lab,
-              };
-              const itemLabel = labelMap[item.label] ?? item.label;
-              return (
-                <Link key={item.route} to={item.route} className="app-layout__nav-chip">
-                  {itemLabel}
-                </Link>
-              );
-            })}
+        <div className="app-layout__sb-workspace">
+          <div className="app-layout__sb-ws-av">
+            {logoUrl ? (
+              <div
+                className="app-layout__sb-ws-logo-bg"
+                style={{ backgroundImage: `url(${JSON.stringify(logoUrl)})` }}
+                role="img"
+                aria-label={workspaceName}
+              />
+            ) : (
+              <div className="app-layout__sb-ws-fallback">{workspaceName.slice(0, 2).toUpperCase()}</div>
+            )}
+          </div>
+          <div className="app-layout__sb-ws-info">
+            <div className="app-layout__sb-ws-name">{workspaceName}</div>
+            <div className="app-layout__sb-ws-role">{workspaceLabelFallback}</div>
           </div>
         </div>
 
-        <div className="app-layout__actions">
-          <LanguageSwitcher />
-          <button
-            type="button"
-            onClick={() => setMenuOpen((current) => !current)}
-            className="app-layout__user-button"
-          >
-            {roleIcon} {user?.full_name || user?.email}
-          </button>
-
-          {canUseMailCenter && (
-            <div className="app-layout__mail-group">
-              <button
-                type="button"
-                onClick={() => openMail()}
-                className={`app-layout__mail-button ${
-                  mailUnreadCount > 0 ? "app-layout__mail-button--unread" : "app-layout__mail-button--read"
-                }`}
+        <nav className="app-layout__sb-nav" aria-label="Ana menü">
+          {visibleItems.map((item) => {
+            const itemLabel = navLabelMap[item.label] ?? item.label;
+            const isActive = location.pathname === item.route
+              || (item.route !== "/" && location.pathname.startsWith(item.route + "/"));
+            return (
+              <Link
+                key={item.route}
+                to={item.route}
+                className={`app-layout__sb-nav-item${isActive ? " app-layout__sb-nav-item--active" : ""}`}
               >
-                <Mail size={16} />
-                <span className="app-layout__mail-title">Mail</span>
-                {mailUnreadCount > 0 && (
-                  <span className="app-layout__mail-badge">{mailUnreadCount}</span>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMailMenuOpen((current) => !current)}
-                aria-label={mailMenuOpen ? "Mail seçeneklerini kapat" : "Mail seçeneklerini aç"}
-                title={mailMenuOpen ? "Mail seçeneklerini kapat" : "Mail seçeneklerini aç"}
-                className={`app-layout__mail-button app-layout__mail-button-toggle ${
-                  mailUnreadCount > 0 ? "app-layout__mail-button--unread" : "app-layout__mail-button--read"
-                }`}
-              >
-                <ChevronDown size={14} />
-              </button>
+                <span className="app-layout__sb-nav-ico">{navIcon(item.route)}</span>
+                <span className="app-layout__sb-nav-label">{itemLabel}</span>
+              </Link>
+            );
+          })}
+        </nav>
 
-              {mailMenuOpen && (
-                <div className="app-layout__mail-popover">
-                  <div className="app-layout__mail-popover-header">
-                    <div className="app-layout__mail-popover-title">{shellT.mail_summary}</div>
-                    <div className="app-layout__mail-popover-subtitle">
-                      {shellT.mail_priority}: {personalMailAddress || workMailAddress || "profil emaili"}
-                    </div>
-                    {!isSuperAdmin && (
-                      <div className="app-layout__mail-popover-status">
-                        {scopeLabel} {shellT.dashboard_mail_button}:{" "}
-                        {dashboardMailButtonEnabled ? shellT.active : shellT.passive}
+        <div className="app-layout__sb-footer">
+          <span>{scopeLabel || user?.platform_name || "Buyera Asistans"}</span>
+        </div>
+      </aside>
+
+      {/* ── MAIN ── */}
+      <div className="app-layout__sb-main">
+        <header className="app-layout__sb-topbar">
+          <div className="app-layout__actions">
+            <LanguageSwitcher compact />
+
+            {canUseMailCenter && (
+              <div className="app-layout__mail-group">
+                <button
+                  type="button"
+                  onClick={() => openMail()}
+                  className={`app-layout__mail-button ${
+                    mailUnreadCount > 0 ? "app-layout__mail-button--unread" : "app-layout__mail-button--read"
+                  }`}
+                >
+                  <Mail size={16} />
+                  <span className="app-layout__mail-title">Mail</span>
+                  {mailUnreadCount > 0 && (
+                    <span className="app-layout__mail-badge">{mailUnreadCount}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMailMenuOpen((current) => !current)}
+                  aria-label={mailMenuOpen ? "Mail seçeneklerini kapat" : "Mail seçeneklerini aç"}
+                  title={mailMenuOpen ? "Mail seçeneklerini kapat" : "Mail seçeneklerini aç"}
+                  className={`app-layout__mail-button app-layout__mail-button-toggle ${
+                    mailUnreadCount > 0 ? "app-layout__mail-button--unread" : "app-layout__mail-button--read"
+                  }`}
+                >
+                  <ChevronDown size={14} />
+                </button>
+
+                {mailMenuOpen && (
+                  <div className="app-layout__mail-popover">
+                    <div className="app-layout__mail-popover-header">
+                      <div className="app-layout__mail-popover-title">{shellT.mail_summary}</div>
+                      <div className="app-layout__mail-popover-subtitle">
+                        {shellT.mail_priority}: {personalMailAddress || workMailAddress || "profil emaili"}
                       </div>
-                    )}
-                  </div>
-                  {mailAccounts.length === 0 ? (
-                    <div className="app-layout__mail-popover-empty">{shellT.mailbox_not_found}</div>
-                  ) : (
-                    mailAccounts.map((account) => (
-                      <button
-                        key={account.id}
-                        type="button"
-                        onClick={() => openMail(account.id)}
-                        className={`app-layout__mail-option ${
-                          preferredMailAccount?.id === account.id ? "app-layout__mail-option--selected" : ""
-                        }`}
-                      >
-                        <span className="app-layout__mail-option-email">{account.email}</span>
-                        <span
-                          className={`app-layout__mail-option-count ${
-                            account.unread_count > 0 ? "app-layout__mail-option-count--unread" : ""
+                      {!isSuperAdmin && (
+                        <div className="app-layout__mail-popover-status">
+                          {scopeLabel} {shellT.dashboard_mail_button}:{" "}
+                          {dashboardMailButtonEnabled ? shellT.active : shellT.passive}
+                        </div>
+                      )}
+                    </div>
+                    {mailAccounts.length === 0 ? (
+                      <div className="app-layout__mail-popover-empty">{shellT.mailbox_not_found}</div>
+                    ) : (
+                      mailAccounts.map((account) => (
+                        <button
+                          key={account.id}
+                          type="button"
+                          onClick={() => openMail(account.id)}
+                          className={`app-layout__mail-option ${
+                            preferredMailAccount?.id === account.id ? "app-layout__mail-option--selected" : ""
                           }`}
                         >
-                          {account.unread_count}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                  <div className="app-layout__mail-popover-footer">
-                    İş maili tanımlanırsa header önce o mailbox hesabını açar.
+                          <span className="app-layout__mail-option-email">{account.email}</span>
+                          <span
+                            className={`app-layout__mail-option-count ${
+                              account.unread_count > 0 ? "app-layout__mail-option-count--unread" : ""
+                            }`}
+                          >
+                            {account.unread_count}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                    <div className="app-layout__mail-popover-footer">
+                      İş maili tanımlanırsa header önce o mailbox hesabını açar.
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {menuOpen && (
-            <div className="app-layout__menu-popover">
-              <div className="app-layout__menu-body">
-                <div className="app-layout__menu-role">
-                  {roleIcon} {roleLabel} • {user?.platform_name || "Buyera Asistans"}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleProfileClick}
-                  className="app-layout__menu-button app-layout__menu-button--profile"
-                >
-                  👤 {shellT.profile}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="app-layout__menu-button app-layout__menu-button--logout"
-                >
-                  🚪 {shellT.logout}
-                </button>
+                )}
               </div>
-            </div>
-          )}
+            )}
 
-          {menuOpen && <div onClick={() => setMenuOpen(false)} className="app-layout__overlay" />}
-          {canUseMailCenter && mailMenuOpen && (
-            <div onClick={() => setMailMenuOpen(false)} className="app-layout__overlay app-layout__overlay--mail" />
-          )}
-        </div>
-      </header>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((current) => !current)}
+              className="app-layout__user-button"
+            >
+              {roleIcon} {user?.full_name || user?.email}
+            </button>
 
-      <main className="app-layout__main">
-        <Outlet />
-      </main>
+            {menuOpen && (
+              <div className="app-layout__menu-popover">
+                <div className="app-layout__menu-body">
+                  <div className="app-layout__menu-role">
+                    {roleIcon} {roleLabel} • {user?.platform_name || "Buyera Asistans"}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleProfileClick}
+                    className="app-layout__menu-button app-layout__menu-button--profile"
+                  >
+                    👤 {shellT.profile}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="app-layout__menu-button app-layout__menu-button--logout"
+                  >
+                    🚪 {shellT.logout}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className="app-layout__main">
+          <Outlet />
+        </main>
+      </div>
+
+      {menuOpen && <div onClick={() => setMenuOpen(false)} className="app-layout__overlay" />}
+      {canUseMailCenter && mailMenuOpen && (
+        <div onClick={() => setMailMenuOpen(false)} className="app-layout__overlay app-layout__overlay--mail" />
+      )}
 
       {canUseMailCenter && (
         <MailCenterPopup

@@ -1105,68 +1105,86 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                 ) : null}
               </div>
 
-              {isSelfMode ? (
-              <div className="wpd-form-grid">
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Hero Basligi</span>
-                  <input value={selectedProfile.hero_title} onChange={(event) => updateSelected({ hero_title: event.target.value })} placeholder="Panel hero basligi" className="wpd-input" />
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Ust Bilgi (Top Notice)</span>
-                  <input value={selectedProfile.top_notice || ""} onChange={(event) => updateSelected({ top_notice: event.target.value })} placeholder="Ornek: Surum 2026.Q2 yayinda" className="wpd-input" />
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Header Bilgisi</span>
-                  <input value={selectedProfile.header_info || ""} onChange={(event) => updateSelected({ header_info: event.target.value })} placeholder="Ornek: SLA: %99.9" className="wpd-input" />
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Alt Bilgi (Footer)</span>
-                  <input value={selectedProfile.footer_info || ""} onChange={(event) => updateSelected({ footer_info: event.target.value })} placeholder="Ornek: Son guncelleme: Bugun" className="wpd-input" />
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Header Arkaplan Rengi</span>
-                  <div className="wpd-color-field-row">
-                    <input type="color" value={(selectedProfile.header_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
-                    <input value={selectedProfile.header_bg_color || "#0f172acc"} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} placeholder="#0f172acc" className="wpd-input" />
-                  </div>
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Header Yazi Rengi</span>
-                  <div className="wpd-color-field-row">
-                    <input type="color" value={(selectedProfile.header_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ header_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
-                    <input value={selectedProfile.header_text_color || "#f8fafc"} onChange={(event) => updateSelected({ header_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
-                  </div>
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Footer Arkaplan Rengi</span>
-                  <div className="wpd-color-field-row">
-                    <input type="color" value={(selectedProfile.footer_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
-                    <input value={selectedProfile.footer_bg_color || "#0f172a99"} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} placeholder="#0f172a99" className="wpd-input" />
-                  </div>
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Footer Yazi Rengi</span>
-                  <div className="wpd-color-field-row">
-                    <input type="color" value={(selectedProfile.footer_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
-                    <input value={selectedProfile.footer_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
-                  </div>
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Hero Yazi Rengi</span>
-                  <div className="wpd-color-field-row">
-                    <input type="color" value={(selectedProfile.hero_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
-                    <input value={selectedProfile.hero_text_color || "#f8fafc"} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
-                  </div>
-                </label>
-                <label className="wpd-field">
-                  <span className="wpd-field-label">Hero Yardimci Yazi Rengi</span>
-                  <div className="wpd-color-field-row">
-                    <input type="color" value={(selectedProfile.hero_muted_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
-                    <input value={selectedProfile.hero_muted_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
-                  </div>
-                </label>
-              </div>
-              ) : (
+              {isSelfMode ? (() => {
+                const restricted = selectedProfile.restricted_customization_sections || [];
+                const textsLocked = restricted.includes("texts");
+                const colorsLocked = restricted.includes("colors");
+                return (
+                <div className="wpd-form-grid">
+                  {!textsLocked && (
+                    <>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Hero Basligi</span>
+                        <input value={selectedProfile.hero_title} onChange={(event) => updateSelected({ hero_title: event.target.value })} placeholder="Panel hero basligi" className="wpd-input" />
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Ust Bilgi (Top Notice)</span>
+                        <input value={selectedProfile.top_notice || ""} onChange={(event) => updateSelected({ top_notice: event.target.value })} placeholder="Ornek: Surum 2026.Q2 yayinda" className="wpd-input" />
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Header Bilgisi</span>
+                        <input value={selectedProfile.header_info || ""} onChange={(event) => updateSelected({ header_info: event.target.value })} placeholder="Ornek: SLA: %99.9" className="wpd-input" />
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Alt Bilgi (Footer)</span>
+                        <input value={selectedProfile.footer_info || ""} onChange={(event) => updateSelected({ footer_info: event.target.value })} placeholder="Ornek: Son guncelleme: Bugun" className="wpd-input" />
+                      </label>
+                    </>
+                  )}
+                  {!colorsLocked && (
+                    <>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Header Arkaplan Rengi</span>
+                        <div className="wpd-color-field-row">
+                          <input type="color" value={(selectedProfile.header_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                          <input value={selectedProfile.header_bg_color || "#0f172acc"} onChange={(event) => updateSelected({ header_bg_color: event.target.value })} placeholder="#0f172acc" className="wpd-input" />
+                        </div>
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Header Yazi Rengi</span>
+                        <div className="wpd-color-field-row">
+                          <input type="color" value={(selectedProfile.header_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ header_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                          <input value={selectedProfile.header_text_color || "#f8fafc"} onChange={(event) => updateSelected({ header_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
+                        </div>
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Footer Arkaplan Rengi</span>
+                        <div className="wpd-color-field-row">
+                          <input type="color" value={(selectedProfile.footer_bg_color || "#0f172a").slice(0, 7)} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                          <input value={selectedProfile.footer_bg_color || "#0f172a99"} onChange={(event) => updateSelected({ footer_bg_color: event.target.value })} placeholder="#0f172a99" className="wpd-input" />
+                        </div>
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Footer Yazi Rengi</span>
+                        <div className="wpd-color-field-row">
+                          <input type="color" value={(selectedProfile.footer_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                          <input value={selectedProfile.footer_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ footer_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
+                        </div>
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Hero Yazi Rengi</span>
+                        <div className="wpd-color-field-row">
+                          <input type="color" value={(selectedProfile.hero_text_color || "#f8fafc").slice(0, 7)} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                          <input value={selectedProfile.hero_text_color || "#f8fafc"} onChange={(event) => updateSelected({ hero_text_color: event.target.value })} placeholder="#f8fafc" className="wpd-input" />
+                        </div>
+                      </label>
+                      <label className="wpd-field">
+                        <span className="wpd-field-label">Hero Yardimci Yazi Rengi</span>
+                        <div className="wpd-color-field-row">
+                          <input type="color" value={(selectedProfile.hero_muted_text_color || "#e2e8f0").slice(0, 7)} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} className="wpd-color-input wpd-color-input--large" />
+                          <input value={selectedProfile.hero_muted_text_color || "#e2e8f0"} onChange={(event) => updateSelected({ hero_muted_text_color: event.target.value })} placeholder="#e2e8f0" className="wpd-input" />
+                        </div>
+                      </label>
+                    </>
+                  )}
+                  {textsLocked && colorsLocked && (
+                    <p style={{ color: "#64748b", fontSize: "0.85rem" }}>
+                      Bu panel için kişisel düzenleme kısıtlanmıştır. Platform yöneticinizle iletişime geçin.
+                    </p>
+                  )}
+                </div>
+                );
+              })() : (
               <div className="wpd-form-grid">
                 <label className="wpd-field">
                   <span className="wpd-field-label">Business Role</span>
@@ -1256,6 +1274,41 @@ function WorkspacePanelDesignerTabBody({ config, sourceConfig, currentUser, pers
                     {selectedProfile.allow_user_self_customization ? "Açık" : "Kapalı"}
                   </button>
                 </label>
+                {selectedProfile.allow_user_self_customization && (
+                  <div className="wpd-control-section">
+                    <div className="wpd-section-title">Kişisel Düzenleme Kısıtlamaları</div>
+                    <div className="wpd-option-stack">
+                      {([
+                        { key: "texts", label: "Metin Düzenleme (Başlık / Bildirimler)" },
+                        { key: "colors", label: "Renk Değişikliği (Header / Footer / Hero)" },
+                        { key: "quick_links", label: "Hızlı Bağlantılar" },
+                      ] as const).map(({ key, label }) => {
+                        const restricted = (selectedProfile.restricted_customization_sections || []).includes(key);
+                        return (
+                          <div key={key} className="wpd-tab-row">
+                            <div className="wpd-tab-main">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const current = selectedProfile.restricted_customization_sections || [];
+                                  const next = restricted ? current.filter((s) => s !== key) : [...current, key];
+                                  updateSelected({ restricted_customization_sections: next });
+                                }}
+                                className={cx("wpd-check-button", restricted && "wpd-check-button--enabled")}
+                              >
+                                {restricted ? "✓" : ""}
+                              </button>
+                              <span className={cx("wpd-tab-status", restricted && "wpd-tab-status--enabled")}>
+                                {restricted ? "Kısıtlı" : "Serbest"}
+                              </span>
+                              <div className={cx("wpd-tab-title", restricted && "wpd-tab-title--enabled")}>{label}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
               )}
 

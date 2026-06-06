@@ -93,7 +93,7 @@ def test_tenant_owner_workspace_label(client):
     assert login.status_code == 200, login.text
     body = login.json()
     assert body["user"]["system_role"] == "tenant_owner"
-    assert body["user"]["workspace_label"] == "Owner Workspace Owner Yonetim Alani"
+    assert body["user"]["workspace_label"] == "Owner Workspace Owner Yönetim Alanı"
 
 
 def test_global_procurement_manager_covers_tenant_owner_and_admin_compat_role():

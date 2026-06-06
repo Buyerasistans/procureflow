@@ -1,4 +1,3 @@
-// FILE: web/src/pages/ProfilePage.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { getUserDisplayRoleLabel, getUserScopeType } from "../auth/permissions";
@@ -35,6 +34,7 @@ import { PartnerSummaryCard } from "../components/channel/PartnerSummaryCard";
 import { ReferralLinkCenter } from "../components/channel/ReferralLinkCenter";
 import { ConversionOverviewPanel } from "../components/channel/ConversionOverviewPanel";
 import { SectionCard, SectionHeader } from "../components/channel/ChannelPrimitives";
+import "./ProfilePage.css";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -63,11 +63,9 @@ export default function ProfilePage() {
   const [gamificationLoading, setGamificationLoading] = useState(false);
   const isChannelWorkspace = getUserScopeType(user) === "channel";
 
-  // Profile edit
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({ full_name: "", work_email: "" });
 
-  // Password change
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     old_password: "",
@@ -153,7 +151,7 @@ export default function ProfilePage() {
           setChannelConversionMetrics(null);
           setChannelCommissionReport(null);
           setTeamHierarchy(null);
-            setChannelCampaigns(null);
+          setChannelCampaigns(null);
           setChannelSocialLinks(null);
           setTeamPerformance(null);
           setChannelGamification(null);
@@ -165,7 +163,7 @@ export default function ProfilePage() {
           setConversionLoading(false);
           setCommissionLoading(false);
           setHierarchyLoading(false);
-            setCampaignLoading(false);
+          setCampaignLoading(false);
           setSocialLoading(false);
           setTeamPerformanceLoading(false);
           setGamificationLoading(false);
@@ -296,37 +294,21 @@ export default function ProfilePage() {
 
   if (!profile && loading) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <div style={{ display: "inline-block" }}>⏳ Yükleniyor...</div>
+      <div className="prp-loading">
+        <div className="prp-loading-inner">⏳ Yükleniyor...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: 20 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 30 }}>
-        <h1 style={{ marginBottom: 8 }}>👤 Profilim</h1>
-        <p style={{ color: "#666", margin: 0 }}>Kişisel bilgilerinizi yönetin</p>
+    <div className="prp-root">
+      <div className="prp-page-header">
+        <h1 className="prp-page-title">👤 Profilim</h1>
+        <p className="prp-page-subtitle">Kişisel bilgilerinizi yönetin</p>
       </div>
 
-      {/* Messages */}
       {message && (
-        <div
-          style={{
-            padding: 12,
-            marginBottom: 20,
-            borderRadius: 8,
-            backgroundColor:
-              message.type === "success"
-                ? "#d1fae5"
-                : "#fee2e2",
-            color: message.type === "success" ? "#065f46" : "#991b1b",
-            border: `1px solid ${
-              message.type === "success" ? "#6ee7b7" : "#fca5a5"
-            }`,
-          }}
-        >
+        <div className={`prp-message prp-message--${message.type}`}>
           {message.type === "success" ? "✅" : "❌"} {message.text}
         </div>
       )}
@@ -348,23 +330,15 @@ export default function ProfilePage() {
                 onCreateLink={handleCreateReferralLink}
               />
 
-              <div
-                style={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e0e7ff",
-                  borderRadius: 12,
-                  padding: 20,
-                  marginBottom: 14,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <h2 style={{ margin: 0, fontSize: 18 }}>Sosyal Baglanti Paneli</h2>
-                  <span style={{ fontSize: 12, color: "#475569" }}>
+              <div className="prp-social-card">
+                <div className="prp-social-card-header">
+                  <h2 className="prp-social-card-title">Sosyal Baglanti Paneli</h2>
+                  <span className="prp-badge-sm">
                     {socialLoading ? "Yukleniyor..." : channelSocialLinks?.source_link_code || "Hazir"}
                   </span>
                 </div>
                 {socialLoading ? (
-                  <p style={{ margin: 0, color: "#64748b", fontSize: 14 }}>Yukleniyor...</p>
+                  <p className="prp-muted-text-sm">Yukleniyor...</p>
                 ) : (
                   <SocialSharePanel data={channelSocialLinks} />
                 )}
@@ -379,14 +353,13 @@ export default function ProfilePage() {
                 onCommissionSync={handleCommissionSync}
               />
 
-              {/* Ekip Hiyerarşisi */}
               <SectionCard marginBottom={20}>
                 <SectionHeader title="Ekip Hiyerarşisi" />
                 {hierarchyLoading ? (
-                  <p style={{ color: "#9ca3af", fontSize: 13 }}>Yükleniyor...</p>
+                  <p className="prp-muted-text">Yükleniyor...</p>
                 ) : teamHierarchy && teamHierarchy.nodes.length > 0 ? (
                   <>
-                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+                    <div className="prp-team-info">
                       Toplam: {teamHierarchy.total_members} üye · Aktif: {teamHierarchy.active_members}
                     </div>
                     <TeamHierarchyTree
@@ -395,7 +368,7 @@ export default function ProfilePage() {
                     />
                   </>
                 ) : (
-                  <p style={{ color: "#9ca3af", fontSize: 13 }}>Henüz ekip üyesi yok.</p>
+                  <p className="prp-muted-text">Henüz ekip üyesi yok.</p>
                 )}
               </SectionCard>
 
@@ -403,35 +376,33 @@ export default function ProfilePage() {
                 <SectionHeader
                   title="Ekip Performans Tablosu"
                   right={
-                    <span style={{ fontSize: 12, color: "#64748b" }}>
-                    {teamPerformanceLoading ? "Yukleniyor..." : teamPerformance?.period || "30d"}
+                    <span className="prp-badge-subtle">
+                      {teamPerformanceLoading ? "Yukleniyor..." : teamPerformance?.period || "30d"}
                     </span>
                   }
                 />
                 {teamPerformanceLoading ? (
-                  <p style={{ color: "#9ca3af", fontSize: 13, margin: 0 }}>Yukleniyor...</p>
+                  <p className="prp-muted-text">Yukleniyor...</p>
                 ) : (
                   <TeamPerformanceTable data={teamPerformance} />
                 )}
               </SectionCard>
 
-              {/* Performans ve Seviye */}
               <GamificationPanel data={channelGamification} loading={gamificationLoading} />
 
-              {/* Kampanya Paneli */}
               <SectionCard marginBottom={20}>
                 <SectionHeader
                   title="Kampanya Paneli"
                   right={
                     channelCampaigns && channelCampaigns.total > 0 ? (
-                      <span style={{ fontSize: 12, color: "#6b7280" }}>
+                      <span className="prp-badge-muted">
                         {channelCampaigns.active_count} aktif · {channelCampaigns.joined_count} katılınan
                       </span>
                     ) : null
                   }
                 />
                 {campaignLoading ? (
-                  <p style={{ color: "#9ca3af", fontSize: 13 }}>Yükleniyor...</p>
+                  <p className="prp-muted-text">Yükleniyor...</p>
                 ) : (
                   <CampaignPanel campaigns={channelCampaigns?.campaigns ?? []} />
                 )}
@@ -439,159 +410,133 @@ export default function ProfilePage() {
             </>
           )}
 
-          {/* Profile Section */}
-          <div
-            style={{
-              backgroundColor: "#fff",
-              border: "1px solid #e5e7eb",
-              borderRadius: 8,
-              padding: 24,
-              marginBottom: 20,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ margin: 0, fontSize: 18 }}>Temel Bilgiler</h2>
+          <div className="prp-card prp-card--mb">
+            <div className="prp-card-header">
+              <h2 className="prp-card-title">Temel Bilgiler</h2>
               {!editMode && (
-                <button
-                  onClick={() => setEditMode(true)}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#3b82f6",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                >
+                <button type="button" onClick={() => setEditMode(true)} className="prp-edit-btn">
                   Düzenle
                 </button>
               )}
             </div>
 
             {editMode ? (
-              <form onSubmit={handleUpdateProfile} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div>
-                  <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
-                    Ad ve Soyad
-                  </label>
+              <form onSubmit={handleUpdateProfile} className="prp-form">
+                <div className="prp-form-group">
+                  <label className="prp-form-label">Ad ve Soyad</label>
                   <input
                     type="text"
                     value={editForm.full_name}
                     onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
                     disabled={loading}
-                    style={{
-                      width: "100%",
-                      padding: 8,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      boxSizing: "border-box",
-                    }}
+                    className="prp-form-input"
+                    aria-label="Ad ve Soyad"
                   />
                 </div>
-                <div>
-                  <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
-                    İş Maili
-                  </label>
+                <div className="prp-form-group">
+                  <label className="prp-form-label">İş Maili</label>
                   <input
                     type="email"
                     value={editForm.work_email}
                     onChange={(e) => setEditForm({ ...editForm, work_email: e.target.value })}
                     disabled={loading}
                     placeholder="Mail popup hesabı için kullanılacak adres"
-                    style={{ width: "100%", padding: 8, border: "1px solid #ddd", borderRadius: 4, boxSizing: "border-box" }}
+                    className="prp-form-input"
+                    aria-label="İş Maili"
                   />
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: "#10b981",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: loading ? "not-allowed" : "pointer",
-                      opacity: loading ? 0.6 : 1,
-                    }}
-                  >
+                <div className="prp-form-actions">
+                  <button type="submit" disabled={loading} className="prp-submit-btn prp-submit-btn--save">
                     {loading ? "Kaydediliyor..." : "Kaydet"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditMode(false)}
                     disabled={loading}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: "#f3f4f6",
-                      color: "#1f2937",
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                    }}
+                    className="prp-cancel-btn"
                   >
                     İptal
                   </button>
                 </div>
               </form>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: "16px 24px", lineHeight: 1.8 }}>
+              <div className="prp-info-grid">
                 <strong>Ad & Soyad:</strong>
                 <span>{profile.full_name}</span>
 
                 <strong>Email:</strong>
-                <span>{profile.email}</span>
+                <span>
+                  {profile.email ? (
+                    <a href={`mailto:${profile.email}`} className="prp-contact-link">
+                      {profile.email}
+                    </a>
+                  ) : "-"}
+                </span>
 
                 <strong>İş Maili:</strong>
-                <span>{profile.work_email || "-"}</span>
+                <span>
+                  {profile.work_email ? (
+                    <a href={`mailto:${profile.work_email}`} className="prp-contact-link">
+                      {profile.work_email}
+                    </a>
+                  ) : "-"}
+                </span>
+
+                {profile.personal_phone && (
+                  <>
+                    <strong>Cep Telefonu:</strong>
+                    <span className="prp-phone-row">
+                      <a href={`tel:${profile.personal_phone}`} className="prp-contact-link">{profile.personal_phone}</a>
+                      <a href={`https://wa.me/${profile.personal_phone.replace(/[\s\-\(\)]/g, "").replace(/^0/, "90").replace(/^\+/, "")}`}
+                        target="_blank" rel="noopener noreferrer" className="prp-contact-link prp-contact-link--wa" title="WhatsApp">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                      </a>
+                    </span>
+                  </>
+                )}
+
+                {profile.company_phone && (
+                  <>
+                    <strong>İş Telefonu:</strong>
+                    <span className="prp-phone-row">
+                      <a href={`tel:${profile.company_phone}`} className="prp-contact-link">{profile.company_phone}</a>
+                      <a href={`https://wa.me/${profile.company_phone.replace(/[\s\-\(\)]/g, "").replace(/^0/, "90").replace(/^\+/, "")}`}
+                        target="_blank" rel="noopener noreferrer" className="prp-contact-link prp-contact-link--wa" title="WhatsApp">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                      </a>
+                    </span>
+                  </>
+                )}
 
                 <strong>Rol:</strong>
                 <span>{getUserDisplayRoleLabel(profile)}</span>
 
                 <strong>Durum:</strong>
-                <span style={{ color: profile.is_active ? "#10b981" : "#ef4444" }}>
+                <span className={profile.is_active ? "prp-status--active" : "prp-status--inactive"}>
                   {profile.is_active ? "✅ Aktif" : "❌ Pasif"}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Password Change Section */}
-          <div
-            style={{
-              backgroundColor: "#fff",
-              border: "1px solid #e5e7eb",
-              borderRadius: 8,
-              padding: 24,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ margin: 0, fontSize: 18 }}>🔐 Şifre</h2>
+          <div className="prp-card">
+            <div className="prp-card-header">
+              <h2 className="prp-card-title">🔐 Şifre</h2>
               {!showPasswordForm && (
-                <button
-                  onClick={() => setShowPasswordForm(true)}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#3b82f6",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                >
+                <button type="button" onClick={() => setShowPasswordForm(true)} className="prp-edit-btn">
                   Şifre Değiştir
                 </button>
               )}
             </div>
 
             {showPasswordForm ? (
-              <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div>
-                  <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
-                    Mevcut Şifre
-                  </label>
+              <form onSubmit={handleChangePassword} className="prp-form">
+                <div className="prp-form-group">
+                  <label className="prp-form-label">Mevcut Şifre</label>
                   <input
                     type="password"
                     value={passwordForm.old_password}
@@ -599,20 +544,13 @@ export default function ProfilePage() {
                       setPasswordForm({ ...passwordForm, old_password: e.target.value })
                     }
                     disabled={loading}
-                    style={{
-                      width: "100%",
-                      padding: 8,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      boxSizing: "border-box",
-                    }}
+                    className="prp-form-input"
+                    aria-label="Mevcut Şifre"
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
-                    Yeni Şifre
-                  </label>
+                <div className="prp-form-group">
+                  <label className="prp-form-label">Yeni Şifre</label>
                   <input
                     type="password"
                     value={passwordForm.new_password}
@@ -621,20 +559,13 @@ export default function ProfilePage() {
                     }
                     disabled={loading}
                     placeholder="En az 8 karakter"
-                    style={{
-                      width: "100%",
-                      padding: 8,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      boxSizing: "border-box",
-                    }}
+                    className="prp-form-input"
+                    aria-label="Yeni Şifre"
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 4, fontWeight: "600" }}>
-                    Yeni Şifre (Tekrar)
-                  </label>
+                <div className="prp-form-group">
+                  <label className="prp-form-label">Yeni Şifre (Tekrar)</label>
                   <input
                     type="password"
                     value={passwordForm.confirm_password}
@@ -642,30 +573,13 @@ export default function ProfilePage() {
                       setPasswordForm({ ...passwordForm, confirm_password: e.target.value })
                     }
                     disabled={loading}
-                    style={{
-                      width: "100%",
-                      padding: 8,
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      boxSizing: "border-box",
-                    }}
+                    className="prp-form-input"
+                    aria-label="Yeni Şifre (Tekrar)"
                   />
                 </div>
 
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: "#ef4444",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: loading ? "not-allowed" : "pointer",
-                      opacity: loading ? 0.6 : 1,
-                    }}
-                  >
+                <div className="prp-form-actions">
+                  <button type="submit" disabled={loading} className="prp-submit-btn prp-submit-btn--pwd">
                     {loading ? "Değiştiriliyor..." : "Şifre Değiştir"}
                   </button>
                   <button
@@ -679,25 +593,18 @@ export default function ProfilePage() {
                       });
                     }}
                     disabled={loading}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: "#f3f4f6",
-                      color: "#1f2937",
-                      border: "1px solid #ddd",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                    }}
+                    className="prp-cancel-btn"
                   >
                     İptal
                   </button>
                 </div>
 
-                <p style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
+                <p className="prp-form-hint">
                   💡 Yeni şifre en az 8 karakter olmalı ve eski şifreden farklı olmalı.
                 </p>
               </form>
             ) : (
-              <p style={{ color: "#666", margin: 0 }}>
+              <p className="prp-static-text">
                 Hesap güvenliğinizi sağlamak için düzenli olarak şifrenizi değiştirin.
               </p>
             )}

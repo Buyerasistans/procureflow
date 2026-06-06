@@ -21,8 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setLoading(false));
   }, [hasToken]);
 
-  async function login(email: string, password: string) {
-    const data = await loginApi(email, password);
+  async function login(email: string, password: string, captchaToken?: string) {
+    const data = await loginApi(email, password, captchaToken);
     setTokens(data.access_token, data.refresh_token);
     const profile = await me();
     setUser(profile);

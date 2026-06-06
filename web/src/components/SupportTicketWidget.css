@@ -1,0 +1,87 @@
+/* SupportTicketWidget — stw-* namespace */
+
+/* Success panel */
+.stw-success {
+  border-radius: 16px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+.stw-success__title { font-size: 16px; font-weight: 800; color: #15803d; }
+.stw-success__body { color: #166534; font-size: 14px; }
+.stw-success__sla { color: #166534; font-size: 13px; }
+.stw-success__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.stw-success__ok-btn {
+  padding: 8px 16px; border-radius: 10px; border: none;
+  background: #15803d; color: white; font-weight: 700; cursor: pointer;
+}
+.stw-success__list-btn {
+  padding: 8px 16px; border-radius: 10px;
+  border: 1px solid #86efac; background: white; color: #166534; font-weight: 700; cursor: pointer;
+}
+
+/* List mode */
+.stw-list { display: grid; gap: 12px; }
+.stw-list__header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stw-list__title { font-size: 15px; font-weight: 800; color: #0f172a; }
+.stw-list__back-btn {
+  padding: 6px 12px; border-radius: 8px;
+  border: 1px solid #e2e8f0; background: white; color: #334155; font-weight: 700; cursor: pointer;
+}
+.stw-list__loading { color: #64748b; font-size: 13px; }
+.stw-list__empty { color: #64748b; font-size: 13px; padding: 12px 0; }
+.stw-ticket-list { display: grid; gap: 8px; }
+.stw-ticket-card {
+  border-radius: 12px; border: 1px solid #e2e8f0;
+  background: #f8fafc; padding: 10px 14px; display: grid; gap: 4px;
+}
+.stw-ticket-card__row { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; }
+.stw-ticket-card__subject { font-weight: 700; color: #0f172a; font-size: 13px; }
+.stw-status-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: #e0f2fe; color: var(--stw-status-color, #0f172a);
+  font-size: 11px; font-weight: 800;
+}
+.stw-ticket-card__meta { color: #64748b; font-size: 12px; }
+.stw-ticket-card__resolution {
+  color: #15803d; font-size: 12px; border-radius: 8px;
+  background: #f0fdf4; padding: 6px 8px; margin-top: 4px;
+}
+.stw-list__new-btn {
+  justify-self: start; padding: 8px 16px; border-radius: 10px;
+  border: none; background: #1d4ed8; color: white; font-weight: 700; cursor: pointer;
+}
+
+/* Form mode */
+.stw-form { display: grid; gap: 14px; }
+.stw-form__header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stw-form__title { font-size: 15px; font-weight: 800; color: #0f172a; }
+.stw-form__list-btn {
+  padding: 5px 10px; border-radius: 8px; border: 1px solid #dbe3ee;
+  background: white; color: #334155; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.stw-form__error {
+  border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca;
+  padding: 8px 12px; color: #991b1b; font-size: 13px;
+}
+.stw-form__label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: #334155; }
+.stw-form__input,
+.stw-form__select,
+.stw-form__textarea {
+  padding: 8px 10px; border-radius: 10px; border: 1px solid #dbe3ee;
+  color: #0f172a; background: white; font-family: inherit;
+}
+.stw-form__textarea { resize: vertical; }
+.stw-form__2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stw-form__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.stw-form__submit-btn {
+  padding: 10px 20px; border-radius: 12px; border: none;
+  background: #1d4ed8; color: white; font-weight: 800; cursor: pointer;
+}
+.stw-form__submit-btn--saving { background: #93c5fd; cursor: not-allowed; }
+.stw-form__cancel-btn {
+  padding: 10px 16px; border-radius: 12px; border: 1px solid #dbe3ee;
+  background: white; color: #334155; font-weight: 700; cursor: pointer;
+}

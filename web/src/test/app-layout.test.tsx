@@ -111,7 +111,7 @@ describe("AppLayout", () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText(/Platform Operasyon Alani/i)).toBeInTheDocument()
+    expect(screen.getByText(/Platform Operasyon Alan/)).toBeInTheDocument()
   })
 
   it("tenant owner kullanıcısı için owner workspace fallback etiketini gösterir", () => {
@@ -135,6 +135,6 @@ describe("AppLayout", () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText(/Owner Yonetim Alani/i)).toBeInTheDocument()
+    expect(screen.getByText(/Owner Y.netim Alan/)).toBeInTheDocument()
   })
 })

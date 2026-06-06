@@ -12,7 +12,7 @@ export default function LoginPage() {
       <div className="login-page__shell">
         <div className="login-page__card">
           <div className="login-page__logo-row">
-            <PublicBrandLogo height={42} maxWidth={220} />
+            <PublicBrandLogo height={52} maxWidth={220} />
           </div>
 
           <h1 className="login-page__title">Giriş Tipinizi Seçin</h1>
@@ -27,7 +27,7 @@ export default function LoginPage() {
               onClick={() => navigate("/strategic-partner-login")}
               className="login-page__entry-button login-page__entry-button--strategic"
             >
-              Stratejik Partner Girişi
+              Stratejik Partner Girisi
             </button>
             <button
               type="button"
@@ -45,8 +45,40 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="login-page__footer-note">
-            Platform yönetici girişi güvenlik nedeniyle özel erişim akışı ile açılır.
+          <div className="login-page__divider">
+            <span className="login-page__divider-label">İşveren &amp; Kariyer</span>
+          </div>
+
+          <p className="login-page__kariyer-note">
+            İş ilanı vermek veya kariyer profilinize erişmek için giriş yapın.
+            Hesabınız yoksa hemen üye olabilirsiniz.
+          </p>
+
+          <div className="login-page__kariyer-grid">
+            <div className="login-page__kariyer-col">
+              <button
+                type="button"
+                onClick={() => navigate("/isveren-giris")}
+                className="login-page__entry-button login-page__entry-button--employer"
+              >
+                🏢 İşveren Girişi
+              </button>
+              <a href="/employer/register" className="login-page__inline-register">
+                Üye Ol →
+              </a>
+            </div>
+            <div className="login-page__kariyer-col">
+              <button
+                type="button"
+                onClick={() => navigate("/is-arayan-giris")}
+                className="login-page__entry-button login-page__entry-button--candidate"
+              >
+                🎯 İş Arıyorum Girişi
+              </button>
+              <a href="/candidate/register" className="login-page__inline-register">
+                Üye Ol →
+              </a>
+            </div>
           </div>
         </div>
       </div>

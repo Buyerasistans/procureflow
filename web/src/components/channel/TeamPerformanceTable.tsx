@@ -1,5 +1,6 @@
 import React from "react";
 import type { TeamPerformance } from "../../services/profile.service";
+import "./TeamPerformanceTable.css";
 
 interface TeamPerformanceTableProps {
   data: TeamPerformance | null;
@@ -14,33 +15,33 @@ function roleLabel(role: string): string {
 
 export function TeamPerformanceTable({ data }: TeamPerformanceTableProps) {
   if (!data || data.rows.length === 0) {
-    return <p style={{ color: "#9ca3af", fontSize: 13, margin: 0 }}>Performans verisi bulunmuyor.</p>;
+    return <p className="tpt-empty">Performans verisi bulunmuyor.</p>;
   }
 
   return (
-    <div style={{ overflowX: "auto", border: "1px solid #e5e7eb", borderRadius: 8 }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
+    <div className="tpt-wrap">
+      <table className="tpt-table">
         <thead>
-          <tr style={{ backgroundColor: "#f8fafc", textAlign: "left" }}>
-            <th style={{ padding: "10px 12px", fontSize: 12, color: "#64748b" }}>Uye</th>
-            <th style={{ padding: "10px 12px", fontSize: 12, color: "#64748b" }}>Rol</th>
-            <th style={{ padding: "10px 12px", fontSize: 12, color: "#64748b" }}>Toplam Referral</th>
-            <th style={{ padding: "10px 12px", fontSize: 12, color: "#64748b" }}>30 Gun Referral</th>
-            <th style={{ padding: "10px 12px", fontSize: 12, color: "#64748b" }}>Komisyon (Baz)</th>
-            <th style={{ padding: "10px 12px", fontSize: 12, color: "#64748b" }}>Skor</th>
+          <tr className="tpt-thead-row">
+            <th className="tpt-th">Uye</th>
+            <th className="tpt-th">Rol</th>
+            <th className="tpt-th">Toplam Referral</th>
+            <th className="tpt-th">30 Gun Referral</th>
+            <th className="tpt-th">Komisyon (Baz)</th>
+            <th className="tpt-th">Skor</th>
           </tr>
         </thead>
         <tbody>
           {data.rows.slice(0, 10).map((row) => (
-            <tr key={row.user_id} style={{ borderTop: "1px solid #f1f5f9" }}>
-              <td style={{ padding: "10px 12px", fontSize: 13, color: row.is_active ? "#111827" : "#9ca3af" }}>
+            <tr key={row.user_id} className="tpt-row">
+              <td className={`tpt-td${row.is_active ? "" : " tpt-td--inactive"}`}>
                 {row.display_name}
               </td>
-              <td style={{ padding: "10px 12px", fontSize: 12, color: "#475569" }}>{roleLabel(row.role_profile_code)}</td>
-              <td style={{ padding: "10px 12px", fontSize: 12 }}>{row.referral_count}</td>
-              <td style={{ padding: "10px 12px", fontSize: 12 }}>{row.referral_last_30d}</td>
-              <td style={{ padding: "10px 12px", fontSize: 12 }}>{row.commission_total.toLocaleString("tr-TR")} ₺</td>
-              <td style={{ padding: "10px 12px", fontSize: 12, fontWeight: 700, color: "#0f766e" }}>{row.score_last_30d}</td>
+              <td className="tpt-td--role">{roleLabel(row.role_profile_code)}</td>
+              <td className="tpt-td--num">{row.referral_count}</td>
+              <td className="tpt-td--num">{row.referral_last_30d}</td>
+              <td className="tpt-td--num">{row.commission_total.toLocaleString("tr-TR")} ₺</td>
+              <td className="tpt-td--score">{row.score_last_30d}</td>
             </tr>
           ))}
         </tbody>

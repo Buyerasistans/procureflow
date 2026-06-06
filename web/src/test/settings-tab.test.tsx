@@ -19,6 +19,9 @@ vi.mock("../components/DemoDataTab", () => ({
 vi.mock("../services/admin.service", () => ({
   getQuotePriceRules: vi.fn(),
   updateQuotePriceRules: vi.fn(),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 const mockGetMyTenantPremiumPurchaseContext = vi.fn();

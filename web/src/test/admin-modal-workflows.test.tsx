@@ -29,6 +29,9 @@ vi.mock("../services/admin.service", () => ({
   createRoleCatalogRequest: (...args: unknown[]) => mockCreateRoleCatalogRequest(...args),
   updateRole: vi.fn(),
   deleteRole: vi.fn(),
+  getCommercialRequests: vi.fn().mockResolvedValue([]),
+  getSubscriptionAddons: vi.fn().mockResolvedValue([]),
+
 }));
 
 describe("Admin modal workflows", () => {
