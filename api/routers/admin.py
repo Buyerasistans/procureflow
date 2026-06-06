@@ -6972,14 +6972,15 @@ async def get_company_candidate_owners(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin_user),
 ):
-    """Şirkete atanabilecek aktif kullanıcıları listele.
-    Önce aynı tenant kullanıcılarını döner; hiç yoksa tüm aktif kullanıcıları döner."""
+    """Şirkete atanabilecek aktif kullanıcıları listele (yalnızca aynı tenant)."""
     company = db.query(Company).filter(Company.id == company_id).first()
     if not company:
         raise HTTPException(status_code=404, detail="Firma bulunamadı")
 
+    _ROLE_ORDER = {"tenant_owner": 0, "tenant_admin": 1, "super_admin": 2}
+
     def _serialize(users: list) -> list[dict]:
-        return [
+        rows = [
             {
                 "id": u.id,
                 "full_name": u.full_name or "",
@@ -6989,13 +6990,16 @@ async def get_company_candidate_owners(
             for u in users
             if u.email and not u.email.endswith("@procureflow.local")
         ]
+        # Adminler önce
+        rows.sort(key=lambda r: _ROLE_ORDER.get(r["system_role"], 99))
+        return rows
 
     base_q = db.query(User).filter(
         User.is_active.is_(True),
         User.hidden_from_admin.is_(False),
     )
 
-    # 1) Aynı tenant kullanıcıları
+    # Tenant çözümle
     tenant_id: int | None = company.tenant_id
     if tenant_id is None and company.created_by_id is not None:
         creator = db.query(User).filter(User.id == company.created_by_id).first()
@@ -7004,13 +7008,66 @@ async def get_company_candidate_owners(
 
     if tenant_id is not None:
         tenant_users = base_q.filter(User.tenant_id == tenant_id).order_by(User.full_name).all()
-        serialized = _serialize(tenant_users)
-        if serialized:
-            return serialized
+        return _serialize(tenant_users)
 
-    # 2) Fallback: aynı tenant'ta kimse yoksa tüm aktif kullanıcılar (super admin bağlamı)
-    all_users = base_q.order_by(User.full_name).limit(200).all()
-    return _serialize(all_users)
+    return []
+
+
+@router.post("/companies/{company_id}/create-owner")
+async def create_company_owner(
+    company_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+):
+    """Firma için yeni yetkili kullanıcı oluştur ve ata (tenant_admin rolüyle)."""
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=403, detail="Yalnızca Super Admin kullanabilir")
+
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Firma bulunamadı")
+
+    full_name = (data.get("full_name") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    password = (data.get("password") or "").strip()
+
+    if not full_name or not email or not password:
+        raise HTTPException(status_code=422, detail="Ad, e-posta ve şifre zorunludur")
+
+    existing = db.query(User).filter(User.email == email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Bu e-posta zaten kullanılıyor: {email}")
+
+    new_user = User(
+        email=email,
+        full_name=full_name,
+        hashed_password=get_password_hash(password),
+        role="satinalma_yoneticisi",
+        system_role="tenant_admin",
+        tenant_id=company.tenant_id,
+        is_active=True,
+        hidden_from_admin=False,
+    )
+    db.add(new_user)
+    db.flush()
+
+    company.created_by_id = new_user.id
+    if company.tenant_id is not None:
+        tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
+        if tenant and _is_deleted_user(tenant.owner_user):
+            tenant.owner_user_id = new_user.id
+
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "id": new_user.id,
+        "email": new_user.email,
+        "full_name": new_user.full_name,
+        "system_role": new_user.system_role,
+        "message": "Yetkili kullanıcı oluşturuldu ve firmaya atandı.",
+    }
 
 
 @router.post("/users/{user_id}/projects/{project_id}")

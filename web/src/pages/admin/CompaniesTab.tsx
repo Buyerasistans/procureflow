@@ -485,7 +485,8 @@ export function CompaniesTab({
     const isAlt = segment === "partner" && !c.is_primary;
     const isExpanded = c.id === selId;
     const responsible = resolveCompanyResponsible(c);
-    const responsibleIsDeleted = isDeletedPersonValue(responsible)
+    const responsibleIsDeleted = responsible === "-"
+      || isDeletedPersonValue(responsible)
       || isDeletedPersonValue(c.owner_full_name)
       || isDeletedPersonValue(c.owner_email);
 

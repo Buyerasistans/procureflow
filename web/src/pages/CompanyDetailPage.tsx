@@ -8,6 +8,7 @@ import {
   getCompanyCandidateOwners,
   setCompanyResponsible,
   reactivateUser,
+  createCompanyOwner,
   type Company,
   type CandidateOwner,
 } from "../services/admin.service";
@@ -37,6 +38,10 @@ export default function CompanyDetailPage() {
   const [ownerNotice, setOwnerNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [reactivating, setReactivating] = useState(false);
   const [reactivateResult, setReactivateResult] = useState<{ email: string; temp_password: string } | null>(null);
+  const [showCreateOwnerForm, setShowCreateOwnerForm] = useState(false);
+  const [newOwnerForm, setNewOwnerForm] = useState({ full_name: "", email: "", password: "Aa1234!!" });
+  const [creatingOwner, setCreatingOwner] = useState(false);
+  const [createOwnerError, setCreateOwnerError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -188,6 +193,31 @@ export default function CompanyDetailPage() {
       setOwnerNotice({ type: "error", text: msg });
     } finally {
       setReactivating(false);
+    }
+  };
+
+  const handleCreateOwner = async () => {
+    if (!company) return;
+    const { full_name, email, password } = newOwnerForm;
+    if (!full_name.trim() || !email.trim() || !password.trim()) {
+      setCreateOwnerError("Ad, e-posta ve şifre zorunludur.");
+      return;
+    }
+    setCreatingOwner(true);
+    setCreateOwnerError(null);
+    try {
+      await createCompanyOwner(company.id, { full_name: full_name.trim(), email: email.trim(), password: password.trim() });
+      setShowCreateOwnerForm(false);
+      setNewOwnerForm({ full_name: "", email: "", password: "Aa1234!!" });
+      await fetchCompany();
+      await fetchCandidates(company.id);
+      setOwnerNotice({ type: "success", text: `Yetkili oluşturuldu: ${full_name.trim()} (${email.trim()})` });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+        || "Yetkili oluşturulamadı.";
+      setCreateOwnerError(msg);
+    } finally {
+      setCreatingOwner(false);
     }
   };
 
@@ -471,42 +501,108 @@ export default function CompanyDetailPage() {
                 </div>
               )}
 
-              {/* Yeni yetkili seç */}
-              <div className="cdp-owner-assign">
-                <label className="cdp-form-label">Yeni yetkili kullanıcı seç
-                  <select
-                    className="cdp-select"
-                    value={selectedOwnerId}
-                    onChange={(e) => setSelectedOwnerId(e.target.value === "" ? "" : Number(e.target.value))}
+              {/* Yeni yetkili seç veya oluştur */}
+              {candidateOwners.length > 0 ? (
+                <div className="cdp-owner-assign">
+                  <label className="cdp-form-label">Mevcut kullanıcıdan yetkili seç
+                    <select
+                      className="cdp-select"
+                      value={selectedOwnerId}
+                      onChange={(e) => setSelectedOwnerId(e.target.value === "" ? "" : Number(e.target.value))}
+                    >
+                      <option value="">— Kullanıcı seçin —</option>
+                      {candidateOwners.map((u) => {
+                        const roleLabel = u.system_role === "tenant_admin" ? "Admin" : u.system_role === "tenant_owner" ? "Hesap Sahibi" : u.system_role || "Üye";
+                        return (
+                          <option key={u.id} value={u.id}>
+                            {u.full_name || u.email} ({roleLabel}) — {u.email}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    className="cdp-btn cdp-btn--primary"
+                    disabled={!selectedOwnerId || ownerSaving}
+                    onClick={() => { void handleSetOwner(); }}
                   >
-                    <option value="">— Kullanıcı seçin —</option>
-                    {candidateOwners.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.full_name || u.email} {u.full_name && u.email ? `(${u.email})` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  className="cdp-btn cdp-btn--primary"
-                  disabled={!selectedOwnerId || ownerSaving}
-                  onClick={() => { void handleSetOwner(); }}
-                >
-                  {ownerSaving ? "Kaydediliyor…" : "Yetkiliyi Güncelle"}
-                </button>
-              </div>
-
-              {candidateOwners.length === 0 && (
+                    {ownerSaving ? "Kaydediliyor…" : "Yetkiliyi Güncelle"}
+                  </button>
+                </div>
+              ) : !showCreateOwnerForm ? (
                 <div className="cdp-owner-empty">
-                  Bu firmaya atanabilecek aktif kullanıcı bulunamadı. Önce Personel sekmesinden kullanıcı ekleyin.
+                  <span>Bu firmaya atanabilecek kayıtlı kullanıcı yok.</span>
+                  <button
+                    type="button"
+                    className="cdp-btn cdp-btn--primary cdp-btn--sm"
+                    onClick={() => setShowCreateOwnerForm(true)}
+                  >
+                    + Yetkili Ekle
+                  </button>
+                </div>
+              ) : null}
+
+              {/* Yeni yetkili oluştur formu */}
+              {showCreateOwnerForm && (
+                <div className="cdp-create-owner-form">
+                  <h4 className="cdp-create-owner-title">Yeni Yetkili Kullanıcı Oluştur</h4>
+                  <p className="cdp-create-owner-hint">Oluşturulan kullanıcı tenant admin yetkisiyle firmaya atanır.</p>
+                  {createOwnerError && (
+                    <div className="cdp-owner-notice cdp-owner-notice--error">{createOwnerError}</div>
+                  )}
+                  <div className="cdp-form-row cdp-form-row--3col">
+                    <label className="cdp-form-label">Ad Soyad
+                      <input
+                        className="cdp-input"
+                        placeholder="Ahmet Yılmaz"
+                        value={newOwnerForm.full_name}
+                        onChange={(e) => setNewOwnerForm({ ...newOwnerForm, full_name: e.target.value })}
+                      />
+                    </label>
+                    <label className="cdp-form-label">E-posta
+                      <input
+                        className="cdp-input"
+                        type="email"
+                        placeholder="yetkili@firma.com"
+                        value={newOwnerForm.email}
+                        onChange={(e) => setNewOwnerForm({ ...newOwnerForm, email: e.target.value })}
+                      />
+                    </label>
+                    <label className="cdp-form-label">Şifre
+                      <input
+                        className="cdp-input"
+                        type="text"
+                        value={newOwnerForm.password}
+                        onChange={(e) => setNewOwnerForm({ ...newOwnerForm, password: e.target.value })}
+                      />
+                    </label>
+                  </div>
+                  <div className="cdp-create-owner-actions">
+                    <button
+                      type="button"
+                      className="cdp-btn cdp-btn--primary"
+                      disabled={creatingOwner}
+                      onClick={() => { void handleCreateOwner(); }}
+                    >
+                      {creatingOwner ? "Oluşturuluyor…" : "Oluştur ve Ata"}
+                    </button>
+                    <button
+                      type="button"
+                      className="cdp-btn cdp-btn--secondary"
+                      disabled={creatingOwner}
+                      onClick={() => { setShowCreateOwnerForm(false); setCreateOwnerError(null); }}
+                    >
+                      İptal
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="cdp-form-actions">
               <button type="button" onClick={handleSave} className="cdp-btn cdp-btn--primary">Kaydet</button>
-              <button type="button" onClick={() => { setIsEditing(false); setLogoFile(null); setSuccess(null); setShowMap(!(company.hide_location || false)); setOwnerNotice(null); setReactivateResult(null); }} className="cdp-btn cdp-btn--secondary">İptal</button>
+              <button type="button" onClick={() => { setIsEditing(false); setLogoFile(null); setSuccess(null); setShowMap(!(company.hide_location || false)); setOwnerNotice(null); setReactivateResult(null); setShowCreateOwnerForm(false); setCreateOwnerError(null); }} className="cdp-btn cdp-btn--secondary">İptal</button>
             </div>
           </>
         )}

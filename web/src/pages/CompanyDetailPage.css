@@ -451,9 +451,45 @@
 }
 
 .cdp-owner-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cdp-btn--sm {
+  padding: 5px 12px;
   font-size: 12px;
-  color: #94a3b8;
-  font-style: italic;
+}
+
+/* Create owner inline form */
+.cdp-create-owner-form {
+  padding: 14px 16px;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: #eef2ff;
+  display: grid;
+  gap: 10px;
+}
+
+.cdp-create-owner-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3730a3;
+}
+
+.cdp-create-owner-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #6366f1;
+}
+
+.cdp-create-owner-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* Deleted owner warning in view mode */

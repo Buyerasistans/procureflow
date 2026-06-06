@@ -833,6 +833,17 @@ export async function getCompanyCandidateOwners(companyId: number): Promise<Cand
   return res.data;
 }
 
+export async function createCompanyOwner(
+  companyId: number,
+  data: { full_name: string; email: string; password: string },
+): Promise<{ id: number; email: string; full_name: string; system_role: string; message: string }> {
+  const res = await http.post<{ id: number; email: string; full_name: string; system_role: string; message: string }>(
+    `/admin/companies/${companyId}/create-owner`,
+    data,
+  );
+  return res.data;
+}
+
 export async function setCompanyResponsible(
   companyId: number,
   userId: number,
