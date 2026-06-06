@@ -177,16 +177,28 @@ function fillMissing(raw: Record<string, unknown>): PdProfile {
   };
 }
 
-// ── Default profiles ─────────────────────────────────────────────
-const PD_DEFAULT_PROFILES: PdProfile[] = [
-  {
-    id: "p-1", biz: "super_admin", sys: "super_admin", category: "Platform",
+// ── Role label helper ────────────────────────────────────────────
+function pdRoleLabel(code: string): string {
+  return PD_ROLE_LABELS[code] || code;
+}
+
+// ── Segment-level color defaults ─────────────────────────────────
+const _SEG_CLR: Record<string, { color: string; color2: string; accent: string; textColor: string; tabs: string[] }> = {
+  "Platform":           { color: "#1d2b4a", color2: "#3A4F86", accent: "#3b82f6", textColor: "#f8fafc",  tabs: ["panel_home","platform_overview","platform_operations","companies","roles","departments","personnel","reports","settings"] },
+  "Stratejik Partner":  { color: "#112a25", color2: "#D4AF37", accent: "#D4AF37", textColor: "#f8fafc",  tabs: ["panel_home","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"] },
+  "Tedarikçi":          { color: "#0c4a6e", color2: "#38bdf8", accent: "#38bdf8", textColor: "#f0f9ff",  tabs: ["panel_home"] },
+  "Kanal İş Ortağı":   { color: "#2f1a0d", color2: "#f59e0b", accent: "#f59e0b", textColor: "#fff7ed",  tabs: ["panel_home"] },
+  "Kariyer":            { color: "#312e81", color2: "#6366f1", accent: "#6366f1", textColor: "#eef2ff",  tabs: ["panel_home"] },
+};
+
+// ── Special-case overrides for key roles ─────────────────────────
+const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
+  "super_admin|super_admin": {
     title: "Super Admin Paneli", navLabel: "Süper Admin", wsLabel: "Platform Kontrol Merkezi",
     heroTitle: "Süper Admin Paneli",
     heroDesc: "Platform genelindeki tüm yönetim alanları, stratejik partner yönetimi ve panel tasarımı bu panelden yönetilir.",
-    color: "#1d2b4a", color2: "#3A4F86", color2Mix: 0.18, syncTopbar: false,
-    accent: "#dc2626", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.5, opacity: 0.92, fontTitle: 28, fontBody: 13,
+    color: "#1d2b4a", color2: "#3A4F86", accent: "#dc2626", textColor: "#f8fafc",
+    glow: 0.5, opacity: 0.92, fontTitle: 28,
     tabs: ["panel_home","platform_overview","platform_operations","discovery_lab_operations","ai_lab","onboarding_studio","tenant_governance","platform_suppliers","deployment","platform_analytics","kariyer_yonetimi","talent_ecosystem","packages","public_pricing","campaigns","commission_admin","companies","roles","departments","personnel","projects","suppliers","approvals","reports","support_tickets","settings","panel_designer"],
     quickLinks: [
       { label: "Genel Bakış",    href: "/dashboard",                    desc: "Genel çalışma alanına dön" },
@@ -195,45 +207,11 @@ const PD_DEFAULT_PROFILES: PdProfile[] = [
     ],
     users: 2,
   },
-  {
-    id: "p-2", biz: "admin", sys: "tenant_owner", category: "Stratejik Partner",
-    title: "Stratejik Partner Admin Paneli", navLabel: "Ortak Admin", wsLabel: "Stratejik Partner Sahiplik Alanı",
-    heroTitle: "Stratejik Partner Admin Paneli",
-    heroDesc: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
-    color: "#112a25", color2: "#D4AF37", color2Mix: 0.18, syncTopbar: false,
-    accent: "#D4AF37", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.45, opacity: 0.85, fontTitle: 26, fontBody: 13,
-    tabs: ["panel_home","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"],
-    quickLinks: [
-      { label: "Genel Bakış", href: "/dashboard", desc: "Genel çalışma alanına dön" },
-      { label: "Teklifler",   href: "/quotes",    desc: "Teklif süreçlerini aç" },
-      { label: "Raporlar",    href: "/reports",   desc: "Rol bazlı raporları aç" },
-    ],
-    users: 4,
-  },
-  {
-    id: "p-3", biz: "admin", sys: "tenant_admin", category: "Stratejik Partner",
-    title: "Tenant Admin Paneli", navLabel: "Admin", wsLabel: "Tenant Yönetim Alanı",
-    heroTitle: "Tenant Admin Paneli",
-    heroDesc: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
-    color: "#1e293b", color2: "#22c55e", color2Mix: 0.18, syncTopbar: false,
-    accent: "#22c55e", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.4, opacity: 0.85, fontTitle: 26, fontBody: 13,
-    tabs: ["panel_home","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"],
-    quickLinks: [
-      { label: "Genel Bakış", href: "/dashboard", desc: "Genel çalışma alanına dön" },
-      { label: "Teklifler",   href: "/quotes",    desc: "Teklif süreçlerini aç" },
-    ],
-    users: 28,
-  },
-  {
-    id: "p-4", biz: "platform_support", sys: "platform_support", category: "Platform",
+  "platform_support|platform_support": {
     title: "Platform Destek Paneli", navLabel: "Destek", wsLabel: "Platform Destek Alanı",
     heroTitle: "Platform Destek Paneli",
     heroDesc: "Destek kuyrukları, tenant governance ve discovery odaklarını destek perspektifinden yönetin.",
-    color: "#0c2745", color2: "#0ea5e9", color2Mix: 0.18, syncTopbar: false,
-    accent: "#0ea5e9", textColor: "#f0f9ff", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.4, opacity: 0.85, fontTitle: 26, fontBody: 13,
+    color: "#0c2745", color2: "#0ea5e9", accent: "#0ea5e9", textColor: "#f0f9ff",
     tabs: ["panel_home","platform_overview","platform_operations","onboarding_studio","tenant_governance","companies","personnel","reports","support_tickets","settings"],
     quickLinks: [
       { label: "Destek Kuyruğu",  href: "/admin?tab=support_tickets",   desc: "Açık ticket'lar" },
@@ -241,56 +219,85 @@ const PD_DEFAULT_PROFILES: PdProfile[] = [
     ],
     users: 6,
   },
-  {
-    id: "p-5", biz: "channel_owner", sys: "tenant_member", category: "Kanal İş Ortağı",
+  "admin|tenant_owner": {
+    title: "Stratejik Partner Admin Paneli", navLabel: "Ortak Admin", wsLabel: "Stratejik Partner Sahiplik Alanı",
+    heroTitle: "Stratejik Partner Admin Paneli",
+    heroDesc: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
+    color: "#112a25", color2: "#D4AF37", accent: "#D4AF37", textColor: "#f8fafc",
+    quickLinks: [
+      { label: "Genel Bakış", href: "/dashboard", desc: "Genel çalışma alanına dön" },
+      { label: "Teklifler",   href: "/quotes",    desc: "Teklif süreçlerini aç" },
+      { label: "Raporlar",    href: "/reports",   desc: "Rol bazlı raporları aç" },
+    ],
+    users: 4,
+  },
+  "admin|tenant_admin": {
+    title: "Tenant Admin Paneli", navLabel: "Admin", wsLabel: "Tenant Yönetim Alanı",
+    heroTitle: "Tenant Admin Paneli",
+    heroDesc: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
+    color: "#1e293b", color2: "#22c55e", accent: "#22c55e", textColor: "#f8fafc",
+    quickLinks: [
+      { label: "Genel Bakış", href: "/dashboard", desc: "Genel çalışma alanına dön" },
+      { label: "Teklifler",   href: "/quotes",    desc: "Teklif süreçlerini aç" },
+    ],
+    users: 28,
+  },
+  "channel_owner|tenant_member": {
     title: "Kanal Sahibi Paneli", navLabel: "Kanal Sahibi", wsLabel: "Kanal Partner Alanı",
     heroTitle: "Kanal Sahibi Paneli",
     heroDesc: "Kanal programı, partner yönlendirmeleri ve panel erişimleri bu profilden yönetilir.",
-    color: "#2f1a0d", color2: "#f59e0b", color2Mix: 0.18, syncTopbar: false,
-    accent: "#f59e0b", textColor: "#fff7ed", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.5, opacity: 0.85, fontTitle: 26, fontBody: 13,
-    tabs: ["panel_home"],
     quickLinks: [
       { label: "İş Ortağı Programı", href: "/is-ortagi-programi", desc: "Kanal programı akışları" },
       { label: "Programa Başvuru",   href: "/is-ortagi-basvuru",  desc: "Kanal başvuru" },
     ],
     users: 18,
   },
-  {
-    id: "p-6", biz: "supplier_admin", sys: "supplier_user", category: "Tedarikçi",
+  "supplier_admin|supplier_user": {
     title: "Tedarikçi Admin Paneli", navLabel: "Tedarikçi Admin", wsLabel: "Tedarikçi Yönetim Alanı",
     heroTitle: "Tedarikçi Admin Paneli",
     heroDesc: "Tedarikçi ekibinizin teklif, belge ve finans akışlarını bu panelden yönetin.",
-    color: "#0c4a6e", color2: "#38bdf8", color2Mix: 0.18, syncTopbar: false,
-    accent: "#38bdf8", textColor: "#f0f9ff", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.4, opacity: 0.85, fontTitle: 26, fontBody: 13,
-    tabs: ["panel_home"],
     quickLinks: [
       { label: "Tedarikçi Workspace", href: "/supplier/workspace?tab=offers", desc: "Teklif & belge" },
       { label: "Tedarikçi Dashboard", href: "/supplier/dashboard",            desc: "Tedarikçi özet" },
     ],
     users: 124,
   },
-  {
-    id: "p-7", biz: "employer_company_admin", sys: "employer_company_admin", category: "Kariyer",
+  "employer_company_admin|employer_company_admin": {
     title: "İşveren Admin Paneli", navLabel: "İşveren Admin", wsLabel: "İşveren Çalışma Alanı",
     heroTitle: "İşveren Admin Paneli",
     heroDesc: "İş ilanlarınızı oluşturun, başvuruları takip edin ve satın alma pozisyonlarını yönetin.",
-    color: "#312e81", color2: "#6366f1", color2Mix: 0.18, syncTopbar: false,
-    accent: "#6366f1", textColor: "#eef2ff", selfEdit: false, vitrinEdit: false,
-    menuStyle: "pill", glow: 0.5, opacity: 0.92, fontTitle: 26, fontBody: 13,
-    tabs: ["panel_home"],
+    glow: 0.5, opacity: 0.92,
     quickLinks: [
       { label: "İş İlanları", href: "/jobs",     desc: "Açık ilanlar" },
       { label: "Yeni İlan",   href: "/jobs/new", desc: "Pozisyon yayınla" },
     ],
     users: 42,
   },
-];
+};
 
-function pdRoleLabel(code: string): string {
-  return PD_ROLE_LABELS[code] || code;
-}
+// ── Default profiles — tüm roller PD_ROLE_TEMPLATES'tan üretilir ─
+const PD_DEFAULT_PROFILES: PdProfile[] = PD_ROLE_TEMPLATES.map((tpl, idx) => {
+  const ov  = _PROFILE_OV[`${tpl.biz}|${tpl.sys}`] ?? {};
+  const def = _SEG_CLR[tpl.category] ?? _SEG_CLR["Platform"];
+  const lbl = pdRoleLabel(tpl.biz);
+  const base: PdProfile = {
+    id:         "p-" + (idx + 1),
+    biz: tpl.biz, sys: tpl.sys, category: tpl.category,
+    title:      lbl + " Paneli",
+    navLabel:   lbl,
+    wsLabel:    lbl + " Alanı",
+    heroTitle:  lbl + " Paneli",
+    heroDesc:   lbl + " için ayrı çalışma alanı.",
+    color: def.color, color2: def.color2, color2Mix: 0.18, syncTopbar: false,
+    accent: def.accent, textColor: def.textColor,
+    selfEdit: false, vitrinEdit: false,
+    menuStyle: "pill", glow: 0.45, opacity: 0.85, fontTitle: 26, fontBody: 13,
+    tabs: [...def.tabs],
+    quickLinks: [{ label: "Genel Bakış", href: "/dashboard", desc: "Genel alana dön" }],
+    users: 0,
+  };
+  return { ...base, ...ov };
+});
 
 // ── Main component ───────────────────────────────────────────────
 export default function PanelDesignerTab({
@@ -587,6 +594,19 @@ export default function PanelDesignerTab({
         {/* ── Right: Tabbed editor / preview ── */}
         <section className="pd-right-panel">
           <div className="pd-right-tabs">
+            {active && (
+              <>
+                <span
+                  className="pd-role-badge"
+                  style={{ "--pd-badge-bg": SEGMENT_DEFS.find((s) => s.cat === active.category)?.color ?? "#64748b" } as CSSProperties}
+                >
+                  {active.category.toUpperCase()} / {active.navLabel.toUpperCase()}
+                </span>
+                <span className="pd-right-tab-title">{active.title}</span>
+                <span className="pd-right-tab-codes">{active.biz} · {active.sys}</span>
+              </>
+            )}
+            <div className="pd-right-tabs__spacer" />
             <button
               type="button"
               className={`pd-right-tab-btn${rightTab === "settings" ? " on" : ""}`}
@@ -601,31 +621,21 @@ export default function PanelDesignerTab({
             >
               Önizleme
             </button>
-            <div className="pd-right-tabs__spacer" />
-            {active && (
-              <span className="pd-right-tabs__meta">
-                <b>{active.biz}</b> · {active.sys} · {active.users} kullanıcı
-              </span>
-            )}
           </div>
 
           {active && rightTab === "settings" && (
             <div className="pd-editor">
-              <div className="pd-editor__head">
-                <h2>{active.title}</h2>
-                <div className="pd-editor__sub">
-                  business_role: <b>{active.biz}</b> · system_role: <b>{active.sys}</b>
-                </div>
+              <div className="pd-editor__body">
+                <PdEditor
+                  profile={active}
+                  canEdit={canEdit}
+                  onUpdate={update}
+                  onToggleTab={toggleTab}
+                  onAddQL={addQuickLink}
+                  onUpdateQL={updateQuickLink}
+                  onDeleteQL={deleteQuickLink}
+                />
               </div>
-              <PdEditor
-                profile={active}
-                canEdit={canEdit}
-                onUpdate={update}
-                onToggleTab={toggleTab}
-                onAddQL={addQuickLink}
-                onUpdateQL={updateQuickLink}
-                onDeleteQL={deleteQuickLink}
-              />
             </div>
           )}
 
@@ -655,15 +665,34 @@ export default function PanelDesignerTab({
   );
 }
 
+// ── Quick segment swatches ────────────────────────────────────────
+const SEG_QUICK = [
+  { key: "platform",  color: "#3A4F86", color2: "#8fb3da", label: "Platform"  },
+  { key: "strategic", color: "#134E37", color2: "#D4AF37", label: "Stratejik" },
+  { key: "supplier",  color: "#0E7490", color2: "#38bdf8", label: "Tedarikçi" },
+  { key: "channel",   color: "#7C2D12", color2: "#f59e0b", label: "İş Ortağı" },
+  { key: "employer",  color: "#5B21B6", color2: "#6366f1", label: "Kariyer"   },
+  { key: "seeker",    color: "#9F1239", color2: "#fb7185", label: "Aday"      },
+] as const;
+
 // ── Mini chrome preview ──────────────────────────────────────────
-function MiniChrome({ color, color2, mix }: { color: string; color2: string; mix: number }) {
+function MiniChrome({ color, color2, mix, label }: { color: string; color2: string; mix: number; label: string }) {
   const topBg  = pdChromeBg("top",  color, color2, mix);
   const sideBg = pdChromeBg("side", color, color2, mix);
   return (
     <div className="pd-mini-chrome">
-      <div className="pd-mini-chrome__top"  style={{ background: topBg  }} />
+      <div className="pd-mini-chrome__top" style={{ "--pd-mc-top": topBg } as CSSProperties}>
+        <span className="pd-mini-chrome__brand">BUYERASISTANS✓</span>
+        <span className="pd-mini-chrome__panel-name">{label}</span>
+        <span className="pd-mini-chrome__greet">Hoş geldiniz</span>
+      </div>
       <div className="pd-mini-chrome__body">
-        <div className="pd-mini-chrome__side"    style={{ background: sideBg }} />
+        <div className="pd-mini-chrome__side" style={{ "--pd-mc-side": sideBg } as CSSProperties}>
+          <div className="pd-mini-chrome__nav-item pd-mini-chrome__nav-item--active" />
+          <div className="pd-mini-chrome__nav-item" />
+          <div className="pd-mini-chrome__nav-item" />
+          <div className="pd-mini-chrome__nav-item" />
+        </div>
         <div className="pd-mini-chrome__content" />
       </div>
     </div>
@@ -752,49 +781,105 @@ function PdEditor({
       {/* 1. Navbar & Üst Başlık */}
       <div className="pd-grp">
         <div className="pd-grp-h">Navbar & Üst Başlık</div>
+
+        {/* syncTopbar — en üstte */}
+        <div className="pd-sync-toggle">
+          <div>
+            <div className="pd-sync-toggle__lbl">Navbar ve üst başlığı bu panel rengiyle eşitle</div>
+            <div className="pd-sync-toggle__desc">Tik işaretliyken sol menü + en üstteki başlık bu panelin rengini alır — panelde renk bütünlüğü sağlanır.</div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Navbar ve üst başlığı bu panel rengiyle eşitle"
+            aria-checked={profile.syncTopbar}
+            disabled={disabled}
+            className={`pd-switch${profile.syncTopbar ? " on" : ""}`}
+            onClick={() => onUpdate("syncTopbar", !profile.syncTopbar)}
+          >
+            <span className="pd-switch__knob" />
+          </button>
+        </div>
+
+        {/* Mini chrome önizlemesi */}
+        <MiniChrome color={profile.color} color2={profile.color2} mix={profile.color2Mix} label={profile.navLabel} />
+
+        {/* Renk seçiciler */}
         <div className="pd-row-2">
-          <ColorField label="1. renk" value={profile.color} onChange={(v) => onUpdate("color", v)} disabled={disabled} />
-          <ColorField label="2. renk (parıltı)" value={profile.color2} onChange={(v) => onUpdate("color2", v)} disabled={disabled} />
+          <ColorField label="1. renk · panel zemini" value={profile.color}  onChange={(v) => onUpdate("color",  v)} disabled={disabled} />
+          <ColorField label="2. renk · parıltı"      value={profile.color2} onChange={(v) => onUpdate("color2", v)} disabled={disabled} />
         </div>
-        <div className="pd-field">
-          <label htmlFor="pd-color2-mix">Parıltı oranı ({(profile.color2Mix * 100).toFixed(0)}%)</label>
-          <input
-            id="pd-color2-mix"
-            type="range" min={0} max={0.6} step={0.02}
-            value={profile.color2Mix}
-            onChange={(e) => onUpdate("color2Mix", Number(e.target.value))}
-            disabled={disabled}
-          />
-        </div>
-        <div className="pd-navbar-preview">
-          <MiniChrome color={profile.color} color2={profile.color2} mix={profile.color2Mix} />
-          <PdSwitch
-            id="pd-sync-topbar"
-            label="Kullanıcı girişinde de uygula (syncTopbar)"
-            checked={profile.syncTopbar}
-            onChange={(v) => onUpdate("syncTopbar", v)}
-            disabled={disabled}
-          />
+
+        {/* Oran slider + hızlı segment renkleri */}
+        <div className="pd-slider-swatch">
+          <div className="pd-field">
+            <label htmlFor="pd-color2-mix">2. renk oranı ({(profile.color2Mix * 100).toFixed(0)}%)</label>
+            <input
+              id="pd-color2-mix"
+              type="range" min={0} max={0.6} step={0.02}
+              value={profile.color2Mix}
+              onChange={(e) => onUpdate("color2Mix", Number(e.target.value))}
+              disabled={disabled}
+            />
+          </div>
+          <div className="pd-seg-swatches">
+            <span className="pd-seg-swatches__lbl">Hızlı segment renkleri (1. + 2.)</span>
+            <div className="pd-seg-swatches__row">
+              {SEG_QUICK.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  title={s.label}
+                  className={`pd-swatch-btn pd-swatch-btn--${s.key}${profile.color === s.color ? " on" : ""}`}
+                  disabled={disabled}
+                  onClick={() => { onUpdate("color", s.color); onUpdate("color2", s.color2); }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* 2. Yetki & Düzenleme */}
       <div className="pd-grp">
         <div className="pd-grp-h">Yetki & Düzenleme</div>
-        <PdSwitch
-          id="pd-self-edit"
-          label="selfEdit — Rol sahibi kendi panelini düzenleyebilir"
-          checked={profile.selfEdit}
-          onChange={(v) => onUpdate("selfEdit", v)}
-          disabled={disabled}
-        />
-        <PdSwitch
-          id="pd-vitrin-edit"
-          label="vitrinEdit — Panel admini vitrin sayfalarını düzenler"
-          checked={profile.vitrinEdit}
-          onChange={(v) => onUpdate("vitrinEdit", v)}
-          disabled={disabled}
-        />
+        <div className="pd-perm-row">
+          <div className="pd-perm-row__body">
+            <div className="pd-perm-row__lbl">Rol sahibi kendi panelini düzenleyebilsin</div>
+            <div className="pd-perm-row__desc">Süper Admin bu yetkiyi panel adminlerine; panel adminleri de kendi alt rollerine devredebilir.</div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Rol sahibi kendi panelini düzenleyebilsin"
+            aria-checked={profile.selfEdit}
+            disabled={disabled}
+            className={`pd-switch${profile.selfEdit ? " on" : ""}`}
+            onClick={() => onUpdate("selfEdit", !profile.selfEdit)}
+          >
+            <span className="pd-switch__knob" />
+          </button>
+        </div>
+        <div className="pd-perm-row">
+          <div className="pd-perm-row__body">
+            <div className="pd-perm-row__lbl">
+              Vitrin sayfası düzenleme yetkisi
+              <span className="pd-tag-ileri">ileri sürüm</span>
+            </div>
+            <div className="pd-perm-row__desc">Panel adminleri firma vitrin sayfalarını düzenleyebilir — yetkiyi Süper Admin verir.</div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Vitrin sayfası düzenleme yetkisi"
+            aria-checked={profile.vitrinEdit}
+            disabled={disabled}
+            className={`pd-switch${profile.vitrinEdit ? " on" : ""}`}
+            onClick={() => onUpdate("vitrinEdit", !profile.vitrinEdit)}
+          >
+            <span className="pd-switch__knob" />
+          </button>
+        </div>
         {!canEdit && (
           <div className="pd-read-only-note">
             Düzenleme için <b>panel_design.edit</b> yetkisi gereklidir.
