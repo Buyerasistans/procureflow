@@ -74,6 +74,12 @@ export interface WorkspacePanelProfile {
   primary_accent_stop?: number | null;
   secondary_accent_start?: number | null;
   glow_intensity?: number | null;
+  // İki renkli chrome (navbar + üst başlık) — Faz 1
+  color2?: string | null;       // 2. renk · parıltı; varsayılan = segment.secondary ?? accent
+  color2Mix?: number | null;    // 0–0.6 parıltı oranı; varsayılan = 0.18
+  syncTopbar?: boolean | null;  // true → navbar+başlık bu profil rengiyle boyanır
+  selfEdit?: boolean | null;    // true → rol sahibi kendi panelini düzenleyebilir
+  vitrinEdit?: boolean | null;  // true → panel admini vitrin sayfalarını düzenler
 }
 
 export interface WorkspacePanelUserOverride {

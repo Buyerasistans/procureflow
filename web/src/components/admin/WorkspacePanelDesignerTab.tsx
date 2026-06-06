@@ -17,6 +17,7 @@ import "./WorkspacePanelDesignerTab.css";
 import { getAccessToken } from "../../lib/token";
 import { PANEL_COLORS, resolvePanelColors, publishPanelTheme } from "../../admin/panel-colors";
 import type { SegmentKey, PanelThemeOverrides } from "../../admin/panel-colors";
+import { normalizePanelProfiles } from "../../admin/panel-profile.schema";
 import { isSuperAdminUser } from "../../auth/permissions";
 
 type Props = {
@@ -1837,7 +1838,7 @@ function buildInitialDraft(
   lockedProfile?: WorkspacePanelProfile | null,
 ): WorkspacePanelConfig {
   if (mode !== "self" || !currentUser || !lockedProfile) {
-    return config;
+    return { ...config, profiles: normalizePanelProfiles(config.profiles ?? []) };
   }
   const clonedProfiles = [...(config.profiles || [])];
   const clonedOverrides = [...(config.user_overrides || [])];
@@ -1859,7 +1860,7 @@ function buildInitialDraft(
   });
   return {
     ...config,
-    profiles: clonedProfiles,
+    profiles: normalizePanelProfiles(clonedProfiles),
     user_overrides: filteredOverrides,
   };
 }
