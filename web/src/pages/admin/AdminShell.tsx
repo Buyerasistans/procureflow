@@ -389,7 +389,7 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
                         key={item.key}
                         type="button"
                         className={`as-nav-item${isActive ? " as-nav-item--active" : ""}${locked ? " as-nav-item--locked" : ""}`}
-                        onClick={() => !locked && onNavigate(item.key)}
+                        onClick={() => !locked && !isActive && onNavigate(item.key)}
                         aria-current={isActive ? "page" : undefined}
                         title={locked ? `${item.label} (kilitli)` : item.label}
                         disabled={locked}
