@@ -34,9 +34,11 @@ import {
 import type { AuthUser } from "../../context/auth-types";
 import { isSuperAdminUser, getUserDisplayRoleLabel } from "../../auth/permissions";
 import { defaultAccentColorForBusinessRole } from "../../admin/workspace-panels";
-import { PANEL_COLORS } from "../../admin/panel-colors";
+import { PANEL_COLORS, publishPanelProfile } from "../../admin/panel-colors";
 import type { SegmentKey } from "../../admin/panel-colors";
 import { usePanelThemeLiveReload } from "../../hooks/usePanelThemeLiveReload";
+import { usePanelProfileLiveReload } from "../../hooks/usePanelProfileLiveReload";
+import { listPanelProfiles } from "../../services/admin.service";
 import PanelTopHeader from "./PanelTopHeader";
 import { ADMIN_NAV_GROUPS, navLabelForKey } from "./adminNav";
 import type { AdminNavItem } from "./adminNav";
@@ -204,6 +206,43 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
   // Canlı renk tazeleme: panelthemechange → :root --seg-* güncellemesi
   usePanelThemeLiveReload();
+
+  // Rol-profili canlı tazeleme: panelprofilechange → .as-wrap CSS değişkeni güncellemesi
+  usePanelProfileLiveReload();
+
+  // Giriş sonrası: kullanıcının kendi rol profilini çek ve panele uygula
+  useEffect(() => {
+    const biz = user?.business_role || user?.role || "";
+    const sys = user?.system_role || "";
+    if (!biz) return;
+    listPanelProfiles()
+      .then(({ profiles }) => {
+        const entry = profiles.find(
+          (p) => p.businessRole === biz && (p.systemRole ?? "") === sys,
+        );
+        if (entry && Object.keys(entry.profile).length > 0) {
+          const p = entry.profile as {
+            color?: unknown; color2?: unknown; color2Mix?: unknown;
+            syncTopbar?: unknown; accent?: unknown; textColor?: unknown;
+          };
+          if (typeof p.color === "string" && typeof p.color2 === "string" && typeof p.accent === "string" && typeof p.textColor === "string") {
+            publishPanelProfile({
+              biz, sys,
+              profile: {
+                color:      p.color,
+                color2:     p.color2,
+                color2Mix:  typeof p.color2Mix === "number" ? p.color2Mix : 0.18,
+                syncTopbar: p.syncTopbar === true,
+                accent:     p.accent,
+                textColor:  p.textColor,
+              },
+            });
+          }
+        }
+      })
+      .catch(() => { /* panele varsayılan CSS renkleri uygulanmaya devam eder */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // accentColor prop'u opsiyonel override olarak korunur (legacy uyumluluk)
   const _legacyAccentColor = accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || "");

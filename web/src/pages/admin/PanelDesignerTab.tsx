@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { ChevronDown, ChevronRight, Copy, Plus, RefreshCcw, Save, Trash2 } from "lucide-react";
 import { pdChromeBg } from "../../admin/panel-designer.helpers";
+import { publishPanelProfile } from "../../admin/panel-colors";
+import { putPanelProfile } from "../../services/admin.service";
 import "./panelDesignerTab.css";
 
 // ── Tab catalogue ────────────────────────────────────────────────
@@ -408,8 +410,42 @@ export default function PanelDesignerTab({
     });
   }
 
-  function save() {
+  async function save() {
     try { localStorage.setItem("pf_panel_profiles", JSON.stringify(profiles)); } catch { /* storage full */ }
+
+    const active = profiles[activeIdx];
+    if (active && canEdit) {
+      try {
+        await putPanelProfile(active.biz, active.sys, {
+          category:   active.category,
+          title:      active.title,
+          navLabel:   active.navLabel,
+          wsLabel:    active.wsLabel,
+          heroTitle:  active.heroTitle,
+          heroDesc:   active.heroDesc,
+          color:      active.color,
+          color2:     active.color2,
+          color2Mix:  active.color2Mix,
+          syncTopbar: active.syncTopbar,
+          accent:     active.accent,
+          textColor:  active.textColor,
+          selfEdit:   active.selfEdit,
+          vitrinEdit: active.vitrinEdit,
+          menuStyle:  active.menuStyle,
+          glow:       active.glow,
+          opacity:    active.opacity,
+          fontTitle:  active.fontTitle,
+          fontBody:   active.fontBody,
+          tabs:       active.tabs,
+          quickLinks: active.quickLinks,
+          users:      active.users,
+        });
+        publishPanelProfile({ biz: active.biz, sys: active.sys, profile: active });
+      } catch {
+        // localStorage kayıt başarıldı; server hatası sessiz geçer
+      }
+    }
+
     setDirty(false);
   }
 

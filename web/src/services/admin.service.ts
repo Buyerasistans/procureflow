@@ -1119,6 +1119,55 @@ export async function deleteDepartment(id: number): Promise<void> {
   await http.delete(`/admin/departments/${id}`);
 }
 
+// ── Panel profil API (Faz 3 backend → Faz 4 frontend) ───────────
+
+export interface PanelProfileApiEntry {
+  businessRole: string;
+  systemRole: string | null;
+  profile: Record<string, unknown>;
+  updatedByEmail: string | null;
+  updatedAt: string | null;
+}
+
+export interface PanelProfileListApiResponse {
+  profiles: PanelProfileApiEntry[];
+  canEdit: boolean;
+}
+
+export interface PanelProfilePutBody {
+  category?: string;
+  title?: string;
+  navLabel?: string;
+  wsLabel?: string;
+  heroTitle?: string;
+  heroDesc?: string;
+  color: string;
+  color2: string;
+  color2Mix?: number;
+  syncTopbar?: boolean;
+  accent: string;
+  textColor: string;
+  selfEdit?: boolean;
+  vitrinEdit?: boolean;
+  menuStyle?: string;
+  glow?: number;
+  opacity?: number;
+  fontTitle?: number;
+  fontBody?: number;
+  tabs?: string[];
+  quickLinks?: Array<{ label: string; href: string; desc: string }>;
+  users?: number;
+}
+
+export async function listPanelProfiles(): Promise<PanelProfileListApiResponse> {
+  const res = await http.get<PanelProfileListApiResponse>("/admin/panel-profiles");
+  return res.data;
+}
+
+export async function putPanelProfile(biz: string, sys: string, body: PanelProfilePutBody): Promise<void> {
+  await http.put(`/admin/panel-profiles/${encodeURIComponent(biz)}/${encodeURIComponent(sys)}`, body);
+}
+
 export async function getCatalogMergePreview(params: {
   entityType: "role" | "department";
   tenantId?: number | null;

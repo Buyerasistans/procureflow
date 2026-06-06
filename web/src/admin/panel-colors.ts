@@ -81,3 +81,21 @@ export const PANEL_THEME_EVENT = 'panelthemechange';
 export function publishPanelTheme(overrides: PanelThemeOverrides): void {
   window.dispatchEvent(new CustomEvent(PANEL_THEME_EVENT, { detail: overrides }));
 }
+
+/** Rol-profili canlı güncelleme — Faz 4. */
+export type PanelProfileEventDetail = {
+  biz: string;
+  sys: string;
+  profile: {
+    color: string;
+    color2: string;
+    color2Mix: number;
+    syncTopbar: boolean;
+    accent: string;
+    textColor: string;
+  };
+};
+export const PANEL_PROFILE_EVENT = 'panelprofilechange';
+export function publishPanelProfile(detail: PanelProfileEventDetail): void {
+  window.dispatchEvent(new CustomEvent(PANEL_PROFILE_EVENT, { detail }));
+}
