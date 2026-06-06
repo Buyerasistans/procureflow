@@ -12,7 +12,7 @@ export function PartnerSummaryCard({ summary, loading }: PartnerSummaryCardProps
   return (
     <SectionCard backgroundColor="#f8fafc" borderColor="#e2e8f0">
       <SectionHeader
-        title="İş Ortağı Özet Kartı"
+        title="Is Ortagi Ozet Karti"
         right={
           <span className="psc-header-name">
             {loading ? "Guncelleniyor..." : summary?.display_name || "-"}
@@ -36,7 +36,7 @@ export function PartnerSummaryCard({ summary, loading }: PartnerSummaryCardProps
           labelColor="#334155"
         />
         <StatCard
-          label="Son 30 Gün Yeni Müşteri"
+          label="Son 30 Gun Yeni Musteri"
           value={<span className="psc-stat-value">{summary?.last_30d_new_customers ?? "-"}</span>}
           borderColor="#fde68a"
           backgroundColor="#fffbeb"

@@ -137,9 +137,9 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleIcons: Record<string, string> = {
-  super_admin: "SA",
+  super_admin: "🛡️",
   admin: "AD",
-  satinalma_direktoru: "SD",
+  satinalma_direktoru: "🧭",
   satinalma_yoneticisi: "SY",
   satinalma_uzmani: "SU",
   satinalmaci: "SM",
@@ -197,7 +197,7 @@ export function getRoleLabel(role: string | null | undefined): string {
 
 export function getRoleIcon(role: string | null | undefined): string {
   const normalized = String(role || "").toLowerCase();
-  return roleIcons[normalized] || "U";
+  return roleIcons[normalized] || "👤";
 }
 
 type RoleHierarchyItem = {
@@ -353,7 +353,7 @@ export function hasAdminWorkspaceHome(user: PermissionContext | null | undefined
 
 export function getWorkspaceLabelFallback(user: PermissionContext | null | undefined): string {
   if (isSuperAdminUser(user)) {
-    return "Ana Yönetim";
+    return "Ana Yonetim";
   }
 
   if (isPlatformStaffUser(user)) {
@@ -361,15 +361,15 @@ export function getWorkspaceLabelFallback(user: PermissionContext | null | undef
   }
 
   if (isTenantOwnerUser(user)) {
-    return "Owner Yönetim Alanı";
+    return "Owner Yonetim Alani";
   }
 
   if (isTenantAdminUser(user)) {
-    return "Yönetim Alanı";
+    return "Yonetim Alani";
   }
 
   if (user) {
-    return "Personel Girişi";
+    return "Personel Girisi";
   }
 
   return "Çalışma Alanı";
@@ -966,7 +966,7 @@ export function getWorkspacePanelNavLabel(user: PermissionContext | null | undef
   if (sr === "tenant_owner") return "Ortak Admin";
   if (sr === "tenant_admin") return "Yönetim Alanı";
   const role = normalizedBusinessRole(user);
-  if (role === "manager") return "Yönetici Paneli";
+  if (role === "manager") return "Yonetici Paneli";
   if (role === "channel_owner") return "Kanal Sahibi Paneli";
   if (role === "channel_agent" || role === "is_ortagi") return "Kanal Temsilcisi";
   if (sr === "supplier_user") return "Tedarikçi Paneli";

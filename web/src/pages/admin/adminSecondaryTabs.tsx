@@ -1051,7 +1051,13 @@ export function PlatformSuppliersTab() {
       if (!res.ok) { const d = await res.json(); setFormErr((d as Record<string, unknown>).detail as string ?? "Hata"); return; }
       setForm({ name: "", email: "", phone: "", website: "", city: "" });
       setShowForm(false);
-      setRealCount((c) => c + 1);
+      void fetch(`${apiBase}/api/v1/admin/platform-suppliers`, {
+        headers: { Authorization: `Bearer ${getAccessToken() ?? ""}` },
+      }).then(async (r) => {
+        const payload = await r.json().catch(() => null);
+        if (r.ok && Array.isArray(payload)) setRealCount(payload.length);
+        else setRealCount((c) => c + 1);
+      }).catch(() => { setRealCount((c) => c + 1); });
     } catch { setFormErr("Sunucu hatası"); }
     finally { setSaving(false); }
   }

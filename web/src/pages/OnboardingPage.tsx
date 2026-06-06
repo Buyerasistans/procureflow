@@ -727,7 +727,7 @@ export default function OnboardingPage() {
                     <div className="obp-selection-header">
                       <span>Mevcut faaliyet kategorileri *</span>
                       <button type="button" className="obp-inline-select-btn" onClick={() => { setError(null); setActiveCategoryModal("offered"); }}>
-                        Kategori Seç
+                        Kategori Sec
                       </button>
                     </div>
                     <div className="obp-selection-summary">
@@ -743,7 +743,7 @@ export default function OnboardingPage() {
                     <div className="obp-selection-header">
                       <span>Hedef ilgilenilen kategoriler</span>
                       <button type="button" className="obp-inline-select-btn" onClick={() => { setError(null); setActiveCategoryModal("target"); }}>
-                        Hedef Kategori Seç
+                        Hedef Kategori Sec
                       </button>
                     </div>
                     <div className="obp-selection-summary">
@@ -792,7 +792,7 @@ export default function OnboardingPage() {
               <div className="obp-actions">
                 <button type="button" className="obp-btn-secondary" onClick={() => setStep("tenant_type")}>← Geri</button>
                 <button type="submit" className="obp-btn-primary" disabled={submitting}>
-                  Plan Seçimine Devam Et →
+                  Plan Secimine Devam Et →
                 </button>
               </div>
             </form>
@@ -857,7 +857,7 @@ export default function OnboardingPage() {
               <div className="obp-actions">
                 <button type="button" className="obp-btn-secondary" onClick={() => setStep("plan")}>← Geri</button>
                 <button type="button" className="obp-btn-primary" onClick={handlePaymentAndComplete} disabled={paymentLoading || submitting}>
-                  {paymentLoading || submitting ? "İşleniyor..." : "Ödemeyi Başlat ve Kaydı Tamamla"}
+                  {paymentLoading || submitting ? "İşleniyor..." : "Odemeyi Baslat ve Kaydi Tamamla"}
                 </button>
               </div>
             </div>
@@ -866,7 +866,7 @@ export default function OnboardingPage() {
           {step === "done" && doneData && (
             <div className="obp-done-section">
               <div className="obp-done-emoji">🎉</div>
-              <h2 className="obp-step-title obp-step-title--center">Kaydınız alındı!</h2>
+              <h2 className="obp-step-title obp-step-title--center">Kaydiniz Alindi!</h2>
               <p className="obp-done-msg">{doneData.message}</p>
               <div className="obp-done-box">
                 <div><strong>Hesap:</strong> {doneData.admin_email}</div>
@@ -932,7 +932,7 @@ export default function OnboardingPage() {
                 onChange={(e) => activeCategoryModal === "offered" ? setCustomCategoriesText(e.target.value) : setCustomTargetCategoriesText(e.target.value)}
                 rows={3}
                 className="obp-textarea"
-                placeholder={activeCategoryModal === "offered" ? "Kategori adlarını virgülle yazın" : "Hedef kategori adlarını virgülle yazın"}
+                placeholder={activeCategoryModal === "offered" ? "Kategori adlarini virgulle yazin" : "Hedef kategori adlarini virgulle yazin"}
                 aria-label={activeCategoryModal === "offered" ? "Yeni faaliyet kategorileri" : "Yeni hedef kategorileri"}
               />
             </label>
@@ -942,7 +942,7 @@ export default function OnboardingPage() {
                   ? `${selectedCategories.length} / ${MAX_COMPANY_CATEGORY_COUNT} kategori seçildi`
                   : `${totalTargetCategoryCount} hedef kategori seçildi • ${extraTargetCategoryCount} adet ücretli ek slot`}
               </div>
-              <button type="button" className="obp-btn-primary" onClick={() => setActiveCategoryModal(null)}>Seçimi Kaydet</button>
+              <button type="button" className="obp-btn-primary" onClick={() => setActiveCategoryModal(null)}>Secimi Kaydet</button>
             </div>
           </div>
         </div>

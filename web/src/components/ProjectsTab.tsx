@@ -138,7 +138,6 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
       const [pd, cd] = await Promise.all([getProjects(), getCompanies()]);
       setProjects(pd);
       setCompanies(cd);
-      if (pd.length > 0 && pd[0]) setSelId(pd[0].id);
     } catch {
       // ignore
     } finally {
@@ -167,7 +166,7 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
     return true;
   });
 
-  const sel = projects.find((p) => p.id === selId) ?? list[0] ?? null;
+  const sel = selId !== null ? (projects.find((p) => p.id === selId) ?? null) : null;
   const selBids = sel ? getMockBids(sel.id) : [];
   const selColor = prColor(sel?.company_id);
   const selTypeMeta = PR_TYPE_META[sel?.project_type ?? "merkez"] ?? PR_TYPE_META.merkez!;
@@ -195,17 +194,15 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
         title="Projeler"
         sub="Stratejik partner projeleri — sahibi firma, saha yetkilisi, satınalma ekibi ve gelen teklifler."
         actions={
-          !readOnly ? (
-            <button type="button" className="pr-btn--primary" onClick={() => setShowCreateModal(true)}>
-              + Yeni Proje
-            </button>
-          ) : undefined
+          <button type="button" className="pr-btn--primary" disabled={readOnly} onClick={() => setShowCreateModal(true)}>
+            + Yeni Proje
+          </button>
         }
       />
 
       {readOnly && (
         <div className="pr-readonly-bar">
-          Platform personeli proje portföyünü inceleyebilir; yeni proje ekleme ve silme bu yüzeyde kapalıdır.
+          Platform personeli proje portfoyunu inceleyebilir; yeni proje ekleme ve silme bu yuzeyde kapalıdır.
         </div>
       )}
 
@@ -279,32 +276,36 @@ export function ProjectsTab({ readOnly = false, initialSearchTerm = "" }: Projec
               const col = prColor(p.company_id);
               const tm = PR_TYPE_META[p.project_type] ?? PR_TYPE_META.merkez!;
               return (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={"pr-row" + (p.id === selId ? " on" : "") + (p.is_active ? "" : " off")}
-                  style={{ "--pr-color": col, "--pr-color-bg": col + "1f" } as CSSProperties}
-                  onClick={() => setSelId(p.id)}
-                >
-                  <span className="pr-row__bar" />
-                  <span className="pr-row__ico">📁</span>
-                  <span className="pr-row__meta">
-                    <b>
-                      {p.name}
-                      <span className={tm.cls}>{tm.label}</span>
-                    </b>
-                    <span>
-                      <span className="pr-firm">
-                        {getCompanyName(p.company_id)}
+                <div key={p.id} className="pr-row-wrap">
+                  <button
+                    type="button"
+                    className={"pr-row" + (p.id === selId ? " on" : "") + (p.is_active ? "" : " off")}
+                    style={{ "--pr-color": col, "--pr-color-bg": col + "1f" } as CSSProperties}
+                    onClick={() => setSelId(p.id)}
+                  >
+                    <span className="pr-row__bar" />
+                    <span className="pr-row__ico">📁</span>
+                    <span className="pr-row__meta">
+                      <b>
+                        {p.name}
+                        <span className={tm.cls}>{tm.label}</span>
+                      </b>
+                      <span>
+                        <span className="pr-firm">
+                          {getCompanyName(p.company_id)}
+                        </span>
+                        <span className="pr-code">{p.code}</span>
                       </span>
-                      <span className="pr-code">{p.code}</span>
                     </span>
-                  </span>
-                  <span className="pr-row__bud">
-                    {prMoney(p.budget)}
-                    <span>{(p.personnel?.length ?? 0)} yetkili</span>
-                  </span>
-                </button>
+                    <span className="pr-row__bud">
+                      {prMoney(p.budget)}
+                      <span>{(p.personnel?.length ?? 0)} yetkili</span>
+                    </span>
+                  </button>
+                  <Link to={`/admin/projects/${p.id}`} className="pr-row__detail-link">
+                    Detaylar
+                  </Link>
+                </div>
               );
             })}
           </div>

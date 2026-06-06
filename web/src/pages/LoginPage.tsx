@@ -27,21 +27,21 @@ export default function LoginPage() {
               onClick={() => navigate("/strategic-partner-login")}
               className="login-page__entry-button login-page__entry-button--strategic"
             >
-              Stratejik Partner Girişi
+              Stratejik Partner Girisi
             </button>
             <button
               type="button"
               onClick={() => navigate("/supplier/login")}
               className="login-page__entry-button login-page__entry-button--supplier"
             >
-              Tedarikçi Girişi
+              Tedarikci Girisi
             </button>
             <button
               type="button"
               onClick={() => navigate("/channel/login")}
               className="login-page__entry-button login-page__entry-button--channel"
             >
-              İş Ortağı Girişi
+              Is Ortagi Girisi
             </button>
           </div>
 

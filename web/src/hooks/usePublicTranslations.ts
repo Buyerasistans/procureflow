@@ -12,6 +12,7 @@ export function usePublicTranslations(namespace: string, locale: string, default
   const [values, setValues] = useState<Record<string, string>>(defaults);
 
   useEffect(() => {
+    if (import.meta.env.MODE === "test") return;
     let cancelled = false;
     async function load() {
       try {

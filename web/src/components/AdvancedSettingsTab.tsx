@@ -1100,6 +1100,7 @@ export const AdvancedSettingsTab: React.FC = () => {
                   <p className="em-muted">Firma listesi bulunamadı.</p>
                 ) : (
                   <div className="em-vis-list">
+                    <div className="em-vis-list__title">Firma Bazli Mail Gorunurluk</div>
                     {companyMailVisibilityRows.map((row) => (
                       <label key={row.company_id} className={`em-vis-row${row.enabled ? " em-vis-row--active" : ""}${!row.is_active ? " em-vis-row--inactive" : ""}`}>
                         <input type="checkbox" checked={row.enabled}

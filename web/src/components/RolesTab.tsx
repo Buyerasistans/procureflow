@@ -272,7 +272,7 @@ export function RolesTab({
       <div>
         {readOnly ? (
           <div className="roles-tab__panel roles-tab__panel--readonly">
-            Platform personeli rol hiyerarşisini inceleyebilir; yeni rol ekleme, düzenleme ve silme aksiyonları bu yüzeyde kapatıldı.
+            Platform personeli rol hiyerarsisini inceleyebilir; yeni rol ekleme, duzenleme ve silme aksiyonlari bu yüzeyde kapatildi.
           </div>
         ) : null}
 
@@ -400,7 +400,7 @@ export function RolesTab({
                     onClick={handleRequestRole}
                     className="roles-tab__button roles-tab__button--info"
                   >
-                    Onaya Gönder
+                    Onaya Gonder
                   </button>
                 ) : null}
                 <button

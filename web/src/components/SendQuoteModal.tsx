@@ -231,7 +231,7 @@ export default function SendQuoteModal({ quote, quoteId, projectId, suppliers, o
           {[
             { key: "all", label: "Tum Kaynaklar", value: sourceSummary.all, color: "#0f172a" },
             { key: "private", label: "Private Supplier", value: sourceSummary.private, color: "#7c3aed" },
-            { key: "platform_network", label: "Platform Ağı", value: sourceSummary.platform_network, color: "#0f766e" },
+            { key: "platform_network", label: "Platform Agi", value: sourceSummary.platform_network, color: "#0f766e" },
           ].map((item) => (
             <button
               key={item.key}

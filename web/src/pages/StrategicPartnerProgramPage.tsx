@@ -23,7 +23,7 @@ const governanceDetails = [
     desc: "Stratejik partner kaydi acilirken faaliyet alani ve uzmanlik kategorisi onboarding akisinda kaydedilir. Bu bilgi sonraki operasyon katmanlarinda supplier uygunlugu icin referans olur.",
   },
   {
-    title: "Supplier Uygunluğu İlk Günden Görünür",
+    title: "Supplier Uygunlugu Ilk Gunden Gorunur",
     desc: "Platform yönetimi sizin kategorinizle aynı alanda aktif supplier sayısını tenant governance ekranında görür. Böylece ilk günden hangi kategori için hazır supplier kapsamı olduğu hızla anlaşılır.",
   },
   {

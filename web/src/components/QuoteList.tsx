@@ -209,7 +209,7 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
 
         {readOnly ? (
           <div className="quote-list__notice">
-            Platform personeli teklif portföyünü inceleyebilir; yeni teklif, düzenleme, silme ve gönderim aksiyonları salt okunur modda kapatıldı.
+            Platform personeli teklif portfoyunu inceleyebilir; yeni teklif, duzenleme, silme ve gonderim aksiyonlari salt okunur modda kapatildi.
           </div>
         ) : null}
 
@@ -368,10 +368,10 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
 
                         <div className="quote-list__card-footer">
                           <Link to={`/quotes/${quote.id}`} className="quote-list__link">
-                            Görüntüle
+                            Goruntule
                           </Link>
                           <Link to={`/quotes/${quote.id}/comparison`} className="quote-list__link quote-list__link--secondary">
-                            Karşılaştırma
+                            Karsilastirma
                           </Link>
                           <span className="quote-list__date">{new Date(quote.created_at).toLocaleDateString("tr-TR")}</span>
                         </div>
@@ -460,7 +460,7 @@ export default function QuoteList({ showHero = true }: QuoteListProps) {
                       <td className="quote-list__table-td quote-list__table-td--center">
                         <div className="quote-list__actions">
                           <Link to={`/quotes/${quote.id}`} className="quote-list__link">
-                            Görüntüle
+                            Goruntule
                           </Link>
                           {canManageQuotes ? (
                             <>

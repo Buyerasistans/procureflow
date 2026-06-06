@@ -283,6 +283,17 @@ export function CompaniesTab({
     }
   };
 
+  const handleDeleteSupplier = async (supplierId: number) => {
+    if (readOnly) return;
+    try {
+      await deleteAdminSupplier(supplierId);
+      await loadData();
+      setNotice({ type: "success", text: "Tedarikçi silindi." });
+    } catch {
+      setNotice({ type: "error", text: "Tedarikçi silinemedi." });
+    }
+  };
+
   const segmentTabs: { key: CompanySegment; label: string }[] = ([
     { key: "portal",   label: `Portal Ana Firmalar (${segmentCounts.portal})` },
     { key: "partner",  label: `Stratejik Partner (${segmentCounts.partner})` },
@@ -313,57 +324,155 @@ export function CompaniesTab({
   function companyRow(c: Company) {
     const isAlt = segment === "partner" && !c.is_primary;
     return (
-      <button
-        key={c.id}
-        type="button"
-        className={"co-row" + (c.id === sel?.id ? " on" : "") + (!c.is_active ? " co-row--off" : "") + (isAlt ? " co-row--alt" : "")}
-        style={{ "--co-color": c.color } as CSSProperties}
-        onClick={() => setSelId(c.id)}
-      >
-        <span className="co-row__bar" />
-        {isAlt && <span className="co-row__tree">└</span>}
-        <span className="co-logo co-logo--sm">
-          {renderLogoImg(c.logo_url, c.name) ?? coLogo(c.name)}
-        </span>
-        <span className="co-row__meta">
-          <b>
-            {c.name}
-            {c.is_platform_primary && <span className="co-tag co-tag--platform">PLATFORM</span>}
-            {segment === "partner" && c.is_primary && <span className="co-tag co-tag--main">ANA</span>}
-            {segment === "partner" && !c.is_primary && <span className="co-tag co-tag--alt">alt</span>}
-            {!c.is_active && <span className="co-tag co-tag--off">Pasif</span>}
-          </b>
-          <i>{resolveCompanyTenantLabel(c) ?? resolveCompanyResponsible(c)} · {c.city ?? "—"}</i>
-        </span>
-        {(c.quote_count ?? 0) > 0 && (
-          <span className="co-row__count">{c.quote_count} proje</span>
-        )}
-      </button>
+      <div key={c.id} className="co-row-wrap">
+        <button
+          type="button"
+          className={"co-row" + (c.id === sel?.id ? " on" : "") + (!c.is_active ? " co-row--off" : "") + (isAlt ? " co-row--alt" : "")}
+          style={{ "--co-color": c.color } as CSSProperties}
+          onClick={() => setSelId(c.id)}
+        >
+          <span className="co-row__bar" />
+          {isAlt && <span className="co-row__tree">└</span>}
+          <span className="co-logo co-logo--sm">
+            {renderLogoImg(c.logo_url, c.name) ?? coLogo(c.name)}
+          </span>
+          <span className="co-row__meta">
+            <b>
+              {c.name}
+              {c.is_platform_primary && <span className="co-tag co-tag--platform">PLATFORM</span>}
+              {segment === "partner" && c.is_primary && <span className="co-tag co-tag--main">ANA</span>}
+              {segment === "partner" && !c.is_primary && <span className="co-tag co-tag--alt">alt</span>}
+              {!c.is_active && <span className="co-tag co-tag--off">Pasif</span>}
+            </b>
+            <i>{resolveCompanyTenantLabel(c) ?? resolveCompanyResponsible(c)} · {c.city ?? "—"}</i>
+          </span>
+          {(c.quote_count ?? 0) > 0 && (
+            <span className="co-row__count">{c.quote_count} proje</span>
+          )}
+        </button>
+        <div className="co-row__inlineacts">
+          <button
+            type="button"
+            aria-label={`Detay ${c.name}`}
+            className="co-act-btn"
+            onClick={() => openEntityModal("company", c.id, c.name, false)}
+          >
+            Detay
+          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              aria-label={`Duzenle ${c.name}`}
+              className="co-act-btn co-act-btn--edit"
+              onClick={() => openEntityModal("company", c.id, c.name, true)}
+            >
+              Düzenle
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={readOnly || togglingId === c.id || !!c.is_platform_primary}
+            className={"co-status-btn" + (c.is_active ? " co-status-btn--active" : " co-status-btn--passive")}
+            onClick={() => { void handleToggleCompanyActive(c); }}
+          >
+            {togglingId === c.id ? "…" : c.is_active ? "✓ Aktif" : "✗ Pasif"}
+          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              aria-label={`Sil ${c.name}`}
+              className="co-act-btn co-act-btn--delete"
+              disabled={c.is_active}
+              onClick={() => { void handleDeleteCompany(c.id); }}
+            >
+              Sil
+            </button>
+          )}
+        </div>
+      </div>
     );
   }
 
-  function supplierRow(s: AdminSupplierListItem) {
-    const isActive = s.is_active !== false;
+  function renderSupplierTableGroup(sups: AdminSupplierListItem[], groupLabel: string) {
     return (
-      <button
-        key={s.id}
-        type="button"
-        className={"co-row co-row--supplier" + (s.id === selSup?.id ? " on" : "") + (!isActive ? " co-row--off" : "")}
-        onClick={() => setSelId(s.id)}
-      >
-        <span className="co-row__bar" />
-        <span className="co-logo co-logo--sm">
-          {renderLogoImg(s.logo_url, s.company_name) ?? coLogo(s.company_name)}
-        </span>
-        <span className="co-row__meta">
-          <b>
-            {s.company_name}
-            {s.special_listing_active && <span className="co-tag co-tag--special">Özel Liste</span>}
-            {!isActive && <span className="co-tag co-tag--off">Pasif</span>}
-          </b>
-          <i>{s.tenant_name ?? s.inviter_company_name ?? "—"}</i>
-        </span>
-      </button>
+      <div key={groupLabel}>
+        <div className="co-grouphd">{groupLabel}</div>
+        <table className="co-sup-table">
+          <thead>
+            <tr>
+              <th>Firma Adi</th>
+              <th>Yetkili Kullanici</th>
+              <th>Durum</th>
+              <th>Aksiyonlar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sups.map((s) => {
+              const isActive = s.is_active !== false;
+              return (
+                <tr key={s.id} className={selSup?.id === s.id ? "on" : ""} onClick={() => setSelId(s.id)}>
+                  <td>{s.company_name}</td>
+                  <td>{resolveSupplierResponsible(s)}</td>
+                  <td>
+                    <button
+                      type="button"
+                      disabled={readOnly || supplierTogglingId === s.id}
+                      onClick={(e) => { e.stopPropagation(); void handleToggleSupplierActive(s); }}
+                    >
+                      {supplierTogglingId === s.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      aria-label={`Detay ${s.company_name}`}
+                      onClick={(e) => { e.stopPropagation(); openEntityModal("supplier", s.id, s.company_name, false); }}
+                    >
+                      Detay
+                    </button>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        aria-label={`Duzenle ${s.company_name}`}
+                        onClick={(e) => { e.stopPropagation(); openEntityModal("supplier", s.id, s.company_name, true); }}
+                      >
+                        Düzenle
+                      </button>
+                    )}
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        aria-label={`Sil ${s.company_name}`}
+                        disabled={isActive}
+                        onClick={(e) => { e.stopPropagation(); void handleDeleteSupplier(s.id); }}
+                      >
+                        Sil
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function renderSupplierList() {
+    const platformSups = filteredSuppliers.filter((s) => s.tenant_id === null);
+    const tenantMap = new Map<number, AdminSupplierListItem[]>();
+    filteredSuppliers.filter((s) => s.tenant_id !== null).forEach((s) => {
+      if (!tenantMap.has(s.tenant_id!)) tenantMap.set(s.tenant_id!, []);
+      tenantMap.get(s.tenant_id!)!.push(s);
+    });
+    return (
+      <>
+        {platformSups.length > 0 && renderSupplierTableGroup(platformSups, `Buyera Asistans Ozel Tedarikci (${platformSups.length})`)}
+        {Array.from(tenantMap.entries()).map(([, sups]) =>
+          renderSupplierTableGroup(sups, sups[0].tenant_name ?? sups[0].inviter_company_name ?? "Tedarikci")
+        )}
+      </>
     );
   }
 
@@ -400,27 +509,6 @@ export function CompaniesTab({
               {(c.quote_count ?? 0) > 0 && <><span>{c.quote_count} proje</span><span className="co-sep">·</span></>}
               {(c.personnel_count ?? 0) > 0 && <span>{c.personnel_count} personel</span>}
             </div>
-          </div>
-          <div className="co-detail__acts">
-            <button
-              type="button"
-              disabled={readOnly || togglingId === c.id || !!c.is_platform_primary}
-              className={"co-status-btn" + (c.is_active ? " co-status-btn--active" : " co-status-btn--passive")}
-              title={c.is_platform_primary ? "Platform ana firma pasife alınamaz" : undefined}
-              onClick={() => { void handleToggleCompanyActive(c); }}
-            >
-              {togglingId === c.id ? "…" : c.is_active ? "✓ Aktif" : "✗ Pasif"}
-            </button>
-            <button type="button" className="co-act-btn"
-              onClick={() => openEntityModal("company", c.id, c.name, false)}>
-              İncele →
-            </button>
-            {!readOnly && (
-              <button type="button" className="co-act-btn co-act-btn--edit"
-                onClick={() => openEntityModal("company", c.id, c.name, true)}>
-                Düzenle
-              </button>
-            )}
           </div>
         </div>
 
@@ -590,10 +678,11 @@ export function CompaniesTab({
         title="Firmalar"
         sub="Ekosistemdeki tüm firmalar — stratejik partnerler, tedarikçiler, iş ortakları ve portal firmaları; kimlik, iletişim ve izinlerle."
         actions={
-          segment !== "supplier" && !readOnly ? (
+          segment !== "supplier" ? (
             <button
               type="button"
               className="co-add-btn"
+              disabled={readOnly}
               onClick={() => setShowNewCompanyModal(true)}
             >
               + Yeni Firma
@@ -667,7 +756,7 @@ export function CompaniesTab({
             {listCount === 0 ? (
               <div className="co-state">Eşleşen firma yok.</div>
             ) : segment === "supplier" ? (
-              filteredSuppliers.map((s) => supplierRow(s))
+              renderSupplierList()
             ) : segment === "partner" && partnerGrouped ? (
               partnerGrouped.map((group) => {
                 const primary = group.find((c) => c.is_primary) ?? group[0];

@@ -393,7 +393,7 @@ export function SuppliersTab() {
       {success && <div className="su-msg su-msg--success">✅ {success}</div>}
       {readOnly && (
         <div className="su-msg su-msg--error">
-          Platform personeli tedarikçi portföyünü inceleyebilir; yeni tedarikçi, düzenleme, silme ve tedarikçi kullanıcısı yönetimi bu yüzeyde kapatıldı.
+          Platform personeli tedarikçi portfoyunu inceleyebilir; yeni tedarikci, duzenleme, silme ve tedarikci kullanicisi yonetimi bu yuzeyde kapatildi.
         </div>
       )}
 
@@ -408,7 +408,7 @@ export function SuppliersTab() {
         {[
           { key: "all", label: "Tum Kaynaklar", value: supplierSourceSummary.all },
           { key: "private", label: "Private Supplier", value: supplierSourceSummary.private },
-          { key: "platform_network", label: "Platform Ağı", value: supplierSourceSummary.platform_network },
+          { key: "platform_network", label: "Platform Agi", value: supplierSourceSummary.platform_network },
         ].map((item) => (
           <button
             key={item.key}

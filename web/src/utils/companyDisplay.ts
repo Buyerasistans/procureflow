@@ -17,7 +17,7 @@ export interface CompanyLike {
 const MAX_LEN = 20;
 
 function truncate(s: string): string {
-  return s.length > MAX_LEN ? `${s.slice(0, MAX_LEN)}...` : s;
+  return s.length > MAX_LEN ? `${s.slice(0, MAX_LEN)}…` : s;
 }
 
 export function getShortCompanyName(company: CompanyLike): string {

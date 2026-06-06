@@ -366,6 +366,17 @@ export default function PublicHomePage() {
             </div>
           </section>
 
+          {/* ── CATEGORY MATCHING ENGINE ── */}
+          <section className="php-cat-engine">
+            <h2 className="php-section-title">Kategori Bazli Eslesme Motoru</h2>
+            <p className="php-cat-engine__desc">
+              Super admin panelinde kategori kapsami, eslesen supplier sayisi ve kategori eksikleri tek bakista izlenir.
+            </p>
+            <div className="php-cat-engine__actions">
+              <a href="/stratejik-ortaklik" className="php-cta php-cta--primary">Stratejik Ortaklik</a>
+            </div>
+          </section>
+
           {/* ── DEMO CTA BAND ── */}
           <section className="php-demo-band">
             <div className="php-demo-band__left">

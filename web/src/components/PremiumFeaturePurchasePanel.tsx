@@ -250,7 +250,7 @@ export default function PremiumFeaturePurchasePanel({
     <div className="premium-feature-purchase-panel">
       <div className="premium-feature-purchase-panel__header">
         <div className="premium-feature-purchase-panel__eyebrow">Premium Satın Alma</div>
-        <div className="premium-feature-purchase-panel__title">Gerçek ödeme başlatma paneli</div>
+        <div className="premium-feature-purchase-panel__title">Gercek odeme baslatma paneli</div>
         <div className="premium-feature-purchase-panel__description">
           Seçilen stratejik partner için premium feature veya kapasite add-on ödemesini başlatır. Başarılı webhook sonrasında hak otomatik aktifleşir.
         </div>
@@ -412,7 +412,7 @@ export default function PremiumFeaturePurchasePanel({
           {lastTransaction?.instructions ? (
             <div className="premium-feature-purchase-panel__card premium-feature-purchase-panel__card--bank">
               <div className="premium-feature-purchase-panel__card-title premium-feature-purchase-panel__card-title--bank">
-                Banka Havalesi Talimatı
+                Banka Havalesi Talimati
               </div>
               <div className="premium-feature-purchase-panel__meta">İşlem No: {lastTransaction.id}</div>
               <div className="premium-feature-purchase-panel__meta">Banka: {lastTransaction.instructions.bank_name || "-"}</div>
@@ -469,7 +469,7 @@ export default function PremiumFeaturePurchasePanel({
                     disabled={verifyBusy}
                     className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--success"
                   >
-                    {verifyBusy ? "Doğrulanıyor..." : "Ödemeyi Doğrula ve Aktifleştir"}
+                    {verifyBusy ? "Dogrulanıyor..." : "Odemeyi Dogrula ve Aktiflestir"}
                   </button>
                 ) : null}
               </div>
@@ -487,10 +487,10 @@ export default function PremiumFeaturePurchasePanel({
               className="premium-feature-purchase-panel__button premium-feature-purchase-panel__button--primary"
             >
               {submitting
-                ? "Ödeme Başlatılıyor..."
+                ? "Odeme Baslatılıyor..."
                 : purchaseMode === "premium_feature"
-                  ? "Premium Satın Alımını Başlat"
-                  : "Add-on Satın Alımını Başlat"}
+                  ? "Premium Satin Alimini Baslat"
+                  : "Add-on Satin Alimini Baslat"}
             </button>
           </div>
         </>

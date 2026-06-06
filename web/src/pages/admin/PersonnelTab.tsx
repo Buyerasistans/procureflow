@@ -19,7 +19,8 @@ import {
 import { getPersonnelRolePermissionMatrix, getRoleLabel, isSuperAdminUser } from "../../auth/permissions";
 import { buildTenantScopeMap, resolvePersonnelScope as resolvePersonnelScopeByMap } from "../../utils/scopeResolver";
 import { http } from "../../lib/http";
-import { useAuth } from "../../hooks/useAuth";
+import { useContext } from "react";
+import { AuthContext } from "../../context/auth-context";
 import "./PersonnelTab.css";
 
 interface PersonnelTabProps {
@@ -91,7 +92,7 @@ function fmtApprovalLimit(n: number): string {
 
 export function PersonnelTab(props: PersonnelTabProps) {
   const { personnel, roles, companies = [], loadData, readOnly = false, isChannelUser = false, tenants = [] } = props;
-  const { user: authUser } = useAuth();
+  const authUser = useContext(AuthContext)?.user ?? null;
   const canOpenPanel = isSuperAdminUser(authUser);
   const PLATFORM_SUPER_ADMIN_EMAIL = "superadmin@buyerasistans.com.tr";
   const segmentStorageKey = isChannelUser ? "procureflow.personnel.segment.channel" : "procureflow.personnel.segment.admin";
@@ -565,14 +566,6 @@ export function PersonnelTab(props: PersonnelTabProps) {
             >
               {loadingPersonId === person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
             </button>
-            <button
-              type="button"
-              className="pe-act-btn"
-              disabled={loadingPersonId === person.id}
-              onClick={() => { void hydratePersonnel(person).then((h) => setDetailPersonnel(h)); }}
-            >
-              {loadingPersonId === person.id ? "Yükleniyor…" : "Detay"}
-            </button>
             {canOpenPanel && (
               <button
                 type="button"
@@ -582,27 +575,6 @@ export function PersonnelTab(props: PersonnelTabProps) {
               >
                 {openingPanelId === person.id ? "Açılıyor…" : "Paneli Aç ↗"}
               </button>
-            )}
-            {!readOnly && (
-              <>
-                <button
-                  type="button"
-                  className="pe-act-btn pe-act-btn--edit"
-                  disabled={loadingPersonId === person.id}
-                  onClick={() => { void hydratePersonnel(person).then((h) => setEditPersonnel(h)); }}
-                >
-                  Düzenle
-                </button>
-                <button
-                  type="button"
-                  className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
-                  disabled={isActive || loadingPersonId === person.id}
-                  title={isActive ? "Silmek için önce pasife alın" : "Sil"}
-                  onClick={() => { void removePersonnel(person); }}
-                >
-                  Sil
-                </button>
-              </>
             )}
           </div>
         </div>
@@ -766,7 +738,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
             disabled={readOnly}
             onClick={() => setShowNewPersonnelModal(true)}
           >
-            + Yeni Kullanıcı
+            + Yeni Kullanici
           </button>
         }
       />
@@ -787,7 +759,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
 
       {readOnly && (
         <div className="pe-readonly-bar">
-          Platform personeli bu alanda kullanıcı listesini inceleyebilir; oluşturma, düzenleme, aktiflik değiştirme ve silme aksiyonları yalnızca tenant yönetim yetkisi olan hesaplarda açılır.
+          Platform personeli bu alanda kullanici listesini inceleyebilir; oluşturma, düzenleme, aktiflik değiştirme ve silme aksiyonları yalnızca tenant yönetim yetkisi olan hesaplarda açılır.
         </div>
       )}
 
@@ -874,27 +846,70 @@ export function PersonnelTab(props: PersonnelTabProps) {
                         {item.group}
                       </div>
                     )}
-                    <button
-                      type="button"
-                      className={"pe-row" + (isSelected ? " on" : "") + (!isActive ? " pe-row--off" : "")}
-                      style={{ "--pe-color": color } as CSSProperties}
-                      onClick={() => {
-                        if (item.kind === "tenant") { setSelPersonId(item.person.id); setSelSupUserKey(null); }
-                        else { setSelSupUserKey({ supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }
-                      }}
-                    >
-                      <span className="pe-row__bar" />
-                      <span className="pe-av">{personInit(name)}</span>
-                      <span className="pe-row__meta">
-                        <b>
-                          {name}
-                          {pendingInvite && <span className="pe-tag pe-tag--inv">davet</span>}
-                          {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
-                        </b>
-                        <i>{email}</i>
-                      </span>
-                      <span className="pe-srole-sm">{sysRoleLabel}</span>
-                    </button>
+                    <div className="pe-row-wrap">
+                      <button
+                        type="button"
+                        className={"pe-row" + (isSelected ? " on" : "") + (!isActive ? " pe-row--off" : "")}
+                        style={{ "--pe-color": color } as CSSProperties}
+                        onClick={() => {
+                          if (item.kind === "tenant") { setSelPersonId(item.person.id); setSelSupUserKey(null); }
+                          else { setSelSupUserKey({ supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }
+                        }}
+                      >
+                        <span className="pe-row__bar" />
+                        <span className="pe-av">{personInit(name)}</span>
+                        <span className="pe-row__meta">
+                          <b>
+                            {name}
+                            {pendingInvite && <span className="pe-tag pe-tag--inv">davet</span>}
+                            {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
+                          </b>
+                          <i>{email}</i>
+                        </span>
+                        <span className="pe-srole-sm">{sysRoleLabel}</span>
+                      </button>
+                      {item.kind === "tenant" && (
+                        <div className="pe-row__inlineacts">
+                          <button
+                            type="button"
+                            aria-label={`${name} Durum Kutusu`}
+                            disabled={readOnly || loadingPersonId === item.person.id}
+                            className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
+                            onClick={() => { void togglePersonnelActive(item.person, !isActive); }}
+                          >
+                            {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+                          </button>
+                          <button
+                            type="button"
+                            className="pe-act-btn"
+                            disabled={loadingPersonId === item.person.id}
+                            onClick={() => { void hydratePersonnel(item.person).then((h) => setDetailPersonnel(h)); }}
+                          >
+                            Detay
+                          </button>
+                          {!readOnly && (
+                            <>
+                              <button
+                                type="button"
+                                className="pe-act-btn pe-act-btn--edit"
+                                disabled={loadingPersonId === item.person.id}
+                                onClick={() => { void hydratePersonnel(item.person).then((h) => setEditPersonnel(h)); }}
+                              >
+                                Düzenle
+                              </button>
+                              <button
+                                type="button"
+                                className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
+                                disabled={isActive || loadingPersonId === item.person.id}
+                                onClick={() => { void removePersonnel(item.person); }}
+                              >
+                                Sil
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })

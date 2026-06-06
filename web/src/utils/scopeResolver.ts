@@ -179,6 +179,7 @@ export function resolveCompanyScope(company: Company, tenantScopeMap: TenantScop
   if (hasSupplierHint) return "supplier";
   if (hasChannelHint) return "channel";
   if (hasPlatformHint) return "portal";
+  if (!company.tenant_id) return "portal";
   return "partner";
 }
 

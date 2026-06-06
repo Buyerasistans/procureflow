@@ -52,8 +52,8 @@ interface RoleDepartmentGovernanceTabProps {
 const SCOPE_TITLES: Record<GovernanceScope, string> = {
   platform: "Portal Ana Firmalar",
   partner: "Stratejik Partner Rolleri",
-  supplier: "Tedarikçi Rolleri",
-  channel: "İş Ortağı Rolleri",
+  supplier: "Tedarikci Rolleri",
+  channel: "Is Ortagi Rolleri",
   career: "Kariyer Rolleri",
 };
 
@@ -161,7 +161,7 @@ export function RoleDepartmentGovernanceTab({
   const canViewAllScopes = isSuperAdminUser(currentUser) || isPlatformStaffUser(currentUser) || userScope === "platform";
   const visibleScopes = useMemo<GovernanceScope[]>(() => {
     if (canViewAllScopes) {
-      return ["platform", "partner", "supplier", "channel", "career"];
+      return ["partner", "supplier", "channel", "platform", "career"];
     }
 
     const allowedScopes: GovernanceScope[] = ["platform", "partner", "supplier", "channel", "career"];
@@ -1021,7 +1021,7 @@ export function RoleDepartmentGovernanceTab({
                       </span>
                     </div>
                     <div className="rdg-row__meta">
-                      id: {row.id} • üst rol: {parentRole?.name || "Kök"} • alt rol: {row.childCount}
+                      id: {row.id} • ust rol: {parentRole?.name || "Kok"} • alt rol: {row.childCount}
                     </div>
                   </div>
                   {canManage ? (
@@ -1345,7 +1345,7 @@ export function RoleDepartmentGovernanceTab({
                 disabled={!roleEditor.name.trim() || Boolean(busy)}
                 className="rdg-btn rdg-btn--save-primary"
               >
-                {editingRoleId ? "Rolü Güncelle" : "Rolü Kaydet"}
+                {editingRoleId ? "Rolu Guncelle" : "Rolu Kaydet"}
               </button>
             </div>
           </div>

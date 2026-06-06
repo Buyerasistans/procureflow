@@ -73,7 +73,7 @@ function slaText(ticket: SupportTicket): string {
   if (!ticket.sla_due_at) return "—";
   if (["resolved", "closed"].includes(ticket.status)) return "tamam";
   const diff = new Date(ticket.sla_due_at).getTime() - Date.now();
-  if (diff < 0) return "gecikti";
+  if (diff < 0) return "⚠ SLA";
   const h = Math.round(diff / 3_600_000);
   if (h < 24) return `${h} sa kaldı`;
   return `${Math.round(diff / 86_400_000)} gün kaldı`;
@@ -81,7 +81,7 @@ function slaText(ticket: SupportTicket): string {
 
 function slaCls(ticket: SupportTicket): string {
   const t = slaText(ticket);
-  if (t === "gecikti") return "red";
+  if (t === "⚠ SLA") return "red";
   if (t.includes("kaldı")) return "amber";
   return "slate";
 }
@@ -104,6 +104,7 @@ export function SupportTicketAdminTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selId, setSelId] = useState<number | null>(null);
+  const [editStatus, setEditStatus] = useState<string>("");
   const [flt, setFlt] = useState("all");
   const [q, setQ] = useState("");
   const [note, setNote] = useState("");
@@ -116,7 +117,6 @@ export function SupportTicketAdminTab() {
     adminListSupportTickets()
       .then((data) => {
         setTickets(data);
-        if (data.length > 0) setSelId(data[0].id);
       })
       .catch(() => setError("Destek talepleri yüklenemedi."))
       .finally(() => setLoading(false));
@@ -141,7 +141,7 @@ export function SupportTicketAdminTab() {
     return true;
   });
 
-  const sel = tickets.find((t) => t.id === selId) ?? list[0] ?? null;
+  const sel = selId !== null ? (tickets.find((t) => t.id === selId) ?? null) : null;
 
   function patchTicket(updated: SupportTicket) {
     setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
@@ -185,7 +185,11 @@ export function SupportTicketAdminTab() {
         sub="Stratejik partner destek talepleri — kategori, öncelik, SLA, atama ve çözüm yönetimi."
       />
 
-      <div className="kpi-grid kpi-grid--4">
+      <div className="kpi-grid kpi-grid--5">
+        <div className="stat-card stat-card--default">
+          <div className="stat-card__value">{tickets.length}</div>
+          <div className="stat-card__label">Toplam</div>
+        </div>
         <StatCard label="Açık talep" value={openCount} accent="warn" />
         <StatCard label="İşlemde" value={inProcCount} sub="aktif müdahale" accent="blue" />
         <StatCard label="SLA riski" value={breachedCount} sub="geciken/yaklaşan" accent="violet" />
@@ -228,7 +232,7 @@ export function SupportTicketAdminTab() {
             {loading ? (
               <div className="spt-state">Yükleniyor…</div>
             ) : list.length === 0 ? (
-              <div className="spt-state">Bu filtreyle talep bulunamadı.</div>
+              <div className="spt-state">Eşleşen destek talebi bulunamadı.</div>
             ) : (
               list.map((t) => {
                 const color = tColor(t);
@@ -351,20 +355,26 @@ export function SupportTicketAdminTab() {
                     </select>
                   </label>
                   <div className="spt-field">
-                    <span className="spt-field__lbl">Durum</span>
-                    <div className="spt-dseg">
+                    <label htmlFor="spt-status-select" className="spt-field__lbl">Durum</label>
+                    <select
+                      id="spt-status-select"
+                      className="spt-input"
+                      value={editStatus || sel.status}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                      disabled={saving}
+                    >
                       {(["open", "in_progress", "waiting_response", "resolved", "closed"] as const).map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          className={sel.status === s ? "on" : ""}
-                          onClick={() => { void applyStatus(sel.id, s); }}
-                          disabled={saving}
-                        >
-                          {STATUS_LABELS[s]}
-                        </button>
+                        <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                       ))}
-                    </div>
+                    </select>
+                    <button
+                      type="button"
+                      className="spt-btn spt-btn--primary"
+                      onClick={() => { void applyStatus(sel.id, editStatus || sel.status); }}
+                      disabled={saving}
+                    >
+                      Kaydet
+                    </button>
                   </div>
                   {sel.assigned_to_name && (
                     <div className="spt-field">
@@ -375,7 +385,7 @@ export function SupportTicketAdminTab() {
                 </Section>
               </div>
 
-              <Section title="Çözüm" sub="resolution_note">
+              <Section title="Çözüm Notu" sub="resolution_note">
                 {sel.resolution_note && (
                   <div className="spt-resolution">{sel.resolution_note}</div>
                 )}

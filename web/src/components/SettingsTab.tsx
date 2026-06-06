@@ -312,6 +312,10 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
     setDirty(true);
   }
 
+  const channelEmailGroup: SettingsGroup = { code: "email", label: "E-posta Ayarlari", icon: "✉", desc: "Mail gonderim profilinizi yonetin" };
+  const visibleGroups: SettingsGroup[] = isChannelWorkspace
+    ? [channelEmailGroup]
+    : SETTINGS_GROUPS.filter((g) => g.code !== "supplier_portal" || canViewSupplierPortal);
   const group = SETTINGS_GROUPS.find((g) => g.code === activeGroup);
   const staticFields = STATIC_FIELDS[activeGroup] ?? [];
   const filteredStatic = search
@@ -346,7 +350,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
             />
           </div>
           <div className="st-sidebar__list">
-            {SETTINGS_GROUPS.filter((g) => g.code !== "supplier_portal" || canViewSupplierPortal).map((g) => (
+            {visibleGroups.map((g) => (
               <button
                 key={g.code}
                 type="button"
@@ -378,7 +382,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
             <>
               {!canEditTenantIdentity && (
                 <div className="st-warn-banner">
-                  Bu alanda temel ayarlar salt okunur gösterilir. Değişiklik için tenant owner veya super admin hesabı gerekir.
+                  Tenant kimliği ve temel ayarlar salt okunur gösterilir. Değişiklik için tenant owner veya super admin hesabı gerekir.
                 </div>
               )}
               {message && (
@@ -434,7 +438,7 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
                 </div>
                 <div className="st-row">
                   <div className="st-row__label">
-                    <label htmlFor="st_maint">Bakım modu</label>
+                    <label htmlFor="st_maint">Maintenance modu</label>
                     <span>Aktifken sadece admin kullanıcılar sisteme erişir</span>
                   </div>
                   <div className="st-row__input">
@@ -501,7 +505,8 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
                     Sıfırla
                   </button>
                   <button type="submit" className="st-btn st-btn--primary"
-                    disabled={saving || !dirty || !canEditTenantIdentity}>
+                    aria-label="Değişiklikleri Kaydet"
+                    disabled={saving || !canEditTenantIdentity}>
                     {saving ? "Kaydediliyor..." : dirty ? "● Kaydet" : "✓ Kaydedildi"}
                   </button>
                 </div>
@@ -599,18 +604,27 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
           {activeGroup === "demo" && <div className="st-embedded"><DemoDataTab /></div>}
 
           {/* ── Premium Özellikler ──────────────────────────────── */}
-          {activeGroup === "premium" && (
+          {activeGroup === "premium" && !isTenantOwner && (
+            <div className="st-fields">
+              <div className="st-readonly">
+                Bu kullanıcı için premium görünümü mevcut değil.
+              </div>
+            </div>
+          )}
+
+          {isTenantOwner && (
             <div className="st-fields">
               {premiumContext ? (
-                <PremiumFeaturePurchasePanel
-                  tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]}
-                  buyerName=""
-                  buyerEmail=""
-                />
+                <>
+                  <div className="st-readonly">{premiumContext.tenant_name}</div>
+                  <PremiumFeaturePurchasePanel
+                    tenants={[{ id: premiumContext.tenant_id, name: premiumContext.tenant_name }]}
+                    buyerName=""
+                    buyerEmail=""
+                  />
+                </>
               ) : (
-                <div className="st-readonly">
-                  {isTenantOwner ? "Premium bağlam yükleniyor..." : "Bu kullanıcı için premium görünümü mevcut değil."}
-                </div>
+                <div className="st-readonly">Premium bağlam yükleniyor...</div>
               )}
             </div>
           )}

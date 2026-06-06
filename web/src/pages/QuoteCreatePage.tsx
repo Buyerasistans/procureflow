@@ -476,7 +476,7 @@ export default function QuoteCreatePage() {
           <h2 className="qcp-page-title">Yeni RFQ / Teklif Talebi</h2>
         </div>
         <div className="qcp-card qcp-card--readonly">
-          Platform personeli teklif alanında salt okunur erişime sahiptir. Yeni teklif oluşturma akışı bu hesaplar için kapatıldı.
+          Platform personeli teklif alaninda salt okunur erisime sahiptir. Yeni teklif olusturma akisi bu hesaplar icin kapatildi.
         </div>
       </div>
     );
