@@ -3149,6 +3149,14 @@ def _restrict_companies_query_for_admin(query: Any, current_user: User):
     return query
 
 
+def _is_deleted_user(u: "User | None") -> bool:
+    if u is None:
+        return True
+    email = (u.email or "").lower()
+    name = (u.full_name or "").lower()
+    return email.endswith("@procureflow.local") or "silinen personel" in name or getattr(u, "hidden_from_admin", False)
+
+
 def _serialize_company(
     db: Session,
     company: Company,
@@ -3160,14 +3168,19 @@ def _serialize_company(
     if (
         company.tenant is not None
         and getattr(company.tenant, "owner_user", None) is not None
+        and not _is_deleted_user(company.tenant.owner_user)
     ):
         owner_user = company.tenant.owner_user
     elif company.tenant_id is not None:
         tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-        owner_user = tenant.owner_user if tenant else None
+        candidate = tenant.owner_user if tenant else None
+        if not _is_deleted_user(candidate):
+            owner_user = candidate
 
     if owner_user is None and company.created_by_id is not None:
-        owner_user = db.query(User).filter(User.id == company.created_by_id).first()
+        candidate = db.query(User).filter(User.id == company.created_by_id).first()
+        if not _is_deleted_user(candidate):
+            owner_user = candidate
 
     if owner_user is not None:
         owner_full_name = owner_user.full_name
@@ -4869,14 +4882,19 @@ async def list_companies(
         if (
             company.tenant is not None
             and getattr(company.tenant, "owner_user", None) is not None
+            and not _is_deleted_user(company.tenant.owner_user)
         ):
             owner_user = company.tenant.owner_user
         elif company.tenant_id is not None:
             tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-            owner_user = tenant.owner_user if tenant else None
+            candidate = tenant.owner_user if tenant else None
+            if not _is_deleted_user(candidate):
+                owner_user = candidate
 
         if owner_user is None and company.created_by_id is not None:
-            owner_user = db.query(User).filter(User.id == company.created_by_id).first()
+            candidate = db.query(User).filter(User.id == company.created_by_id).first()
+            if not _is_deleted_user(candidate):
+                owner_user = candidate
 
         if owner_user is not None:
             owner_full_name = owner_user.full_name
@@ -6766,6 +6784,122 @@ async def delete_user(
     user.hashed_password = get_password_hash(f"deleted-{user.id}-{suffix}")
     db.commit()
     return {"message": "Personel listeden kaldırıldı"}
+
+
+@router.post("/users/{user_id}/reactivate")
+async def reactivate_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+):
+    """Silinen personeli işe geri al — orijinal e-posta restore edilir, geçici şifre atanır"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+
+    if not user.deleted_original_email:
+        raise HTTPException(status_code=400, detail="Bu kullanıcı için restore edilecek orijinal e-posta bulunamadı")
+
+    # Orijinal e-postanın başka bir kullanıcı tarafından alınmadığını kontrol et
+    conflict = db.query(User).filter(
+        User.email == user.deleted_original_email,
+        User.id != user_id,
+    ).first()
+    if conflict:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Bu e-posta adresi ({user.deleted_original_email}) başka bir kullanıcı tarafından kullanılıyor",
+        )
+
+    suffix = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    temp_password = f"BA-{user_id}-{suffix}"
+
+    user.email = user.deleted_original_email
+    user.deleted_original_email = None
+    user.full_name = user.full_name if (user.full_name and "silinen personel" not in user.full_name.lower()) else ""
+    user.hidden_from_admin = False
+    user.is_active = True
+    user.hashed_password = get_password_hash(temp_password)
+    db.commit()
+
+    return {
+        "message": "Kullanıcı başarıyla reaktive edildi",
+        "email": user.email,
+        "temp_password": temp_password,
+    }
+
+
+@router.patch("/companies/{company_id}/responsible")
+async def set_company_responsible(
+    company_id: int,
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+):
+    """Şirketin yetkili kullanıcısını güncelle"""
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Firma bulunamadı")
+
+    new_user_id: int | None = data.get("user_id")
+    if new_user_id is None:
+        raise HTTPException(status_code=400, detail="user_id gerekli")
+
+    new_user = db.query(User).filter(User.id == new_user_id, User.is_active.is_(True)).first()
+    if not new_user:
+        raise HTTPException(status_code=404, detail="Aktif kullanıcı bulunamadı")
+
+    # company.created_by_id güncelle
+    company.created_by_id = new_user_id
+
+    # Tenant'ın owner_user'ı silinen bir kullanıcıysa onu da güncelle
+    if company.tenant_id is not None:
+        tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
+        if tenant and _is_deleted_user(tenant.owner_user):
+            tenant.owner_user_id = new_user_id
+
+    db.commit()
+    return {
+        "message": "Yetkili kullanıcı güncellendi",
+        "owner_full_name": new_user.full_name,
+        "owner_email": new_user.email,
+    }
+
+
+@router.get("/companies/{company_id}/candidate-owners")
+async def get_company_candidate_owners(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+):
+    """Şirkete atanabilecek aktif kullanıcıları listele"""
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Firma bulunamadı")
+
+    query = db.query(User).filter(
+        User.is_active.is_(True),
+        User.hidden_from_admin.is_(False),
+    )
+
+    if company.tenant_id is not None:
+        query = query.filter(User.tenant_id == company.tenant_id)
+    elif company.created_by_id is not None:
+        creator = db.query(User).filter(User.id == company.created_by_id).first()
+        if creator and creator.tenant_id:
+            query = query.filter(User.tenant_id == creator.tenant_id)
+
+    users = query.order_by(User.full_name).all()
+    return [
+        {
+            "id": u.id,
+            "full_name": u.full_name or "",
+            "email": u.email or "",
+            "system_role": u.system_role or "",
+        }
+        for u in users
+        if u.email and not u.email.endswith("@procureflow.local")
+    ]
 
 
 @router.post("/users/{user_id}/projects/{project_id}")

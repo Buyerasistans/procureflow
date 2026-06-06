@@ -1,7 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { CSSProperties } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { updateCompany, getCompanies, uploadCompanyLogo, type Company } from "../services/admin.service";
+import {
+  updateCompany,
+  getCompanies,
+  uploadCompanyLogo,
+  getCompanyCandidateOwners,
+  setCompanyResponsible,
+  reactivateUser,
+  type Company,
+  type CandidateOwner,
+} from "../services/admin.service";
 import { useAuth } from "../hooks/useAuth";
 import { isSuperAdminUser } from "../auth/permissions";
 import { getCityNames, getDistricts } from "../data/turkey-cities";
@@ -22,6 +31,12 @@ export default function CompanyDetailPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [showMap, setShowMap] = useState(true);
+  const [candidateOwners, setCandidateOwners] = useState<CandidateOwner[]>([]);
+  const [selectedOwnerId, setSelectedOwnerId] = useState<number | "">("");
+  const [ownerSaving, setOwnerSaving] = useState(false);
+  const [ownerNotice, setOwnerNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivateResult, setReactivateResult] = useState<{ email: string; temp_password: string } | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -72,6 +87,22 @@ export default function CompanyDetailPage() {
     window.open(`https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
   };
 
+  const isDeletedOwner = (c: Company | null) => {
+    if (!c) return false;
+    const name = (c.owner_full_name || "").toLowerCase();
+    const email = (c.owner_email || "").toLowerCase();
+    return name.includes("silinen personel") || email.endsWith("@procureflow.local") || (!c.owner_full_name && !c.owner_email);
+  };
+
+  const fetchCandidates = useCallback(async (cid: number) => {
+    try {
+      const list = await getCompanyCandidateOwners(cid);
+      setCandidateOwners(list);
+    } catch {
+      setCandidateOwners([]);
+    }
+  }, []);
+
   const fetchCompany = useCallback(async () => {
     try {
       setLoading(true);
@@ -110,6 +141,55 @@ export default function CompanyDetailPage() {
       void fetchCompany();
     }
   }, [fetchCompany, user]);
+
+  useEffect(() => {
+    if (company && isEditing) {
+      void fetchCandidates(company.id);
+    }
+  }, [company, isEditing, fetchCandidates]);
+
+  const handleSetOwner = async () => {
+    if (!company || !selectedOwnerId) return;
+    setOwnerSaving(true);
+    setOwnerNotice(null);
+    try {
+      const result = await setCompanyResponsible(company.id, Number(selectedOwnerId));
+      setOwnerNotice({ type: "success", text: `Yetkili güncellendi: ${result.owner_full_name}` });
+      await fetchCompany();
+      setSelectedOwnerId("");
+    } catch {
+      setOwnerNotice({ type: "error", text: "Yetkili güncellenemedi." });
+    } finally {
+      setOwnerSaving(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!company) return;
+    const ownerEmail = company.owner_email || "";
+    if (!ownerEmail.endsWith("@procureflow.local")) {
+      setOwnerNotice({ type: "error", text: "Yetkili zaten aktif ya da orijinal e-posta bulunamıyor." });
+      return;
+    }
+    const userId = company.created_by_id;
+    if (!userId) {
+      setOwnerNotice({ type: "error", text: "Yetkili kullanıcı ID bulunamadı." });
+      return;
+    }
+    setReactivating(true);
+    setOwnerNotice(null);
+    try {
+      const result = await reactivateUser(userId);
+      setReactivateResult(result);
+      await fetchCompany();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+        || "Reaktivasyon başarısız.";
+      setOwnerNotice({ type: "error", text: msg });
+    } finally {
+      setReactivating(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -236,11 +316,17 @@ export default function CompanyDetailPage() {
             <div className="cdp-field-row cdp-field-row--2col">
               <div>
                 <span className="cdp-field-label">Yetkili Kullanıcı</span>
-                <div className="cdp-field-value--normal">{company.owner_full_name || "-"}</div>
+                {isDeletedOwner(company) ? (
+                  <div className="cdp-owner-warn">⚠️ Yetkili eksik veya silinmiş — lütfen yeni bir yetkili atayın</div>
+                ) : (
+                  <div className="cdp-field-value--normal">{company.owner_full_name || "-"}</div>
+                )}
               </div>
               <div>
                 <span className="cdp-field-label">E-posta</span>
-                <div className="cdp-field-value--normal">{company.owner_email || "-"}</div>
+                <div className="cdp-field-value--normal">
+                  {isDeletedOwner(company) ? "—" : (company.owner_email || "-")}
+                </div>
               </div>
             </div>
             {/* Satır 5: İl + İlçe + Posta Kodu + Durum */}
@@ -335,9 +421,92 @@ export default function CompanyDetailPage() {
               <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
               Aktif
             </label>
+
+            {/* ── Yetkili Kullanıcı bölümü ── */}
+            <div className="cdp-owner-section">
+              <h3 className="cdp-owner-title">Yetkili Kullanıcı</h3>
+
+              {/* Mevcut durum */}
+              {isDeletedOwner(company) ? (
+                <div className="cdp-owner-warn">
+                  ⚠️ Mevcut yetkili eksik veya silinmiş.
+                  {company.owner_email?.endsWith("@procureflow.local") && company.created_by_id && (
+                    <div className="cdp-reactivate-bar">
+                      <span>Orijinal e-posta sistemde mevcut — yetkiliyi işe geri alabilirsiniz.</span>
+                      <button
+                        type="button"
+                        className="cdp-btn cdp-btn--reactivate"
+                        disabled={reactivating}
+                        onClick={() => { void handleReactivate(); }}
+                      >
+                        {reactivating ? "İşleniyor…" : "İşe Geri Al"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="cdp-owner-current">
+                  <span className="cdp-owner-av">
+                    {(company.owner_full_name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  </span>
+                  <div>
+                    <b>{company.owner_full_name}</b>
+                    <span>{company.owner_email}</span>
+                  </div>
+                </div>
+              )}
+
+              {reactivateResult && (
+                <div className="cdp-reactivate-result">
+                  <b>Kullanıcı reaktive edildi!</b>
+                  <span>E-posta: <code>{reactivateResult.email}</code></span>
+                  <span>Geçici şifre: <code>{reactivateResult.temp_password}</code></span>
+                  <span className="cdp-reactivate-hint">Lütfen bu bilgileri not alın ve kullanıcıya iletin. Şifreyi paylaştıktan sonra değiştirmelerini isteyin.</span>
+                </div>
+              )}
+
+              {ownerNotice && (
+                <div className={`cdp-owner-notice cdp-owner-notice--${ownerNotice.type}`}>
+                  {ownerNotice.text}
+                </div>
+              )}
+
+              {/* Yeni yetkili seç */}
+              <div className="cdp-owner-assign">
+                <label className="cdp-form-label">Yeni yetkili kullanıcı seç
+                  <select
+                    className="cdp-select"
+                    value={selectedOwnerId}
+                    onChange={(e) => setSelectedOwnerId(e.target.value === "" ? "" : Number(e.target.value))}
+                  >
+                    <option value="">— Kullanıcı seçin —</option>
+                    {candidateOwners.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.full_name || u.email} {u.full_name && u.email ? `(${u.email})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="cdp-btn cdp-btn--primary"
+                  disabled={!selectedOwnerId || ownerSaving}
+                  onClick={() => { void handleSetOwner(); }}
+                >
+                  {ownerSaving ? "Kaydediliyor…" : "Yetkiliyi Güncelle"}
+                </button>
+              </div>
+
+              {candidateOwners.length === 0 && (
+                <div className="cdp-owner-empty">
+                  Bu firmaya atanabilecek aktif kullanıcı bulunamadı. Önce Personel sekmesinden kullanıcı ekleyin.
+                </div>
+              )}
+            </div>
+
             <div className="cdp-form-actions">
               <button type="button" onClick={handleSave} className="cdp-btn cdp-btn--primary">Kaydet</button>
-              <button type="button" onClick={() => { setIsEditing(false); setLogoFile(null); setSuccess(null); setShowMap(!(company.hide_location || false)); }} className="cdp-btn cdp-btn--secondary">İptal</button>
+              <button type="button" onClick={() => { setIsEditing(false); setLogoFile(null); setSuccess(null); setShowMap(!(company.hide_location || false)); setOwnerNotice(null); setReactivateResult(null); }} className="cdp-btn cdp-btn--secondary">İptal</button>
             </div>
           </>
         )}

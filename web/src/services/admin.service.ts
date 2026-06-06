@@ -821,6 +821,39 @@ export async function updateCompany(id: number, data: Partial<Company>): Promise
   return res.data;
 }
 
+export interface CandidateOwner {
+  id: number;
+  full_name: string;
+  email: string;
+  system_role: string;
+}
+
+export async function getCompanyCandidateOwners(companyId: number): Promise<CandidateOwner[]> {
+  const res = await http.get<CandidateOwner[]>(`/admin/companies/${companyId}/candidate-owners`);
+  return res.data;
+}
+
+export async function setCompanyResponsible(
+  companyId: number,
+  userId: number,
+): Promise<{ message: string; owner_full_name: string; owner_email: string }> {
+  const res = await http.patch<{ message: string; owner_full_name: string; owner_email: string }>(
+    `/admin/companies/${companyId}/responsible`,
+    { user_id: userId },
+  );
+  return res.data;
+}
+
+export async function reactivateUser(
+  userId: number,
+): Promise<{ message: string; email: string; temp_password: string }> {
+  const res = await http.post<{ message: string; email: string; temp_password: string }>(
+    `/admin/users/${userId}/reactivate`,
+    {},
+  );
+  return res.data;
+}
+
 export async function deleteCompany(id: number): Promise<void> {
   await http.delete(`/admin/companies/${id}`);
 }
