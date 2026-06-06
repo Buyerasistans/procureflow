@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { CompanyCreateModal } from "../../components/CompanyCreateModal";
-import type { AdminSupplierListItem, Company, Tenant, TenantUser } from "../../services/admin.service";
-import { deleteAdminSupplier, updateAdminSupplierManagementDetail, updateCompany } from "../../services/admin.service";
+import type {
+  AdminSupplierListItem,
+  Company,
+  ProvisionResult,
+  Tenant,
+  TenantUser,
+} from "../../services/admin.service";
+import {
+  deleteAdminSupplier,
+  provisionMissingOwners,
+  updateAdminSupplierManagementDetail,
+  updateCompany,
+} from "../../services/admin.service";
 import { buildTenantScopeMap, resolveCompanyScope } from "../../utils/scopeResolver";
 import { PageHeader, Section, StatCard } from "./AdminTabContent";
 import "./CompaniesTab.css";
@@ -61,6 +72,8 @@ export function CompaniesTab({
   const PLATFORM_SUPER_ADMIN_LABEL = "Platform Super Admin - superadmin@buyerasistans.com.tr";
 
   const [showNewCompanyModal, setShowNewCompanyModal] = useState(false);
+  const [provisioning, setProvisioning] = useState(false);
+  const [provisionResult, setProvisionResult] = useState<ProvisionResult | null>(null);
   const [segment, setSegment] = useState<CompanySegment>(() => {
     if (typeof window !== "undefined") {
       const stored = window.sessionStorage.getItem("procureflow.companies.segment");
@@ -696,16 +709,40 @@ export function CompaniesTab({
         title="Firmalar"
         sub="Ekosistemdeki tüm firmalar — stratejik partnerler, tedarikçiler, iş ortakları, portal ve personel arayan firmalar; kimlik, iletişim ve izinlerle."
         actions={
-          segment !== "supplier" ? (
-            <button
-              type="button"
-              className="co-add-btn"
-              disabled={readOnly}
-              onClick={() => setShowNewCompanyModal(true)}
-            >
-              + Yeni Firma
-            </button>
-          ) : undefined
+          <div className="co-header-actions">
+            {!readOnly && (
+              <button
+                type="button"
+                className="co-fix-btn"
+                disabled={provisioning}
+                onClick={async () => {
+                  if (!window.confirm("Yetkilisi olmayan tüm firmalara otomatik yetkili oluşturulsun mu? Bu işlem geri alınamaz.")) return;
+                  setProvisioning(true);
+                  try {
+                    const result = await provisionMissingOwners();
+                    setProvisionResult(result);
+                    await loadData();
+                  } catch {
+                    setNotice({ type: "error", text: "Otomatik düzeltme başarısız." });
+                  } finally {
+                    setProvisioning(false);
+                  }
+                }}
+              >
+                {provisioning ? "İşleniyor…" : "⚙ Eksik Yetkilileri Düzelt"}
+              </button>
+            )}
+            {segment !== "supplier" && (
+              <button
+                type="button"
+                className="co-add-btn"
+                disabled={readOnly}
+                onClick={() => setShowNewCompanyModal(true)}
+              >
+                + Yeni Firma
+              </button>
+            )}
+          </div>
         }
       />
 
@@ -827,6 +864,71 @@ export function CompaniesTab({
                 ? `/admin/companies/${entityModal.entityId}?embedded=1${entityModal.edit ? "&edit=true" : ""}`
                 : `/admin/suppliers/${entityModal.entityId}?embedded=1${entityModal.edit ? "&edit=true" : ""}`}
             />
+          </div>
+        </div>
+      )}
+
+      {provisionResult && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="cmp-modal-overlay"
+          onClick={() => setProvisionResult(null)}
+        >
+          <div className="cmp-modal cmp-modal--provision" onClick={(e) => e.stopPropagation()}>
+            <div className="cmp-modal__header">
+              <div>
+                <strong className="cmp-modal__title">Eksik Yetkili Düzeltme Sonucu</strong>
+                <p className="cmp-modal__sub">
+                  Toplam {provisionResult.summary.total_companies} firma · {provisionResult.summary.already_ok} zaten tamam · {provisionResult.summary.created} yeni yetkili oluşturuldu · {provisionResult.summary.assigned_existing} mevcut kullanıcı atandı
+                </p>
+              </div>
+              <button type="button" onClick={() => setProvisionResult(null)} className="cmp-modal__close">Kapat</button>
+            </div>
+            <div className="cmp-provision-body">
+              {provisionResult.created_users.length > 0 && (
+                <>
+                  <h3 className="cmp-provision-title">Oluşturulan Yetkililer (şifre: <code>Aa1234!!</code>)</h3>
+                  <div className="cmp-provision-warn">
+                    Bu bilgileri not alın — sayfa kapatıldığında bir daha göremezsiniz.
+                  </div>
+                  <table className="cmp-provision-table">
+                    <thead>
+                      <tr>
+                        <th>Firma</th>
+                        <th>E-posta</th>
+                        <th>Şifre</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {provisionResult.created_users.map((u) => (
+                        <tr key={u.company_id}>
+                          <td>{u.company}</td>
+                          <td><code>{u.email}</code></td>
+                          <td><code>{u.password}</code></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+              {provisionResult.assigned_users.length > 0 && (
+                <>
+                  <h3 className="cmp-provision-title cmp-provision-title--secondary">Mevcut Kullanıcı Atananlar</h3>
+                  <table className="cmp-provision-table">
+                    <thead><tr><th>Firma</th><th>E-posta</th></tr></thead>
+                    <tbody>
+                      {provisionResult.assigned_users.map((u) => (
+                        <tr key={u.company_id}><td>{u.company}</td><td><code>{u.email}</code></td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+              {provisionResult.created_users.length === 0 && provisionResult.assigned_users.length === 0 && (
+                <div className="cmp-provision-ok">Tüm firmalar zaten bir yetkili kullanıcıya sahip.</div>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -854,6 +854,22 @@ export async function reactivateUser(
   return res.data;
 }
 
+export interface ProvisionResult {
+  summary: {
+    total_companies: number;
+    already_ok: number;
+    created: number;
+    assigned_existing: number;
+  };
+  created_users: { company_id: number; company: string; email: string; password: string }[];
+  assigned_users: { company_id: number; company: string; email: string }[];
+}
+
+export async function provisionMissingOwners(): Promise<ProvisionResult> {
+  const res = await http.post<ProvisionResult>("/admin/companies/provision-missing-owners", {});
+  return res.data;
+}
+
 export async function deleteCompany(id: number): Promise<void> {
   await http.delete(`/admin/companies/${id}`);
 }

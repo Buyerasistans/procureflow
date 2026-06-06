@@ -134,6 +134,32 @@
   color: var(--pf-slate-400);
 }
 
+/* Header actions row */
+.co-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Fix button */
+.co-fix-btn {
+  padding: 7px 14px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.co-fix-btn:hover { background: #6d28d9; }
+.co-fix-btn:disabled { opacity: 0.5; cursor: default; }
+
 /* Add button */
 .co-add-btn {
   padding: 7px 14px;
@@ -742,6 +768,87 @@
   padding: 6px 12px;
   cursor: pointer;
   font-size: 12px;
+}
+
+.cmp-modal--provision {
+  height: auto;
+  max-height: min(80vh, 700px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cmp-provision-body {
+  overflow-y: auto;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  flex: 1;
+}
+
+.cmp-provision-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cmp-provision-title--secondary {
+  color: #334155;
+}
+
+.cmp-provision-warn {
+  padding: 8px 12px;
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #713f12;
+}
+
+.cmp-provision-ok {
+  padding: 16px;
+  text-align: center;
+  color: #15803d;
+  font-weight: 600;
+  font-size: 14px;
+  background: #dcfce7;
+  border-radius: 8px;
+}
+
+.cmp-provision-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.cmp-provision-table th {
+  text-align: left;
+  padding: 6px 10px;
+  background: var(--pf-gray-50);
+  border-bottom: 2px solid var(--pf-border-color);
+  font-weight: 700;
+  color: var(--pf-slate-600);
+}
+
+.cmp-provision-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--pf-border-color);
+  color: var(--pf-slate-800);
+  vertical-align: middle;
+}
+
+.cmp-provision-table tr:last-child td { border-bottom: none; }
+
+.cmp-provision-table code {
+  background: var(--pf-gray-100, #f1f5f9);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .cmp-modal iframe {
