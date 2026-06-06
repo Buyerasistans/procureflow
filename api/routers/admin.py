@@ -3157,6 +3157,13 @@ def _is_deleted_user(u: "User | None") -> bool:
     return email.endswith("@procureflow.local") or "silinen personel" in name or getattr(u, "hidden_from_admin", False)
 
 
+def _is_valid_company_owner(u: "User | None") -> bool:
+    """Kullanıcı firma yetkilisi olabilecek admin seviyesinde mi?"""
+    if u is None or _is_deleted_user(u):
+        return False
+    return (u.system_role or "").lower() in ("super_admin", "tenant_owner", "tenant_admin")
+
+
 def _serialize_company(
     db: Session,
     company: Company,
@@ -3168,18 +3175,18 @@ def _serialize_company(
     if (
         company.tenant is not None
         and getattr(company.tenant, "owner_user", None) is not None
-        and not _is_deleted_user(company.tenant.owner_user)
+        and _is_valid_company_owner(company.tenant.owner_user)
     ):
         owner_user = company.tenant.owner_user
     elif company.tenant_id is not None:
         tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
         candidate = tenant.owner_user if tenant else None
-        if not _is_deleted_user(candidate):
+        if _is_valid_company_owner(candidate):
             owner_user = candidate
 
     if owner_user is None and company.created_by_id is not None:
         candidate = db.query(User).filter(User.id == company.created_by_id).first()
-        if not _is_deleted_user(candidate):
+        if _is_valid_company_owner(candidate):
             owner_user = candidate
 
     if owner_user is not None:
@@ -4882,18 +4889,18 @@ async def list_companies(
         if (
             company.tenant is not None
             and getattr(company.tenant, "owner_user", None) is not None
-            and not _is_deleted_user(company.tenant.owner_user)
+            and _is_valid_company_owner(company.tenant.owner_user)
         ):
             owner_user = company.tenant.owner_user
         elif company.tenant_id is not None:
             tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
             candidate = tenant.owner_user if tenant else None
-            if not _is_deleted_user(candidate):
+            if _is_valid_company_owner(candidate):
                 owner_user = candidate
 
         if owner_user is None and company.created_by_id is not None:
             candidate = db.query(User).filter(User.id == company.created_by_id).first()
-            if not _is_deleted_user(candidate):
+            if _is_valid_company_owner(candidate):
                 owner_user = candidate
 
         if owner_user is not None:
@@ -7007,8 +7014,14 @@ async def get_company_candidate_owners(
             tenant_id = creator.tenant_id
 
     if tenant_id is not None:
-        tenant_users = base_q.filter(User.tenant_id == tenant_id).order_by(User.full_name).all()
-        return _serialize(tenant_users)
+        admin_roles = ["tenant_owner", "tenant_admin"]
+        tenant_admins = (
+            base_q
+            .filter(User.tenant_id == tenant_id, User.system_role.in_(admin_roles))
+            .order_by(User.full_name)
+            .all()
+        )
+        return _serialize(tenant_admins)
 
     return []
 

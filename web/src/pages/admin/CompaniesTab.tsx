@@ -190,19 +190,20 @@ export function CompaniesTab({
 
   const responsibleByCompanyId = useMemo(() => {
     const map = new Map<number, { label: string; score: number }>();
-    const resolveScore = (person: TenantUser, assignment: NonNullable<TenantUser["company_assignments"]>[number]): number => {
+    const resolveAdminScore = (person: TenantUser): number | null => {
       const sr = String(person.system_role || "").trim().toLowerCase();
       if (sr === "super_admin" || sr === "tenant_owner") return 0;
       if (sr === "tenant_admin") return 1;
-      return 10 + (typeof assignment.role?.hierarchy_level === "number" ? assignment.role.hierarchy_level : 99);
+      return null; // tenant_member ve diğerleri yetkili sayılmaz
     };
     [...personnel, ...channelUsers].forEach((person) => {
       if (!person.is_active) return;
       const personLabel = person.full_name || person.email || "-";
       if (isDeletedPersonValue(personLabel) || isDeletedPersonValue(person.email)) return;
+      const score = resolveAdminScore(person);
+      if (score === null) return; // admin olmayan → yetkili değil
       (person.company_assignments || []).forEach((assignment) => {
         if (!assignment.is_active) return;
-        const score = resolveScore(person, assignment);
         const current = map.get(assignment.company_id);
         if (!current || score < current.score || (score === current.score && personLabel.localeCompare(current.label, "tr") < 0)) {
           map.set(assignment.company_id, { label: personLabel, score });
