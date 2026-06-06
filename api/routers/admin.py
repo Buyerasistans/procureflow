@@ -4979,6 +4979,97 @@ async def create_company(
     return _serialize_company(db, new_company)
 
 
+@router.post("/companies/provision-missing-owners")
+async def provision_missing_owners(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+):
+    """Yetkilisi olmayan tüm firmalara placeholder yetkili oluştur.
+    Şifre: Aa1234!! — Tek seferlik düzeltme işlemi."""
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=403, detail="Yalnızca Super Admin kullanabilir")
+
+    PLACEHOLDER_PASSWORD = "Aa1234!!"
+    results = []
+    companies = db.query(Company).order_by(Company.id).all()
+
+    for company in companies:
+        owner: User | None = None
+        if company.tenant_id is not None:
+            tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
+            if tenant and not _is_deleted_user(tenant.owner_user):
+                owner = tenant.owner_user
+        if owner is None and company.created_by_id is not None:
+            candidate = db.query(User).filter(User.id == company.created_by_id).first()
+            if not _is_deleted_user(candidate):
+                owner = candidate
+
+        if owner is not None:
+            results.append({"company_id": company.id, "company": company.name, "status": "ok", "email": owner.email})
+            continue
+
+        placeholder_email = _make_company_owner_email(company)
+
+        existing = db.query(User).filter(User.email == placeholder_email).first()
+        if existing and not existing.hidden_from_admin:
+            company.created_by_id = existing.id
+            if company.tenant_id:
+                tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
+                if tenant and _is_deleted_user(tenant.owner_user):
+                    tenant.owner_user_id = existing.id
+            results.append({
+                "company_id": company.id,
+                "company": company.name,
+                "status": "assigned_existing",
+                "email": placeholder_email,
+            })
+            continue
+
+        full_name = f"{(company.short_name or company.name)} Yetkilisi"
+        new_user = User(
+            email=placeholder_email,
+            full_name=full_name,
+            hashed_password=get_password_hash(PLACEHOLDER_PASSWORD),
+            role="satinalma_yoneticisi",
+            system_role="tenant_admin",
+            tenant_id=company.tenant_id,
+            is_active=True,
+            hidden_from_admin=False,
+            approval_limit=1000000,
+        )
+        db.add(new_user)
+        db.flush()
+
+        company.created_by_id = new_user.id
+        if company.tenant_id is not None:
+            tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
+            if tenant and _is_deleted_user(tenant.owner_user):
+                tenant.owner_user_id = new_user.id
+
+        results.append({
+            "company_id": company.id,
+            "company": company.name,
+            "status": "created",
+            "email": placeholder_email,
+            "password": PLACEHOLDER_PASSWORD,
+        })
+
+    db.commit()
+    created = [r for r in results if r["status"] == "created"]
+    assigned = [r for r in results if r["status"] == "assigned_existing"]
+    ok = [r for r in results if r["status"] == "ok"]
+    return {
+        "summary": {
+            "total_companies": len(results),
+            "already_ok": len(ok),
+            "created": len(created),
+            "assigned_existing": len(assigned),
+        },
+        "created_users": created,
+        "assigned_users": assigned,
+    }
+
+
 @router.put("/companies/{company_id}", response_model=CompanyOut)
 async def update_company(
     company_id: int,
@@ -6920,100 +7011,6 @@ async def get_company_candidate_owners(
     # 2) Fallback: aynı tenant'ta kimse yoksa tüm aktif kullanıcılar (super admin bağlamı)
     all_users = base_q.order_by(User.full_name).limit(200).all()
     return _serialize(all_users)
-
-
-@router.post("/companies/provision-missing-owners")
-async def provision_missing_owners(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin_user),
-):
-    """Yetkilisi olmayan tüm firmalara placeholder yetkili oluştur.
-    Şifre: Aa1234!! — Tek seferlik düzeltme işlemi."""
-    if not is_super_admin(current_user):
-        raise HTTPException(status_code=403, detail="Yalnızca Super Admin kullanabilir")
-
-    PLACEHOLDER_PASSWORD = "Aa1234!!"
-    results = []
-    companies = db.query(Company).order_by(Company.id).all()
-
-    for company in companies:
-        # Mevcut geçerli yetkiliyi bul
-        owner: User | None = None
-        if company.tenant_id is not None:
-            tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-            if tenant and not _is_deleted_user(tenant.owner_user):
-                owner = tenant.owner_user
-        if owner is None and company.created_by_id is not None:
-            candidate = db.query(User).filter(User.id == company.created_by_id).first()
-            if not _is_deleted_user(candidate):
-                owner = candidate
-
-        if owner is not None:
-            results.append({"company_id": company.id, "company": company.name, "status": "ok", "email": owner.email})
-            continue
-
-        # Placeholder e-posta üret
-        placeholder_email = _make_company_owner_email(company)
-
-        # Aynı e-posta zaten var mı?
-        existing = db.query(User).filter(User.email == placeholder_email).first()
-        if existing and not existing.hidden_from_admin:
-            company.created_by_id = existing.id
-            if company.tenant_id:
-                tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-                if tenant and _is_deleted_user(tenant.owner_user):
-                    tenant.owner_user_id = existing.id
-            results.append({
-                "company_id": company.id,
-                "company": company.name,
-                "status": "assigned_existing",
-                "email": placeholder_email,
-            })
-            continue
-
-        full_name = f"{(company.short_name or company.name)} Yetkilisi"
-        new_user = User(
-            email=placeholder_email,
-            full_name=full_name,
-            hashed_password=get_password_hash(PLACEHOLDER_PASSWORD),
-            role="satinalma_yoneticisi",
-            system_role="tenant_admin",
-            tenant_id=company.tenant_id,
-            is_active=True,
-            hidden_from_admin=False,
-            approval_limit=1000000,
-        )
-        db.add(new_user)
-        db.flush()
-
-        company.created_by_id = new_user.id
-        if company.tenant_id is not None:
-            tenant = db.query(Tenant).filter(Tenant.id == company.tenant_id).first()
-            if tenant and _is_deleted_user(tenant.owner_user):
-                tenant.owner_user_id = new_user.id
-
-        results.append({
-            "company_id": company.id,
-            "company": company.name,
-            "status": "created",
-            "email": placeholder_email,
-            "password": PLACEHOLDER_PASSWORD,
-        })
-
-    db.commit()
-    created = [r for r in results if r["status"] == "created"]
-    assigned = [r for r in results if r["status"] == "assigned_existing"]
-    ok = [r for r in results if r["status"] == "ok"]
-    return {
-        "summary": {
-            "total_companies": len(results),
-            "already_ok": len(ok),
-            "created": len(created),
-            "assigned_existing": len(assigned),
-        },
-        "created_users": created,
-        "assigned_users": assigned,
-    }
 
 
 @router.post("/users/{user_id}/projects/{project_id}")
