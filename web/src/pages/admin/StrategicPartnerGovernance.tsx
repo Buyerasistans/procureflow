@@ -65,7 +65,8 @@ export default function StrategicPartnerGovernance(props: Props) {
   const [status, setStatus] = useState<string>("all");
   const [origin, setOrigin] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [detailId, setDetailId] = useState<number | null>(null);
   const [modal, setModal] = useState<{ kind: "new" } | { kind: "plan"; ids: number[] } | null>(null);
@@ -94,7 +95,7 @@ export default function StrategicPartnerGovernance(props: Props) {
   const allSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
   const detailRow = detailId != null ? rows.find((p) => p.id === detailId) ?? null : null;
 
-  const toggle = (id: number) => setCollapsed((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggle = (id: number) => setExpanded((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleSel = (id: number) => setSelected((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((p) => p.id)));
 
@@ -183,17 +184,43 @@ export default function StrategicPartnerGovernance(props: Props) {
               ))
             ) : filtered.length === 0 ? (
               <tr><td colSpan={9} className="spg-empty">Eşleşen stratejik partner yok.</td></tr>
-            ) : filtered.map((p) => {
-              const open = !collapsed.has(p.id);
-              const o = ORIGIN_META[p.origin];
-              return (
-                <PartnerRows
-                  key={p.id} p={p} open={open} selected={selected.has(p.id)} originMeta={o}
-                  onToggle={() => toggle(p.id)} onSelect={() => toggleSel(p.id)} onOpenDetail={() => setDetailId(p.id)}
-                  onCrossLink={onCrossLink}
-                />
-              );
-            })}
+            ) : (
+              (["direct", "channel", "supplier"] as PartnerOrigin[]).flatMap((originKey) => {
+                const group = filtered.filter((p) => p.origin === originKey);
+                if (group.length === 0) return [];
+                const isGrpOpen = origin !== "all" || expandedGroups.has(originKey);
+                const o = ORIGIN_META[originKey];
+                return [
+                  <tr key={`grp-${originKey}`} className="spg-grouprow">
+                    <td colSpan={9}>
+                      <button
+                        type="button"
+                        className={"spg-grphd" + (isGrpOpen ? " spg-grphd--open" : "")}
+                        onClick={() => setExpandedGroups((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(originKey)) next.delete(originKey); else next.add(originKey);
+                          return next;
+                        })}
+                      >
+                        <span className={"spg-origin " + o.cls}>{o.short}</span>
+                        <span className="spg-grphd__count">{group.length} partner · {group.reduce((s, p) => s + p.subs.length, 0)} alt firma</span>
+                        <span className="spg-grphd__chev">{isGrpOpen ? "▾" : "▸"}</span>
+                      </button>
+                    </td>
+                  </tr>,
+                  ...(isGrpOpen ? group.map((p) => {
+                    const open = expanded.has(p.id);
+                    return (
+                      <PartnerRows
+                        key={p.id} p={p} open={open} selected={selected.has(p.id)} originMeta={o}
+                        onToggle={() => toggle(p.id)} onSelect={() => toggleSel(p.id)} onOpenDetail={() => setDetailId(p.id)}
+                        onCrossLink={onCrossLink}
+                      />
+                    );
+                  }) : []),
+                ];
+              })
+            )}
           </tbody>
         </table>
       </div>

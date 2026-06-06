@@ -169,6 +169,19 @@
 .spg-field input, .spg-field select { border:1px solid var(--line); border-radius:9px; padding:9px 11px; font:inherit; font-size:13px; background:#fff; outline:none; }
 .spg-field input:focus, .spg-field select:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
 
+/* Group headers */
+.spg-grouprow td { padding: 0; background: transparent; border-bottom: none; }
+.spg-grphd {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 8px 12px; border: none; background: #f8fafc;
+  border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+  cursor: pointer; font: inherit; text-align: left;
+}
+.spg-grphd:hover { background: #f1f5f9; }
+.spg-grphd--open { background: #f8fafc; }
+.spg-grphd__count { font-size: 11.5px; color: #64748b; flex: 1; }
+.spg-grphd__chev { font-size: 11px; color: #94a3b8; }
+
 /* Toast */
 .spg-toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:240; display:flex; align-items:center; gap:9px; background:#0f172a; color:#fff; font-size:13px; font-weight:700; padding:11px 18px; border-radius:12px; box-shadow:0 12px 32px rgba(15,23,42,.34); }
 

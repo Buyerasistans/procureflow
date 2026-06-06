@@ -1004,3 +1004,18 @@
     padding: 12px 14px 16px;
   }
 }
+
+/* ── Grouped accordion wrapper (supplier / portal / channel / career) ──────── */
+.co-grp {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  margin-bottom: 6px;
+}
+
+.co-pool__hd small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 2px;
+}

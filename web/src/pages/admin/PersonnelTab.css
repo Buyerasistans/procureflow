@@ -1163,3 +1163,155 @@
     width: 100%;
   }
 }
+
+/* ── Grouped accordion (portal / channel / supplier / career) ──────────────── */
+.pe-grp {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  margin-bottom: 6px;
+}
+
+.pe-grphd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: #fff;
+  border: none;
+  padding: 11px 14px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background 0.12s;
+}
+
+.pe-grphd:hover {
+  background: #f8f9fb;
+}
+
+.pe-grphd .pe-row__bar {
+  flex-shrink: 0;
+  width: 4px;
+  height: 28px;
+  border-radius: 3px;
+  background: var(--pe-color, #6b7280);
+}
+
+.pe-grphd__name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a202c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pe-grphd__count {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.pe-grphd--open {
+  background: #f8fafb;
+}
+
+.pe-grphd--open .pe-grphd__name {
+  color: var(--pe-color, #1a202c);
+}
+
+.pe-grphd .pe-row__chev {
+  font-size: 10px;
+  color: #9ca3af;
+  transition: transform 0.15s;
+}
+
+.pe-grphd--open .pe-row__chev {
+  color: var(--pe-color, #6b7280);
+}
+
+/* ── Invitation block ─────────────────────────────────────────────────────── */
+.pe-invite-block {
+  display: flex;
+  gap: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.pe-invite-block__icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.pe-invite-block__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pe-invite-block__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.pe-invite-block__detail {
+  font-size: 12px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+.pe-invite-block__date {
+  font-size: 11px;
+  color: #a16207;
+  font-style: italic;
+}
+
+.pe-invite-block__note {
+  font-size: 11px;
+  color: #b45309;
+  margin-top: 2px;
+}
+
+.pe-invite-block__resend {
+  margin-top: 8px;
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #d97706;
+  background: #fff;
+  color: #d97706;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.pe-invite-block__resend:hover:not(:disabled) {
+  background: #d97706;
+  color: #fff;
+}
+
+.pe-invite-block__resend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pe-list__hd small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 2px;
+}

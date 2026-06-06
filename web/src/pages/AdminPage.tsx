@@ -6697,6 +6697,55 @@ export default function AdminPage() {
           </Suspense>
         )}
 
+        {/* İş Ortaklarımız Tab */}
+        {activeTab === "is_ortaklari" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <CompaniesTab
+              companies={companies}
+              loadData={loadData}
+              readOnly={isPlatformStaff}
+              suppliers={tenantGovernanceSuppliers}
+              channelUsers={channelUsers}
+              personnel={personnel}
+              tenants={tenants}
+              visibleSegments={["channel"]}
+            />
+          </Suspense>
+        )}
+
+        {/* Personel Arayan Firmalar Tab */}
+        {activeTab === "personel_arayan" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <CompaniesTab
+              companies={companies}
+              loadData={loadData}
+              readOnly={isPlatformStaff}
+              suppliers={tenantGovernanceSuppliers}
+              channelUsers={channelUsers}
+              personnel={personnel}
+              tenants={tenants}
+              visibleSegments={["career"]}
+            />
+          </Suspense>
+        )}
+
+        {/* İş Arayan Havuzu Tab */}
+        {activeTab === "is_arayan" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <PersonnelTab
+              personnel={personnel}
+              roles={roles}
+              companies={companies}
+              tenants={tenants}
+              loadData={loadData}
+              reloadPersonnel={reloadPersonnel}
+              readOnly={isPlatformStaff}
+              defaultSegment="career"
+              visibleSegments={["career"]}
+            />
+          </Suspense>
+        )}
+
         {/* Public Pricing Tab */}
         {activeTab === "public_pricing" && (
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>

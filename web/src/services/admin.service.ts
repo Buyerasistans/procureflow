@@ -307,6 +307,7 @@ export interface Personnel {
   company_assignments?: CompanyAssignment[];
   invitation_email_sent?: boolean;
   invitation_accepted?: boolean;
+  created_at?: string | null;
 }
 
 export type TenantUser = Personnel;
@@ -1401,6 +1402,11 @@ export async function deletePersonnel(id: number): Promise<void> {
 
 export async function deleteTenantUser(id: number): Promise<void> {
   await deletePersonnel(id);
+}
+
+export async function resendUserInvitation(userId: number): Promise<{ status: string; message: string; invitation_email_sent: boolean }> {
+  const res = await http.post<{ status: string; message: string; invitation_email_sent: boolean }>(`/users/${userId}/resend-invitation`);
+  return res.data;
 }
 
 export async function adminResetPassword(userId: number): Promise<{ message: string; temp_password: string }> {

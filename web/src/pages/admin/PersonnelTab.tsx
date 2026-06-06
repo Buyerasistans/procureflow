@@ -11,6 +11,7 @@ import {
   getAdminSupplierUsers,
   getAdminSuppliers,
   getUserCompanyAssignments,
+  resendUserInvitation,
   updateAdminSupplierUser,
   updateTenantUser,
   type AdminSupplierListItem,
@@ -32,6 +33,8 @@ interface PersonnelTabProps {
   isChannelUser?: boolean;
   tenants?: Tenant[];
   reloadPersonnel?: (params?: TenantUsersQueryParams) => Promise<void>;
+  defaultSegment?: PersonnelSegment;
+  visibleSegments?: PersonnelSegment[];
 }
 
 type PersonnelSegment = "portal" | "partner" | "channel" | "supplier" | "career";
@@ -88,7 +91,7 @@ function fmtApprovalLimit(n: number): string {
 }
 
 export function PersonnelTab(props: PersonnelTabProps) {
-  const { personnel, roles, companies = [], loadData, readOnly = false, isChannelUser = false, tenants = [] } = props;
+  const { personnel, roles, companies = [], loadData, readOnly = false, isChannelUser = false, tenants = [], defaultSegment, visibleSegments } = props;
   const authUser = useContext(AuthContext)?.user ?? null;
   const canOpenPanel = isSuperAdminUser(authUser);
   const PLATFORM_SUPER_ADMIN_EMAIL = "superadmin@buyerasistans.com.tr";
@@ -99,10 +102,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const [detailPersonnel, setDetailPersonnel] = useState<TenantUser | null>(null);
   const [tab, setTab] = useState<"all" | "active" | "passive">("all");
   const [segment, setSegment] = useState<PersonnelSegment>(() => {
+    if (defaultSegment) return defaultSegment;
     const fallback: PersonnelSegment = isChannelUser ? "channel" : "portal";
     if (typeof window === "undefined") return fallback;
     const stored = window.sessionStorage.getItem(segmentStorageKey);
-    if (stored === "portal" || stored === "partner" || stored === "channel" || stored === "supplier" || stored === "career") return stored;
+    if (stored === "portal" || stored === "partner" || stored === "channel" || stored === "supplier" || stored === "career") {
+      if (!visibleSegments || visibleSegments.includes(stored as PersonnelSegment)) return stored as PersonnelSegment;
+    }
     return fallback;
   });
   const [supplierGroups, setSupplierGroups] = useState<SupplierPersonnelGroup[]>([]);
@@ -118,6 +124,8 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const [selSupUserKey, setSelSupUserKey] = useState<{ supplierId: number; userId: number } | null>(null);
   const [expandedTenantKeys, setExpandedTenantKeys] = useState<Set<string>>(new Set());
   const [expandedCompanyKeys, setExpandedCompanyKeys] = useState<Set<string>>(new Set());
+  const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
+  const [resendingId, setResendingId] = useState<number | null>(null);
   const [q, setQ] = useState("");
   const [pageSize, setPageSize] = useState<number>(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem(PAGE_SIZE_KEY) : null;
@@ -184,6 +192,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
     setSelSupUserKey(null);
     setExpandedTenantKeys(new Set());
     setExpandedCompanyKeys(new Set());
+    setExpandedGroupKeys(new Set());
     setQ("");
     if (typeof window !== "undefined") window.sessionStorage.setItem(segmentStorageKey, next);
   }, [segmentStorageKey]);
@@ -525,6 +534,16 @@ export function PersonnelTab(props: PersonnelTabProps) {
     );
   }, [segment, isChannelUser, supplierGroups, strategicPartnerTenantGroups, strategicPartnerGroups, portalCompanyGroups, careerPersonnel, decorateWithCompanyContext, normalizeTrText]);
 
+  // Tüm segmentler için grup başlıklarına göre gruplandırılmış liste (partner hariç)
+  const groupedFlatItems = useMemo(() => {
+    const map = new Map<string, FlatItem[]>();
+    flatList.forEach((item) => {
+      if (!map.has(item.group)) map.set(item.group, []);
+      map.get(item.group)!.push(item);
+    });
+    return Array.from(map.entries()).map(([groupName, items]) => ({ groupName, items }));
+  }, [flatList]);
+
   const ql = q.trim().toLowerCase();
   const visibleList = useMemo((): FlatItem[] => {
     if (!ql) return flatList;
@@ -544,12 +563,60 @@ export function PersonnelTab(props: PersonnelTabProps) {
     const roleLabel = normalizeTrText(getRoleLabel(person.role) || roles.find((r) => r.name === person.role)?.name || person.role || "-");
     const sysRoleLabel = getSystemRoleLabelForPerson(person);
     const pendingInvite = person.invitation_accepted === false;
+    const emailSent = person.invitation_email_sent === true;
     const companyName = person.primaryCompanyName !== "Firma Ataması Yok" ? person.primaryCompanyName : null;
+
+    const fmtDate = (iso?: string | null) => {
+      if (!iso) return null;
+      try {
+        return new Date(iso).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
+      } catch { return null; }
+    };
+    const createdDate = fmtDate(person.created_at);
 
     return (
       <>
         {pendingInvite && (
-          <div className="pe-invite-note">📧 Davet henüz kabul edilmedi.</div>
+          <div className="pe-invite-block">
+            <div className="pe-invite-block__icon">✉</div>
+            <div className="pe-invite-block__body">
+              <div className="pe-invite-block__title">
+                {emailSent ? "E-posta daveti gönderildi — yanıt bekleniyor" : "Hesap oluşturuldu — aktivasyon e-postası henüz gönderilmedi"}
+              </div>
+              <div className="pe-invite-block__detail">
+                {emailSent
+                  ? "Bu kullanıcı, sisteme giriş için aktivasyon bağlantısı içeren bir e-posta ile davet edilmiştir. Kullanıcı henüz bağlantıya tıklamamış ve hesabını aktive etmemiş."
+                  : "Bu kullanıcı hesabı platform üzerinden oluşturuldu ancak aktivasyon e-postası gönderilemedi veya gönderilmedi. Aşağıdaki butonla davet e-postası gönderilebilir."}
+                {createdDate && <span className="pe-invite-block__date"> · {createdDate} tarihinde oluşturuldu</span>}
+              </div>
+              <div className="pe-invite-block__note">
+                💡 Davet bağlantısının süresi 24 saattir. Süresi dolan davetler için "Tekrar Davet Gönder" kullanın.
+              </div>
+              {!readOnly && (
+                <button
+                  type="button"
+                  className="pe-invite-block__resend"
+                  disabled={resendingId === person.id}
+                  onClick={async () => {
+                    setResendingId(person.id);
+                    try {
+                      const result = await resendUserInvitation(person.id);
+                      setNotice({
+                        type: result.invitation_email_sent ? "success" : "error",
+                        text: result.message,
+                      });
+                    } catch {
+                      setNotice({ type: "error", text: "Davet gönderilemedi. Lütfen tekrar deneyin." });
+                    } finally {
+                      setResendingId(null);
+                    }
+                  }}
+                >
+                  {resendingId === person.id ? "Gönderiliyor…" : "✉ Tekrar Davet Gönder"}
+                </button>
+              )}
+            </div>
+          </div>
         )}
         <div className="split-1-1">
           <Section title="İletişim" sub="kişisel & kurumsal">
@@ -698,6 +765,105 @@ export function PersonnelTab(props: PersonnelTabProps) {
     );
   }
 
+  // ── Per-row renderer (supplier person) ───────────────────────────────────────
+  function renderSupplierPersonRow(item: FlatItem & { kind: "supplier" }, segColor: string) {
+    const isExpanded = selSupUserKey?.supplierId === item.supplierId && selSupUserKey?.userId === item.person.id;
+    const isActive = item.person.is_active !== false;
+    const supName = normalizeTrText(item.person.name);
+    const supEmail = item.person.email ?? "";
+    return (
+      <div key={`s-${item.supplierId}-${item.person.id}`} className={"pe-row-wrap" + (isExpanded ? " pe-row-wrap--open" : "")}>
+        <button
+          type="button"
+          className={"pe-row" + (isExpanded ? " on" : "") + (!isActive ? " pe-row--off" : "")}
+          style={{ "--pe-color": SEG_COLORS.supplier } as CSSProperties}
+          aria-expanded={isExpanded}
+          onClick={() => { setSelSupUserKey(isExpanded ? null : { supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }}
+        >
+          <span className="pe-row__bar" />
+          <span className="pe-av">{personInit(supName)}</span>
+          <span className="pe-row__meta">
+            <b>
+              {supName}
+              {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
+            </b>
+            <i>{supEmail}</i>
+          </span>
+          <span className="pe-srole-sm">Tedarikçi</span>
+          <span className="pe-row__chev">{isExpanded ? "▴" : "▾"}</span>
+        </button>
+        <div className="pe-row__inlineacts">
+          {canOpenPanel && (
+            <button
+              type="button"
+              className="pe-act-btn pe-act-btn--panel"
+              disabled={openingPanelId === item.person.id}
+              onClick={() => { void openSupplierPanel(item.person); }}
+            >
+              {openingPanelId === item.person.id ? "Açılıyor…" : "Paneli Aç ↗"}
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={readOnly || loadingPersonId === item.person.id}
+            className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
+            onClick={() => { void toggleSupplierUserActive(item.supplierId, item.person, !isActive); }}
+          >
+            {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+          </button>
+          <button
+            type="button"
+            className="pe-act-btn pe-act-btn--detail"
+            style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
+            disabled={loadingPersonId === item.person.id}
+            onClick={() => {
+              setDetailPersonnel({
+                id: item.person.id,
+                email: item.person.email,
+                full_name: item.person.name,
+                role: "satinalmaci",
+                approval_limit: 0,
+                is_active: item.person.is_active !== false,
+                personal_phone: item.person.phone ?? null,
+              });
+            }}
+          >
+            Detay
+          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="pe-act-btn pe-act-btn--edit-seg"
+              style={{ background: segColor, color: "#fff", border: `1px solid ${segColor}` }}
+              disabled={loadingPersonId === item.person.id}
+              onClick={() => { void editSupplierUser(item.supplierId, item.person); }}
+            >
+              Düzenle
+            </button>
+          )}
+          {!readOnly && (
+            <button
+              type="button"
+              className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
+              disabled={isActive || loadingPersonId === item.person.id}
+              onClick={() => { void removeSupplierUser(item.supplierId, item.person); }}
+            >
+              Sil
+            </button>
+          )}
+        </div>
+        {isExpanded && (
+          <div className="pe-expand">
+            {(() => {
+              const sg = supplierGroups.find((g) => g.supplier.id === item.supplierId);
+              return sg ? supplierExpandContent(item.person, sg.supplier) : null;
+            })()}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="personnel-tab">
@@ -748,7 +914,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
                 { key: "supplier" as PersonnelSegment, label: `Tedarikçi (${supplierGroups.reduce((s, g) => s + g.users.length, 0)})` },
                 { key: "career" as PersonnelSegment,   label: `Personel Arayan (${careerPersonnel.length})` },
               ]
-          ).map((item) => (
+          ).filter((item) => !visibleSegments || visibleSegments.includes(item.key)).map((item) => (
             <button
               key={item.key}
               type="button"
@@ -786,8 +952,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
 
       <div className="pe-list">
         <div className="pe-list__hd">
-          Ekip <span>{totalItems}</span>
-          {totalPages > 1 && <span className="pe-list__page-info">{safePage + 1} / {totalPages} sayfa</span>}
+          Ekip{" "}
+          {segment === "partner" && !ql
+            ? <span>{strategicPartnerTenantGroups.reduce((s, tg) => s + tg.companies.reduce((cs, cg) => cs + cg.users.length, 0), 0)}</span>
+            : !ql
+              ? <span>{flatList.length} <small>({groupedFlatItems.length} grup)</small></span>
+              : <span>{totalItems} sonuç</span>}
+          {ql && totalPages > 1 && <span className="pe-list__page-info">{safePage + 1} / {totalPages} sayfa</span>}
         </div>
 
         {segment === "supplier" && supplierLoading ? (
@@ -855,10 +1026,44 @@ export function PersonnelTab(props: PersonnelTabProps) {
               );
             })
           )
+        ) : !ql ? (
+          // ── Grouped accordion: portal / channel / supplier / career ───────────────
+          groupedFlatItems.length === 0 ? (
+            <div className="pe-state">Ekip üyesi yok.</div>
+          ) : (
+            groupedFlatItems.map(({ groupName, items }) => {
+              const isOpen = expandedGroupKeys.has(groupName);
+              const segColor = SEG_COLORS[segment];
+              return (
+                <div key={groupName} className="pe-grp">
+                  <button
+                    type="button"
+                    className={"pe-grphd" + (isOpen ? " pe-grphd--open" : "")}
+                    style={{ "--pe-color": segColor } as CSSProperties}
+                    onClick={() => setExpandedGroupKeys((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(groupName)) next.delete(groupName); else next.add(groupName);
+                      return next;
+                    })}
+                  >
+                    <span className="pe-row__bar" />
+                    <span className="pe-grphd__name">{groupName}</span>
+                    <span className="pe-grphd__count">{items.length} üye</span>
+                    <span className="pe-row__chev">{isOpen ? "▴" : "▾"}</span>
+                  </button>
+                  {isOpen && items.map((item) =>
+                    item.kind === "tenant"
+                      ? renderPersonRow(item.person, segColor)
+                      : renderSupplierPersonRow(item, segColor),
+                  )}
+                </div>
+              );
+            })
+          )
         ) : pagedItems.length === 0 ? (
           <div className="pe-state">Eşleşen üye yok.</div>
         ) : (
-          // ── Flat accordion: portal / channel / supplier / career (+ partner+arama) ──
+          // ── Flat search results ────────────────────────────────────────────────────
           pagedItems.map((item, idx) => {
             const actualIdx = safePage * pageSize + idx;
             const prevItem = actualIdx > 0 ? visibleList[actualIdx - 1] : null;
@@ -878,12 +1083,6 @@ export function PersonnelTab(props: PersonnelTabProps) {
                 </div>
               );
             }
-
-            // supplier kind ──────────────────────────────────────────────────
-            const isExpanded = selSupUserKey?.supplierId === item.supplierId && selSupUserKey?.userId === item.person.id;
-            const isActive = item.person.is_active !== false;
-            const supName = normalizeTrText(item.person.name);
-            const supEmail = item.person.email ?? "";
             return (
               <div key={`s-${item.supplierId}-${item.person.id}`}>
                 {showHeader && (
@@ -892,101 +1091,13 @@ export function PersonnelTab(props: PersonnelTabProps) {
                     {item.group}
                   </div>
                 )}
-                <div className={"pe-row-wrap" + (isExpanded ? " pe-row-wrap--open" : "")}>
-                  <button
-                    type="button"
-                    className={"pe-row" + (isExpanded ? " on" : "") + (!isActive ? " pe-row--off" : "")}
-                    style={{ "--pe-color": SEG_COLORS.supplier } as CSSProperties}
-                    aria-expanded={isExpanded}
-                    onClick={() => { setSelSupUserKey(isExpanded ? null : { supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }}
-                  >
-                    <span className="pe-row__bar" />
-                    <span className="pe-av">{personInit(supName)}</span>
-                    <span className="pe-row__meta">
-                      <b>
-                        {supName}
-                        {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
-                      </b>
-                      <i>{supEmail}</i>
-                    </span>
-                    <span className="pe-srole-sm">Tedarikçi</span>
-                    <span className="pe-row__chev">{isExpanded ? "▴" : "▾"}</span>
-                  </button>
-                  <div className="pe-row__inlineacts">
-                    {canOpenPanel && (
-                      <button
-                        type="button"
-                        className="pe-act-btn pe-act-btn--panel"
-                        disabled={openingPanelId === item.person.id}
-                        onClick={() => { void openSupplierPanel(item.person); }}
-                      >
-                        {openingPanelId === item.person.id ? "Açılıyor…" : "Paneli Aç ↗"}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      disabled={readOnly || loadingPersonId === item.person.id}
-                      className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
-                      onClick={() => { void toggleSupplierUserActive(item.supplierId, item.person, !isActive); }}
-                    >
-                      {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
-                    </button>
-                    <button
-                      type="button"
-                      className="pe-act-btn pe-act-btn--detail"
-                      style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
-                      disabled={loadingPersonId === item.person.id}
-                      onClick={() => {
-                        setDetailPersonnel({
-                          id: item.person.id,
-                          email: item.person.email,
-                          full_name: item.person.name,
-                          role: "satinalmaci",
-                          approval_limit: 0,
-                          is_active: item.person.is_active !== false,
-                          personal_phone: item.person.phone ?? null,
-                        });
-                      }}
-                    >
-                      Detay
-                    </button>
-                    {!readOnly && (
-                      <button
-                        type="button"
-                        className="pe-act-btn pe-act-btn--edit-seg"
-                        style={{ background: segColor, color: "#fff", border: `1px solid ${segColor}` }}
-                        disabled={loadingPersonId === item.person.id}
-                        onClick={() => { void editSupplierUser(item.supplierId, item.person); }}
-                      >
-                        Düzenle
-                      </button>
-                    )}
-                    {!readOnly && (
-                      <button
-                        type="button"
-                        className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
-                        disabled={isActive || loadingPersonId === item.person.id}
-                        onClick={() => { void removeSupplierUser(item.supplierId, item.person); }}
-                      >
-                        Sil
-                      </button>
-                    )}
-                  </div>
-                  {isExpanded && (
-                    <div className="pe-expand">
-                      {(() => {
-                        const sg = supplierGroups.find((g) => g.supplier.id === item.supplierId);
-                        return sg ? supplierExpandContent(item.person, sg.supplier) : null;
-                      })()}
-                    </div>
-                  )}
-                </div>
+                {renderSupplierPersonRow(item, segColor)}
               </div>
             );
           })
         )}
 
-        {totalPages > 1 && (
+        {ql && totalPages > 1 && (
           <div className="pe-pagination">
             <span className="pe-pagination__info">
               {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, totalItems)} / {totalItems}

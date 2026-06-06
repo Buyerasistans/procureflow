@@ -100,14 +100,14 @@ export function CompaniesTab({
     return CO_PAGE_SIZES.includes(n) ? n : 100;
   });
   const [coPage, setCoPage] = useState(0);
-  const [expandedPartnerGroups, setExpandedPartnerGroups] = useState<Set<string>>(new Set());
+  const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
 
   const changeSegment = (next: CompanySegment) => {
     setSegment(next);
     setSelId(null);
     setQ("");
     setCoPage(0);
-    setExpandedPartnerGroups(new Set());
+    setExpandedGroupKeys(new Set());
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("procureflow.companies.segment", next);
     }
@@ -179,7 +179,7 @@ export function CompaniesTab({
   useEffect(() => {
     setSelId(null);
     setCoPage(0);
-    setExpandedPartnerGroups(new Set());
+    setExpandedGroupKeys(new Set());
   }, [segment, statusFilter, q]);
 
   const isDeletedPersonValue = (value?: string | null): boolean => {
@@ -339,21 +339,21 @@ export function CompaniesTab({
     (t) => !visibleSegments || visibleSegments.includes(t.key)
   );
 
-  // ── Partner list: group by tenant ──────────────────────────────────────────
-  const partnerGrouped = useMemo(() => {
-    if (segment !== "partner") return null;
-    const map = new Map<string, Company[]>();
-    filteredCompanies.forEach((c) => {
-      const key = c.tenant_id != null ? `t${c.tenant_id}` : `c${c.id}`;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(c);
-    });
-    return Array.from(map.values()).map((group) =>
-      [...group].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0)),
-    );
-  }, [segment, filteredCompanies]);
-
   const listCount = segment === "supplier" ? filteredSuppliers.length : filteredCompanies.length;
+
+  const groupCount = useMemo(() => {
+    if (segment === "supplier") {
+      const tenantIds = new Set(filteredSuppliers.filter((s) => s.tenant_id !== null).map((s) => s.tenant_id!));
+      return tenantIds.size + (filteredSuppliers.some((s) => s.tenant_id === null) ? 1 : 0);
+    }
+    if (segment === "partner") {
+      return new Set(filteredCompanies.map((c) => c.tenant_id != null ? `t${c.tenant_id}` : `c${c.id}`)).size;
+    }
+    return new Set(filteredCompanies.map((c) => {
+      const t = tenants.find((x) => x.id === c.tenant_id);
+      return t ? (t.brand_name || t.legal_name) : c.name;
+    })).size;
+  }, [segment, filteredSuppliers, filteredCompanies, tenants]);
 
   const coTotalPages = Math.max(1, Math.ceil(listCount / coPageSize));
   const coSafePage = Math.min(coPage, coTotalPages - 1);
@@ -715,27 +715,43 @@ export function CompaniesTab({
   }
 
   function renderSupplierList() {
-    const sups = pagedFilteredSuppliers;
+    const sups = ql ? pagedFilteredSuppliers : filteredSuppliers;
+    const segColor = SEG_META.supplier.color;
     const platformSups = sups.filter((s) => s.tenant_id === null);
     const tenantMap = new Map<number, AdminSupplierListItem[]>();
     sups.filter((s) => s.tenant_id !== null).forEach((s) => {
       if (!tenantMap.has(s.tenant_id!)) tenantMap.set(s.tenant_id!, []);
       tenantMap.get(s.tenant_id!)!.push(s);
     });
+    const renderGroup = (key: string, label: string, items: AdminSupplierListItem[]) => {
+      const isOpen = expandedGroupKeys.has(key);
+      return (
+        <div key={key} className="co-grp">
+          <button
+            type="button"
+            className={"co-grouphd co-grouphd--btn" + (isOpen ? " co-grouphd--open" : "")}
+            style={{ "--co-color": segColor } as CSSProperties}
+            onClick={() => setExpandedGroupKeys((prev) => {
+              const next = new Set(prev);
+              if (next.has(key)) next.delete(key); else next.add(key);
+              return next;
+            })}
+          >
+            <span />
+            {label}
+            <span className="co-grouphd__meta">{items.length} firma</span>
+            <span className="co-grouphd__chev">{isOpen ? "▴" : "▾"}</span>
+          </button>
+          {isOpen && items.map((s) => supplierRow(s))}
+        </div>
+      );
+    };
     return (
       <>
-        {platformSups.length > 0 && (
-          <div>
-            <div className="co-grouphd">{`Buyera Asistans Özel Tedarikçi (${platformSups.length})`}</div>
-            {platformSups.map((s) => supplierRow(s))}
-          </div>
+        {platformSups.length > 0 && renderGroup("__platform__", `Buyera Asistans Özel Tedarikçi`, platformSups)}
+        {Array.from(tenantMap.entries()).map(([tid, tsups]) =>
+          renderGroup(String(tid), tsups[0].tenant_name ?? tsups[0].inviter_company_name ?? "Tedarikçi", tsups),
         )}
-        {Array.from(tenantMap.entries()).map(([, sups]) => (
-          <div key={sups[0].tenant_id!}>
-            <div className="co-grouphd">{sups[0].tenant_name ?? sups[0].inviter_company_name ?? "Tedarikçi"}</div>
-            {sups.map((s) => supplierRow(s))}
-          </div>
-        ))}
       </>
     );
   }
@@ -843,37 +859,41 @@ export function CompaniesTab({
       {/* ── Full-width list (accordion layout) ── */}
       <div className="co-list">
         <div className="co-pool__hd">
-          {segment === "career" ? "Personel Arayan Firmalar" : "Firmalar"} <span>{listCount}</span>
-          {coTotalPages > 1 && <span className="co-page-info">{coSafePage + 1} / {coTotalPages} sayfa</span>}
+          {segment === "career" ? "Personel Arayan Firmalar" : "Firmalar"}{" "}
+          {!ql
+            ? <span>{listCount} <small>({groupCount} grup)</small></span>
+            : <span>{listCount} sonuç</span>}
+          {ql && coTotalPages > 1 && <span className="co-page-info">{coSafePage + 1} / {coTotalPages} sayfa</span>}
         </div>
         <div className="co-pool__list">
           {listCount === 0 ? (
             <div className="co-state">Eşleşen firma yok.</div>
           ) : segment === "supplier" ? (
             renderSupplierList()
-          ) : segment === "partner" && partnerGrouped ? (
+          ) : segment === "partner" ? (
             (() => {
-              const pagedMap = new Map<string, Company[]>();
-              pagedFilteredCompanies.forEach((c) => {
+              const sourceCompanies = ql ? pagedFilteredCompanies : filteredCompanies;
+              const grpMap = new Map<string, Company[]>();
+              sourceCompanies.forEach((c) => {
                 const key = c.tenant_id != null ? `t${c.tenant_id}` : `c${c.id}`;
-                if (!pagedMap.has(key)) pagedMap.set(key, []);
-                pagedMap.get(key)!.push(c);
+                if (!grpMap.has(key)) grpMap.set(key, []);
+                grpMap.get(key)!.push(c);
               });
-              const pagedGroups = Array.from(pagedMap.values()).map((group) =>
+              const groups = Array.from(grpMap.values()).map((group) =>
                 [...group].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0)),
               );
-              return pagedGroups.map((group) => {
+              return groups.map((group) => {
                 const primary = group.find((c) => c.is_primary) ?? group[0];
                 const tenantLabel = resolveCompanyTenantLabel(primary) ?? primary.name;
                 const groupKey = String(primary.tenant_id ?? primary.id);
-                const isGrpExpanded = expandedPartnerGroups.has(groupKey);
+                const isGrpExpanded = expandedGroupKeys.has(groupKey);
                 return (
                   <div key={groupKey}>
                     <button
                       type="button"
                       className={"co-grouphd co-grouphd--btn" + (isGrpExpanded ? " co-grouphd--open" : "")}
                       style={{ "--co-color": primary.color } as CSSProperties}
-                      onClick={() => setExpandedPartnerGroups((prev) => {
+                      onClick={() => setExpandedGroupKeys((prev) => {
                         const next = new Set(prev);
                         if (next.has(groupKey)) next.delete(groupKey); else next.add(groupKey);
                         return next;
@@ -889,12 +909,47 @@ export function CompaniesTab({
                 );
               });
             })()
+          ) : !ql ? (
+            // Grouped accordion for portal / channel / career (no search)
+            (() => {
+              const tenantGrpMap = new Map<string, Company[]>();
+              filteredCompanies.forEach((c) => {
+                const label = resolveCompanyTenantLabel(c) ?? c.name;
+                if (!tenantGrpMap.has(label)) tenantGrpMap.set(label, []);
+                tenantGrpMap.get(label)!.push(c);
+              });
+              const segColor = SEG_META[segment].color;
+              return Array.from(tenantGrpMap.entries()).map(([label, cos]) => {
+                const isOpen = expandedGroupKeys.has(label);
+                return (
+                  <div key={label} className="co-grp">
+                    <button
+                      type="button"
+                      className={"co-grouphd co-grouphd--btn" + (isOpen ? " co-grouphd--open" : "")}
+                      style={{ "--co-color": segColor } as CSSProperties}
+                      onClick={() => setExpandedGroupKeys((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(label)) next.delete(label); else next.add(label);
+                        return next;
+                      })}
+                    >
+                      <span />
+                      {label}
+                      <span className="co-grouphd__meta">{cos.length} firma</span>
+                      <span className="co-grouphd__chev">{isOpen ? "▴" : "▾"}</span>
+                    </button>
+                    {isOpen && cos.map((c) => companyRow(c))}
+                  </div>
+                );
+              });
+            })()
           ) : (
+            // Flat search results (paginated)
             pagedFilteredCompanies.map((c) => companyRow(c))
           )}
         </div>
 
-        {coTotalPages > 1 && (
+        {ql && coTotalPages > 1 && (
           <div className="co-pagination">
             <span className="co-pagination__info">
               {coSafePage * coPageSize + 1}–{Math.min((coSafePage + 1) * coPageSize, listCount)} / {listCount}

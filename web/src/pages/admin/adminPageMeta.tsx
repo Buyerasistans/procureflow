@@ -33,7 +33,10 @@ export type AdminTabKey =
   | "ai_lab"
   | "talent_ecosystem"
   | "nav_management"
-  | "profile";
+  | "profile"
+  | "is_ortaklari"
+  | "personel_arayan"
+  | "is_arayan";
 
 export type TabConfig = {
   key: AdminTabKey;
