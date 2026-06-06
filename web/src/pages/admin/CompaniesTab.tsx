@@ -50,10 +50,10 @@ function coLogo(name: string): string {
 }
 
 const SEG_META: Record<CompanySegment, { label: string; color: string }> = {
-  portal:   { label: "Portal",              color: "#0891b2" },
-  partner:  { label: "Stratejik Partner",   color: "#1d4ed8" },
+  portal:   { label: "Portal",              color: "#1d4ed8" },
+  partner:  { label: "Stratejik Partner",   color: "#047857" },
   supplier: { label: "Tedarikçi",           color: "#be123c" },
-  channel:  { label: "İş Ortağı",          color: "#047857" },
+  channel:  { label: "İş Ortağı",          color: "#0891b2" },
   career:   { label: "Personel Arayan",     color: "#7c3aed" },
 };
 
@@ -100,12 +100,14 @@ export function CompaniesTab({
     return CO_PAGE_SIZES.includes(n) ? n : 100;
   });
   const [coPage, setCoPage] = useState(0);
+  const [expandedPartnerGroups, setExpandedPartnerGroups] = useState<Set<string>>(new Set());
 
   const changeSegment = (next: CompanySegment) => {
     setSegment(next);
     setSelId(null);
     setQ("");
     setCoPage(0);
+    setExpandedPartnerGroups(new Set());
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("procureflow.companies.segment", next);
     }
@@ -177,6 +179,7 @@ export function CompaniesTab({
   useEffect(() => {
     setSelId(null);
     setCoPage(0);
+    setExpandedPartnerGroups(new Set());
   }, [segment, statusFilter, q]);
 
   const isDeletedPersonValue = (value?: string | null): boolean => {
@@ -862,13 +865,26 @@ export function CompaniesTab({
               return pagedGroups.map((group) => {
                 const primary = group.find((c) => c.is_primary) ?? group[0];
                 const tenantLabel = resolveCompanyTenantLabel(primary) ?? primary.name;
+                const groupKey = String(primary.tenant_id ?? primary.id);
+                const isGrpExpanded = expandedPartnerGroups.has(groupKey);
                 return (
-                  <div key={primary.tenant_id ?? primary.id}>
-                    <div className="co-grouphd" style={{ "--co-color": primary.color } as CSSProperties}>
+                  <div key={groupKey}>
+                    <button
+                      type="button"
+                      className={"co-grouphd co-grouphd--btn" + (isGrpExpanded ? " co-grouphd--open" : "")}
+                      style={{ "--co-color": primary.color } as CSSProperties}
+                      onClick={() => setExpandedPartnerGroups((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(groupKey)) next.delete(groupKey); else next.add(groupKey);
+                        return next;
+                      })}
+                    >
                       <span />
                       {tenantLabel}
-                    </div>
-                    {group.map((c) => companyRow(c))}
+                      <span className="co-grouphd__meta">{group.length} firma · {group.reduce((s, c) => s + (c.personnel_count ?? 0), 0)} personel</span>
+                      <span className="co-grouphd__chev">{isGrpExpanded ? "▴" : "▾"}</span>
+                    </button>
+                    {isGrpExpanded && group.map((c) => companyRow(c))}
                   </div>
                 );
               });

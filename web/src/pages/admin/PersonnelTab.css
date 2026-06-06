@@ -999,6 +999,121 @@
   flex-shrink: 0;
 }
 
+/* ── Partner nested accordion ─────────────────────────────────────────────── */
+.pe-tenant-group {
+  border-bottom: 1px solid var(--pf-border-color);
+}
+
+.pe-tenant-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--pf-slate-800);
+  transition: background 0.1s;
+}
+
+.pe-tenant-hd:hover {
+  background: var(--pf-gray-50);
+}
+
+.pe-tenant-hd .pe-row__bar {
+  width: 4px;
+  height: 28px;
+  border-radius: 3px;
+  background: var(--pe-color, #047857);
+  flex-shrink: 0;
+}
+
+.pe-tenant-hd__name {
+  flex: 1;
+  color: var(--pf-slate-800);
+}
+
+.pe-tenant-hd__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pf-slate-500);
+  background: var(--pf-gray-100);
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pe-tenant-hd--open {
+  background: #f0fdf419;
+}
+
+.pe-tenant-hd--open .pe-tenant-hd__name {
+  color: var(--pe-color, #047857);
+}
+
+.pe-company-list {
+  padding-left: 12px;
+  border-left: 3px solid var(--pf-gray-100);
+  margin-left: 14px;
+}
+
+.pe-company-group {
+  border-bottom: 1px solid var(--pf-gray-100);
+}
+
+.pe-company-group:last-child {
+  border-bottom: none;
+}
+
+.pe-company-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px 7px 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pf-slate-600);
+  transition: background 0.1s;
+}
+
+.pe-company-hd:hover {
+  background: var(--pf-gray-50);
+}
+
+.pe-company-hd__bar {
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--pe-color, #047857);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.pe-company-hd__count {
+  font-size: 11px;
+  color: var(--pf-slate-400);
+  margin-left: auto;
+}
+
+.pe-company-hd--open .pe-company-hd__bar {
+  opacity: 1;
+}
+
+.pe-company-hd--open {
+  color: var(--pe-color, #047857);
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .pe-split {

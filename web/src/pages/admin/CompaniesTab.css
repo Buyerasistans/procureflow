@@ -305,13 +305,45 @@
   color: var(--co-color, var(--pf-slate-600));
 }
 
-.co-grouphd span {
+.co-grouphd span:first-child {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
   display: inline-block;
   background: var(--co-color, var(--pf-slate-400));
+}
+
+.co-grouphd--btn {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: background 0.1s;
+}
+
+.co-grouphd--btn:hover {
+  background: var(--pf-gray-100);
+}
+
+.co-grouphd--open {
+  background: var(--pf-gray-100);
+}
+
+.co-grouphd__meta {
+  font-weight: 500;
+  color: var(--pf-slate-400);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.co-grouphd__chev {
+  font-size: 11px;
+  color: var(--pf-slate-400);
+  flex-shrink: 0;
 }
 
 /* ── Accordion row wrapper ─────────────────────────────────────────────────── */

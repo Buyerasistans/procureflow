@@ -34,7 +34,7 @@ interface PersonnelTabProps {
   reloadPersonnel?: (params?: TenantUsersQueryParams) => Promise<void>;
 }
 
-type PersonnelSegment = "portal" | "partner" | "channel" | "supplier";
+type PersonnelSegment = "portal" | "partner" | "channel" | "supplier" | "career";
 type MatrixFilter = "all" | "platform" | "portal" | "channel" | "supplier";
 type NoticeState = { type: "success" | "error"; text: string } | null;
 
@@ -71,7 +71,8 @@ const SEG_COLORS: Record<PersonnelSegment, string> = {
   portal:   "#1d4ed8",
   partner:  "#047857",
   channel:  "#0891b2",
-  supplier: "#b45309",
+  supplier: "#be123c",
+  career:   "#7c3aed",
 };
 
 const PAGE_SIZES = [25, 50, 100, 200];
@@ -101,7 +102,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
     const fallback: PersonnelSegment = isChannelUser ? "channel" : "portal";
     if (typeof window === "undefined") return fallback;
     const stored = window.sessionStorage.getItem(segmentStorageKey);
-    if (stored === "portal" || stored === "partner" || stored === "channel" || stored === "supplier") return stored;
+    if (stored === "portal" || stored === "partner" || stored === "channel" || stored === "supplier" || stored === "career") return stored;
     return fallback;
   });
   const [supplierGroups, setSupplierGroups] = useState<SupplierPersonnelGroup[]>([]);
@@ -115,6 +116,8 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const [openingPanelId, setOpeningPanelId] = useState<number | null>(null);
   const [selPersonId, setSelPersonId] = useState<number | null>(null);
   const [selSupUserKey, setSelSupUserKey] = useState<{ supplierId: number; userId: number } | null>(null);
+  const [expandedTenantKeys, setExpandedTenantKeys] = useState<Set<string>>(new Set());
+  const [expandedCompanyKeys, setExpandedCompanyKeys] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
   const [pageSize, setPageSize] = useState<number>(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem(PAGE_SIZE_KEY) : null;
@@ -179,6 +182,8 @@ export function PersonnelTab(props: PersonnelTabProps) {
     setSegment(next);
     setSelPersonId(null);
     setSelSupUserKey(null);
+    setExpandedTenantKeys(new Set());
+    setExpandedCompanyKeys(new Set());
     setQ("");
     if (typeof window !== "undefined") window.sessionStorage.setItem(segmentStorageKey, next);
   }, [segmentStorageKey]);
@@ -199,8 +204,8 @@ export function PersonnelTab(props: PersonnelTabProps) {
   const companiesById = useMemo(() => new Map(companies.map((c) => [c.id, c] as const)), [companies]);
 
   const tenantScopeMap = useMemo(
-    () => buildTenantScopeMap(tenants, personnel, []),
-    [tenants, personnel],
+    () => buildTenantScopeMap(tenants, personnel, [], companies),
+    [tenants, personnel, companies],
   );
 
   const resolvePersonnelScope = useCallback(
@@ -264,6 +269,11 @@ export function PersonnelTab(props: PersonnelTabProps) {
 
   const channelPersonnel = useMemo(
     () => filteredPersonnel.filter((p) => resolvePersonnelScope(p) === "channel"),
+    [filteredPersonnel, resolvePersonnelScope],
+  );
+
+  const careerPersonnel = useMemo(
+    () => filteredPersonnel.filter((p) => resolvePersonnelScope(p) === "career"),
     [filteredPersonnel, resolvePersonnelScope],
   );
 
@@ -494,10 +504,26 @@ export function PersonnelTab(props: PersonnelTabProps) {
         g.users.map((u) => ({ kind: "tenant" as const, person: u, group: g.name })),
       );
     }
+    if (segment === "career") {
+      const grouped = new Map<string, DecoratedPersonnel[]>();
+      careerPersonnel.forEach((p) => {
+        const dec = decorateWithCompanyContext(p);
+        const gname = normalizeTrText(dec.primaryCompanyName || "Firma Ataması Yok");
+        if (!grouped.has(gname)) grouped.set(gname, []);
+        grouped.get(gname)!.push(dec);
+      });
+      return Array.from(grouped.entries())
+        .sort(([a], [b]) => a.localeCompare(b, "tr"))
+        .flatMap(([gname, users]) =>
+          users
+            .sort((a, b) => normalizeTrText(a.full_name).localeCompare(normalizeTrText(b.full_name), "tr"))
+            .map((u) => ({ kind: "tenant" as const, person: u, group: gname })),
+        );
+    }
     return portalCompanyGroups.flatMap((g) =>
       g.users.map((u) => ({ kind: "tenant" as const, person: u, group: g.name })),
     );
-  }, [segment, isChannelUser, supplierGroups, strategicPartnerTenantGroups, strategicPartnerGroups, portalCompanyGroups, normalizeTrText]);
+  }, [segment, isChannelUser, supplierGroups, strategicPartnerTenantGroups, strategicPartnerGroups, portalCompanyGroups, careerPersonnel, decorateWithCompanyContext, normalizeTrText]);
 
   const ql = q.trim().toLowerCase();
   const visibleList = useMemo((): FlatItem[] => {
@@ -582,6 +608,96 @@ export function PersonnelTab(props: PersonnelTabProps) {
     );
   }
 
+  // ── Per-row renderer (tenant person) ─────────────────────────────────────────
+  function renderPersonRow(person: DecoratedPersonnel, segColor: string) {
+    const isExpanded = person.id === selPersonId;
+    const isActive = person.is_active !== false;
+    const name = normalizeTrText(person.full_name);
+    const email = person.email ?? "";
+    const color = (person.company_assignments ?? [])[0]?.company?.color ?? segColor;
+    const pendingInvite = person.invitation_accepted === false;
+    const sysRoleLabel = getSystemRoleLabelForPerson(person);
+    return (
+      <div key={`t-${person.id}`} className={"pe-row-wrap" + (isExpanded ? " pe-row-wrap--open" : "")}>
+        <button
+          type="button"
+          className={"pe-row" + (isExpanded ? " on" : "") + (!isActive ? " pe-row--off" : "")}
+          style={{ "--pe-color": color } as CSSProperties}
+          aria-expanded={isExpanded}
+          onClick={() => { setSelPersonId(isExpanded ? null : person.id); setSelSupUserKey(null); }}
+        >
+          <span className="pe-row__bar" />
+          <span className="pe-av">{personInit(name)}</span>
+          <span className="pe-row__meta">
+            <b>
+              {name}
+              {pendingInvite && <span className="pe-tag pe-tag--inv">Davet bekliyor</span>}
+              {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
+            </b>
+            <i>{email}</i>
+          </span>
+          <span className="pe-srole-sm">{sysRoleLabel}</span>
+          <span className="pe-row__chev">{isExpanded ? "▴" : "▾"}</span>
+        </button>
+        <div className="pe-row__inlineacts">
+          {canOpenPanel && (
+            <button
+              type="button"
+              className="pe-act-btn pe-act-btn--panel"
+              disabled={openingPanelId === person.id}
+              onClick={() => { void openPersonnelPanel(person); }}
+            >
+              {openingPanelId === person.id ? "Açılıyor…" : "Paneli Aç ↗"}
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={readOnly || loadingPersonId === person.id}
+            className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
+            onClick={() => { void togglePersonnelActive(person, !isActive); }}
+          >
+            {loadingPersonId === person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+          </button>
+          <button
+            type="button"
+            className="pe-act-btn pe-act-btn--detail"
+            style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
+            disabled={loadingPersonId === person.id}
+            onClick={() => { void hydratePersonnel(person).then((h) => setDetailPersonnel(h)); }}
+          >
+            Detay
+          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="pe-act-btn pe-act-btn--edit-seg"
+              style={{ background: segColor, color: "#fff", border: `1px solid ${segColor}` }}
+              disabled={loadingPersonId === person.id}
+              onClick={() => { void hydratePersonnel(person).then((h) => setEditPersonnel(h)); }}
+            >
+              Düzenle
+            </button>
+          )}
+          {!readOnly && (
+            <button
+              type="button"
+              className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
+              disabled={isActive || loadingPersonId === person.id}
+              onClick={() => { void removePersonnel(person); }}
+            >
+              Sil
+            </button>
+          )}
+        </div>
+        {isExpanded && (
+          <div className="pe-expand">
+            {personExpandContent(person)}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="personnel-tab">
@@ -630,6 +746,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
                 { key: "partner" as PersonnelSegment,  label: `Stratejik Partner (${strategicPartnerPersonnel.length})` },
                 { key: "channel" as PersonnelSegment,  label: `İş Ortağı (${channelPersonnel.length})` },
                 { key: "supplier" as PersonnelSegment, label: `Tedarikçi (${supplierGroups.reduce((s, g) => s + g.users.length, 0)})` },
+                { key: "career" as PersonnelSegment,   label: `Personel Arayan (${careerPersonnel.length})` },
               ]
           ).map((item) => (
             <button
@@ -677,31 +794,100 @@ export function PersonnelTab(props: PersonnelTabProps) {
           <div className="pe-state">Yükleniyor…</div>
         ) : segment === "supplier" && supplierError ? (
           <div className="pe-state pe-state--error">{supplierError}</div>
+        ) : segment === "partner" && !ql ? (
+          // ── Nested accordion: Ana Firma → Alt Firma → üyeler ──────────────────
+          strategicPartnerTenantGroups.length === 0 ? (
+            <div className="pe-state">Stratejik partner personeli yok.</div>
+          ) : (
+            strategicPartnerTenantGroups.map((tg) => {
+              const isTExpanded = expandedTenantKeys.has(tg.key);
+              const totalMembers = tg.companies.reduce((s, cg) => s + cg.users.length, 0);
+              return (
+                <div key={tg.key} className="pe-tenant-group">
+                  <button
+                    type="button"
+                    className={"pe-tenant-hd" + (isTExpanded ? " pe-tenant-hd--open" : "")}
+                    style={{ "--pe-color": SEG_COLORS.partner } as CSSProperties}
+                    onClick={() => setExpandedTenantKeys((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(tg.key)) next.delete(tg.key); else next.add(tg.key);
+                      return next;
+                    })}
+                  >
+                    <span className="pe-row__bar" />
+                    <span className="pe-tenant-hd__name">{tg.name}</span>
+                    <span className="pe-tenant-hd__count">
+                      {totalMembers} üye{tg.companies.length > 1 ? ` · ${tg.companies.length} firma` : ""}
+                    </span>
+                    <span className="pe-row__chev">{isTExpanded ? "▴" : "▾"}</span>
+                  </button>
+                  {isTExpanded && (
+                    <div className="pe-company-list">
+                      {tg.companies.map((cg) => {
+                        const showSubHd = tg.companies.length > 1;
+                        const isCExpanded = !showSubHd || expandedCompanyKeys.has(cg.key);
+                        return (
+                          <div key={cg.key} className="pe-company-group">
+                            {showSubHd && (
+                              <button
+                                type="button"
+                                className={"pe-company-hd" + (isCExpanded ? " pe-company-hd--open" : "")}
+                                style={{ "--pe-color": SEG_COLORS.partner } as CSSProperties}
+                                onClick={() => setExpandedCompanyKeys((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(cg.key)) next.delete(cg.key); else next.add(cg.key);
+                                  return next;
+                                })}
+                              >
+                                <span className="pe-company-hd__bar" />
+                                <span>{cg.name}</span>
+                                <span className="pe-company-hd__count">{cg.users.length} üye</span>
+                                <span className="pe-row__chev">{isCExpanded ? "▴" : "▾"}</span>
+                              </button>
+                            )}
+                            {isCExpanded && cg.users.map((person) => renderPersonRow(person, SEG_COLORS.partner))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )
         ) : pagedItems.length === 0 ? (
           <div className="pe-state">Eşleşen üye yok.</div>
         ) : (
+          // ── Flat accordion: portal / channel / supplier / career (+ partner+arama) ──
           pagedItems.map((item, idx) => {
             const actualIdx = safePage * pageSize + idx;
             const prevItem = actualIdx > 0 ? visibleList[actualIdx - 1] : null;
             const showHeader = item.group !== prevItem?.group;
-            const isExpanded = item.kind === "tenant"
-              ? item.person.id === selPersonId
-              : selSupUserKey?.supplierId === item.supplierId && selSupUserKey?.userId === item.person.id;
-            const isActive = item.person.is_active !== false;
-            const name = item.kind === "tenant" ? normalizeTrText(item.person.full_name) : normalizeTrText(item.person.name);
-            const email = item.person.email ?? "";
-            const color = item.kind === "tenant"
-              ? ((item.person.company_assignments ?? [])[0]?.company?.color ?? SEG_COLORS[segment])
-              : SEG_COLORS.supplier;
-            const pendingInvite = item.kind === "tenant" && item.person.invitation_accepted === false;
-            const sysRoleLabel = item.kind === "tenant" ? getSystemRoleLabelForPerson(item.person) : "Tedarikçi";
-            const itemKey = item.kind === "tenant" ? `t-${item.person.id}` : `s-${item.supplierId}-${item.person.id}`;
             const segColor = SEG_COLORS[segment];
 
+            if (item.kind === "tenant") {
+              return (
+                <div key={`t-${item.person.id}`}>
+                  {showHeader && (
+                    <div className="pe-grouphd" style={{ "--pe-color": segColor } as CSSProperties}>
+                      <span />
+                      {item.group}
+                    </div>
+                  )}
+                  {renderPersonRow(item.person, segColor)}
+                </div>
+              );
+            }
+
+            // supplier kind ──────────────────────────────────────────────────
+            const isExpanded = selSupUserKey?.supplierId === item.supplierId && selSupUserKey?.userId === item.person.id;
+            const isActive = item.person.is_active !== false;
+            const supName = normalizeTrText(item.person.name);
+            const supEmail = item.person.email ?? "";
             return (
-              <div key={itemKey}>
+              <div key={`s-${item.supplierId}-${item.person.id}`}>
                 {showHeader && (
-                  <div className="pe-grouphd" style={{ "--pe-color": SEG_COLORS[segment] } as CSSProperties}>
+                  <div className="pe-grouphd" style={{ "--pe-color": segColor } as CSSProperties}>
                     <span />
                     {item.group}
                   </div>
@@ -710,39 +896,24 @@ export function PersonnelTab(props: PersonnelTabProps) {
                   <button
                     type="button"
                     className={"pe-row" + (isExpanded ? " on" : "") + (!isActive ? " pe-row--off" : "")}
-                    style={{ "--pe-color": color } as CSSProperties}
-                    aria-expanded={isExpanded ? "true" : "false"}
-                    onClick={() => {
-                      if (item.kind === "tenant") { setSelPersonId(isExpanded ? null : item.person.id); setSelSupUserKey(null); }
-                      else { setSelSupUserKey(isExpanded ? null : { supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }
-                    }}
+                    style={{ "--pe-color": SEG_COLORS.supplier } as CSSProperties}
+                    aria-expanded={isExpanded}
+                    onClick={() => { setSelSupUserKey(isExpanded ? null : { supplierId: item.supplierId, userId: item.person.id }); setSelPersonId(null); }}
                   >
                     <span className="pe-row__bar" />
-                    <span className="pe-av">{personInit(name)}</span>
+                    <span className="pe-av">{personInit(supName)}</span>
                     <span className="pe-row__meta">
                       <b>
-                        {name}
-                        {pendingInvite && <span className="pe-tag pe-tag--inv">davet</span>}
+                        {supName}
                         {!isActive && <span className="pe-tag pe-tag--off">Pasif</span>}
                       </b>
-                      <i>{email}</i>
+                      <i>{supEmail}</i>
                     </span>
-                    <span className="pe-srole-sm">{sysRoleLabel}</span>
+                    <span className="pe-srole-sm">Tedarikçi</span>
                     <span className="pe-row__chev">{isExpanded ? "▴" : "▾"}</span>
                   </button>
-
                   <div className="pe-row__inlineacts">
-                    {canOpenPanel && item.kind === "tenant" && (
-                      <button
-                        type="button"
-                        className="pe-act-btn pe-act-btn--panel"
-                        disabled={openingPanelId === item.person.id}
-                        onClick={() => { void openPersonnelPanel(item.person); }}
-                      >
-                        {openingPanelId === item.person.id ? "Açılıyor…" : "Paneli Aç ↗"}
-                      </button>
-                    )}
-                    {canOpenPanel && item.kind === "supplier" && (
+                    {canOpenPanel && (
                       <button
                         type="button"
                         className="pe-act-btn pe-act-btn--panel"
@@ -752,68 +923,34 @@ export function PersonnelTab(props: PersonnelTabProps) {
                         {openingPanelId === item.person.id ? "Açılıyor…" : "Paneli Aç ↗"}
                       </button>
                     )}
-                    {item.kind === "tenant" ? (
-                      <button
-                        type="button"
-                        disabled={readOnly || loadingPersonId === item.person.id}
-                        className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
-                        onClick={() => { void togglePersonnelActive(item.person, !isActive); }}
-                      >
-                        {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={readOnly || loadingPersonId === item.person.id}
-                        className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
-                        onClick={() => { void toggleSupplierUserActive(item.supplierId, item.person, !isActive); }}
-                      >
-                        {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
-                      </button>
-                    )}
-                    {item.kind === "tenant" ? (
-                      <button
-                        type="button"
-                        className="pe-act-btn pe-act-btn--detail"
-                        style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
-                        disabled={loadingPersonId === item.person.id}
-                        onClick={() => { void hydratePersonnel(item.person).then((h) => setDetailPersonnel(h)); }}
-                      >
-                        Detay
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="pe-act-btn pe-act-btn--detail"
-                        style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
-                        disabled={loadingPersonId === item.person.id}
-                        onClick={() => {
-                          setDetailPersonnel({
-                            id: item.person.id,
-                            email: item.person.email,
-                            full_name: item.person.name,
-                            role: "satinalmaci",
-                            approval_limit: 0,
-                            is_active: item.person.is_active !== false,
-                            personal_phone: item.person.phone ?? null,
-                          });
-                        }}
-                      >
-                        Detay
-                      </button>
-                    )}
-                    {!readOnly && item.kind === "tenant" && (
-                      <button
-                        type="button"
-                        className="pe-act-btn pe-act-btn--edit-seg"
-                        style={{ background: segColor, color: "#fff", border: `1px solid ${segColor}` }}
-                        disabled={loadingPersonId === item.person.id}
-                        onClick={() => { void hydratePersonnel(item.person).then((h) => setEditPersonnel(h)); }}
-                      >
-                        Düzenle
-                      </button>
-                    )}
-                    {!readOnly && item.kind === "supplier" && (
+                    <button
+                      type="button"
+                      disabled={readOnly || loadingPersonId === item.person.id}
+                      className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
+                      onClick={() => { void toggleSupplierUserActive(item.supplierId, item.person, !isActive); }}
+                    >
+                      {loadingPersonId === item.person.id ? "…" : isActive ? "✓ Aktif" : "✗ Pasif"}
+                    </button>
+                    <button
+                      type="button"
+                      className="pe-act-btn pe-act-btn--detail"
+                      style={{ background: segColor + "18", color: segColor, border: `1px solid ${segColor}35` }}
+                      disabled={loadingPersonId === item.person.id}
+                      onClick={() => {
+                        setDetailPersonnel({
+                          id: item.person.id,
+                          email: item.person.email,
+                          full_name: item.person.name,
+                          role: "satinalmaci",
+                          approval_limit: 0,
+                          is_active: item.person.is_active !== false,
+                          personal_phone: item.person.phone ?? null,
+                        });
+                      }}
+                    >
+                      Detay
+                    </button>
+                    {!readOnly && (
                       <button
                         type="button"
                         className="pe-act-btn pe-act-btn--edit-seg"
@@ -824,17 +961,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
                         Düzenle
                       </button>
                     )}
-                    {!readOnly && item.kind === "tenant" && (
-                      <button
-                        type="button"
-                        className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
-                        disabled={isActive || loadingPersonId === item.person.id}
-                        onClick={() => { void removePersonnel(item.person); }}
-                      >
-                        Sil
-                      </button>
-                    )}
-                    {!readOnly && item.kind === "supplier" && (
+                    {!readOnly && (
                       <button
                         type="button"
                         className={"pe-act-btn" + (isActive ? " pe-act-btn--del-disabled" : " pe-act-btn--del")}
@@ -845,16 +972,12 @@ export function PersonnelTab(props: PersonnelTabProps) {
                       </button>
                     )}
                   </div>
-
                   {isExpanded && (
                     <div className="pe-expand">
-                      {item.kind === "tenant"
-                        ? personExpandContent(item.person)
-                        : (() => {
-                            const sg = supplierGroups.find((g) => g.supplier.id === item.supplierId);
-                            return sg ? supplierExpandContent(item.person, sg.supplier) : null;
-                          })()
-                      }
+                      {(() => {
+                        const sg = supplierGroups.find((g) => g.supplier.id === item.supplierId);
+                        return sg ? supplierExpandContent(item.person, sg.supplier) : null;
+                      })()}
                     </div>
                   )}
                 </div>
