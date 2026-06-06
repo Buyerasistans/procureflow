@@ -84,6 +84,7 @@ from .onboarding_saas import (
     BusinessPartnerLedger,
 )
 from .translation_cache import TranslationCacheEntry
+from .panel_theme_setting import PanelThemeSetting
 from .talent import (
     TalentProfile,
     ProcurementJob,
@@ -164,6 +165,7 @@ __all__ = [
     "BusinessPartnerCommission",
     "BusinessPartnerLedger",
     "TranslationCacheEntry",
+    "PanelThemeSetting",
     "TalentProfile",
     "ProcurementJob",
     "JobApplication",

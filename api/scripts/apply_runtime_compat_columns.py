@@ -139,6 +139,9 @@ STATEMENTS = [
     "ALTER TABLE system_email_messages ADD COLUMN IF NOT EXISTS is_starred BOOLEAN DEFAULT FALSE NOT NULL",
     "ALTER TABLE system_email_messages ADD COLUMN IF NOT EXISTS is_important BOOLEAN DEFAULT FALSE NOT NULL",
     "CREATE INDEX IF NOT EXISTS ix_system_email_messages_thread_key ON system_email_messages(thread_key)",
+    # Panel teması override kayıt tablosu — tek satırlık singleton (id=1)
+    # CREATE TABLE IF NOT EXISTS: create_all tarafından oluşturulur; burada sadece seed INSERT.
+    "INSERT INTO panel_theme_settings (id, segments_json, version) VALUES (1, '{}', 1) ON CONFLICT (id) DO NOTHING",
     # Social login columns
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)",
     "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_id ON users(google_id)",

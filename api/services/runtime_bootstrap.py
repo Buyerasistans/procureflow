@@ -299,6 +299,13 @@ PERMISSION_SEED_DATA = [
         "Teklif onaylama",
         "Teklifi onaylamak ve sözleşme aşamasına geçmek için kullanılır",
     ),
+    (
+        "panel_design.edit",
+        "Panel Tasarımı Düzenle",
+        "global",
+        "Panel renk teması override'larını düzenleme",
+        "Segment panel renklerini (accent, chip bg vb.) değiştirmek için kullanılır; Super Admin tarafından devredilebilir",
+    ),
 ]
 
 
