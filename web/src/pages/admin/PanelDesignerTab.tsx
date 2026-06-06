@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import { Copy, Plus, RefreshCcw, Save, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Plus, RefreshCcw, Save, Trash2 } from "lucide-react";
+import { pdChromeBg } from "../../admin/panel-designer.helpers";
 import "./panelDesignerTab.css";
 
-// ── Tab catalogue (matches production workspace-panels.ts) ──────
+// ── Tab catalogue ────────────────────────────────────────────────
 const PD_TABS = [
   { key: "panel_home",               label: "Panel Ana Sayfa",            short: "home",       group: "Genel" },
   { key: "platform_overview",        label: "Platform Genel Bakış",       short: "overview",   group: "Genel" },
@@ -36,7 +37,7 @@ const PD_TABS = [
 
 type PdTabKey = typeof PD_TABS[number]["key"];
 
-// ── Role catalogue ───────────────────────────────────────────────
+// ── Role labels & templates ──────────────────────────────────────
 const PD_ROLE_LABELS: Record<string, string> = {
   super_admin: "Süper Admin", platform_support: "Platform Destek", platform_operator: "Platform Operasyon",
   admin: "Admin", manager: "Yönetici",
@@ -113,53 +114,92 @@ const PD_ROLE_TEMPLATES: Array<{ biz: string; sys: string; category: string }> =
   { biz: "hr_specialist",          sys: "tenant_member",          category: "Kariyer" },
 ];
 
+// ── Segment definitions ──────────────────────────────────────────
+const SEGMENT_DEFS = [
+  { key: "platform",  label: "Platform",          color: "#3A4F86", cat: "Platform"          },
+  { key: "strategic", label: "Stratejik Partner",  color: "#134E37", cat: "Stratejik Partner" },
+  { key: "supplier",  label: "Tedarikçi",          color: "#0E7490", cat: "Tedarikçi"         },
+  { key: "channel",   label: "İş Ortağı",          color: "#7C2D12", cat: "Kanal İş Ortağı"   },
+  { key: "employer",  label: "Kariyer",             color: "#5B21B6", cat: "Kariyer"           },
+] as const;
+
 // ── Types ────────────────────────────────────────────────────────
 type PdQuickLink = { label: string; href: string; desc: string };
 type PdProfile = {
-  id: string;
-  biz: string;
-  sys: string;
-  title: string;
-  navLabel: string;
-  wsLabel: string;
-  heroTitle: string;
-  heroDesc: string;
-  color: string;
-  accent: string;
-  textColor: string;
-  menuStyle: string;
-  glow: number;
-  opacity: number;
-  fontTitle: number;
-  fontBody: number;
-  tabs: string[];
-  quickLinks: PdQuickLink[];
-  users: number;
+  id: string; biz: string; sys: string; category: string;
+  title: string; navLabel: string; wsLabel: string; heroTitle: string; heroDesc: string;
+  color: string;      // 1. renk — navbar/topbar zemin
+  color2: string;     // 2. renk — parıltı
+  color2Mix: number;  // 0–0.6 parıltı oranı
+  syncTopbar: boolean;
+  accent: string; textColor: string;
+  selfEdit: boolean; vitrinEdit: boolean;
+  menuStyle: string; glow: number; opacity: number;
+  fontTitle: number; fontBody: number;
+  tabs: string[]; quickLinks: PdQuickLink[]; users: number;
 };
 
-// ── Defaults ─────────────────────────────────────────────────────
+function deriveCategory(biz: string, sys: string): string {
+  return PD_ROLE_TEMPLATES.find((r) => r.biz === biz && r.sys === sys)?.category ?? "Platform";
+}
+
+function fillMissing(raw: Record<string, unknown>): PdProfile {
+  const biz   = String(raw.biz   ?? "");
+  const sys   = String(raw.sys   ?? "");
+  const color = String(raw.color ?? "#1e293b");
+  return {
+    id:         String(raw.id ?? "p-" + Date.now()),
+    biz, sys,
+    category:   String(raw.category || deriveCategory(biz, sys)),
+    title:      String(raw.title      ?? biz),
+    navLabel:   String(raw.navLabel   ?? biz),
+    wsLabel:    String(raw.wsLabel    ?? biz + " Alanı"),
+    heroTitle:  String(raw.heroTitle  ?? biz),
+    heroDesc:   String(raw.heroDesc   ?? ""),
+    color,
+    color2:     String(raw.color2    ?? color),
+    color2Mix:  typeof raw.color2Mix === "number" ? raw.color2Mix : 0.18,
+    syncTopbar: raw.syncTopbar === true,
+    accent:     String(raw.accent    ?? "#3b82f6"),
+    textColor:  String(raw.textColor ?? "#f8fafc"),
+    selfEdit:   raw.selfEdit  === true,
+    vitrinEdit: raw.vitrinEdit === true,
+    menuStyle:  String(raw.menuStyle ?? "pill"),
+    glow:       typeof raw.glow      === "number" ? raw.glow      : 0.45,
+    opacity:    typeof raw.opacity   === "number" ? raw.opacity   : 0.85,
+    fontTitle:  typeof raw.fontTitle === "number" ? raw.fontTitle : 26,
+    fontBody:   typeof raw.fontBody  === "number" ? raw.fontBody  : 13,
+    tabs:       Array.isArray(raw.tabs)       ? (raw.tabs as string[])       : ["panel_home"],
+    quickLinks: Array.isArray(raw.quickLinks) ? (raw.quickLinks as PdQuickLink[]) : [],
+    users:      typeof raw.users === "number" ? raw.users : 0,
+  };
+}
+
+// ── Default profiles ─────────────────────────────────────────────
 const PD_DEFAULT_PROFILES: PdProfile[] = [
   {
-    id: "p-1", biz: "super_admin", sys: "super_admin",
+    id: "p-1", biz: "super_admin", sys: "super_admin", category: "Platform",
     title: "Super Admin Paneli", navLabel: "Süper Admin", wsLabel: "Platform Kontrol Merkezi",
     heroTitle: "Süper Admin Paneli",
     heroDesc: "Platform genelindeki tüm yönetim alanları, stratejik partner yönetimi ve panel tasarımı bu panelden yönetilir.",
-    color: "#1d2b4a", accent: "#dc2626", textColor: "#f8fafc",
+    color: "#1d2b4a", color2: "#3A4F86", color2Mix: 0.18, syncTopbar: false,
+    accent: "#dc2626", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.5, opacity: 0.92, fontTitle: 28, fontBody: 13,
     tabs: ["panel_home","platform_overview","platform_operations","discovery_lab_operations","ai_lab","onboarding_studio","tenant_governance","platform_suppliers","deployment","platform_analytics","kariyer_yonetimi","talent_ecosystem","packages","public_pricing","campaigns","commission_admin","companies","roles","departments","personnel","projects","suppliers","approvals","reports","support_tickets","settings","panel_designer"],
     quickLinks: [
-      { label: "Genel Bakış",   href: "/dashboard",                     desc: "Genel çalışma alanına dön" },
-      { label: "Tüm Tenants",   href: "/admin?tab=tenant_governance",   desc: "Stratejik partner yönetimi" },
-      { label: "Panel Tasarımı",href: "/admin?tab=panel_designer",      desc: "Rol panellerini düzenle" },
+      { label: "Genel Bakış",    href: "/dashboard",                    desc: "Genel çalışma alanına dön" },
+      { label: "Tüm Tenants",    href: "/admin?tab=tenant_governance",  desc: "Stratejik partner yönetimi" },
+      { label: "Panel Tasarımı", href: "/admin?tab=panel_designer",     desc: "Rol panellerini düzenle" },
     ],
     users: 2,
   },
   {
-    id: "p-2", biz: "admin", sys: "tenant_owner",
+    id: "p-2", biz: "admin", sys: "tenant_owner", category: "Stratejik Partner",
     title: "Stratejik Partner Admin Paneli", navLabel: "Ortak Admin", wsLabel: "Stratejik Partner Sahiplik Alanı",
     heroTitle: "Stratejik Partner Admin Paneli",
     heroDesc: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
-    color: "#112a25", accent: "#D4AF37", textColor: "#f8fafc",
+    color: "#112a25", color2: "#D4AF37", color2Mix: 0.18, syncTopbar: false,
+    accent: "#D4AF37", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.45, opacity: 0.85, fontTitle: 26, fontBody: 13,
     tabs: ["panel_home","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"],
     quickLinks: [
@@ -170,11 +210,12 @@ const PD_DEFAULT_PROFILES: PdProfile[] = [
     users: 4,
   },
   {
-    id: "p-3", biz: "admin", sys: "tenant_admin",
+    id: "p-3", biz: "admin", sys: "tenant_admin", category: "Stratejik Partner",
     title: "Tenant Admin Paneli", navLabel: "Admin", wsLabel: "Tenant Yönetim Alanı",
     heroTitle: "Tenant Admin Paneli",
     heroDesc: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
-    color: "#1e293b", accent: "#22c55e", textColor: "#f8fafc",
+    color: "#1e293b", color2: "#22c55e", color2Mix: 0.18, syncTopbar: false,
+    accent: "#22c55e", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.4, opacity: 0.85, fontTitle: 26, fontBody: 13,
     tabs: ["panel_home","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"],
     quickLinks: [
@@ -184,25 +225,27 @@ const PD_DEFAULT_PROFILES: PdProfile[] = [
     users: 28,
   },
   {
-    id: "p-4", biz: "platform_support", sys: "platform_support",
+    id: "p-4", biz: "platform_support", sys: "platform_support", category: "Platform",
     title: "Platform Destek Paneli", navLabel: "Destek", wsLabel: "Platform Destek Alanı",
     heroTitle: "Platform Destek Paneli",
     heroDesc: "Destek kuyrukları, tenant governance ve discovery odaklarını destek perspektifinden yönetin.",
-    color: "#0c2745", accent: "#0ea5e9", textColor: "#f0f9ff",
+    color: "#0c2745", color2: "#0ea5e9", color2Mix: 0.18, syncTopbar: false,
+    accent: "#0ea5e9", textColor: "#f0f9ff", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.4, opacity: 0.85, fontTitle: 26, fontBody: 13,
     tabs: ["panel_home","platform_overview","platform_operations","onboarding_studio","tenant_governance","companies","personnel","reports","support_tickets","settings"],
     quickLinks: [
-      { label: "Destek Kuyruğu",  href: "/admin?tab=support_tickets",    desc: "Açık ticket'lar" },
+      { label: "Destek Kuyruğu",  href: "/admin?tab=support_tickets",   desc: "Açık ticket'lar" },
       { label: "Tenant Yönetimi", href: "/admin?tab=tenant_governance", desc: "Partner sorunları" },
     ],
     users: 6,
   },
   {
-    id: "p-5", biz: "channel_owner", sys: "tenant_member",
+    id: "p-5", biz: "channel_owner", sys: "tenant_member", category: "Kanal İş Ortağı",
     title: "Kanal Sahibi Paneli", navLabel: "Kanal Sahibi", wsLabel: "Kanal Partner Alanı",
     heroTitle: "Kanal Sahibi Paneli",
     heroDesc: "Kanal programı, partner yönlendirmeleri ve panel erişimleri bu profilden yönetilir.",
-    color: "#2f1a0d", accent: "#f59e0b", textColor: "#fff7ed",
+    color: "#2f1a0d", color2: "#f59e0b", color2Mix: 0.18, syncTopbar: false,
+    accent: "#f59e0b", textColor: "#fff7ed", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.5, opacity: 0.85, fontTitle: 26, fontBody: 13,
     tabs: ["panel_home"],
     quickLinks: [
@@ -212,11 +255,12 @@ const PD_DEFAULT_PROFILES: PdProfile[] = [
     users: 18,
   },
   {
-    id: "p-6", biz: "supplier_admin", sys: "supplier_user",
+    id: "p-6", biz: "supplier_admin", sys: "supplier_user", category: "Tedarikçi",
     title: "Tedarikçi Admin Paneli", navLabel: "Tedarikçi Admin", wsLabel: "Tedarikçi Yönetim Alanı",
     heroTitle: "Tedarikçi Admin Paneli",
     heroDesc: "Tedarikçi ekibinizin teklif, belge ve finans akışlarını bu panelden yönetin.",
-    color: "#0c4a6e", accent: "#38bdf8", textColor: "#f0f9ff",
+    color: "#0c4a6e", color2: "#38bdf8", color2Mix: 0.18, syncTopbar: false,
+    accent: "#38bdf8", textColor: "#f0f9ff", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.4, opacity: 0.85, fontTitle: 26, fontBody: 13,
     tabs: ["panel_home"],
     quickLinks: [
@@ -226,11 +270,12 @@ const PD_DEFAULT_PROFILES: PdProfile[] = [
     users: 124,
   },
   {
-    id: "p-7", biz: "employer_company_admin", sys: "employer_company_admin",
+    id: "p-7", biz: "employer_company_admin", sys: "employer_company_admin", category: "Kariyer",
     title: "İşveren Admin Paneli", navLabel: "İşveren Admin", wsLabel: "İşveren Çalışma Alanı",
     heroTitle: "İşveren Admin Paneli",
     heroDesc: "İş ilanlarınızı oluşturun, başvuruları takip edin ve satın alma pozisyonlarını yönetin.",
-    color: "#312e81", accent: "#6366f1", textColor: "#eef2ff",
+    color: "#312e81", color2: "#6366f1", color2Mix: 0.18, syncTopbar: false,
+    accent: "#6366f1", textColor: "#eef2ff", selfEdit: false, vitrinEdit: false,
     menuStyle: "pill", glow: 0.5, opacity: 0.92, fontTitle: 26, fontBody: 13,
     tabs: ["panel_home"],
     quickLinks: [
@@ -246,18 +291,28 @@ function pdRoleLabel(code: string): string {
 }
 
 // ── Main component ───────────────────────────────────────────────
-export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: string) => void } = {}) {
+export default function PanelDesignerTab({
+  onNavigate,
+  canEdit = true,
+}: {
+  onNavigate?: (tab: string) => void;
+  canEdit?: boolean;
+} = {}) {
   const [profiles, setProfiles] = useState<PdProfile[]>(() => {
     try {
       const saved = localStorage.getItem("pf_panel_profiles");
-      if (saved) return JSON.parse(saved) as PdProfile[];
+      if (saved) return (JSON.parse(saved) as Record<string, unknown>[]).map(fillMissing);
     } catch { /* use defaults */ }
     return structuredClone(PD_DEFAULT_PROFILES);
   });
-  const [activeIdx, setActiveIdx]     = useState(0);
+  const [activeIdx, setActiveIdx]       = useState(0);
+  const [rightTab, setRightTab]         = useState<"settings" | "preview">("settings");
+  const [expandedSegs, setExpandedSegs] = useState<Set<string>>(
+    () => new Set(SEGMENT_DEFS.map((s) => s.key)),
+  );
   const [showAddModal, setShowAddModal] = useState(false);
-  const [previewMode, setPreviewMode]  = useState<"desktop" | "tablet" | "mobile">("desktop");
-  const [dirty, setDirty]             = useState(false);
+  const [previewMode, setPreviewMode]   = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [dirty, setDirty]               = useState(false);
 
   const active = profiles[activeIdx] ?? profiles[0];
 
@@ -272,7 +327,9 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
 
   function toggleTab(tabKey: string) {
     if (tabKey === "panel_home") return;
-    update("tabs", active.tabs.includes(tabKey) ? active.tabs.filter((t) => t !== tabKey) : [...active.tabs, tabKey]);
+    update("tabs", active.tabs.includes(tabKey)
+      ? active.tabs.filter((t) => t !== tabKey)
+      : [...active.tabs, tabKey]);
   }
 
   function toggleMatrixCell(profIdx: number, tabKey: string) {
@@ -289,28 +346,35 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
   function addProfile(tpl: { biz: string; sys: string; category: string }) {
     const newProf: PdProfile = {
       id: "p-" + Date.now(),
-      biz: tpl.biz, sys: tpl.sys,
+      biz: tpl.biz, sys: tpl.sys, category: tpl.category,
       title: pdRoleLabel(tpl.biz) + " Paneli",
       navLabel: pdRoleLabel(tpl.biz),
       wsLabel: pdRoleLabel(tpl.biz) + " Alanı",
       heroTitle: pdRoleLabel(tpl.biz) + " Paneli",
       heroDesc: pdRoleLabel(tpl.biz) + " için ayrı çalışma alanı.",
-      color: "#1e293b", accent: "#3b82f6", textColor: "#f8fafc",
+      color: "#1e293b", color2: "#3b82f6", color2Mix: 0.18, syncTopbar: false,
+      accent: "#3b82f6", textColor: "#f8fafc", selfEdit: false, vitrinEdit: false,
       menuStyle: "pill", glow: 0.45, opacity: 0.85, fontTitle: 26, fontBody: 13,
       tabs: ["panel_home"],
       quickLinks: [{ label: "Genel Bakış", href: "/dashboard", desc: "Genel alana dön" }],
       users: 0,
     };
-    setProfiles((prev) => [...prev, newProf]);
-    setActiveIdx(profiles.length);
+    setProfiles((prev) => {
+      const next = [...prev, newProf];
+      setActiveIdx(next.length - 1);
+      return next;
+    });
     setShowAddModal(false);
     setDirty(true);
   }
 
   function duplicateProfile(idx: number) {
     const copy: PdProfile = { ...structuredClone(profiles[idx]), id: "p-" + Date.now(), title: profiles[idx].title + " (kopya)", users: 0 };
-    setProfiles((prev) => [...prev, copy]);
-    setActiveIdx(profiles.length);
+    setProfiles((prev) => {
+      const next = [...prev, copy];
+      setActiveIdx(next.length - 1);
+      return next;
+    });
     setDirty(true);
   }
 
@@ -318,7 +382,7 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
     if (!confirm(`"${profiles[idx].title}" profili silinecek. Emin misin?`)) return;
     setProfiles((prev) => {
       const next = prev.filter((_, i) => i !== idx);
-      setActiveIdx(Math.max(0, Math.min(activeIdx, next.length - 1)));
+      setActiveIdx(Math.max(0, Math.min(activeIdx - (idx < activeIdx ? 1 : 0), next.length - 1)));
       return next;
     });
     setDirty(true);
@@ -336,6 +400,14 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
     update("quickLinks", active.quickLinks.filter((_, i) => i !== idx));
   }
 
+  function toggleSeg(key: string) {
+    setExpandedSegs((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }
+
   function save() {
     try { localStorage.setItem("pf_panel_profiles", JSON.stringify(profiles)); } catch { /* storage full */ }
     setDirty(false);
@@ -348,6 +420,20 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
     setActiveIdx(0);
     setDirty(false);
   }
+
+  const profilesBySegment = useMemo<Map<string, { list: PdProfile[]; indices: number[] }>>(() => {
+    const map = new Map<string, { list: PdProfile[]; indices: number[] }>();
+    SEGMENT_DEFS.forEach((s) => map.set(s.key, { list: [], indices: [] }));
+    profiles.forEach((p, i) => {
+      const seg = SEGMENT_DEFS.find((s) => s.cat === p.category);
+      const key = seg?.key ?? "platform";
+      const entry = map.get(key) ?? { list: [], indices: [] };
+      entry.list.push(p);
+      entry.indices.push(i);
+      map.set(key, entry);
+    });
+    return map;
+  }, [profiles]);
 
   return (
     <div className="pd-root">
@@ -374,75 +460,154 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
             type="button"
             className={`pd-hdr-btn pd-hdr-btn--primary${dirty ? " pd-hdr-btn--unsaved" : ""}`}
             onClick={save}
-            disabled={!dirty}
+            disabled={!dirty || !canEdit}
           >
             <Save size={14} /> {dirty ? "● Kaydet ve Yayınla" : "✓ Kaydedildi"}
           </button>
         </div>
       </div>
 
-      {/* ── 3-column layout ── */}
+      {/* ── 2-column: segment tree | tabbed right panel ── */}
       <div className="pd-layout">
-        {/* Sidebar: profile list */}
+        {/* ── Left: Segment tree ── */}
         <aside className="pd-sidebar">
           <div className="pd-sidebar__head">
             <h3>Rol Profilleri</h3>
             <span className="pd-count">{profiles.length}</span>
           </div>
-          <div className="pd-profile-list">
-            {profiles.map((p, i) => (
-              <div
-                key={p.id}
-                className={`pd-profile-row${i === activeIdx ? " on" : ""}`}
-                onClick={() => setActiveIdx(i)}
-              >
-                <div className="pd-profile-row__dot" style={{ "--pd-color": p.color, "--pd-accent": p.accent } as CSSProperties}>
-                  {p.biz.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="pd-profile-row__meta">
-                  <b>{p.title}</b>
-                  <span>{p.biz} · {p.sys} · {p.users} kullanıcı</span>
-                </div>
-                <div className="pd-profile-row__actions">
-                  <button type="button" title="Kopyala" onClick={(e) => { e.stopPropagation(); duplicateProfile(i); }}>
-                    <Copy size={11} />
+
+          <div className="pd-seg-tree">
+            {SEGMENT_DEFS.map((seg) => {
+              const entry    = profilesBySegment.get(seg.key) ?? { list: [], indices: [] };
+              const expanded = expandedSegs.has(seg.key);
+              return (
+                <div key={seg.key} className="pd-seg-item">
+                  <button
+                    type="button"
+                    className="pd-seg-hdr"
+                    style={{ "--pd-seg-color": seg.color } as CSSProperties}
+                    onClick={() => toggleSeg(seg.key)}
+                  >
+                    <span className="pd-seg-hdr__dot" />
+                    <span className="pd-seg-hdr__label">{seg.label}</span>
+                    <span className="pd-count pd-count--sm">{entry.list.length}</span>
+                    <span className="pd-seg-hdr__chevron">
+                      {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                    </span>
                   </button>
-                  <button type="button" title="Sil" className="pd-profile-row__del" onClick={(e) => { e.stopPropagation(); deleteProfile(i); }}>
-                    <Trash2 size={11} />
-                  </button>
+
+                  {expanded && entry.list.length === 0 && (
+                    <div className="pd-seg-empty">Profil yok</div>
+                  )}
+
+                  {expanded && entry.list.map((p, localIdx) => {
+                    const globalIdx = entry.indices[localIdx];
+                    return (
+                      <div
+                        key={p.id}
+                        className={`pd-profile-row${globalIdx === activeIdx ? " on" : ""}`}
+                        onClick={() => setActiveIdx(globalIdx)}
+                      >
+                        <div
+                          className="pd-profile-row__dot"
+                          style={{ "--pd-color": p.color, "--pd-accent": p.accent } as CSSProperties}
+                        >
+                          {p.biz.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="pd-profile-row__meta">
+                          <b>{p.title}</b>
+                          <span>{p.users} kullanıcı</span>
+                        </div>
+                        <div className="pd-profile-row__actions">
+                          <button
+                            type="button"
+                            title="Kopyala"
+                            onClick={(e) => { e.stopPropagation(); duplicateProfile(globalIdx); }}
+                          >
+                            <Copy size={11} />
+                          </button>
+                          <button
+                            type="button"
+                            title="Sil"
+                            className="pd-profile-row__del"
+                            onClick={(e) => { e.stopPropagation(); deleteProfile(globalIdx); }}
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
           <button type="button" className="pd-add-btn" onClick={() => setShowAddModal(true)}>
             <Plus size={14} /> Yeni rol profili ekle
           </button>
         </aside>
 
-        {/* Editor */}
-        <section className="pd-editor">
-          {active && (
-            <PdEditor
-              profile={active}
-              onUpdate={update}
-              onToggleTab={toggleTab}
-              onAddQL={addQuickLink}
-              onUpdateQL={updateQuickLink}
-              onDeleteQL={deleteQuickLink}
-            />
+        {/* ── Right: Tabbed editor / preview ── */}
+        <section className="pd-right-panel">
+          <div className="pd-right-tabs">
+            <button
+              type="button"
+              className={`pd-right-tab-btn${rightTab === "settings" ? " on" : ""}`}
+              onClick={() => setRightTab("settings")}
+            >
+              Ayarlar
+            </button>
+            <button
+              type="button"
+              className={`pd-right-tab-btn${rightTab === "preview" ? " on" : ""}`}
+              onClick={() => setRightTab("preview")}
+            >
+              Önizleme
+            </button>
+            <div className="pd-right-tabs__spacer" />
+            {active && (
+              <span className="pd-right-tabs__meta">
+                <b>{active.biz}</b> · {active.sys} · {active.users} kullanıcı
+              </span>
+            )}
+          </div>
+
+          {active && rightTab === "settings" && (
+            <div className="pd-editor">
+              <div className="pd-editor__head">
+                <h2>{active.title}</h2>
+                <div className="pd-editor__sub">
+                  business_role: <b>{active.biz}</b> · system_role: <b>{active.sys}</b>
+                </div>
+              </div>
+              <PdEditor
+                profile={active}
+                canEdit={canEdit}
+                onUpdate={update}
+                onToggleTab={toggleTab}
+                onAddQL={addQuickLink}
+                onUpdateQL={updateQuickLink}
+                onDeleteQL={deleteQuickLink}
+              />
+            </div>
+          )}
+
+          {active && rightTab === "preview" && (
+            <div className="pd-preview-outer">
+              <PdPreview
+                profile={active}
+                mode={previewMode}
+                onModeChange={setPreviewMode}
+              />
+            </div>
           )}
         </section>
-
-        {/* Preview */}
-        <aside>
-          {active && <PdPreview profile={active} mode={previewMode} onModeChange={setPreviewMode} />}
-        </aside>
       </div>
 
       {/* ── Role × Tab matrix ── */}
       <PdMatrix profiles={profiles} onToggle={toggleMatrixCell} />
 
-      {/* ── Add profile modal ── */}
       {showAddModal && (
         <AddProfileModal
           existingProfiles={profiles}
@@ -454,9 +619,80 @@ export default function PanelDesignerTab({ onNavigate }: { onNavigate?: (tab: st
   );
 }
 
+// ── Mini chrome preview ──────────────────────────────────────────
+function MiniChrome({ color, color2, mix }: { color: string; color2: string; mix: number }) {
+  const topBg  = pdChromeBg("top",  color, color2, mix);
+  const sideBg = pdChromeBg("side", color, color2, mix);
+  return (
+    <div className="pd-mini-chrome">
+      <div className="pd-mini-chrome__top"  style={{ background: topBg  }} />
+      <div className="pd-mini-chrome__body">
+        <div className="pd-mini-chrome__side"    style={{ background: sideBg }} />
+        <div className="pd-mini-chrome__content" />
+      </div>
+    </div>
+  );
+}
+
+// ── Toggle switch ────────────────────────────────────────────────
+function PdSwitch({
+  id, label, checked, onChange, disabled = false,
+}: {
+  id: string; label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean;
+}) {
+  return (
+    <div className="pd-switch-row">
+      <label htmlFor={id} className="pd-switch-lbl">{label}</label>
+      <button
+        type="button"
+        id={id}
+        role="switch"
+        aria-checked={checked ? "true" : "false"}
+        aria-label={label}
+        disabled={disabled}
+        className={`pd-switch${checked ? " on" : ""}`}
+        onClick={() => onChange(!checked)}
+      >
+        <span className="pd-switch__knob" />
+      </button>
+    </div>
+  );
+}
+
+// ── Color field ──────────────────────────────────────────────────
+function ColorField({
+  label, value, onChange, disabled = false,
+}: {
+  label: string; value: string; onChange: (v: string) => void; disabled?: boolean;
+}) {
+  const fieldId = `pd-cf-${label.replace(/\s/g, "-")}`;
+  return (
+    <div className="pd-field">
+      <label htmlFor={fieldId}>{label}</label>
+      <div className="pd-color">
+        <input
+          type="color"
+          aria-label={`${label} renk seçici`}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        />
+        <input
+          type="text"
+          id={fieldId}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Editor ───────────────────────────────────────────────────────
 type PdEditorProps = {
   profile: PdProfile;
+  canEdit: boolean;
   onUpdate: (field: keyof PdProfile, value: unknown) => void;
   onToggleTab: (key: string) => void;
   onAddQL: () => void;
@@ -464,57 +700,106 @@ type PdEditorProps = {
   onDeleteQL: (idx: number) => void;
 };
 
-function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDeleteQL }: PdEditorProps) {
+function PdEditor({
+  profile, canEdit, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDeleteQL,
+}: PdEditorProps) {
+  const disabled = !canEdit;
+
   const tabsByGroup = useMemo<Record<string, typeof PD_TABS[number][]>>(() => {
     const grouped: Record<string, typeof PD_TABS[number][]> = {};
-    PD_TABS.forEach((t) => {
-      (grouped[t.group] = grouped[t.group] || []).push(t);
-    });
+    PD_TABS.forEach((t) => { (grouped[t.group] = grouped[t.group] || []).push(t); });
     return grouped;
   }, []);
 
   return (
     <>
-      <div className="pd-editor__head">
-        <h2>{profile.title}</h2>
-        <div className="pd-editor__sub">business_role: <b>{profile.biz}</b> · system_role: <b>{profile.sys}</b></div>
+      {/* 1. Navbar & Üst Başlık */}
+      <div className="pd-grp">
+        <div className="pd-grp-h">Navbar & Üst Başlık</div>
+        <div className="pd-row-2">
+          <ColorField label="1. renk" value={profile.color} onChange={(v) => onUpdate("color", v)} disabled={disabled} />
+          <ColorField label="2. renk (parıltı)" value={profile.color2} onChange={(v) => onUpdate("color2", v)} disabled={disabled} />
+        </div>
+        <div className="pd-field">
+          <label htmlFor="pd-color2-mix">Parıltı oranı ({(profile.color2Mix * 100).toFixed(0)}%)</label>
+          <input
+            id="pd-color2-mix"
+            type="range" min={0} max={0.6} step={0.02}
+            value={profile.color2Mix}
+            onChange={(e) => onUpdate("color2Mix", Number(e.target.value))}
+            disabled={disabled}
+          />
+        </div>
+        <div className="pd-navbar-preview">
+          <MiniChrome color={profile.color} color2={profile.color2} mix={profile.color2Mix} />
+          <PdSwitch
+            id="pd-sync-topbar"
+            label="Kullanıcı girişinde de uygula (syncTopbar)"
+            checked={profile.syncTopbar}
+            onChange={(v) => onUpdate("syncTopbar", v)}
+            disabled={disabled}
+          />
+        </div>
       </div>
 
-      {/* Tanım */}
+      {/* 2. Yetki & Düzenleme */}
+      <div className="pd-grp">
+        <div className="pd-grp-h">Yetki & Düzenleme</div>
+        <PdSwitch
+          id="pd-self-edit"
+          label="selfEdit — Rol sahibi kendi panelini düzenleyebilir"
+          checked={profile.selfEdit}
+          onChange={(v) => onUpdate("selfEdit", v)}
+          disabled={disabled}
+        />
+        <PdSwitch
+          id="pd-vitrin-edit"
+          label="vitrinEdit — Panel admini vitrin sayfalarını düzenler"
+          checked={profile.vitrinEdit}
+          onChange={(v) => onUpdate("vitrinEdit", v)}
+          disabled={disabled}
+        />
+        {!canEdit && (
+          <div className="pd-read-only-note">
+            Düzenleme için <b>panel_design.edit</b> yetkisi gereklidir.
+          </div>
+        )}
+      </div>
+
+      {/* 3. Tanım */}
       <div className="pd-grp">
         <div className="pd-grp-h">Tanım & Başlıklar</div>
         <div className="pd-row-2">
           <div className="pd-field">
             <label htmlFor="pd-nav-label">nav_label</label>
-            <input id="pd-nav-label" value={profile.navLabel} onChange={(e) => onUpdate("navLabel", e.target.value)} />
+            <input id="pd-nav-label" value={profile.navLabel} onChange={(e) => onUpdate("navLabel", e.target.value)} disabled={disabled} />
           </div>
           <div className="pd-field">
             <label htmlFor="pd-ws-label">workspace_label</label>
-            <input id="pd-ws-label" value={profile.wsLabel} onChange={(e) => onUpdate("wsLabel", e.target.value)} />
+            <input id="pd-ws-label" value={profile.wsLabel} onChange={(e) => onUpdate("wsLabel", e.target.value)} disabled={disabled} />
           </div>
         </div>
         <div className="pd-field">
           <label htmlFor="pd-hero-title">hero_title</label>
-          <input id="pd-hero-title" value={profile.heroTitle} onChange={(e) => onUpdate("heroTitle", e.target.value)} />
+          <input id="pd-hero-title" value={profile.heroTitle} onChange={(e) => onUpdate("heroTitle", e.target.value)} disabled={disabled} />
         </div>
         <div className="pd-field">
           <label htmlFor="pd-hero-desc">hero_description</label>
-          <textarea id="pd-hero-desc" rows={2} value={profile.heroDesc} onChange={(e) => onUpdate("heroDesc", e.target.value)} />
+          <textarea id="pd-hero-desc" rows={2} value={profile.heroDesc} onChange={(e) => onUpdate("heroDesc", e.target.value)} disabled={disabled} />
         </div>
       </div>
 
-      {/* Renkler & Tema */}
+      {/* 4. Vurgu & Tema */}
       <div className="pd-grp">
-        <div className="pd-grp-h">Renkler & Tema</div>
-        <div className="pd-row-3">
-          <ColorField label="header_bg_color" value={profile.color}     onChange={(v) => onUpdate("color", v)} />
-          <ColorField label="accent_color"    value={profile.accent}    onChange={(v) => onUpdate("accent", v)} />
-          <ColorField label="text_color"      value={profile.textColor} onChange={(v) => onUpdate("textColor", v)} />
+        <div className="pd-grp-h">Vurgu & Tema</div>
+        <div className="pd-row-2">
+          <ColorField label="accent_color" value={profile.accent}    onChange={(v) => onUpdate("accent", v)}    disabled={disabled} />
+          <ColorField label="text_color"   value={profile.textColor} onChange={(v) => onUpdate("textColor", v)} disabled={disabled} />
         </div>
         <div className="pd-row-2">
           <div className="pd-field">
             <label htmlFor="pd-menu-style">menu_style</label>
-            <select id="pd-menu-style" value={profile.menuStyle} onChange={(e) => onUpdate("menuStyle", e.target.value)}>
+            <select id="pd-menu-style" value={profile.menuStyle} onChange={(e) => onUpdate("menuStyle", e.target.value)} disabled={disabled}>
               <option value="pill">pill (Rozet Menü)</option>
               <option value="accordion">accordion (Açılır/Kapanır)</option>
               <option value="drawer">drawer (Yandan Çekmece)</option>
@@ -523,42 +808,31 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
           </div>
           <div className="pd-field">
             <label htmlFor="pd-glow">glow_intensity ({profile.glow.toFixed(2)})</label>
-            <input id="pd-glow" type="range" min={0} max={1} step={0.05} value={profile.glow} onChange={(e) => onUpdate("glow", Number(e.target.value))} />
+            <input id="pd-glow" type="range" min={0} max={1} step={0.05} value={profile.glow} onChange={(e) => onUpdate("glow", Number(e.target.value))} disabled={disabled} />
           </div>
         </div>
-        <div className="pd-row-2">
-          <div className="pd-field">
-            <label htmlFor="pd-opacity">accent_opacity ({profile.opacity.toFixed(2)})</label>
-            <input id="pd-opacity" type="range" min={0} max={1} step={0.05} value={profile.opacity} onChange={(e) => onUpdate("opacity", Number(e.target.value))} />
-          </div>
-          <div className="pd-field">
-            <label>swatch</label>
-            <div className="pd-swatch-row" style={{ "--pd-color": profile.color, "--pd-accent": profile.accent, "--pd-text": profile.textColor } as CSSProperties}>
-              <span className="pd-swatch pd-swatch--color" />
-              <span className="pd-swatch pd-swatch--accent" />
-              <span className="pd-swatch pd-swatch--text" />
-              <span className="pd-swatch-gradient">Header</span>
-            </div>
-          </div>
+        <div className="pd-field">
+          <label htmlFor="pd-opacity">accent_opacity ({profile.opacity.toFixed(2)})</label>
+          <input id="pd-opacity" type="range" min={0} max={1} step={0.05} value={profile.opacity} onChange={(e) => onUpdate("opacity", Number(e.target.value))} disabled={disabled} />
         </div>
       </div>
 
-      {/* Tipografi */}
+      {/* 5. Tipografi */}
       <div className="pd-grp">
         <div className="pd-grp-h">Tipografi</div>
         <div className="pd-row-2">
           <div className="pd-field">
             <label htmlFor="pd-font-title">hero başlık ({profile.fontTitle}px)</label>
-            <input id="pd-font-title" type="range" min={20} max={40} step={1} value={profile.fontTitle} onChange={(e) => onUpdate("fontTitle", Number(e.target.value))} />
+            <input id="pd-font-title" type="range" min={20} max={40} step={1} value={profile.fontTitle} onChange={(e) => onUpdate("fontTitle", Number(e.target.value))} disabled={disabled} />
           </div>
           <div className="pd-field">
             <label htmlFor="pd-font-body">body ({profile.fontBody}px)</label>
-            <input id="pd-font-body" type="range" min={11} max={16} step={1} value={profile.fontBody} onChange={(e) => onUpdate("fontBody", Number(e.target.value))} />
+            <input id="pd-font-body" type="range" min={11} max={16} step={1} value={profile.fontBody} onChange={(e) => onUpdate("fontBody", Number(e.target.value))} disabled={disabled} />
           </div>
         </div>
       </div>
 
-      {/* Sekmeler */}
+      {/* 6. Görünür Sekmeler */}
       <div className="pd-grp">
         <div className="pd-grp-h">
           Görünür Sekmeler · allowed_tabs ({profile.tabs.length}/{PD_TABS.length})
@@ -566,13 +840,21 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
         {Object.entries(tabsByGroup).map(([groupName, tabs]) => (
           <div key={groupName} className="pd-tab-group">
             <div className="pd-tab-group__name">{groupName}</div>
-            <div className="pd-tab-grid">
+            <div className="pd-tab-grid-3">
               {tabs.map((t) => {
-                const on = profile.tabs.includes(t.key);
+                const on     = profile.tabs.includes(t.key);
                 const locked = (t.key as PdTabKey) === "panel_home";
                 return (
-                  <label key={t.key} className={`pd-tab-check${on ? " on" : ""}${locked ? " locked" : ""}`}>
-                    <input type="checkbox" checked={on} disabled={locked} onChange={() => onToggleTab(t.key)} />
+                  <label
+                    key={t.key}
+                    className={`pd-tab-check${on ? " on" : ""}${locked ? " locked" : ""}${disabled && !locked ? " disabled" : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      disabled={locked || disabled}
+                      onChange={() => onToggleTab(t.key)}
+                    />
                     <span>{t.label}</span>
                     {locked && <span className="pd-lock">🔒</span>}
                   </label>
@@ -583,34 +865,24 @@ function PdEditor({ profile, onUpdate, onToggleTab, onAddQL, onUpdateQL, onDelet
         ))}
       </div>
 
-      {/* Hızlı linkler */}
+      {/* 7. Hızlı Erişim */}
       <div className="pd-grp">
         <div className="pd-grp-h">Hızlı Erişim · quick_links ({profile.quickLinks.length})</div>
         {profile.quickLinks.map((ql, i) => (
           <div key={i} className="pd-ql-row">
-            <input placeholder="label" value={ql.label} onChange={(e) => onUpdateQL(i, "label", e.target.value)} />
-            <input placeholder="href"  value={ql.href}  onChange={(e) => onUpdateQL(i, "href",  e.target.value)} />
-            <input placeholder="desc"  value={ql.desc}  onChange={(e) => onUpdateQL(i, "desc",  e.target.value)} />
-            <button type="button" onClick={() => onDeleteQL(i)}>×</button>
+            <input placeholder="label" value={ql.label} onChange={(e) => onUpdateQL(i, "label", e.target.value)} disabled={disabled} />
+            <input placeholder="href"  value={ql.href}  onChange={(e) => onUpdateQL(i, "href",  e.target.value)} disabled={disabled} />
+            <input placeholder="desc"  value={ql.desc}  onChange={(e) => onUpdateQL(i, "desc",  e.target.value)} disabled={disabled} />
+            {!disabled && <button type="button" onClick={() => onDeleteQL(i)}>×</button>}
           </div>
         ))}
-        <button type="button" className="pd-add-ql" onClick={onAddQL}>+ Yeni hızlı erişim linki</button>
+        {!disabled && (
+          <button type="button" className="pd-add-ql" onClick={onAddQL}>
+            + Yeni hızlı erişim linki
+          </button>
+        )}
       </div>
     </>
-  );
-}
-
-// ── Color field ──────────────────────────────────────────────────
-function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  const fieldId = `pd-cf-${label.replace(/\s/g, "-")}`;
-  return (
-    <div className="pd-field">
-      <label htmlFor={fieldId}>{label}</label>
-      <div className="pd-color">
-        <input type="color" aria-label={`${label} renk seçici`} value={value} onChange={(e) => onChange(e.target.value)} />
-        <input type="text" id={fieldId} value={value} onChange={(e) => onChange(e.target.value)} />
-      </div>
-    </div>
   );
 }
 
@@ -621,7 +893,7 @@ function readNavLayoutMode(): "single" | "top" | "dual" {
   try {
     const raw = localStorage.getItem("pf_nav_config");
     if (!raw) return "single";
-    const cfg = JSON.parse(raw) as { layoutMode?: string; items?: Record<string, { placement?: string }> };
+    const cfg = JSON.parse(raw) as { layoutMode?: string };
     if (cfg.layoutMode === "top" || cfg.layoutMode === "dual") return cfg.layoutMode;
   } catch { /* ignore */ }
   return "single";
@@ -635,7 +907,11 @@ function readNavItemPlacement(key: string): string {
   } catch { return "side"; }
 }
 
-function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: PvMode; onModeChange: (m: PvMode) => void }) {
+function PdPreview({
+  profile, mode, onModeChange,
+}: {
+  profile: PdProfile; mode: PvMode; onModeChange: (m: PvMode) => void;
+}) {
   const layoutMode = readNavLayoutMode();
   const visibleTabs = PD_TABS.filter((t) => profile.tabs.includes(t.key));
 
@@ -651,10 +927,12 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
       ? visibleTabs
       : visibleTabs.filter((t) => { const p = readNavItemPlacement(t.key); return p === "top" || p === "both"; });
 
-  const glowHex = Math.floor(profile.glow * 255).toString(16).padStart(2, "0");
+  const glowHex   = Math.floor(profile.glow * 255).toString(16).padStart(2, "0");
+  const topChrome = pdChromeBg("top",  profile.color, profile.color2, profile.color2Mix);
+  const sideChrome = pdChromeBg("side", profile.color, profile.color2, profile.color2Mix);
 
   return (
-    <div className="pd-preview-wrap">
+    <div className="pd-preview-wrap pd-preview-wrap--tab">
       <div className="pd-preview-head">
         <b>Canlı Önizleme</b>
         <span className="pd-pv-mode">{layoutMode === "top" ? "Üst nav" : layoutMode === "dual" ? "İkili" : "Sol nav"}</span>
@@ -668,26 +946,26 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
       </div>
 
       <div
-          className={`pd-preview-frame pd-preview-frame--${mode}`}
-          style={{
-            "--pd-color": profile.color,
-            "--pd-accent": profile.accent,
-            "--pd-text": profile.textColor,
-            "--pd-font-title": profile.fontTitle + "px",
-            "--pd-font-body": profile.fontBody + "px",
-            "--pd-opacity": String(profile.opacity),
-            "--pd-color-ee": profile.color + "ee",
-            "--pd-accent-glow": profile.accent + glowHex,
-            "--pd-accent-22": profile.accent + "22",
-          } as CSSProperties}
-        >
-        <div className="pd-mock-strip">
+        className={`pd-preview-frame pd-preview-frame--${mode}`}
+        style={{
+          "--pd-color":       profile.color,
+          "--pd-accent":      profile.accent,
+          "--pd-text":        profile.textColor,
+          "--pd-font-title":  profile.fontTitle + "px",
+          "--pd-font-body":   profile.fontBody  + "px",
+          "--pd-opacity":     String(profile.opacity),
+          "--pd-color-ee":    profile.color + "ee",
+          "--pd-accent-glow": profile.accent + glowHex,
+          "--pd-accent-22":   profile.accent + "22",
+        } as CSSProperties}
+      >
+        <div className="pd-mock-strip" style={{ background: topChrome }}>
           <span>Tenant: ACME · Plan: Enterprise</span>
           <span>Q2 2026</span>
         </div>
 
         {topTabs.length > 0 && (
-          <div className="pd-mock-topnav">
+          <div className="pd-mock-topnav" style={{ background: topChrome }}>
             {topTabs.slice(0, 7).map((t, idx) => (
               <span key={t.key} className={idx === 0 ? "pd-topnav-tab pd-topnav-tab--active" : "pd-topnav-tab"}>
                 {t.label}
@@ -699,7 +977,7 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
 
         <div className="pd-mock-shell">
           {sideTabs.length > 0 && (
-            <div className="pd-mock-sidenav">
+            <div className="pd-mock-sidenav" style={{ background: sideChrome }}>
               {sideTabs.slice(0, 11).map((t, idx) => (
                 <span key={t.key} className={idx === 0 ? "pd-sn pd-sn--active" : "pd-sn"}>
                   {t.label}
@@ -749,7 +1027,8 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
       </div>
 
       <div className="pd-effect-note">
-        <b>{profile.users || 0} kullanıcıyı etkiler.</b> Bu profili kullanan tüm{" "}
+        <b>{profile.users || 0} kullanıcıyı etkiler.</b>{" "}
+        Bu profili kullanan tüm{" "}
         <code>{profile.biz}/{profile.sys}</code> kullanıcıları kaydetince anında yeni görünüme geçer.
       </div>
     </div>
@@ -757,9 +1036,14 @@ function PdPreview({ profile, mode, onModeChange }: { profile: PdProfile; mode: 
 }
 
 // ── Role × Tab matrix ────────────────────────────────────────────
-function PdMatrix({ profiles, onToggle }: { profiles: PdProfile[]; onToggle: (profIdx: number, tabKey: string) => void }) {
+function PdMatrix({
+  profiles, onToggle,
+}: {
+  profiles: PdProfile[];
+  onToggle: (profIdx: number, tabKey: string) => void;
+}) {
   const [groupFilter, setGroupFilter] = useState("all");
-  const groups = useMemo(() => ["all", ...Array.from(new Set(PD_TABS.map((t) => t.group)))], []);
+  const groups      = useMemo(() => ["all", ...Array.from(new Set(PD_TABS.map((t) => t.group)))], []);
   const visibleTabs = groupFilter === "all" ? [...PD_TABS] : PD_TABS.filter((t) => t.group === groupFilter);
 
   return (
@@ -771,7 +1055,12 @@ function PdMatrix({ profiles, onToggle }: { profiles: PdProfile[]; onToggle: (pr
         </div>
         <div className="pd-matrix__filters">
           {groups.map((g) => (
-            <button type="button" key={g} className={`pd-matrix__filter${groupFilter === g ? " on" : ""}`} onClick={() => setGroupFilter(g)}>
+            <button
+              type="button"
+              key={g}
+              className={`pd-matrix__filter${groupFilter === g ? " on" : ""}`}
+              onClick={() => setGroupFilter(g)}
+            >
               {g === "all" ? "Tümü" : g}
             </button>
           ))}
@@ -830,8 +1119,14 @@ function AddProfileModal({
 }) {
   const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("all");
-  const existingKeys = useMemo(() => new Set(existingProfiles.map((p) => `${p.biz}:${p.sys}`)), [existingProfiles]);
-  const categories   = useMemo(() => ["all", ...Array.from(new Set(PD_ROLE_TEMPLATES.map((r) => r.category)))], []);
+  const existingKeys = useMemo(
+    () => new Set(existingProfiles.map((p) => `${p.biz}:${p.sys}`)),
+    [existingProfiles],
+  );
+  const categories = useMemo(
+    () => ["all", ...Array.from(new Set(PD_ROLE_TEMPLATES.map((r) => r.category)))],
+    [],
+  );
   const filtered = PD_ROLE_TEMPLATES.filter((r) => {
     if (category !== "all" && r.category !== category) return false;
     if (!search) return true;
@@ -854,11 +1149,21 @@ function AddProfileModal({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input placeholder="Rol ara..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
+            <input
+              placeholder="Rol ara..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
           </div>
           <div className="pd-modal__cats">
             {categories.map((c) => (
-              <button type="button" key={c} className={category === c ? "on" : ""} onClick={() => setCategory(c)}>
+              <button
+                type="button"
+                key={c}
+                className={category === c ? "on" : ""}
+                onClick={() => setCategory(c)}
+              >
                 {c === "all" ? "Tümü" : c}
               </button>
             ))}
