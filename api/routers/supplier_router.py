@@ -66,6 +66,7 @@ from api.services.work_mailbox_service import ensure_supplier_user_work_mailbox
 from api.models.tenant import Tenant
 from api.models.company import Company
 from api.models.payment import TenantSubscriptionAddon
+from api.models.panel_profile import PanelProfile
 
 logger = logging.getLogger(__name__)
 
@@ -975,7 +976,7 @@ def update_supplier_management_detail(
             """),
             {
                 "supplier_id": supplier.id,
-                "accepts_checks": 1 if accepts_checks_bool else 0,
+                "accepts_checks": bool(accepts_checks_bool),
                 "preferred_term": preferred_term,
                 "updated_at": datetime.now(ZoneInfo("UTC")).isoformat(),
             },
@@ -2403,6 +2404,34 @@ def _notify_expired_guarantees(
     db.commit()
 
 
+@router.get("/panel-profile", response_model=dict)
+def get_supplier_panel_profile(
+    supplier_user: SupplierUser = Depends(get_current_supplier_user),
+    db: Session = Depends(get_db),
+):
+    """Tedarikçi kullanıcının panel profil rengini döner (supplier_user × supplier_user kaydı)."""
+    record = (
+        db.query(PanelProfile)
+        .filter(
+            PanelProfile.business_role == "supplier_user",
+            PanelProfile.system_role == "supplier_user",
+        )
+        .first()
+    )
+    if record and record.profile_json:
+        try:
+            return json.loads(record.profile_json)
+        except (json.JSONDecodeError, TypeError):
+            pass
+    return {
+        "color": "#0c4a6e",
+        "color2": "#38bdf8",
+        "color2Mix": 0.22,
+        "accent": "#0E7490",
+        "textColor": "#f0f9ff",
+    }
+
+
 @router.get("/profile", response_model=dict)
 def get_supplier_profile(
     supplier_user: SupplierUser = Depends(get_current_supplier_user),
@@ -2473,6 +2502,11 @@ def get_supplier_profile(
             "email": supplier_user.email,
             "work_email": supplier_user.work_email,
             "phone": supplier_user.phone,
+            "photo": getattr(supplier_user, "photo", None),
+            "address": getattr(supplier_user, "address", None),
+            "city": getattr(supplier_user, "city", None),
+            "address_district": getattr(supplier_user, "address_district", None),
+            "postal_code": getattr(supplier_user, "postal_code", None),
             "created_at": supplier_user.created_at,
             "email_verified": supplier_user.email_verified,
         },
@@ -2531,6 +2565,17 @@ def update_supplier_profile(
         )
     if "user_phone" in update_data and update_data.get("user_phone") is not None:
         supplier_user.phone = update_data.get("user_phone")
+    if "user_photo" in update_data:
+        raw_photo = update_data.get("user_photo")
+        supplier_user.photo = str(raw_photo) if raw_photo else None
+    if "user_city" in update_data:
+        supplier_user.city = update_data.get("user_city") or None
+    if "user_address_district" in update_data:
+        supplier_user.address_district = update_data.get("user_address_district") or None
+    if "user_address" in update_data:
+        supplier_user.address = update_data.get("user_address") or None
+    if "user_postal_code" in update_data:
+        supplier_user.postal_code = update_data.get("user_postal_code") or None
 
     _ensure_supplier_payment_tables(db)
     payment_accounts = update_data.get("payment_accounts")
@@ -2606,7 +2651,7 @@ def update_supplier_profile(
             """),
             {
                 "supplier_id": supplier.id,
-                "accepts_checks": 1 if accepts_checks_bool else 0,
+                "accepts_checks": bool(accepts_checks_bool),
                 "preferred_term": preferred_term,
                 "updated_at": datetime.now(ZoneInfo("UTC")).isoformat(),
             },

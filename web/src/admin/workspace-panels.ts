@@ -1,8 +1,10 @@
 import type { AuthUser } from "../context/auth-types";
 import type { WorkspacePanelConfig, WorkspacePanelProfile } from "../services/admin.service";
+import { PANEL_COLORS } from "./panel-colors";
 
 export type WorkspacePanelTabKey =
   | "panel_home"
+  | "calisma_alani"
   | "panel_designer"
   | "platform_overview"
   | "platform_operations"
@@ -69,9 +71,9 @@ function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQ
     businessRole === "ozel_kanal_rolu"
   ) {
     return [
-      { label: "İş Ortağı Programı", href: "/is-ortagi-programi", description: "Kanal programı kapsamındaki akışları inceleyin." },
-      { label: "Programa Başvuru", href: "/is-ortagi-basvuru", description: "Kanal / komisyon programı başvuru akışını açın." },
-      { label: "Public Fiyatlandırma", href: "/fiyatlandirma", description: "Kanal teklif kurgusu için güncel planları görün." },
+      { label: "Çalışma Alanı",     href: "/admin?tab=calisma_alani", description: "Komisyon ve kanal performans metrikleri." },
+      { label: "İş Ortağı Programı", href: "/is-ortagi-programi",     description: "Kanal programı kapsamındaki akışları inceleyin." },
+      { label: "Public Fiyatlandırma", href: "/fiyatlandirma",        description: "Kanal teklif kurgusu için güncel planları görün." },
     ];
   }
   // ── Satın Alma Liderlik (Direktör/Müdür) ────────────────────────────────
@@ -80,9 +82,9 @@ function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQ
     businessRole === "satinalma_muduru" || businessRole === "satinalma_mudur_yrd"
   ) {
     return [
-      { label: "Genel Bakış", href: "/dashboard", description: "Rol özetinizi ve anlık kartları görün." },
-      { label: "Teklifler", href: "/quotes", description: "Teklif ve satın alma akışlarına gidin." },
-      { label: "Raporlar", href: "/reports", description: "Rol bazlı raporları açın." },
+      { label: "Çalışma Alanı", href: "/admin?tab=calisma_alani", description: "Teklifler ve günlük iş akışı." },
+      { label: "Onay Akışları",  href: "/admin?tab=approvals",     description: "Bekleyen onayları yönetin." },
+      { label: "Raporlar",       href: "/admin?tab=reports",       description: "Rol bazlı raporları açın." },
     ];
   }
   // ── Satın Alma Uzman / Operasyon ─────────────────────────────────────────
@@ -94,8 +96,8 @@ function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQ
     businessRole === "finans_izleyici"
   ) {
     return [
-      { label: "Genel Bakış", href: "/dashboard", description: "Genel çalışma alanına dönün." },
-      { label: "Teklifler", href: "/quotes", description: "Teklif süreçlerini açın." },
+      { label: "Çalışma Alanı", href: "/admin?tab=calisma_alani", description: "Teklifler ve günlük iş akışı." },
+      { label: "Projeler",       href: "/admin?tab=projects",      description: "Aktif projeler ve atamalar." },
     ];
   }
   // ── İK Rolleri (tüm tenant tipleri) ─────────────────────────────────────
@@ -134,9 +136,9 @@ function defaultQuickLinksForBusinessRole(businessRole: string): WorkspacePanelQ
     ];
   }
   return [
-    { label: "Genel Bakış", href: "/dashboard", description: "Genel çalışma alanına dönün." },
-    { label: "Teklifler", href: "/quotes", description: "Teklif süreçlerini açın." },
-    { label: "Raporlar", href: "/reports", description: "Yetkiniz varsa raporları inceleyin." },
+    { label: "Çalışma Alanı", href: "/admin?tab=calisma_alani", description: "Teklifler ve günlük iş akışı." },
+    { label: "Ekip Üyeleri",   href: "/admin?tab=personnel",     description: "Ekip yönetimi." },
+    { label: "Raporlar",       href: "/admin?tab=reports",       description: "Yetkiniz varsa raporları inceleyin." },
   ];
 }
 
@@ -225,7 +227,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Platform genelindeki tüm yönetim alanları, tenant governance ve panel tasarımı bu panelden yönetilir.",
       hero_title: "Super Admin Paneli - Platform Kontrol Merkezi",
       hero_description: "Platform operasyonları, stratejik partner geçişi, rol panelleri ve global ayarlar bu panel altında birleştirilir.",
-      allowed_tabs: ["panel_home", "platform_overview", "platform_operations", "discovery_lab_operations", "onboarding_studio", "tenant_governance", "packages", "deployment", "platform_analytics", "platform_suppliers", "public_pricing", "campaigns", "commission_admin", "kariyer_yonetimi", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings", "panel_designer"],
+      allowed_tabs: ["panel_home", "calisma_alani", "platform_overview", "platform_operations", "discovery_lab_operations", "onboarding_studio", "tenant_governance", "packages", "deployment", "platform_analytics", "platform_suppliers", "public_pricing", "campaigns", "commission_admin", "kariyer_yonetimi", "companies", "roles", "departments", "personnel", "projects", "suppliers", "approvals", "reports", "settings", "panel_designer"],
       quick_links: defaultQuickLinksForBusinessRole("super_admin"),
     },
     {
@@ -237,7 +239,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Tenant sahipliği, organizasyon omurgası ve yönetsel operasyonlar için ayrı panel profili.",
       hero_title: "Stratejik Partner Admin Paneli",
       hero_description: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
-      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("admin"),
     },
     {
@@ -249,7 +251,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Geleneksel tenant admin çalışma alanı; ekip üyesi, rol ve operasyon sekmeleri bu profilde toplanıyor.",
       hero_title: "Admin Paneli - Tenant Yönetim Alanı",
       hero_description: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
-      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("admin"),
     },
     {
@@ -261,7 +263,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Stratejik partner admin rolü için firma, ekip, proje ve tedarikçi yönetim alanı.",
       hero_title: "Stratejik Partner Admin Paneli",
       hero_description: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını stratejik partner olarak yönetin.",
-      allowed_tabs: ["panel_home", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "roles", "departments", "personnel", "projects", "suppliers", "supplier_profile", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("partner_admin"),
     },
     {
@@ -325,7 +327,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Kanal hesap sahibine özel panel; yönlendirme ve rol bazli gelecekteki sekme aktivasyonları için hazır.",
       hero_title: "Kanal Sahibi Paneli",
       hero_description: "Kanal programı, partner yönlendirmeleri ve panel erişimleri bu profilden yönetilir.",
-      allowed_tabs: ["panel_home"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "roles", "departments", "personnel", "projects", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("channel_owner"),
     },
     {
@@ -337,7 +339,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Kanal temsilcileri için ayrı panel; varsayilan olarak yönlendirme kartlari gosterir.",
       hero_title: "Kanal Temsilcisi Paneli",
       hero_description: "Kanal operasyonları ve partner kazanımı akışlarına bu panelden ilerleyin.",
-      allowed_tabs: ["panel_home"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "roles", "departments", "personnel", "projects", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("channel_agent"),
     },
     {
@@ -349,7 +351,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Tedarikçi yöneticileri için ayrı panel; tedarikçi workspace ve finans modüllerine yönlendirme sunar.",
       hero_title: "Tedarikçi Yönetici Paneli",
       hero_description: "Tedarikçi ekibinizin teklif, belge ve finans akışlarını bu panelden yönetin.",
-      allowed_tabs: ["panel_home"],
+      allowed_tabs: ["panel_home", "calisma_alani"],
       quick_links: defaultQuickLinksForBusinessRole("supplier_admin"),
     },
     {
@@ -738,7 +740,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Kanal ekip lideri için yönlendirme ve koordinasyon paneli.",
       hero_title: "Kanal Ekip Lideri Paneli",
       hero_description: "Ekip temsilcilerinizin aktivitelerini ve kanal programını bu panelden koordine edin.",
-      allowed_tabs: ["panel_home"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "departments", "personnel", "projects", "approvals", "reports"],
       quick_links: defaultQuickLinksForBusinessRole("kanal_ekip_lideri"),
     },
     {
@@ -750,7 +752,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Kanal finans rolü için yönlendirme paneli.",
       hero_title: "Kanal Finans Paneli",
       hero_description: "Kanal finansal süreçleri ve komisyon akışlarını bu alandan takip edin.",
-      allowed_tabs: ["panel_home"],
+      allowed_tabs: ["panel_home", "calisma_alani", "reports", "projects"],
       quick_links: defaultQuickLinksForBusinessRole("kanal_finans"),
     },
     {
@@ -762,7 +764,7 @@ export const DEFAULT_WORKSPACE_PANEL_CONFIG: WorkspacePanelConfig = {
       description: "Özel kanal rolü için yönlendirme paneli.",
       hero_title: "Özel Kanal Rolü Paneli",
       hero_description: "Size atanan özel kanal rolü kapsamındaki akışlara bu alandan erişin.",
-      allowed_tabs: ["panel_home"],
+      allowed_tabs: ["panel_home", "calisma_alani", "companies", "roles", "departments", "personnel", "projects", "approvals", "reports", "settings"],
       quick_links: defaultQuickLinksForBusinessRole("ozel_kanal_rolu"),
     },
     // ── Tedarikçi Hiyerarşisi ────────────────────────────────────────────
@@ -1095,25 +1097,26 @@ export function defaultIconForBusinessRole(businessRole: string): string {
 
 export function defaultAccentColorForBusinessRole(businessRole: string): string {
   const role = normalize(businessRole);
-  // Platform (Süper Admin / destek / operasyon / finans / İK admin) — slate
+  const C = PANEL_COLORS;
+  // Platform (Süper Admin / destek / operasyon / finans / İK admin)
   if (role === "super_admin" || role.startsWith("platform_") ||
       role.startsWith("operasyon_") || role.startsWith("destek_") ||
-      role.startsWith("finans_") || role === "ik_admin") return "#3A4F86";
-  // Stratejik Partner (tenant) — koyu zümrüt
+      role.startsWith("finans_") || role === "ik_admin") return C.platform.accent;
+  // Stratejik Partner (tenant)
   if (role === "partner_admin" || role === "admin" || role === "manager" ||
-      role.startsWith("satinalma")) return "#134E37";
-  // Tedarikçi — petrol
+      role.startsWith("satinalma")) return C.strategic.accent;
+  // Tedarikçi
   if (role === "supplier_admin" || role === "supplier_user" ||
-      role.startsWith("pazarlama")) return "#0E7490";
-  // İş Ortağı (Kanal) — koyu amber
+      role.startsWith("pazarlama")) return C.supplier.accent;
+  // İş Ortağı (Kanal)
   if (role === "channel_owner" || role === "channel_agent" ||
-      role.startsWith("kanal")) return "#7C2D12";
-  // Personel Arayan (İşveren / İK) — violet
+      role.startsWith("kanal")) return C.channel.accent;
+  // Personel Arayan (İşveren / İK)
   if (role === "employer_company_admin" || role === "employer_recruiter" ||
-      role === "hr_manager" || role === "hr_specialist") return "#5B21B6";
-  // İş Arayan (Aday) — şarap
-  if (role === "candidate" || role === "job_seeker") return "#9F1239";
-  return "#3A4F86";
+      role === "hr_manager" || role === "hr_specialist") return C.employer.accent;
+  // İş Arayan (Aday)
+  if (role === "candidate" || role === "job_seeker") return C.seeker.accent;
+  return C.platform.accent;
 }
 
 export function resolvedIcon(profile: WorkspacePanelProfile | null): string {

@@ -1068,6 +1068,7 @@ export function PlatformSuppliersTab() {
   const [selId, setSelId] = useState<number | null>(null);
   const [q, setQ] = useState("");
   const [flt, setFlt] = useState("all");
+  const [expandedPstGroups, setExpandedPstGroups] = useState<Set<string>>(new Set());
 
   const tenant = SN_MOCK_TENANTS.find((t) => t.id === tenantId);
   const ql = q.trim().toLowerCase();
@@ -1204,34 +1205,102 @@ export function PlatformSuppliersTab() {
           <div className="nh-list__scroll">
             {list.length === 0 ? (
               <div className="nh-list-empty">Eşleşen tedarikçi yok.</div>
-            ) : list.map((s) => {
-              const oc  = snOriginChip(s);
-              const rel = s.tenants.find((t) => t.id === tenantId);
-              return (
-                <button key={s.id} type="button"
-                  className={`sp-srow${sel?.id === s.id ? " on" : ""}${s.is_active ? "" : " off"}`}
-                  onClick={() => setSelId(s.id)}>
-                  <span className="sp-logo">{snLogo(s.company_name)}</span>
-                  <span className="sp-srow__meta">
-                    <b>
-                      {s.company_name}
-                      {s.is_verified && <span className="sp-ver" title="Doğrulanmış">✓</span>}
-                    </b>
-                    <span className="sp-tags">
-                      <i className={`sn-oc sn-oc--${oc.cls}`}>{oc.txt}</i>
-                      {view === "partner" && rel && (
-                        <i className={`nh-badge ${rel.role === "owner" ? "info" : "ok"}`}>{rel.role === "owner" ? "Özel" : "Havuzdan"}</i>
-                      )}
-                      {view === "pool" && s.pool.paid && <i className="sn-pill sn-pill--paid">ücretli</i>}
-                      {s.becamePartner.yes && <i className="sn-pill sn-pill--partner">partner</i>}
+            ) : ql ? (
+              // Search mode — flat list
+              list.map((s) => {
+                const oc = snOriginChip(s);
+                const rel = s.tenants.find((t) => t.id === tenantId);
+                return (
+                  <button key={s.id} type="button"
+                    className={`sp-srow${sel?.id === s.id ? " on" : ""}${s.is_active ? "" : " off"}`}
+                    onClick={() => setSelId(s.id)}>
+                    <span className="sp-logo">{snLogo(s.company_name)}</span>
+                    <span className="sp-srow__meta">
+                      <b>{s.company_name}{s.is_verified && <span className="sp-ver" title="Doğrulanmış">✓</span>}</b>
+                      <span className="sp-tags">
+                        <i className={`sn-oc sn-oc--${oc.cls}`}>{oc.txt}</i>
+                        {view === "partner" && rel && <i className={`nh-badge ${rel.role === "owner" ? "info" : "ok"}`}>{rel.role === "owner" ? "Özel" : "Havuzdan"}</i>}
+                        {view === "pool" && s.pool.paid && <i className="sn-pill sn-pill--paid">ücretli</i>}
+                        {s.becamePartner.yes && <i className="sn-pill sn-pill--partner">partner</i>}
+                      </span>
                     </span>
-                  </span>
-                  <span className="sp-srow__r">
-                    <SnStars score={s.reference_score} />
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="sp-srow__r"><SnStars score={s.reference_score} /></span>
+                  </button>
+                );
+              })
+            ) : view === "pool" ? (
+              // Pool: group by origin type
+              (["channel", "partner", "direct"] as const).flatMap((originType) => {
+                const grpItems = list.filter((s) => s.origin.type === originType);
+                if (grpItems.length === 0) return [];
+                const grpKey = `pool-${originType}`;
+                const isOpen = expandedPstGroups.has(grpKey);
+                const grpLabel = originType === "channel" ? "İş Ortağı Kanalı" : originType === "partner" ? "Partner Daveti" : "Doğrudan Kayıt";
+                return [
+                  <div key={grpKey} className="pst-grphd" onClick={() => setExpandedPstGroups((p) => { const n = new Set(p); n.has(grpKey) ? n.delete(grpKey) : n.add(grpKey); return n; })}>
+                    <span className="pst-grphd__dot" />
+                    <span className="pst-grphd__name">{grpLabel}</span>
+                    <span className="pst-grphd__count">{grpItems.length}</span>
+                    <span className="pst-grphd__chev">{isOpen ? "▾" : "▸"}</span>
+                  </div>,
+                  ...(isOpen ? grpItems.map((s) => {
+                    const oc = snOriginChip(s);
+                    return (
+                      <button key={s.id} type="button"
+                        className={`sp-srow${sel?.id === s.id ? " on" : ""}${s.is_active ? "" : " off"}`}
+                        onClick={() => setSelId(s.id)}>
+                        <span className="sp-logo">{snLogo(s.company_name)}</span>
+                        <span className="sp-srow__meta">
+                          <b>{s.company_name}{s.is_verified && <span className="sp-ver" title="Doğrulanmış">✓</span>}</b>
+                          <span className="sp-tags">
+                            <i className={`sn-oc sn-oc--${oc.cls}`}>{oc.txt}</i>
+                            {s.pool.paid && <i className="sn-pill sn-pill--paid">ücretli</i>}
+                            {s.becamePartner.yes && <i className="sn-pill sn-pill--partner">partner</i>}
+                          </span>
+                        </span>
+                        <span className="sp-srow__r"><SnStars score={s.reference_score} /></span>
+                      </button>
+                    );
+                  }) : []),
+                ];
+              })
+            ) : (
+              // Partner view: group by role (owner / user)
+              (["owner", "user"] as const).flatMap((roleType) => {
+                const grpItems = list.filter((s) => s.tenants.find((t) => t.id === tenantId)?.role === roleType);
+                if (grpItems.length === 0) return [];
+                const grpKey = `partner-${roleType}`;
+                const isOpen = expandedPstGroups.has(grpKey);
+                const grpLabel = roleType === "owner" ? "Özel Tedarikçi" : "Havuzdan Kullanılan";
+                return [
+                  <div key={grpKey} className="pst-grphd" onClick={() => setExpandedPstGroups((p) => { const n = new Set(p); n.has(grpKey) ? n.delete(grpKey) : n.add(grpKey); return n; })}>
+                    <span className="pst-grphd__dot" />
+                    <span className="pst-grphd__name">{grpLabel}</span>
+                    <span className="pst-grphd__count">{grpItems.length}</span>
+                    <span className="pst-grphd__chev">{isOpen ? "▾" : "▸"}</span>
+                  </div>,
+                  ...(isOpen ? grpItems.map((s) => {
+                    const rel = s.tenants.find((t) => t.id === tenantId);
+                    const oc = snOriginChip(s);
+                    return (
+                      <button key={s.id} type="button"
+                        className={`sp-srow${sel?.id === s.id ? " on" : ""}${s.is_active ? "" : " off"}`}
+                        onClick={() => setSelId(s.id)}>
+                        <span className="sp-logo">{snLogo(s.company_name)}</span>
+                        <span className="sp-srow__meta">
+                          <b>{s.company_name}{s.is_verified && <span className="sp-ver" title="Doğrulanmış">✓</span>}</b>
+                          <span className="sp-tags">
+                            <i className={`sn-oc sn-oc--${oc.cls}`}>{oc.txt}</i>
+                            {rel && <i className={`nh-badge ${rel.role === "owner" ? "info" : "ok"}`}>{rel.role === "owner" ? "Özel" : "Havuzdan"}</i>}
+                          </span>
+                        </span>
+                        <span className="sp-srow__r"><SnStars score={s.reference_score} /></span>
+                      </button>
+                    );
+                  }) : []),
+                ];
+              })
+            )}
           </div>
         </aside>
 

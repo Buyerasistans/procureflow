@@ -18,7 +18,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Genel",
     items: [
-      { key: "panel_home", label: "Panel Ana Sayfa", icon: "home" },
+      { key: "panel_home",      label: "Panel Ana Sayfa",    icon: "home" },
+      { key: "calisma_alani",   label: "Çalışma Alanı",      icon: "workspace" },
       { key: "platform_overview", label: "Platform Genel Bakış", icon: "chart" },
       { key: "platform_analytics", label: "Platform Analitikleri", icon: "analytics" },
     ],
@@ -39,6 +40,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { key: "onboarding_studio", label: "Kurulum Stüdyosu", icon: "studio", count: 7, alert: true },
       { key: "tenant_governance", label: "Stratejik Partner Yönetimi", icon: "partner", count: 42 },
       { key: "platform_suppliers", label: "Platform Tedarikçi Havuzu", icon: "supplier", count: 318 },
+      { key: "is_ortaklari", label: "İş Ortaklarımız", icon: "link" },
+      { key: "personel_arayan", label: "Personel Arayan Firmalar", icon: "users" },
+      { key: "is_arayan", label: "İş Arayan Havuzu", icon: "briefcase" },
       { key: "deployment", label: "Yayınlama", icon: "rocket" },
     ],
   },

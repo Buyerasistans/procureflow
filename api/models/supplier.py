@@ -230,6 +230,11 @@ class SupplierUser(Base):
         String(255), nullable=True, index=True
     )
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    photo: Mapped[str | None] = mapped_column(Text, nullable=True)
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    address_district: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     # Durum
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

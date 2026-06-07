@@ -1,10 +1,45 @@
-export type SegmentKey = "platform" | "strategic" | "supplier" | "channel" | "employer" | "seeker";
+/**
+ * segment-colors.ts — SEGMENT_META tek kaynağı panel-colors.ts'tir.
+ * Geriye-uyum alias'ları: color=accent, bg=chipBg.
+ * Mevcut tüketiciler bu import'u koruyabilir; yeni kod panel-colors.ts'i doğrudan kullanabilir.
+ */
+import { PANEL_COLORS as _PC } from './panel-colors';
 
-export const SEGMENT_META: Record<SegmentKey, { label: string; color: string; bg: string }> = {
-  platform:  { label: "Platform",          color: "#3A4F86", bg: "#eef1f8" },
-  strategic: { label: "Stratejik Partner", color: "#134E37", bg: "#ecfdf5" },
-  supplier:  { label: "Tedarikçi",         color: "#0E7490", bg: "#ecfeff" },
-  channel:   { label: "İş Ortağı",         color: "#7C2D12", bg: "#fff7ed" },
-  employer:  { label: "Personel Arayan",   color: "#5B21B6", bg: "#fdf4ff" },
-  seeker:    { label: "İş Arayan",         color: "#9F1239", bg: "#fff1f3" },
+// Re-export: tüm tüketiciler segment-colors üzerinden erişmeye devam edebilir.
+export type { SegmentKey, SegmentTheme, PanelThemeOverrides } from './panel-colors';
+export {
+  PANEL_COLORS,
+  BRAND,
+  resolvePanelColors,
+  applyPanelTheme,
+  panelCssVars,
+  publishPanelTheme,
+  PANEL_THEME_EVENT,
+} from './panel-colors';
+
+export type SegmentMeta = {
+  label: string;
+  color: string;           // alias: accent (geriye-uyum)
+  bg: string;              // alias: chipBg (geriye-uyum)
+  accentDark: string;
+  accentTint: string;
+  secondary: string | null;
+  onAccent: string;
 };
+
+type _SK = keyof typeof _PC;
+
+export const SEGMENT_META: Record<_SK, SegmentMeta> = Object.fromEntries(
+  (Object.entries(_PC) as [_SK, (typeof _PC)[_SK]][]).map(([k, t]) => [
+    k,
+    {
+      label:      t.label,
+      color:      t.accent,
+      bg:         t.chipBg,
+      accentDark: t.accentDark,
+      accentTint: t.accentTint,
+      secondary:  t.secondary,
+      onAccent:   t.onAccent,
+    } satisfies SegmentMeta,
+  ])
+) as Record<_SK, SegmentMeta>;

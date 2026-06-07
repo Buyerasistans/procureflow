@@ -16,7 +16,7 @@
 .kdp-back {
   display: inline-block;
   margin-top: 16px;
-  background: #134E37;
+  background: var(--seg-strategic);
   color: #fff;
   padding: 12px 22px;
   border-radius: 12px;
@@ -27,7 +27,7 @@
 /* ── Hero ── */
 .kdp-hero {
   padding: 60px 24px;
-  background: linear-gradient(135deg, var(--kdp-color, #134E37) 0%, color-mix(in srgb, var(--kdp-color, #134E37) 75%, black) 100%);
+  background: linear-gradient(135deg, var(--kdp-color, var(--seg-strategic)) 0%, color-mix(in srgb, var(--kdp-color, var(--seg-strategic)) 75%, black) 100%);
   color: #fff;
 }
 
@@ -73,7 +73,7 @@
 .kdp-hero-cta {
   display: inline-block;
   background: #fff;
-  color: var(--kdp-color, #134E37);
+  color: var(--kdp-color, var(--seg-strategic));
   font-weight: 900;
   font-size: 14px;
   padding: 13px 26px;
@@ -125,7 +125,7 @@
   height: 22px;
   border-radius: 50%;
   background: var(--kdp-bg, #ecfdf5);
-  color: var(--kdp-color, #134E37);
+  color: var(--kdp-color, var(--seg-strategic));
   font-weight: 900;
   font-size: 12px;
   display: flex;
@@ -184,7 +184,7 @@
 }
 
 .kdp-cta-block {
-  background: var(--kdp-color, #134E37);
+  background: var(--kdp-color, var(--seg-strategic));
   border-radius: 20px;
   padding: 24px;
   display: flex;
@@ -211,7 +211,7 @@
 }
 
 .kdp-btn:hover { opacity: 0.88; }
-.kdp-btn--white { background: #fff; color: var(--kdp-color, #134E37); }
+.kdp-btn--white { background: #fff; color: var(--kdp-color, var(--seg-strategic)); }
 .kdp-btn--ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1.5px solid rgba(255, 255, 255, 0.3); }
 
 /* ── Footer ── */
@@ -224,7 +224,7 @@
 }
 
 .kdp-footer a {
-  color: var(--kdp-color, #134E37);
+  color: var(--kdp-color, var(--seg-strategic));
   font-weight: 700;
   text-decoration: none;
 }

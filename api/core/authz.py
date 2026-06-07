@@ -234,6 +234,26 @@ def can_manage_role_catalog(user: User) -> bool:
     )
 
 
+def has_panel_design_permission(user: User, db: object) -> bool:
+    """True iff user is super_admin OR holds panel_design.edit permission via a role."""
+    if is_super_admin(user):
+        return True
+    from sqlalchemy.orm import Session as _Session
+    from api.models.assignment import CompanyRole
+    from api.models.role import Permission, Role
+    db_session: _Session = db  # type: ignore[assignment]
+    return bool(
+        db_session.query(Permission)
+        .join(Permission.roles)
+        .join(Role.company_roles)
+        .filter(
+            CompanyRole.user_id == user.id,
+            Permission.name == "panel_design.edit",
+        )
+        .first()
+    )
+
+
 def get_business_role_priority(user: User) -> int:
     role = normalized_role(user)
     return BUSINESS_ROLE_PRIORITY.get(role, 999)

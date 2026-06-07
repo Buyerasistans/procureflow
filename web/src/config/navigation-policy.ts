@@ -153,7 +153,8 @@ const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   order: number;
   group: PanelTabPolicyGroup;
 }> = [
-  { key: "panel_home", label: "Panel Ana Sayfa", order: 10, group: "core" },
+  { key: "panel_home",     label: "Panel Ana Sayfa",  order: 10, group: "core" },
+  { key: "calisma_alani", label: "Çalışma Alanı",    order: 11, group: "core" },
   { key: "platform_operations", label: "Platform Operasyonları", order: 20, group: "platform" },
   { key: "discovery_lab_operations", label: "Discovery Lab Operasyonları", order: 30, group: "platform" },
   { key: "onboarding_studio", label: "Kurulum Stüdyosu", order: 40, group: "platform" },
@@ -167,6 +168,9 @@ const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   { key: "commission_admin", label: "Komisyon Yönetimi", order: 120, group: "platform" },
   { key: "support_tickets", label: "Destek Talepleri", order: 130, group: "platform" },
   { key: "kariyer_yonetimi", label: "Kariyer ve İş Piyasası", order: 135, group: "kariyer_yonetimi" },
+  { key: "is_ortaklari", label: "İş Ortaklarımız", order: 92, group: "platform" },
+  { key: "personel_arayan", label: "Personel Arayan Firmalar", order: 94, group: "platform" },
+  { key: "is_arayan", label: "İş Arayan Havuzu", order: 96, group: "platform" },
   { key: "settings", label: "Ayarlar", order: 140, group: "settings" },
   { key: "companies", label: "Firmalar", order: 150, group: "core" },
   { key: "roles", label: "Roller ve Yetkiler", order: 160, group: "role_management" },

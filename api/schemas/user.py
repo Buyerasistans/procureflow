@@ -1,5 +1,6 @@
 # schemas/user.py
 from __future__ import annotations
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr
 from api.schemas.assignment import CompanyAssignmentOut
 
@@ -53,6 +54,8 @@ class UserOut(UserBase):
     company_assignments: list[CompanyAssignmentOut] = []
     invitation_email_sent: bool = False
     invitation_accepted: bool = False
+    created_at: datetime | None = None
+    business_role: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

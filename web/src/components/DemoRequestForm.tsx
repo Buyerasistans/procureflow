@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { http } from "../lib/http";
+import { PANEL_COLORS } from "../admin/panel-colors";
 import "./DemoRequestForm.css";
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
   accentColor?: string;
 }
 
-export default function DemoRequestForm({ audience = "strategic", source = "role_landing", accentColor = "#134E37" }: Props) {
+export default function DemoRequestForm({ audience = "strategic", source = "role_landing", accentColor = PANEL_COLORS.strategic.accent }: Props) {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

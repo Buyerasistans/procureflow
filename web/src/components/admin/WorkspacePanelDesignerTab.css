@@ -982,3 +982,170 @@
   align-items: center;
   gap: 6px;
 }
+
+/* ── Renk Şeması Kartı (pcs-*) ─────────────────────────────────────────── */
+
+.pcs-root {
+  gap: 12px;
+}
+
+.pcs-readonly-note {
+  padding: 10px 14px;
+  border: 1px solid var(--pf-color-warning-border, #fbbf24);
+  border-radius: 12px;
+  background: var(--pf-color-warning-light, #fef9c3);
+  color: var(--pf-slate-700);
+  font-size: 13px;
+}
+
+.pcs-segments {
+  display: grid;
+  gap: 10px;
+}
+
+.pcs-segment-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--pf-border-color-alt);
+  border-radius: 16px;
+  background: var(--pf-slate-50, #f8fafc);
+}
+
+.pcs-segment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pcs-segment-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pcs-swatches {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pcs-swatch {
+  display: block;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.pcs-swatch--on {
+  overflow: visible;
+}
+
+.pcs-seg-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pf-slate-800);
+}
+
+.pcs-seg-key {
+  font-size: 11px;
+  color: var(--pf-slate-500);
+  font-family: monospace;
+}
+
+.pcs-reset-btn {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.pcs-color-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .pcs-color-fields {
+    grid-template-columns: 1fr;
+  }
+  .pcs-swatches {
+    gap: 3px;
+  }
+}
+
+/* ── Denetim Kaydı tablosu ──────────────────────────── */
+.pcs-audit-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--pf-slate-200, #e2e8f0);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+.pcs-audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.pcs-audit-table thead {
+  background: var(--pf-slate-50, #f8fafc);
+}
+.pcs-audit-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--pf-slate-600, #475569);
+  border-bottom: 1px solid var(--pf-slate-200, #e2e8f0);
+  white-space: nowrap;
+}
+.pcs-audit-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--pf-slate-100, #f1f5f9);
+  vertical-align: top;
+}
+.pcs-audit-table tr:last-child td {
+  border-bottom: none;
+}
+.pcs-audit-email {
+  color: var(--pf-slate-700, #334155);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pcs-audit-date {
+  color: var(--pf-slate-500, #64748b);
+  white-space: nowrap;
+}
+.pcs-audit-seg {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: var(--pf-slate-100, #f1f5f9);
+  color: var(--pf-slate-700, #334155);
+  font-size: 11px;
+  font-weight: 600;
+}
+.pcs-audit-val pre {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-width: 260px;
+  color: var(--pf-slate-700, #334155);
+}
+.pcs-audit-val--old pre {
+  color: #b91c1c;
+}
+.pcs-audit-val--new pre {
+  color: #15803d;
+}
+@media (max-width: 640px) {
+  .pcs-audit-table th,
+  .pcs-audit-table td {
+    padding: 6px 8px;
+  }
+  .pcs-audit-val pre {
+    max-width: 140px;
+  }
+}

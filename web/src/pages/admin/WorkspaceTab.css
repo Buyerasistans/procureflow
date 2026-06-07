@@ -1,0 +1,93 @@
+.workspace-tab {
+  padding: 20px 24px;
+  max-width: 1080px;
+}
+
+.workspace-tab__section {
+  margin-bottom: 20px;
+}
+
+.workspace-tab__section-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pf-red-800);
+}
+
+.workspace-tab__mismatch-list {
+  display: grid;
+  gap: 8px;
+}
+
+.workspace-tab__mismatch-card {
+  background: var(--pf-red-50);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.workspace-tab__mismatch-main { min-width: 0; }
+
+.workspace-tab__mismatch-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--pf-red-800);
+}
+
+.workspace-tab__mismatch-alerts {
+  font-size: 12px;
+  color: #7f1d1d;
+  margin-top: 2px;
+}
+
+.workspace-tab__mismatch-totals {
+  font-size: 11px;
+  color: var(--pf-red-700);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.workspace-tab__channel {
+  margin-bottom: 18px;
+}
+
+.workspace-tab__metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.workspace-tab__metric-card {
+  border: 1px solid var(--pf-slate-200);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--pf-surface);
+}
+
+.workspace-tab__metric-label {
+  font-size: 11px;
+  color: var(--pf-slate-500);
+}
+
+.workspace-tab__metric-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--pf-slate-900);
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .workspace-tab {
+    padding: 12px;
+  }
+  .workspace-tab__mismatch-card {
+    flex-direction: column;
+  }
+  .workspace-tab__mismatch-totals {
+    text-align: left;
+  }
+}

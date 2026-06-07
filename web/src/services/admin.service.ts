@@ -74,6 +74,12 @@ export interface WorkspacePanelProfile {
   primary_accent_stop?: number | null;
   secondary_accent_start?: number | null;
   glow_intensity?: number | null;
+  // İki renkli chrome (navbar + üst başlık) — Faz 1
+  color2?: string | null;       // 2. renk · parıltı; varsayılan = segment.secondary ?? accent
+  color2Mix?: number | null;    // 0–0.6 parıltı oranı; varsayılan = 0.18
+  syncTopbar?: boolean | null;  // true → navbar+başlık bu profil rengiyle boyanır
+  selfEdit?: boolean | null;    // true → rol sahibi kendi panelini düzenleyebilir
+  vitrinEdit?: boolean | null;  // true → panel admini vitrin sayfalarını düzenler
 }
 
 export interface WorkspacePanelUserOverride {
@@ -307,6 +313,7 @@ export interface Personnel {
   company_assignments?: CompanyAssignment[];
   invitation_email_sent?: boolean;
   invitation_accepted?: boolean;
+  created_at?: string | null;
 }
 
 export type TenantUser = Personnel;
@@ -821,6 +828,66 @@ export async function updateCompany(id: number, data: Partial<Company>): Promise
   return res.data;
 }
 
+export interface CandidateOwner {
+  id: number;
+  full_name: string;
+  email: string;
+  system_role: string;
+}
+
+export async function getCompanyCandidateOwners(companyId: number): Promise<CandidateOwner[]> {
+  const res = await http.get<CandidateOwner[]>(`/admin/companies/${companyId}/candidate-owners`);
+  return res.data;
+}
+
+export async function createCompanyOwner(
+  companyId: number,
+  data: { full_name: string; email: string; password: string },
+): Promise<{ id: number; email: string; full_name: string; system_role: string; message: string }> {
+  const res = await http.post<{ id: number; email: string; full_name: string; system_role: string; message: string }>(
+    `/admin/companies/${companyId}/create-owner`,
+    data,
+  );
+  return res.data;
+}
+
+export async function setCompanyResponsible(
+  companyId: number,
+  userId: number,
+): Promise<{ message: string; owner_full_name: string; owner_email: string }> {
+  const res = await http.patch<{ message: string; owner_full_name: string; owner_email: string }>(
+    `/admin/companies/${companyId}/responsible`,
+    { user_id: userId },
+  );
+  return res.data;
+}
+
+export async function reactivateUser(
+  userId: number,
+): Promise<{ message: string; email: string; temp_password: string }> {
+  const res = await http.post<{ message: string; email: string; temp_password: string }>(
+    `/admin/users/${userId}/reactivate`,
+    {},
+  );
+  return res.data;
+}
+
+export interface ProvisionResult {
+  summary: {
+    total_companies: number;
+    already_ok: number;
+    created: number;
+    assigned_existing: number;
+  };
+  created_users: { company_id: number; company: string; email: string; password: string }[];
+  assigned_users: { company_id: number; company: string; email: string }[];
+}
+
+export async function provisionMissingOwners(): Promise<ProvisionResult> {
+  const res = await http.post<ProvisionResult>("/admin/companies/provision-missing-owners", {});
+  return res.data;
+}
+
 export async function deleteCompany(id: number): Promise<void> {
   await http.delete(`/admin/companies/${id}`);
 }
@@ -1050,6 +1117,64 @@ export async function updateDepartment(id: number, data: Partial<Department>): P
 
 export async function deleteDepartment(id: number): Promise<void> {
   await http.delete(`/admin/departments/${id}`);
+}
+
+// ── Panel profil API (Faz 3 backend → Faz 4 frontend) ───────────
+
+export interface PanelProfileApiEntry {
+  businessRole: string;
+  systemRole: string | null;
+  profile: Record<string, unknown>;
+  updatedByEmail: string | null;
+  updatedAt: string | null;
+}
+
+export interface PanelProfileListApiResponse {
+  profiles: PanelProfileApiEntry[];
+  canEdit: boolean;
+}
+
+export interface PanelProfilePutBody {
+  category?: string;
+  title?: string;
+  navLabel?: string;
+  wsLabel?: string;
+  heroTitle?: string;
+  heroDesc?: string;
+  color: string;
+  color2: string;
+  color2Mix?: number;
+  syncTopbar?: boolean;
+  accent: string;
+  textColor: string;
+  selfEdit?: boolean;
+  vitrinEdit?: boolean;
+  menuStyle?: string;
+  glow?: number;
+  opacity?: number;
+  fontTitle?: number;
+  fontBody?: number;
+  tabs?: string[];
+  quickLinks?: Array<{ label: string; href: string; desc: string }>;
+  users?: number;
+}
+
+export async function listPanelProfiles(): Promise<PanelProfileListApiResponse> {
+  const res = await http.get<PanelProfileListApiResponse>("/admin/panel-profiles");
+  return res.data;
+}
+
+export async function getMyPanelProfile(): Promise<PanelProfilePutBody | null> {
+  const res = await http.get<PanelProfilePutBody>("/admin/panel-profiles/me");
+  const d = res.data;
+  if (d && typeof d.color === "string" && typeof d.color2 === "string" && typeof d.accent === "string" && typeof d.textColor === "string") {
+    return d;
+  }
+  return null;
+}
+
+export async function putPanelProfile(biz: string, sys: string, body: PanelProfilePutBody): Promise<void> {
+  await http.put(`/admin/panel-profiles/${encodeURIComponent(biz)}/${encodeURIComponent(sys)}`, body);
 }
 
 export async function getCatalogMergePreview(params: {
@@ -1341,6 +1466,11 @@ export async function deletePersonnel(id: number): Promise<void> {
 
 export async function deleteTenantUser(id: number): Promise<void> {
   await deletePersonnel(id);
+}
+
+export async function resendUserInvitation(userId: number): Promise<{ status: string; message: string; invitation_email_sent: boolean }> {
+  const res = await http.post<{ status: string; message: string; invitation_email_sent: boolean }>(`/users/${userId}/resend-invitation`);
+  return res.data;
 }
 
 export async function adminResetPassword(userId: number): Promise<{ message: string; temp_password: string }> {

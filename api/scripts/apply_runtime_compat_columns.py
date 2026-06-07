@@ -33,6 +33,11 @@ STATEMENTS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS photo TEXT",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS work_email VARCHAR(255)",
     "ALTER TABLE supplier_users ADD COLUMN IF NOT EXISTS work_email VARCHAR(255)",
+    "ALTER TABLE supplier_users ADD COLUMN IF NOT EXISTS photo TEXT",
+    "ALTER TABLE supplier_users ADD COLUMN IF NOT EXISTS address VARCHAR(500)",
+    "ALTER TABLE supplier_users ADD COLUMN IF NOT EXISTS city VARCHAR(100)",
+    "ALTER TABLE supplier_users ADD COLUMN IF NOT EXISTS address_district VARCHAR(100)",
+    "ALTER TABLE supplier_users ADD COLUMN IF NOT EXISTS postal_code VARCHAR(10)",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS personal_phone VARCHAR(32)",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS company_phone VARCHAR(32)",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS company_phone_short VARCHAR(16)",
@@ -139,6 +144,17 @@ STATEMENTS = [
     "ALTER TABLE system_email_messages ADD COLUMN IF NOT EXISTS is_starred BOOLEAN DEFAULT FALSE NOT NULL",
     "ALTER TABLE system_email_messages ADD COLUMN IF NOT EXISTS is_important BOOLEAN DEFAULT FALSE NOT NULL",
     "CREATE INDEX IF NOT EXISTS ix_system_email_messages_thread_key ON system_email_messages(thread_key)",
+    # Panel teması override kayıt tablosu — tek satırlık singleton (id=1)
+    # CREATE TABLE IF NOT EXISTS: create_all tarafından oluşturulur; burada sadece seed INSERT.
+    "INSERT INTO panel_theme_settings (id, segments_json, version) VALUES (1, '{}', 1) ON CONFLICT (id) DO NOTHING",
+    # Panel teması audit log tablosu — create_all tarafından oluşturulur, indeks ekle
+    "CREATE INDEX IF NOT EXISTS ix_panel_theme_audit_logs_changed_at ON panel_theme_audit_logs(changed_at DESC)",
+    # Panel profil tablosu — rol-combo başına profil JSON + audit log
+    # (create_all ile oluşturulur; indeks + unique constraint burada güvence altına alınır)
+    "CREATE UNIQUE INDEX IF NOT EXISTS ix_panel_profiles_role ON panel_profiles(business_role, COALESCE(system_role, ''))",
+    "CREATE INDEX IF NOT EXISTS ix_panel_profiles_biz ON panel_profiles(business_role)",
+    "CREATE INDEX IF NOT EXISTS ix_panel_profile_audit_logs_at ON panel_profile_audit_logs(changed_at DESC)",
+    "CREATE INDEX IF NOT EXISTS ix_panel_profile_audit_logs_biz ON panel_profile_audit_logs(business_role)",
     # Social login columns
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)",
     "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_id ON users(google_id)",

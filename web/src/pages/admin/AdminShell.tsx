@@ -15,6 +15,7 @@ import {
   Handshake,
   HelpCircle,
   Home,
+  LayoutDashboard,
   LayoutGrid,
   Mail,
   Megaphone,
@@ -34,6 +35,11 @@ import {
 import type { AuthUser } from "../../context/auth-types";
 import { isSuperAdminUser, getUserDisplayRoleLabel } from "../../auth/permissions";
 import { defaultAccentColorForBusinessRole } from "../../admin/workspace-panels";
+import { PANEL_COLORS, publishPanelProfile } from "../../admin/panel-colors";
+import type { SegmentKey } from "../../admin/panel-colors";
+import { usePanelThemeLiveReload } from "../../hooks/usePanelThemeLiveReload";
+import { usePanelProfileLiveReload } from "../../hooks/usePanelProfileLiveReload";
+import { getMyPanelProfile } from "../../services/admin.service";
 import PanelTopHeader from "./PanelTopHeader";
 import { ADMIN_NAV_GROUPS, navLabelForKey } from "./adminNav";
 import type { AdminNavItem } from "./adminNav";
@@ -70,6 +76,23 @@ function readNavCfg(): NmCfg | null {
   return null;
 }
 
+function resolveUserSegmentKey(user: AuthUser | null, superAdmin: boolean): SegmentKey {
+  if (superAdmin) return "platform";
+  const scope = String((user as { scope_type?: string } | null)?.scope_type ?? "").toLowerCase();
+  if (scope === "supplier") return "supplier";
+  if (scope === "channel")  return "channel";
+  if (scope === "partner")  return "strategic";
+  const biz = String(user?.business_role ?? user?.role ?? "").toLowerCase();
+  // scope_type henüz set edilmemiş kullanıcılar için biz-rol'den türet
+  if (biz === "channel_owner" || biz === "channel_agent" || biz === "kanal_ekip_lideri"
+      || biz === "kanal_finans" || biz === "ozel_kanal_rolu") return "channel";
+  const sys = String(user?.system_role ?? "").toLowerCase();
+  if (sys === "tenant_owner" || sys === "tenant_member" || sys === "tenant_admin") return "strategic";
+  if (biz === "employer_company_admin" || biz === "employer_recruiter") return "employer";
+  if (biz === "candidate_user" || biz === "talent_member") return "seeker";
+  return "platform";
+}
+
 function resolveNavRole(user: AuthUser | null, superAdmin: boolean): string {
   if (superAdmin) return "super_admin";
   const scope = String(user?.scope_type || "").toLowerCase();
@@ -81,6 +104,9 @@ function resolveNavRole(user: AuthUser | null, superAdmin: boolean): string {
   }
   if (scope === "supplier") return "supplier_user";
   if (scope === "channel")  return "channel_agent";
+  // scope_type set edilmemiş channel kullanıcıları için biz-rol fallback
+  if (biz === "channel_owner" || biz === "channel_agent" || biz === "kanal_ekip_lideri"
+      || biz === "kanal_finans" || biz === "ozel_kanal_rolu") return "channel_agent";
   if (biz.includes("admin")) return "tenant_admin";
   return "tenant_member";
 }
@@ -123,8 +149,10 @@ function NavIcon({ name }: { name: string }) {
     case "report":    return <FileBarChart {...props} />;
     case "help":      return <HelpCircle {...props} />;
     case "palette":   return <Palette {...props} />;
-    case "sliders":   return <SlidersHorizontal {...props} />;
-    default:          return <Home {...props} />;
+    case "sliders":    return <SlidersHorizontal {...props} />;
+    case "workspace":  return <LayoutDashboard {...props} />;
+    case "WRK":        return <LayoutDashboard {...props} />;
+    default:           return <Home {...props} />;
   }
 }
 
@@ -186,17 +214,70 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
   const isSuperAdmin = isSuperAdminUser(user);
   const roleLabel    = getUserDisplayRoleLabel(user) || (isSuperAdmin ? "Platform Süper Admin" : "Admin");
   const navRole      = resolveNavRole(user, isSuperAdmin);
+  const segmentKey   = resolveUserSegmentKey(user, isSuperAdmin);
 
-  const sidebarGradient = (() => {
-    const color = isSuperAdmin
-      ? "#3A4F86"
-      : (accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || ""));
-    if (!color || color === "#64748b") return undefined;
-    const mid = darkenHex(color, 0.12);
-    const deep = darkenHex(color, 0.28);
-    return `linear-gradient(180deg, ${color} 0%, ${mid} 55%, ${deep} 100%)`;
-  })();
-  const layoutMode   = navCfg?.layoutMode ?? "single";
+  // Canlı renk tazeleme: panelthemechange → :root --seg-* güncellemesi
+  usePanelThemeLiveReload();
+
+  // Rol-profili canlı tazeleme: sadece mevcut kullanıcının profil event'i uygulanır
+  const _currentBiz = user?.business_role || user?.role || "";
+  const _currentSys = user?.system_role || "";
+  usePanelProfileLiveReload(_currentBiz || undefined, _currentSys || undefined);
+
+  // Giriş sonrası: kullanıcının kendi rol profilini çek ve panele uygula
+  useEffect(() => {
+    const biz = user?.business_role || user?.role || "";
+    const sys = user?.system_role || "";
+    if (!biz) return;
+    const SEG_DEFAULTS: Record<SegmentKey, { color: string; color2: string; accent: string; textColor: string }> = {
+      platform:  { color: "#1d2b4a", color2: "#3A4F86", accent: "#3A4F86", textColor: "#f8fafc" },
+      strategic: { color: "#112a25", color2: "#D4AF37", accent: "#134E37", textColor: "#f8fafc" },
+      supplier:  { color: "#0c4a6e", color2: "#38bdf8", accent: "#0E7490", textColor: "#f0f9ff" },
+      channel:   { color: "#2f1a0d", color2: "#f59e0b", accent: "#7C2D12", textColor: "#fff7ed" },
+      employer:  { color: "#312e81", color2: "#6366f1", accent: "#5B21B6", textColor: "#eef2ff" },
+      seeker:    { color: "#7f1d1d", color2: "#fb7185", accent: "#9F1239", textColor: "#fff1f2" },
+      system:    { color: "#1d2b4a", color2: "#3A4F86", accent: "#3A4F86", textColor: "#f8fafc" },
+    };
+    // /me endpoint'i tüm kullanıcı türlerinde çalışır (tenant_member dahil), biz-fallback destekler
+    getMyPanelProfile()
+      .then((p) => {
+        if (p) {
+          publishPanelProfile({
+            biz, sys,
+            profile: {
+              color:      p.color,
+              color2:     p.color2,
+              color2Mix:  typeof p.color2Mix === "number" ? p.color2Mix : 0.18,
+              syncTopbar: p.syncTopbar === true,
+              accent:     p.accent,
+              textColor:  p.textColor,
+            },
+          });
+        } else {
+          // DB'de kayıtlı profil yok — segment varsayılanlarını yayınla
+          const def = SEG_DEFAULTS[segmentKey];
+          publishPanelProfile({
+            biz, sys,
+            profile: {
+              color:      def.color,
+              color2:     def.color2,
+              color2Mix:  0.22,
+              syncTopbar: false,
+              accent:     def.accent,
+              textColor:  def.textColor,
+            },
+          });
+        }
+      })
+      .catch(() => { /* panele varsayılan CSS renkleri uygulanmaya devam eder */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // accentColor prop'u opsiyonel override olarak korunur (legacy uyumluluk)
+  const _legacyAccentColor = accentColor ?? defaultAccentColorForBusinessRole(user?.business_role || "");
+  void PANEL_COLORS; void _legacyAccentColor; // Faz 4: artık data-panel CSS var'ı kullanıyor
+  const _pfNavStyleRaw = (() => { try { return localStorage.getItem("pf_nav_style") ?? ""; } catch { return ""; } })();
+  const layoutMode   = navCfg?.layoutMode ?? (_pfNavStyleRaw === "top" ? "top" : "single");
   const menuStyle    = navCfg?.menuStyle  ?? "expanded";
 
   // ── Listen for nav config saves ──
@@ -248,7 +329,13 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
   // ── Sidebar visible groups ──
   const visibleGroups = useMemo(() => {
-    if (!navCfg) {
+    // navCfg was configured for platform roles; fall back to tabKeys filtering
+    // when it has no explicit role config for the current navRole (e.g. channel_agent)
+    const navCfgHasRoleConfig = navCfg
+      ? Object.values(navCfg.items).some((ci) => ci.roles?.[navRole] !== undefined)
+      : false;
+
+    if (!navCfg || !navCfgHasRoleConfig) {
       return tabKeys
         ? ADMIN_NAV_GROUPS
             .map((g) => ({ ...g, items: g.items.filter((i) => tabKeys.includes(i.key)) }))
@@ -279,9 +366,22 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
   // ── Top-nav groups (dual / top modes) ──
   const topGroups = useMemo<Array<{ label: string; items: (AdminNavItem & { locked: boolean })[] }>>(() => {
-    if (!navCfg || layoutMode === "single") return [];
+    if (layoutMode === "single") return [];
     const meta: Record<string, AdminNavItem & { group: string }> = {};
     ADMIN_NAV_GROUPS.forEach((g) => g.items.forEach((i) => { meta[i.key] = { ...i, group: g.label }; }));
+    if (!navCfg) {
+      // pf_nav_style="top" fallback: build top nav from tabKeys without navCfg
+      const allKeys = ADMIN_NAV_GROUPS.flatMap((g) => g.items.map((i) => i.key));
+      const visKeys = tabKeys ? allKeys.filter((k) => tabKeys.includes(k)) : allKeys;
+      const groups: Array<{ label: string; items: (AdminNavItem & { locked: boolean })[] }> = [];
+      const seen: Record<string, (typeof groups)[number]> = {};
+      visKeys.forEach((k) => {
+        const m = meta[k]; if (!m) return;
+        if (!seen[m.group]) { seen[m.group] = { label: m.group, items: [] }; groups.push(seen[m.group]); }
+        seen[m.group].items.push({ ...m, locked: false });
+      });
+      return groups;
+    }
     const visKeys = navCfg.order.filter((k) => {
       const ci = navCfg.items[k];
       if (!ci?.enabled || ci.placement === "hidden") return false;
@@ -306,13 +406,15 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
   return (
     <>
-    <div className={`as-wrap${layoutMode !== "single" ? ` as-wrap--${layoutMode}` : ""}`}>
+    <div
+      className={`as-wrap${layoutMode !== "single" ? ` as-wrap--${layoutMode}` : ""}`}
+      data-panel={segmentKey}
+    >
 
       {/* ── PANEL TOP HEADER (full-width) ── */}
       <PanelTopHeader
         panelTitle={isSuperAdmin ? "Platform Süper Admin Paneli" : `${roleLabel} Paneli`}
         userName={user?.full_name ?? "Süper Admin"}
-        accentBackground={sidebarGradient}
       />
 
       {/* ── TOP NAV (dual / top modes) ── */}
@@ -349,7 +451,7 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
 
         {/* ── SIDEBAR ── */}
         {showSidebar && (
-        <aside className="as-sidebar" style={sidebarGradient ? { background: sidebarGradient } : undefined}>
+        <aside className="as-sidebar">
           <div className="as-brand">
             <div className="as-tenant">
               <div className="as-tenant-avatar">{userInitials(user)}</div>
@@ -389,7 +491,7 @@ export default function AdminShell({ activeKey, onNavigate, user, children, tabK
                         key={item.key}
                         type="button"
                         className={`as-nav-item${isActive ? " as-nav-item--active" : ""}${locked ? " as-nav-item--locked" : ""}`}
-                        onClick={() => !locked && onNavigate(item.key)}
+                        onClick={() => !locked && !isActive && onNavigate(item.key)}
                         aria-current={isActive ? "page" : undefined}
                         title={locked ? `${item.label} (kilitli)` : item.label}
                         disabled={locked}

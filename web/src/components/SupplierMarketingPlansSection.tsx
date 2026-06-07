@@ -35,7 +35,7 @@ const EMPTY_FORM = {
   description: "",
   categories: "",
   target_segments: [] as string[],
-  visibility: "draft" as const,
+  visibility: "draft" as "draft" | "active" | "paused",
   is_featured: false,
 };
 

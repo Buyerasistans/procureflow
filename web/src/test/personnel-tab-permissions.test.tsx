@@ -80,6 +80,7 @@ describe("PersonnelTab permissions", () => {
 
     expect(screen.getByText(/platform personeli bu alanda kullanıcı listesini inceleyebilir/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Yeni Kullanıcı/ })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /\d+ üye/i }));
     expect(screen.getByRole("button", { name: /platform visible user durum kutusu/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /detay/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /düzenle/i })).not.toBeInTheDocument();
@@ -96,6 +97,7 @@ describe("PersonnelTab permissions", () => {
     );
 
     expect(screen.getByRole("button", { name: /Yeni Kullanıcı/ })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /\d+ üye/i }));
     expect(screen.getByRole("button", { name: /platform visible user durum kutusu/i })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: /düzenle/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sil/i })).toBeInTheDocument();
@@ -110,6 +112,7 @@ describe("PersonnelTab permissions", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /\d+ üye/i }));
     fireEvent.click(screen.getByRole("button", { name: /detay/i }));
     expect(await screen.findByRole("button", { name: /modal reset password/i })).toBeInTheDocument();
 
@@ -131,6 +134,7 @@ describe("PersonnelTab permissions", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /\d+ üye/i }));
     fireEvent.click(screen.getByRole("button", { name: /detay/i }));
     await screen.findByText(/personnel detail modal mock/i);
 

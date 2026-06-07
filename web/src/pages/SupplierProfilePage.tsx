@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSupplierAccessToken } from "../lib/session";
+import { clearToken, getSupplierAccessToken } from "../lib/session";
+import { panelProfileCssVars, pdChromeBg } from "../admin/panel-designer.helpers";
+import { Archive, Award, Bell, Building2, FileCheck, FileText, FolderOpen, Home, LogOut, Menu, Settings2, ShieldCheck, User, Users } from "lucide-react";
+import PublicBrandLogo from "../components/PublicBrandLogo";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import {
   deleteSupplierProfileUser,
   getSupplierEmailChangeStatus,
@@ -16,7 +20,10 @@ import {
 import { getCityNames, getDistricts } from "../data/turkey-cities";
 import { COMPANY_CATEGORY_OPTIONS } from "../constants/companyCategories";
 import { CategorySelectionModal } from "../components/CategorySelectionModal";
+import "./SupplierDashboard.css";
 import "./SupplierProfilePage.css";
+
+const SUPPLIER_PANEL = { color: "#0c4a6e", color2: "#38bdf8", color2Mix: 0.22, accent: "#0E7490", textColor: "#f0f9ff" } as const;
 
 function AutocompleteInput({ value, onChange, options, placeholder, disabled }: {
   value: string;
@@ -144,6 +151,9 @@ function mapToForm(p: SupplierProfileResponse): FormState {
 export default function SupplierProfilePage() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -167,6 +177,7 @@ export default function SupplierProfilePage() {
   const [faturaGoogleUrl, setFaturaGoogleUrl] = useState<string | null>(null);
   const [showFirmaMap, setShowFirmaMap] = useState(true);
   const [showFaturaMap, setShowFaturaMap] = useState(true);
+  const [roleText, setRoleText] = useState<string>("Tedarikçi Kullanıcısı");
 
   const flash = useCallback((msg: string, type: "success" | "error") => {
     setToast({ msg, type });
@@ -188,12 +199,48 @@ export default function SupplierProfilePage() {
   }, [flash]);
 
   useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const applyVars = (p: typeof SUPPLIER_PANEL) => {
+      const vars = panelProfileCssVars({
+        color: p.color, color2: p.color2, color2Mix: p.color2Mix,
+        accent: p.accent, textColor: p.textColor,
+      });
+      Object.entries(vars).forEach(([k, v]) => el.style.setProperty(k, v));
+    };
+    applyVars(SUPPLIER_PANEL);
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<typeof SUPPLIER_PANEL>).detail;
+      if (detail) applyVars(detail);
+    };
+    window.addEventListener("panelprofilechange", handler);
+    return () => window.removeEventListener("panelprofilechange", handler);
+  }, [loading]);
+
+  const handleLogout = () => {
+    clearToken();
+    navigate("/supplier/login", { replace: true });
+  };
+
+  useEffect(() => {
     if (!getSupplierAccessToken()) {
       navigate("/supplier/login", { replace: true });
       return;
     }
     void load();
   }, [load, navigate]);
+
+  useEffect(() => {
+    const rawUser = localStorage.getItem("pf_user") || sessionStorage.getItem("pf_user");
+    if (!rawUser) return;
+    const parsed = JSON.parse(rawUser) as { business_role?: string; system_role?: string; role_profile_code?: string };
+    const br = String(parsed.business_role || "").toLowerCase();
+    const sr = String(parsed.system_role || "").toLowerCase();
+    const code = String(parsed.role_profile_code || "").trim();
+    if (br === "supplier_admin") setRoleText(code || "Tedarikçi Yöneticisi");
+    else if (br === "supplier_user" || sr === "supplier_user") setRoleText(code || "Tedarikçi Kullanıcısı");
+    else setRoleText(code || "Tedarikçi");
+  }, []);
 
   const cityNames = useMemo(() => getCityNames(), []);
   const districts = useMemo(() => form?.invoice_city ? getDistricts(form.invoice_city) : [], [form?.invoice_city]);
@@ -362,25 +409,157 @@ export default function SupplierProfilePage() {
 
   if (loading || !profile || !form) {
     return (
-      <div className="ssp-wrap">
-        <div className="ssp-topbar">
-          <div className="ssp-topbar__left"><h1>Profilim</h1></div>
+      <div className="sds-wrap" ref={wrapRef}>
+        <header className="sds-panel-top" />
+        <div className="sds-shell">
+          <aside className="sds-sidebar" />
+          <div className="sds-main">
+            <div className="sds-loading-center">Yükleniyor...</div>
+          </div>
         </div>
-        <div className="ssp-body"><div className="ssp-card ssp-card--center">Yükleniyor...</div></div>
       </div>
     );
   }
 
-  return (
-    <div className="ssp-wrap">
-      <div className="ssp-topbar">
-        <div className="ssp-topbar__left">
-          <h1>Profilim</h1>
-          <span>{profile.supplier.company_name}</span>
-        </div>
-        <button type="button" className="ssp-topbar__back" onClick={() => navigate("/supplier/dashboard")}>← Panele Dön</button>
-      </div>
+  const firmName = profile.supplier.company_name;
+  const userName = form.user_name || profile.user?.name || "";
+  const userEmail = form.user_email || profile.user?.email || "";
 
+  return (
+    <div className="sds-wrap" ref={wrapRef}>
+
+      {/* ── Full-width dark primary topbar ── */}
+      <header className="sds-panel-top">
+        <div className="sds-pt-brand">
+          <button type="button" className="sds-hamburger" onClick={() => setSidebarOpen((p) => !p)} aria-label="Menüyü aç">
+            <Menu size={18} />
+          </button>
+          <PublicBrandLogo height={44} maxWidth={160} invert />
+        </div>
+        <div className="sds-pt-center">
+          <div className="sds-pt-title-row">
+            <span className="sds-pt-platform">Tedarikçi Yönetim Paneli</span>
+            <span className="sds-pt-dot">·</span>
+            <span className="sds-pt-title">{roleText}</span>
+            <span className="sds-pt-ver">v3.4</span>
+          </div>
+        </div>
+        <div className="sds-pt-welcome">
+          <span className="sds-pt-hi">Hoş geldiniz</span>
+          <b className="sds-pt-name">{userName}</b>
+        </div>
+      </header>
+
+      {/* ── Shell (sidebar + main) ── */}
+      <div className="sds-shell">
+
+        {sidebarOpen && <div className="sds-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
+        <aside className={`sds-sidebar${sidebarOpen ? " sds-sidebar--open" : ""}`}>
+          <div className="sds-tenant-block">
+            {logoSrc
+              ? <img className="sds-tenant-avatar__img" src={logoSrc} alt={firmName} />
+              : <div className="sds-tenant-avatar">{firmName.slice(0, 2).toUpperCase()}</div>
+            }
+            <div>
+              <div className="sds-tenant-name">{firmName}</div>
+              <div className="sds-tenant-role">{roleText}</div>
+            </div>
+          </div>
+
+          <nav className="sds-nav">
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">GENEL</div>
+              <button type="button" className="sds-nav-item" onClick={() => { navigate("/supplier/dashboard"); setSidebarOpen(false); }}>
+                <Home size={15} /> Anasayfa
+              </button>
+            </div>
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">İŞ AKIŞI</div>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=offers")}>
+                <FileText size={15} /> Tekliflerim
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=contracts")}>
+                <FileCheck size={15} /> Sözleşmelerim
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=guarantees")}>
+                <ShieldCheck size={15} /> Teminatlarım
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=certificates")}>
+                <Award size={15} /> Sertifikalar
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=company_docs")}>
+                <FolderOpen size={15} /> Şirket Evrakları
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=personnel_docs")}>
+                <Users size={15} /> Personel Evrakları
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=guarantee_docs")}>
+                <Archive size={15} /> Alınan Teminatlar
+              </button>
+            </div>
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">FİRMA</div>
+              <button type="button" className="sds-nav-item sds-nav-item--active" onClick={() => navigate("/supplier/firm-profile")}>
+                <Building2 size={15} /> Firma Profili
+              </button>
+            </div>
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">KİŞİSEL</div>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/profile")}>
+                <User size={15} /> Profilim
+              </button>
+            </div>
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">SİSTEM</div>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/dashboard")}>
+                <Settings2 size={15} /> Sistem Ayarları
+              </button>
+            </div>
+          </nav>
+
+          <div className="sds-sidebar-footer">
+            <button type="button" className="sds-logout-btn" onClick={handleLogout}>
+              <LogOut size={13} /> Çıkış Yap
+            </button>
+          </div>
+        </aside>
+
+        {/* ── Main ── */}
+        <div className="sds-main">
+          <header className="sds-topbar">
+            <nav className="sds-crumbs">
+              <span>Tedarikçi</span>
+              <span className="sds-crumb-sep">›</span>
+              <b>Firma Profili</b>
+            </nav>
+            <div className="sds-top-actions">
+              <LanguageSwitcher compact />
+              <button type="button" className="sds-icon-btn" title="Bildirimler" aria-label="Bildirimler">
+                <Bell size={16} />
+              </button>
+              <div className="sds-user-btn-wrap">
+                <button type="button" className="sds-user-chip" onClick={() => setUserMenuOpen((p) => !p)}>
+                  <div className="sds-user-av">{userName.slice(0, 1).toUpperCase()}</div>
+                  <div className="sds-user-meta">
+                    <b>{userName}</b>
+                    <span>{userEmail}</span>
+                  </div>
+                </button>
+                {userMenuOpen && (
+                  <div className="sds-user-menu">
+                    <div className="sds-user-menu__head">
+                      <div className="sds-user-menu__name">{userName}</div>
+                      <div className="sds-user-menu__email">{userEmail}</div>
+                    </div>
+                    <button type="button" className="sds-user-menu-item sds-user-menu-item--danger" onClick={() => { setUserMenuOpen(false); handleLogout(); }}>Çıkış Yap</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <div className="sds-content">
       <div className="ssp-body">
         {/* Logo & Contact card */}
         <div className="ssp-card ssp-logo-card">
@@ -748,8 +927,13 @@ export default function SupplierProfilePage() {
             setShowCategoryModal(false);
           }}
         />
-      </div>
+      </div>{/* /ssp-body */}
+          </div>{/* /sds-content */}
+        </div>{/* /sds-main */}
 
+      </div>{/* /sds-shell */}
+
+      {userMenuOpen && <div className="sds-overlay" onClick={() => setUserMenuOpen(false)} />}
       {toast && <div className={`ssp-toast ssp-toast--${toast.type}`}>{toast.msg}</div>}
     </div>
   );
