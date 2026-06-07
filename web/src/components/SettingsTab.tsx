@@ -212,6 +212,15 @@ export const SettingsTab: React.FC<{ onNavigate?: (tab: string) => void }> = ({ 
   });
   function handleNavStyleChange(style: "sidebar" | "top") {
     try { localStorage.setItem("pf_nav_style", style); } catch { /* ignore */ }
+    // Admin panel (AdminShell) uses navCfg.layoutMode — sync it too
+    try {
+      const stored = localStorage.getItem("pf_nav_config");
+      if (stored) {
+        const cfg = JSON.parse(stored) as Record<string, unknown>;
+        cfg.layoutMode = style === "top" ? "top" : "single";
+        localStorage.setItem("pf_nav_config", JSON.stringify(cfg));
+      }
+    } catch { /* ignore */ }
     setNavStyleState(style);
     window.location.reload();
   }

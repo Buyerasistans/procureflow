@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { http } from "../lib/http";
 import { clearToken, getSupplierAccessToken } from "../lib/session";
+import { panelProfileCssVars, pdChromeBg } from "../admin/panel-designer.helpers";
+import { Archive, Award, Bell, Building, Building2, FileCheck, FileText, FolderOpen, Home, LogOut, Mail, Menu, Settings2, ShieldCheck, User, Users } from "lucide-react";
 import PublicBrandLogo from "../components/PublicBrandLogo";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { getSupplierProfile, updateSupplierProfile, type SupplierAuthorizedUser } from "../services/supplier-profile.service";
 import { getDashboardMailButtonConfig, getMailCenterAccounts, type MailCenterAccount } from "../services/mail-center.service";
 import MailCenterPopup from "../components/MailCenterPopup";
@@ -354,9 +357,12 @@ function ScopeSettingsBoard({ userId }: { userId?: number | null }) {
   );
 }
 
+const SUPPLIER_PANEL = { color: "#0c4a6e", color2: "#38bdf8", color2Mix: 0.22, accent: "#0E7490", textColor: "#f0f9ff" } as const;
+
 /* ─── Main Component ──────────────────────────────────────────── */
 export default function SupplierDashboard() {
   const navigate = useNavigate();
+  const shellRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [projects, setProjects] = useState<AssignedProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -383,10 +389,59 @@ export default function SupplierDashboard() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<DashTab>("panel_home");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const flash = (msg: string, type: "success" | "error" | "info") => {
     setToast({ msg, type }); setTimeout(() => setToast(null), 3500);
   };
+
+  const DASH_TAB_LABELS: Record<DashTab, string> = {
+    panel_home: "Panel Ana Sayfa",
+    platform_settings: "Sistem Ayarları",
+    profil: "Profilim",
+    firmalar: "Firmalarım",
+  };
+
+  // Apply supplier panel CSS vars + listen for panel designer changes
+  useEffect(() => {
+    const el = shellRef.current;
+    if (!el) return;
+    el.setAttribute("data-panel", "supplier");
+
+    type PanelColors = { color: string; color2: string; color2Mix: number; accent: string; textColor: string };
+
+    const applyVars = (profile: PanelColors) => {
+      const vars = panelProfileCssVars(profile);
+      for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v);
+      el.style.setProperty("--panel-chrome-hero", pdChromeBg("hero", profile.color, profile.color2, profile.color2Mix));
+    };
+
+    // Apply defaults immediately so the panel is never unstyled
+    applyVars(SUPPLIER_PANEL);
+
+    // Fetch saved panel profile from DB and override defaults
+    http.get<Partial<PanelColors> & Record<string, unknown>>("/suppliers/panel-profile")
+      .then((res) => {
+        const d = res.data;
+        if (d?.color && d?.color2 && d?.accent && d?.textColor) {
+          applyVars({
+            color: d.color,
+            color2: d.color2,
+            color2Mix: typeof d.color2Mix === "number" ? d.color2Mix : SUPPLIER_PANEL.color2Mix,
+            accent: d.accent,
+            textColor: d.textColor,
+          });
+        }
+      })
+      .catch(() => { /* keep defaults on network error */ });
+
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<PanelColors>).detail;
+      if (detail) applyVars(detail);
+    };
+    window.addEventListener("panelprofilechange", handler);
+    return () => window.removeEventListener("panelprofilechange", handler);
+  }, []);
 
   const submittedCount = useMemo(() => projects.filter((p) => Boolean(p.supplier_quote?.submitted)).length, [projects]);
   const pendingCount = useMemo(() => projects.filter((p) => !p.supplier_quote?.submitted).length, [projects]);
@@ -553,283 +608,351 @@ export default function SupplierDashboard() {
 
   if (loading) {
     return (
-      <div className="sd-shell">
-        <div className="sd-loading">Yukleniyor...</div>
+      <div className="sds-wrap" ref={shellRef}>
+        <header className="sds-panel-top" />
+        <div className="sds-shell">
+          <aside className="sds-sidebar" />
+          <div className="sds-main">
+            <div className="sds-loading-center">Yükleniyor...</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="sd-shell">
-      {/* ── TOP NAV ── */}
-      <header className="sd-topnav">
-        <div className="sd-topnav__left">
-          <div className="sd-nav-brand">
-            <div className="sd-nav-brand__logo-row">
-              <PublicBrandLogo height={34} maxWidth={168} invert />
-            </div>
-            <div className="sd-firm-row">
-              {firmLogoUrl
-                ? <img className="sd-firm-logo" src={firmLogoUrl} alt={firmName} />
-                : <div className="sd-firm-logo-placeholder">{firmName.slice(0, 2).toUpperCase()}</div>
-              }
-              <div className="sd-firm-name">{firmName}</div>
-            </div>
+    <div className="sds-wrap" ref={shellRef}>
+
+      {/* ── ROW 1: Full-width dark primary topbar ── */}
+      <header className="sds-panel-top">
+        <div className="sds-pt-brand">
+          <button type="button" className="sds-hamburger" onClick={() => setSidebarOpen((p) => !p)} aria-label="Menüyü aç">
+            <Menu size={18} />
+          </button>
+          <PublicBrandLogo height={44} maxWidth={160} invert />
+        </div>
+        <div className="sds-pt-center">
+          <div className="sds-pt-title-row">
+            <span className="sds-pt-platform">Tedarikçi Yönetim Paneli</span>
+            <span className="sds-pt-dot">·</span>
+            <span className="sds-pt-title">{roleText}</span>
+            <span className="sds-pt-ver">v3.4</span>
           </div>
         </div>
-
-        <nav className="sd-nav-links">
-          <button type="button" className={`sd-nav-link${activeTab === "panel_home" ? " sd-nav-link--active" : ""}`} onClick={() => setActiveTab("panel_home")}>Anasayfa</button>
-          <button type="button" className="sd-nav-link" onClick={() => navigate("/supplier/workspace?tab=offers")}>Tekliflerim</button>
-          <button type="button" className="sd-nav-link" onClick={() => navigate("/supplier/workspace")}>Calisma Alani</button>
-          <button type="button" className="sd-nav-link" onClick={() => navigate("/supplier/workspace?tab=profile")}>Profil</button>
-          <button type="button" className={`sd-nav-link${activeTab === "platform_settings" ? " sd-nav-link--active" : ""}`} onClick={() => setActiveTab("platform_settings")}>Sistem Ayarlari</button>
-        </nav>
-
-        <div className="sd-nav-right">
-          <button type="button" className="sd-user-btn" onClick={() => setUserMenuOpen((p) => !p)}>
-            {userName} ▾
-          </button>
-
-          {userMenuOpen && (
-            <div className="sd-user-menu">
-              <div className="sd-user-menu__role">{roleText}</div>
-              <button type="button" className="sd-user-menu-item" onClick={() => { setActiveTab("profil"); setUserMenuOpen(false); }}>
-                Profilim
-              </button>
-              <button type="button" className="sd-user-menu-item sd-user-menu-item--danger" onClick={() => { setUserMenuOpen(false); handleLogout(); }}>
-                Çıkış Yap
-              </button>
-            </div>
-          )}
-
-          {(isSuperAdminSession || dashboardMailButtonEnabled) && (
-            <button
-              type="button"
-              className={`sd-mail-btn${mailUnreadCount > 0 ? " sd-mail-btn--unread" : ""}`}
-              onClick={() => setMailPopupOpen(true)}
-              title="Mail Merkezi"
-            >
-              ✉ Mail
-              {mailUnreadCount > 0 && (
-                <span className="sd-mail-badge">{mailUnreadCount}</span>
-              )}
-            </button>
-          )}
+        <div className="sds-pt-welcome">
+          <span className="sds-pt-hi">Hoş geldiniz</span>
+          <b className="sds-pt-name">{userName}</b>
         </div>
       </header>
 
-      {/* ── BODY ── */}
-      <div className="sd-body">
-        {/* Scope Banner */}
-        <div className="sd-scope-banner">
-          <div className="sd-scope-brand-card">
-            <PublicBrandLogo height={24} maxWidth={80} invert />
-          </div>
-          <div className="sd-scope-info">
-            <div className="sd-scope-label">Tedarikçi Platformu Yönetim Alanı</div>
-            <div className="sd-scope-title">{firmName}</div>
-            <div className="sd-scope-role">{roleText}</div>
-          </div>
-          <div className="sd-scope-right">
-            <div className="sd-scope-welcome">Hoş geldiniz</div>
-            <div className="sd-scope-user">{userName}</div>
-            <div className="sd-scope-email">{userEmail}</div>
-          </div>
-        </div>
+      {/* ── ROW 2: Shell (sidebar + main) ── */}
+      <div className="sds-shell">
 
-        {/* Work Menu Card */}
-        <div className="sd-work-menu-card">
-          <div className="sd-work-menu-label">Çalışma Menüsü</div>
-          <div className="sd-work-menu-title">{roleText}</div>
-          <div className="sd-pill-row">
-            <button type="button" className={`sd-pill${activeTab === "panel_home" ? " sd-pill--active" : ""}`} onClick={() => setActiveTab("panel_home")}>Anasayfa</button>
-            <button type="button" className="sd-pill" onClick={() => navigate("/supplier/workspace?tab=offers")}>Tekliflerim</button>
-            <button type="button" className="sd-pill" onClick={() => navigate("/supplier/workspace?tab=contracts")}>Sözleşmelerim</button>
-            <button type="button" className="sd-pill" onClick={() => navigate("/supplier/workspace?tab=guarantees")}>Teminatlarım</button>
-            <button type="button" className="sd-pill" onClick={() => navigate("/supplier/workspace?tab=certificates")}>Sertifikalar</button>
-            <button type="button" className="sd-pill" onClick={() => { flash("Roller ve Yetkiler yönetim alanı yakında açılacaktır.", "info"); }}>Roller ve Yetkiler</button>
-            <button type="button" className="sd-pill" onClick={() => { flash("Departmanlar yönetim alanı yakında açılacaktır.", "info"); }}>Departmanlar</button>
-            <button type="button" className="sd-pill" onClick={() => navigate("/supplier/workspace?tab=company_docs")}>Şirket Evrakları</button>
-            <button type="button" className="sd-pill" onClick={() => navigate("/supplier/workspace?tab=profile")}>Firma Profili</button>
-            <button type="button" className={`sd-pill${activeTab === "profil" ? " sd-pill--active" : ""}`} onClick={() => setActiveTab("profil")}>Profilim</button>
-            {myFirms.length > 1 && (
-              <button type="button" className={`sd-pill${activeTab === "firmalar" ? " sd-pill--active" : ""}`} onClick={() => setActiveTab("firmalar")}>Firmalarım ({myFirms.length})</button>
-            )}
-            <button type="button" className={`sd-pill${activeTab === "platform_settings" ? " sd-pill--active" : ""}`} onClick={() => setActiveTab("platform_settings")}>Sistem Ayarları</button>
+        {/* Sidebar overlay for mobile */}
+        {sidebarOpen && <div className="sds-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
+        {/* ── SIDEBAR ── */}
+        <aside className={`sds-sidebar${sidebarOpen ? " sds-sidebar--open" : ""}`}>
+
+          {/* Firm identity block — NO separate logo, firm avatar here */}
+          <div className="sds-tenant-block">
+            {firmLogoUrl
+              ? <img className="sds-tenant-avatar__img" src={firmLogoUrl} alt={firmName} />
+              : <div className="sds-tenant-avatar">{firmName.slice(0, 2).toUpperCase()}</div>
+            }
+            <div>
+              <div className="sds-tenant-name">{firmName}</div>
+              <div className="sds-tenant-role">{roleText}</div>
+            </div>
           </div>
-          <div className="sd-divider" />
-        </div>
 
-        {/* ── TAB: panel_home ── */}
-        {activeTab === "panel_home" && (
-          <>
-            {error && <div className="sd-error-box">{error}</div>}
-
-            <div className="sd-stats-row">
-              <div className="sd-stat-box">
-                <div className="sd-stat-box__lbl">Atanan Proje</div>
-                <div className="sd-stat-box__val">{projects.length}</div>
-              </div>
-              <div className="sd-stat-box">
-                <div className="sd-stat-box__lbl">Bekleyen Teklif</div>
-                <div className="sd-stat-box__val sd-stat-box__val--amber">{pendingCount}</div>
-              </div>
-              <div className="sd-stat-box">
-                <div className="sd-stat-box__lbl">Gönderilen Teklif</div>
-                <div className="sd-stat-box__val sd-stat-box__val--green">{submittedCount}</div>
-              </div>
-              <div className="sd-stat-box">
-                <div className="sd-stat-box__lbl">Dosyalı Proje</div>
-                <div className="sd-stat-box__val">{withFilesCount}</div>
-              </div>
+          <nav className="sds-nav">
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">GENEL</div>
+              <button type="button" className={`sds-nav-item${activeTab === "panel_home" ? " sds-nav-item--active" : ""}`} onClick={() => { setActiveTab("panel_home"); setSidebarOpen(false); }}>
+                <Home size={15} /> Anasayfa
+              </button>
             </div>
 
-            <h2 className="sd-section-title">Size Atanan Projeler</h2>
-            {projects.length === 0 ? (
-              <div className="sd-empty">
-                <div className="sd-empty__icon">📭</div>
-                <h3>Henüz proje atanmamış</h3>
-                <p>Size proje atandığında burada gösterilecektir</p>
-              </div>
-            ) : (
-              <div className="sd-projects-grid">
-                {projects.map((project) => (
-                  <div className="sd-project-card" key={project.id}>
-                    <div className="sd-project-card__company">
-                      {resolveLogo(project.company?.logo_url) ? (
-                        <img src={resolveLogo(project.company?.logo_url) || ""} alt="firma" className="sd-company-logo" />
-                      ) : (
-                        <div className="sd-company-logo-placeholder">🏢</div>
-                      )}
-                      <div>
-                        <div className="sd-company-label">İş Veren Firma</div>
-                        <div className="sd-company-name">{project.company?.name || "Firma bilgisi yok"}</div>
-                      </div>
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">İŞ AKIŞI</div>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=offers")}>
+                <FileText size={15} /> Tekliflerim
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=contracts")}>
+                <FileCheck size={15} /> Sözleşmelerim
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=guarantees")}>
+                <ShieldCheck size={15} /> Teminatlarım
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=certificates")}>
+                <Award size={15} /> Sertifikalar
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=company_docs")}>
+                <FolderOpen size={15} /> Şirket Evrakları
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=personnel_docs")}>
+                <Users size={15} /> Personel Evrakları
+              </button>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/workspace?tab=guarantee_docs")}>
+                <Archive size={15} /> Alınan Teminatlar
+              </button>
+            </div>
+
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">FİRMA</div>
+              <button type="button" className="sds-nav-item" onClick={() => navigate("/supplier/firm-profile")}>
+                <Building2 size={15} /> Firma Profili
+              </button>
+            </div>
+
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">KİŞİSEL</div>
+              <button type="button" className="sds-nav-item" onClick={() => { navigate("/supplier/profile"); setSidebarOpen(false); }}>
+                <User size={15} /> Profilim
+              </button>
+              {myFirms.length > 1 && (
+                <button type="button" className={`sds-nav-item${activeTab === "firmalar" ? " sds-nav-item--active" : ""}`} onClick={() => { setActiveTab("firmalar"); setSidebarOpen(false); }}>
+                  <Building size={15} /> Firmalarım ({myFirms.length})
+                </button>
+              )}
+            </div>
+
+            <div className="sds-nav-group">
+              <div className="sds-nav-group-label">SİSTEM</div>
+              <button type="button" className={`sds-nav-item${activeTab === "platform_settings" ? " sds-nav-item--active" : ""}`} onClick={() => { setActiveTab("platform_settings"); setSidebarOpen(false); }}>
+                <Settings2 size={15} /> Sistem Ayarları
+              </button>
+            </div>
+          </nav>
+
+          <div className="sds-sidebar-footer">
+            <button type="button" className="sds-logout-btn" onClick={handleLogout}>
+              <LogOut size={13} /> Çıkış Yap
+            </button>
+          </div>
+        </aside>
+
+        {/* ── MAIN ── */}
+        <div className="sds-main">
+
+          {/* White secondary toolbar: breadcrumb + language + bell + mail + user */}
+          <header className="sds-topbar">
+            <nav className="sds-crumbs">
+              <span>Tedarikçi</span>
+              <span className="sds-crumb-sep">›</span>
+              <b>{DASH_TAB_LABELS[activeTab]}</b>
+            </nav>
+            <div className="sds-top-actions">
+              <LanguageSwitcher compact />
+              <button type="button" className="sds-icon-btn" title="Bildirimler" aria-label="Bildirimler">
+                <Bell size={16} />
+              </button>
+              {(isSuperAdminSession || dashboardMailButtonEnabled) && (
+                <button
+                  type="button"
+                  className={`sds-mail-btn${mailUnreadCount > 0 ? " sds-mail-btn--unread" : ""}`}
+                  onClick={() => setMailPopupOpen(true)}
+                  title="Mail Merkezi"
+                >
+                  <Mail size={15} />
+                  <span>Mail</span>
+                  {mailUnreadCount > 0 && <span className="sds-mail-badge">{mailUnreadCount}</span>}
+                </button>
+              )}
+              <div className="sds-user-btn-wrap">
+                <button type="button" className="sds-user-chip" onClick={() => setUserMenuOpen((p) => !p)}>
+                  <div className="sds-user-av">{userName.slice(0, 1).toUpperCase()}</div>
+                  <div className="sds-user-meta">
+                    <b>{userName}</b>
+                    <span>{userEmail}</span>
+                  </div>
+                </button>
+                {userMenuOpen && (
+                  <div className="sds-user-menu">
+                    <div className="sds-user-menu__head">
+                      <div className="sds-user-menu__name">{userName}</div>
+                      <div className="sds-user-menu__email">{userEmail}</div>
                     </div>
+                    <button type="button" className="sds-user-menu-item" onClick={() => { navigate("/supplier/profile"); setUserMenuOpen(false); }}>Profilim</button>
+                    <button type="button" className="sds-user-menu-item sds-user-menu-item--danger" onClick={() => { setUserMenuOpen(false); handleLogout(); }}>Çıkış Yap</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
 
-                    <h3>{project.name}</h3>
+          {/* Content */}
+          <div className="sds-content">
 
-                    <span className={`sd-status-badge${project.supplier_quote?.submitted ? " sd-status-badge--submitted" : " sd-status-badge--pending"}`}>
-                      {project.supplier_quote?.submitted ? "Teklif Gönderildi" : "Teklif Bekleniyor"}
-                    </span>
+          {/* ── TAB: panel_home ── */}
+          {activeTab === "panel_home" && (
+            <>
+              {error && <div className="sd-error-box">{error}</div>}
 
-                    {project.quote?.title && (
-                      <div className="sd-quote-info">
-                        <div className="sd-quote-info__label">Teklif Basligi</div>
-                        <div className="sd-quote-info__value">{project.quote.title}</div>
-                      </div>
-                    )}
-                    {project.quote?.description && (
-                      <div className="sd-quote-desc">{project.quote.description}</div>
-                    )}
+              <div className="sd-stats-row">
+                <div className="sd-stat-box">
+                  <div className="sd-stat-box__lbl">Atanan Proje</div>
+                  <div className="sd-stat-box__val">{projects.length}</div>
+                </div>
+                <div className="sd-stat-box">
+                  <div className="sd-stat-box__lbl">Bekleyen Teklif</div>
+                  <div className="sd-stat-box__val sd-stat-box__val--amber">{pendingCount}</div>
+                </div>
+                <div className="sd-stat-box">
+                  <div className="sd-stat-box__lbl">Gönderilen Teklif</div>
+                  <div className="sd-stat-box__val sd-stat-box__val--green">{submittedCount}</div>
+                </div>
+                <div className="sd-stat-box">
+                  <div className="sd-stat-box__lbl">Dosyalı Proje</div>
+                  <div className="sd-stat-box__val">{withFilesCount}</div>
+                </div>
+              </div>
 
-                    {(project.project_files || []).length > 0 && (
-                      <div className="sd-file-section">
-                        <div className="sd-file-section__label">Dosyalar</div>
-                        <div className="sd-file-list">
-                          {(project.project_files || []).slice(0, 4).map((f) => (
-                            <div key={f.id} className="sd-file-row">
-                              <div className="sd-file-info">
-                                <div className="sd-file-info__name">{f.name}</div>
-                                <div className="sd-file-info__size">{(f.size / 1024).toFixed(1)} KB</div>
-                              </div>
-                              <div className="sd-file-actions">
-                                <button type="button" className="sd-file-btn" onClick={(e) => { void openFile(f.id, e); }}>Aç</button>
-                                <button type="button" className="sd-file-btn sd-file-btn--download" onClick={(e) => { void downloadFile(f.id, f.name, e); }}>İndir</button>
-                              </div>
-                            </div>
-                          ))}
+              <h2 className="sd-section-title">Size Atanan Projeler</h2>
+              {projects.length === 0 ? (
+                <div className="sd-empty">
+                  <div className="sd-empty__icon">📭</div>
+                  <h3>Henüz proje atanmamış</h3>
+                  <p>Size proje atandığında burada gösterilecektir</p>
+                </div>
+              ) : (
+                <div className="sd-projects-grid">
+                  {projects.map((project) => (
+                    <div className="sd-project-card" key={project.id}>
+                      <div className="sd-project-card__company">
+                        {resolveLogo(project.company?.logo_url) ? (
+                          <img src={resolveLogo(project.company?.logo_url) || ""} alt="firma" className="sd-company-logo" />
+                        ) : (
+                          <div className="sd-company-logo-placeholder">🏢</div>
+                        )}
+                        <div>
+                          <div className="sd-company-label">İş Veren Firma</div>
+                          <div className="sd-company-name">{project.company?.name || "Firma bilgisi yok"}</div>
                         </div>
                       </div>
-                    )}
 
-                    <div className="sd-project-card__actions">
-                      <button type="button" className="sd-project-card__btn sd-project-card__btn--primary" onClick={() => handleRespondQuote(project)}>Teklifi Aç</button>
-                      <button type="button" className="sd-project-card__btn sd-project-card__btn--secondary" onClick={() => { void handleDeclineQuote(project); }}>Reddet</button>
+                      <h3>{project.name}</h3>
+
+                      <span className={`sd-status-badge${project.supplier_quote?.submitted ? " sd-status-badge--submitted" : " sd-status-badge--pending"}`}>
+                        {project.supplier_quote?.submitted ? "Teklif Gönderildi" : "Teklif Bekleniyor"}
+                      </span>
+
+                      {project.quote?.title && (
+                        <div className="sd-quote-info">
+                          <div className="sd-quote-info__label">Teklif Başlığı</div>
+                          <div className="sd-quote-info__value">{project.quote.title}</div>
+                        </div>
+                      )}
+                      {project.quote?.description && (
+                        <div className="sd-quote-desc">{project.quote.description}</div>
+                      )}
+
+                      {(project.project_files || []).length > 0 && (
+                        <div className="sd-file-section">
+                          <div className="sd-file-section__label">Dosyalar</div>
+                          <div className="sd-file-list">
+                            {(project.project_files || []).slice(0, 4).map((f) => (
+                              <div key={f.id} className="sd-file-row">
+                                <div className="sd-file-info">
+                                  <div className="sd-file-info__name">{f.name}</div>
+                                  <div className="sd-file-info__size">{(f.size / 1024).toFixed(1)} KB</div>
+                                </div>
+                                <div className="sd-file-actions">
+                                  <button type="button" className="sd-file-btn" onClick={(e) => { void openFile(f.id, e); }}>Aç</button>
+                                  <button type="button" className="sd-file-btn sd-file-btn--download" onClick={(e) => { void downloadFile(f.id, f.name, e); }}>İndir</button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="sd-project-card__actions">
+                        <button type="button" className="sd-project-card__btn sd-project-card__btn--primary" onClick={() => handleRespondQuote(project)}>Teklifi Aç</button>
+                        <button type="button" className="sd-project-card__btn sd-project-card__btn--secondary" onClick={() => { void handleDeclineQuote(project); }}>Reddet</button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+
+              <div className="sd-support-box">
+                <h2 className="sd-section-title">Destek</h2>
+                <p className="sd-support-box__text">
+                  Sorularınız için <strong>info@buyerasistans.com</strong> adresine e-posta gönderin.
+                </p>
               </div>
-            )}
 
-            <div className="sd-support-box">
-              <h2 className="sd-section-title">Destek</h2>
-              <p className="sd-support-box__text">
-                Sorularınız için <strong>info@buyerasistans.com</strong> adresine e-posta gönderin.
+              <div className="sd-quick-grid">
+                <button type="button" className="sd-quick-card" onClick={() => navigate("/supplier/workspace?tab=offers")}>
+                  <div className="sd-quick-card__title">Tekliflerim</div>
+                  <div className="sd-quick-card__desc">Tüm teklif kayıtlarına git, eksik kalanları tamamla.</div>
+                  <div className="sd-quick-card__cta">Aç →</div>
+                </button>
+                <button type="button" className="sd-quick-card" onClick={() => navigate("/supplier/firm-profile")}>
+                  <div className="sd-quick-card__title">Firma Profili</div>
+                  <div className="sd-quick-card__desc">Firma bilgileri, logo ve iletişim bilgilerini düzenle.</div>
+                  <div className="sd-quick-card__cta">Aç →</div>
+                </button>
+                <button type="button" className="sd-quick-card" onClick={() => setActiveTab("platform_settings")}>
+                  <div className="sd-quick-card__title">Sistem Ayarları</div>
+                  <div className="sd-quick-card__desc">SMTP / POP3 / IMAP e-posta ayarlarını yönet.</div>
+                  <div className="sd-quick-card__cta">Aç →</div>
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── TAB: platform_settings ── */}
+          {activeTab === "platform_settings" && (
+            <>
+              <h2 className="sd-section-title">Sistem Ayarları — E-posta (SMTP / IMAP / POP3)</h2>
+              <p className="sd-tab-desc">
+                Platform varsayılan ayarları super admin tarafından belirlenir. Bu firma için özel ayar tanımlanmamışsa sistem otomatik olarak platform varsayılanını kullanır. Aşağıdan firma özel ayarları tanımlanabilir; super admin tüm ayarları görür, düzenler veya silebilir.
               </p>
-            </div>
+              <ScopeSettingsBoard userId={supplierUserId} />
+            </>
+          )}
 
-            <div className="sd-quick-grid">
-              <button type="button" className="sd-quick-card" onClick={() => navigate("/supplier/workspace?tab=offers")}>
-                <div className="sd-quick-card__title">Tekliflerim</div>
-                <div className="sd-quick-card__desc">Tüm teklif kayıtlarına git, eksik kalanları tamamla.</div>
-                <div className="sd-quick-card__cta">Aç →</div>
-              </button>
-              <button type="button" className="sd-quick-card" onClick={() => navigate("/supplier/workspace?tab=profile")}>
-                <div className="sd-quick-card__title">Firma Profili</div>
-                <div className="sd-quick-card__desc">Firma bilgileri, logo ve iletişim bilgilerini düzenle.</div>
-                <div className="sd-quick-card__cta">Aç →</div>
-              </button>
-              <button type="button" className="sd-quick-card" onClick={() => setActiveTab("platform_settings")}>
-                <div className="sd-quick-card__title">Sistem Ayarları</div>
-                <div className="sd-quick-card__desc">SMTP / POP3 / IMAP e-posta ayarlarını yönet.</div>
-                <div className="sd-quick-card__cta">Aç →</div>
-              </button>
-            </div>
-          </>
-        )}
+          {/* ── TAB: profil ── */}
+          {activeTab === "profil" && (
+            <>
+              <h2 className="sd-section-title">Kullanıcı Profilim</h2>
+              <p className="sd-tab-desc">Kişisel bilgilerinizi ve firma yetkilileri listesini buradan yönetebilirsiniz.</p>
+              <UserProfileSection
+                initialName={userName}
+                initialEmail={userEmail}
+                initialPhone={userPhone}
+                initialWorkEmail={userWorkEmail}
+                authorizedUsers={authorizedUsers}
+                onSaved={(name) => setUserName(name)}
+              />
+            </>
+          )}
 
-        {/* ── TAB: platform_settings ── */}
-        {activeTab === "platform_settings" && (
-          <>
-            <h2 className="sd-section-title">Sistem Ayarları — E-posta (SMTP / IMAP / POP3)</h2>
-            <p className="sd-tab-desc">
-              Platform varsayılan ayarları super admin tarafından belirlenir. Bu firma için özel ayar tanımlanmamışsa sistem otomatik olarak platform varsayılanını kullanır. Aşağıdan firma özel ayarları tanımlanabilir; super admin tüm ayarları görür, düzenler veya silebilir.
-            </p>
-            <ScopeSettingsBoard userId={supplierUserId} />
-          </>
-        )}
+          {/* ── TAB: firmalar ── */}
+          {activeTab === "firmalar" && (
+            <>
+              <h2 className="sd-section-title">Bağlı Olduğum Firmalar</h2>
+              <p className="sd-tab-desc">Bu kullanıcının yetkili olduğu tedarikçi firmaları. Başka bir firmaya geçmek için ilgili kartı kullanın.</p>
+              <FirmsSection
+                firms={myFirms}
+                onSwitch={(firm) => {
+                  flash(`${firm.company_name} firmasına geçiş yapılamaz — tek oturum desteklenmektedir. Yeni firmaya katılım davetiyesi ile giriş yapınız.`, "info");
+                }}
+              />
+            </>
+          )}
 
-        {/* ── TAB: profil ── */}
-        {activeTab === "profil" && (
-          <>
-            <h2 className="sd-section-title">Kullanıcı Profilim</h2>
-            <p className="sd-tab-desc">Kişisel bilgilerinizi ve firma yetkilileri listesini buradan yönetebilirsiniz.</p>
-            <UserProfileSection
-              initialName={userName}
-              initialEmail={userEmail}
-              initialPhone={userPhone}
-              initialWorkEmail={userWorkEmail}
-              authorizedUsers={authorizedUsers}
-              onSaved={(name) => setUserName(name)}
-            />
-          </>
-        )}
+          </div>{/* /sds-content */}
+        </div>{/* /sds-main */}
 
-        {/* ── TAB: firmalar ── */}
-        {activeTab === "firmalar" && (
-          <>
-            <h2 className="sd-section-title">Bağlı Olduğum Firmalar</h2>
-            <p className="sd-tab-desc">Bu kullanıcının yetkili olduğu tedarikçi firmaları. Başka bir firmaya geçmek için ilgili kartı kullanın.</p>
-            <FirmsSection
-              firms={myFirms}
-              onSwitch={(firm) => {
-                flash(`${firm.company_name} firmasına geçiş yapılamaz — tek oturum desteklenmektedir. Yeni firmaya katılım davetiyesi ile giriş yapınız.`, "info");
-              }}
-            />
-          </>
-        )}
-      </div>
+      </div>{/* /sds-shell */}
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="sd-hidden" aria-label="Logo dosyası seç" />
-
-      {userMenuOpen && (
-        <div className="sd-menu-overlay" onClick={() => setUserMenuOpen(false)} />
-      )}
-
+      {/* ── Portals ── */}
+      {userMenuOpen && <div className="sds-overlay" onClick={() => setUserMenuOpen(false)} />}
       {toast && <div className={`sd-toast sd-toast--${toast.type}`}>{toast.msg}</div>}
-
       {(isSuperAdminSession || dashboardMailButtonEnabled) && (
         <MailCenterPopup
           isOpen={mailPopupOpen}
@@ -837,6 +960,8 @@ export default function SupplierDashboard() {
           onClose={() => setMailPopupOpen(false)}
         />
       )}
+      <input ref={fileInputRef} type="file" accept="image/*" className="sd-hidden" aria-label="Logo dosyası seç" />
+
     </div>
   );
 }

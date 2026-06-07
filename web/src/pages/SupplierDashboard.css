@@ -1,4 +1,637 @@
-/* SupplierDashboard.css — sd-* namespace */
+/* SupplierDashboard.css — sd-* namespace + sds-* shell */
+
+/* ══════════════════════════════════════════════════════
+   SDS-* — Supplier Dashboard Shell (admin-panel style)
+   ══════════════════════════════════════════════════════ */
+
+/* ── #root full-width override for panel pages ──
+   index.css sets #root { width:1126px; margin:0 auto } (Vite starter leftover).
+   When an sds-* panel is mounted, force #root to fill the viewport. */
+#root:has(.sds-wrap) {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  border-inline: none;
+  text-align: left;
+}
+
+:root { --sds-pth: 64px; }
+
+/* ── Outer wrapper: flex column ── */
+.sds-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Primary Full-Width Dark Topbar ── */
+.sds-panel-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "brand center welcome";
+  align-items: center;
+  gap: 16px;
+  padding: 0 28px;
+  height: var(--sds-pth);
+  background: var(--panel-chrome-top, linear-gradient(135deg, #0c4a6e 0%, #0E7490 100%));
+  color: #fff;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 16px rgba(12,74,110,.25);
+  box-sizing: border-box;
+}
+
+.sds-pt-brand {
+  grid-area: brand;
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Hamburger button (visible only on mobile) */
+.sds-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.20);
+  color: #fff;
+  border-radius: 7px;
+  padding: 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sds-pt-center {
+  grid-area: center;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1px;
+  min-width: 0;
+}
+
+.sds-pt-sublabel {
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sds-pt-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+  line-height: 1.2;
+}
+
+.sds-pt-role {
+  font-size: 12px;
+  color: rgba(255,255,255,0.68);
+  margin-top: 1px;
+}
+
+/* Title row: platform · role [badge] all inline */
+.sds-pt-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.sds-pt-platform {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.60);
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sds-pt-dot {
+  color: rgba(255,255,255,0.30);
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sds-pt-ver {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sds-pt-welcome {
+  grid-area: welcome;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.sds-pt-hi {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+}
+
+.sds-pt-name {
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── Shell: sidebar + main below topbar ── */
+.sds-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - var(--sds-pth));
+  background: #f0f4f8;
+}
+
+/* ── Loading state ── */
+.sds-loading-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  font-size: 15px;
+  color: #64748b;
+}
+
+/* ── Sidebar ── */
+.sds-sidebar {
+  background: var(--panel-chrome-side, linear-gradient(180deg, #0c4a6e 0%, #0a3d5a 100%));
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: var(--sds-pth);
+  height: calc(100vh - var(--sds-pth));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+/* Firm/tenant identity block */
+.sds-tenant-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+
+.sds-tenant-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.sds-tenant-avatar__img {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: contain;
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.sds-tenant-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.sds-tenant-role {
+  font-size: 11px;
+  color: rgba(255,255,255,0.52);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Nav ── */
+.sds-nav {
+  flex: 1;
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sds-nav-group { margin-bottom: 4px; }
+
+.sds-nav-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.38);
+  padding: 10px 8px 3px;
+  text-transform: uppercase;
+}
+
+.sds-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.78);
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sds-nav-item:hover {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+}
+
+.sds-nav-item--active {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Sidebar footer ── */
+.sds-sidebar-footer {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+
+.sds-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.65);
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sds-logout-btn:hover {
+  background: rgba(239,68,68,0.22);
+  color: #fff;
+  border-color: rgba(239,68,68,0.4);
+}
+
+/* ── Main area ── */
+.sds-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: calc(100vh - var(--sds-pth));
+  background: #f0f4f8;
+}
+
+/* ── Secondary white topbar ── */
+.sds-topbar {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: var(--sds-pth);
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+/* LanguageSwitcher is styled for dark backgrounds (white text/border).
+   Override to dark-on-light when inside the white secondary topbar. */
+.sds-topbar .language-switcher__trigger,
+.sds-topbar .language-switcher__locked {
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.sds-topbar .language-switcher__trigger:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.sds-crumbs {
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sds-crumbs b {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.sds-crumb-sep { opacity: 0.45; }
+
+.sds-top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* Icon button (bell, etc.) */
+.sds-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #334155;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.12s;
+}
+
+.sds-icon-btn:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.sds-notif-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 1.5px solid #fff;
+}
+
+/* Mail button in white topbar */
+.sds-mail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: 9px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.12s;
+}
+
+.sds-mail-btn:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.sds-mail-btn--unread {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.sds-mail-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* User button wrapper */
+.sds-user-btn-wrap { position: relative; }
+
+/* User chip (pill with avatar + name) */
+.sds-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.sds-user-chip:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.sds-user-av {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--panel-accent, #0E7490);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.sds-user-meta { line-height: 1.2; }
+
+.sds-user-meta b {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+}
+
+.sds-user-meta span {
+  font-size: 10px;
+  color: #64748b;
+  display: block;
+}
+
+/* User dropdown */
+.sds-user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.sds-user-menu__head {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sds-user-menu__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.sds-user-menu__email {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.sds-user-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1e293b;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sds-user-menu-item:hover { background: #f8fafc; }
+.sds-user-menu-item--danger { color: #dc2626; }
+.sds-user-menu-item--danger:hover { background: #fef2f2; }
+
+/* Overlay (closes dropdowns on outside click)
+   z-index MUST be below .sds-topbar (z-index:5) so topbar popovers stay clickable.
+   sds-topbar creates a stacking context — anything ≥5 in root context paints over it. */
+.sds-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+}
+
+/* Sidebar mobile overlay */
+.sds-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.42);
+  z-index: 199;
+}
+
+/* ── Content area ── */
+.sds-content {
+  flex: 1;
+  padding: 24px 28px 48px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .sds-shell { grid-template-columns: 180px 1fr; }
+  .sds-pt-title { font-size: 15px; }
+}
+
+@media (max-width: 1100px) {
+  /* At tablet, hide the platform label to save horizontal space */
+  .sds-pt-platform, .sds-pt-dot { display: none; }
+}
+
+@media (max-width: 900px) {
+  .sds-shell { grid-template-columns: 1fr; }
+  .sds-sidebar {
+    position: fixed;
+    top: var(--sds-pth);
+    left: -240px;
+    width: 220px;
+    z-index: 200;
+    transition: left 0.25s ease;
+    height: calc(100vh - var(--sds-pth));
+  }
+  .sds-sidebar--open { left: 0; }
+  .sds-sidebar-overlay { display: block; }
+  .sds-hamburger { display: flex; }
+  .sds-panel-top { padding: 0 16px; gap: 10px; }
+  .sds-pt-title { font-size: 13px; }
+  .sds-pt-role { display: none; }
+  .sds-content { padding: 16px 16px 40px; }
+  .sds-topbar { padding: 8px 16px; }
+}
+
+@media (max-width: 600px) {
+  :root { --sds-pth: 56px; }
+  .sds-panel-top { height: 56px; }
+  .sds-pt-welcome { display: none; }
+  .sds-pt-sublabel { display: none; }
+  .sds-user-meta { display: none; }
+  .sds-user-chip { padding: 4px; }
+}
+
+/* ══════════════════════════════════════════════════════
+   SD-* — legacy content classes (kept as-is)
+   ══════════════════════════════════════════════════════ */
 
 /* ── Shell ── */
 .sd-shell {
@@ -10,7 +643,7 @@
 
 /* ── Top nav ── */
 .sd-topnav {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+  background: var(--panel-chrome-top, linear-gradient(135deg, #0c4a6e 0%, #0E7490 100%));
   padding: 0 24px;
   height: 64px;
   display: flex;
@@ -214,7 +847,7 @@
 
 /* ── Scope banner ── */
 .sd-scope-banner {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+  background: var(--panel-chrome-hero, var(--panel-chrome-top, linear-gradient(135deg, #0c4a6e 0%, #0E7490 100%)));
   border-radius: 14px;
   padding: 20px 24px;
   display: flex;
@@ -335,7 +968,7 @@
 /* ── Stats row ── */
 .sd-stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
 }

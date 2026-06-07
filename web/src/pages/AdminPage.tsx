@@ -762,6 +762,8 @@ const AiLabAdminTab = lazy(async () => ({
   default: (await import("./admin/adminSecondaryTabs")).AiLabAdminTab,
 }));
 
+const WorkspaceTab = lazy(async () => import("./admin/WorkspaceTab"));
+
 const WorkspacePanelDesignerTab = lazy(async () => ({
   default: (await import("../components/admin/WorkspacePanelDesignerTab")).WorkspacePanelDesignerTab,
 }));
@@ -3015,6 +3017,12 @@ export default function AdminPage() {
         icon: "ADM",
         description: canViewPlatformGovernance ? (activeWorkspacePanelProfile?.description || "Bu role ait panel özetini ve hızlı yönlendirmeleri görüntüleyin.") : "",
       },
+      {
+        key: "calisma_alani" as const,
+        label: "Çalışma Alanı",
+        icon: "WRK",
+        description: "Teklifler, kanal metrikleri ve günlük iş akışı.",
+      },
       ...(canViewPlatformGovernance
         ? [
             {
@@ -3494,7 +3502,7 @@ export default function AdminPage() {
     const tenantFocusName = searchParams.get("tenantFocusName");
     const projectFocusName = searchParams.get("projectFocusName");
     const telemetrySnapshot = buildFocusTelemetryFilterSnapshot(searchParams);
-    if (resolvedTab && (tabConfigs.some((item) => item.key === resolvedTab) || resolvedTab === "profile" || resolvedTab === "platform_overview")) {
+    if (resolvedTab && (tabConfigs.some((item) => item.key === resolvedTab) || resolvedTab === "profile" || resolvedTab === "platform_overview" || resolvedTab === "nav_management")) {
       setActiveTab(resolvedTab as AdminTabKey);
     } else if (isRoleManagementOnly) {
       setActiveTab("roles");
@@ -4294,7 +4302,7 @@ export default function AdminPage() {
     isUpgradeExtrasPage ? "admin-page__tab-link--active" : "",
   ].filter(Boolean).join(" ");
 
-  const _shellMode = canAccessAdminSurface(user);
+  const _shellMode = canAccessAdminSurface(user) || isChannelUser;
 
   const _adminNode = (
     <div className="admin-page">
@@ -6781,6 +6789,13 @@ export default function AdminPage() {
         {activeTab === "ai_lab" && (
           <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
             <AiLabAdminTab />
+          </Suspense>
+        )}
+
+        {/* Çalışma Alanı Tab — teklifler, kanal metrikleri, finans uyarıları */}
+        {activeTab === "calisma_alani" && (
+          <Suspense fallback={<div className="admin-page__tab-loading">Tab yukleniyor...</div>}>
+            <WorkspaceTab />
           </Suspense>
         )}
 

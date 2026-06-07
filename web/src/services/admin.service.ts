@@ -1164,6 +1164,15 @@ export async function listPanelProfiles(): Promise<PanelProfileListApiResponse> 
   return res.data;
 }
 
+export async function getMyPanelProfile(): Promise<PanelProfilePutBody | null> {
+  const res = await http.get<PanelProfilePutBody>("/admin/panel-profiles/me");
+  const d = res.data;
+  if (d && typeof d.color === "string" && typeof d.color2 === "string" && typeof d.accent === "string" && typeof d.textColor === "string") {
+    return d;
+  }
+  return null;
+}
+
 export async function putPanelProfile(biz: string, sys: string, body: PanelProfilePutBody): Promise<void> {
   await http.put(`/admin/panel-profiles/${encodeURIComponent(biz)}/${encodeURIComponent(sys)}`, body);
 }

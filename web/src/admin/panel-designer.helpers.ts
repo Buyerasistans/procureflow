@@ -26,22 +26,29 @@ export function pdRgba(hex: string, a: number): string {
 
 /**
  * navbar & üst başlık 2-renkli zemin.
- * Bütünlük: 'top' (üst başlık) parıltısı SOL-ALTTAN; 'side' (navbar) parıltısı ALTTAN —
- * ikisi de ekranın sol-alt köşesine akar, tek ışık havuzu gibi okunur.
+ * 'top' (üst başlık): parıltı SOL-ALT köşeden, gradient soldan sağa.
+ * 'side' (sol navbar): parıltı ALT-MERKEZden, gradient yukarıdan aşağı.
+ * mix (0–1) → alpha (0–0.85), tam oran sınırsız.
  */
 export function pdChromeBg(
-  kind: 'top' | 'side',
+  kind: 'top' | 'side' | 'hero',
   color: string,
   color2: string,
   mix: number,
   dark?: string,
 ): string {
   const d = dark || pdShade(color, -18);
-  const a = Math.min(0.62, mix == null ? 0.18 : mix);
+  const a = (mix == null ? 0.22 : Math.min(1.0, mix)) * 0.85;
   if (kind === 'side') {
-    return `radial-gradient(circle at 30% 112%, ${pdRgba(color2, a)} 0%, transparent 52%), linear-gradient(180deg, ${color} 0%, ${d} 100%)`;
+    return `radial-gradient(circle at 50% 100%, ${pdRgba(color2, a)} 0%, transparent 65%), linear-gradient(180deg, ${color} 0%, ${d} 100%)`;
   }
-  return `radial-gradient(circle at 4% 150%, ${pdRgba(color2, a)} 0%, transparent 46%), linear-gradient(135deg, ${color} 0%, ${d} 100%)`;
+  const aTop = Math.max(a, 0.35);
+  if (kind === 'hero') {
+    // hero şerit: sağ-üst köşeden parıltı (topbar sağ-alt ile tamamlayıcı)
+    return `radial-gradient(ellipse 55% 100% at 100% 0%, ${pdRgba(color2, aTop)} 0%, transparent 100%), linear-gradient(to right, ${color} 0%, ${d} 100%)`;
+  }
+  // üst başlık: sağ-alt köşeden parıltı — "Hoş geldiniz" alanı
+  return `radial-gradient(ellipse 55% 100% at 100% 100%, ${pdRgba(color2, aTop)} 0%, transparent 100%), linear-gradient(to right, ${color} 0%, ${d} 100%)`;
 }
 
 /** Profil → CSS değişkenleri (navbar + üst başlık + panel gövdesi okur). */

@@ -18,7 +18,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Genel",
     items: [
-      { key: "panel_home", label: "Panel Ana Sayfa", icon: "home" },
+      { key: "panel_home",      label: "Panel Ana Sayfa",    icon: "home" },
+      { key: "calisma_alani",   label: "Çalışma Alanı",      icon: "workspace" },
       { key: "platform_overview", label: "Platform Genel Bakış", icon: "chart" },
       { key: "platform_analytics", label: "Platform Analitikleri", icon: "analytics" },
     ],

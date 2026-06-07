@@ -65,6 +65,11 @@ export interface SupplierUserProfile {
   email: string;
   work_email: string | null;
   phone: string | null;
+  photo: string | null;
+  address: string | null;
+  city: string | null;
+  address_district: string | null;
+  postal_code: string | null;
   created_at: string;
   email_verified: boolean;
 }
@@ -104,6 +109,11 @@ export interface SupplierProfileUpdatePayload {
   user_phone?: string;
   user_email?: string;
   user_work_email?: string | null;
+  user_photo?: string | null;
+  user_city?: string | null;
+  user_address_district?: string | null;
+  user_address?: string | null;
+  user_postal_code?: string | null;
 }
 
 export type SupplierDocCategory = "certificates" | "company_docs" | "personnel_docs" | "guarantee_docs";

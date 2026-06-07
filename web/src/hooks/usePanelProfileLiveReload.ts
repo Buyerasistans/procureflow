@@ -7,11 +7,20 @@ import { panelProfileCssVars, pdChromeBg } from "../admin/panel-designer.helpers
  * 'panelprofilechange' event'ini dinler; profil kaydedildiğinde
  * aktif panel kökündeki (.as-wrap) CSS değişkenlerini günceller — reload YOK.
  * syncTopbar=true ise .app-topbar da aynı chrome rengiyle boyanır.
+ *
+ * currentBiz / currentSys: mevcut kullanıcının rolleri. Geçilirse sadece
+ * bu kullanıcıyla eşleşen profil event'i uygulanır — başka rollerin
+ * canlı önizlemesinin mevcut paneli kirletmesi engellenir.
  */
-export function usePanelProfileLiveReload(): void {
+export function usePanelProfileLiveReload(currentBiz?: string, currentSys?: string): void {
   useEffect(() => {
     function handleProfileChange(e: Event): void {
-      const { profile } = (e as CustomEvent<PanelProfileEventDetail>).detail;
+      const { biz, sys, profile } = (e as CustomEvent<PanelProfileEventDetail>).detail;
+
+      // Mevcut kullanıcının rolüyle eşleşmiyorsa uygulama — başka profil preview'i bu paneli değiştirmesin
+      if (currentBiz !== undefined && currentSys !== undefined) {
+        if (biz !== currentBiz || sys !== currentSys) return;
+      }
 
       const wrap = document.querySelector(".as-wrap") as HTMLElement | null;
       if (wrap) {
@@ -34,5 +43,5 @@ export function usePanelProfileLiveReload(): void {
 
     window.addEventListener(PANEL_PROFILE_EVENT, handleProfileChange);
     return () => window.removeEventListener(PANEL_PROFILE_EVENT, handleProfileChange);
-  }, []);
+  }, [currentBiz, currentSys]);
 }

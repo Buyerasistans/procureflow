@@ -153,7 +153,8 @@ const ADMIN_PANEL_TAB_POLICY_DEFINITIONS: Array<{
   order: number;
   group: PanelTabPolicyGroup;
 }> = [
-  { key: "panel_home", label: "Panel Ana Sayfa", order: 10, group: "core" },
+  { key: "panel_home",     label: "Panel Ana Sayfa",  order: 10, group: "core" },
+  { key: "calisma_alani", label: "Çalışma Alanı",    order: 11, group: "core" },
   { key: "platform_operations", label: "Platform Operasyonları", order: 20, group: "platform" },
   { key: "discovery_lab_operations", label: "Discovery Lab Operasyonları", order: 30, group: "platform" },
   { key: "onboarding_studio", label: "Kurulum Stüdyosu", order: 40, group: "platform" },

@@ -1,6 +1,7 @@
 """Panel rol profili API — Faz 3.
 
 GET  /admin/panel-profiles               → tüm profilleri döner (yetkili admin)
+GET  /admin/panel-profiles/me            → sadece mevcut kullanıcının profili (tüm auth türleri)
 PUT  /admin/panel-profiles/{biz}/{sys}   → profil yazar (super_admin VEYA panel_design.edit)
 GET  /admin/panel-profiles/audit         → son N değişiklik (yetkili admin)
 """
@@ -185,6 +186,47 @@ def _entry_from_record(rec: PanelProfile) -> PanelProfileEntry:
 # ---------------------------------------------------------------------------
 # Uçlar
 # ---------------------------------------------------------------------------
+
+@router.get("/panel-profiles/me", response_model=dict)
+def get_my_panel_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Mevcut kullanıcının kendi rol panel profilini döner (tüm auth türleri erişebilir).
+
+    Önce (business_role × system_role) tam eşleşmesi aranır; bulunamazsa
+    business_role bazlı ilk kayda düşülür (channel_owner gibi sys uyuşmazlıkları için).
+    """
+    biz: str = getattr(current_user, "business_role", None) or getattr(current_user, "role", None) or ""
+    sys: str = getattr(current_user, "system_role", None) or ""
+
+    if not biz:
+        return {}
+
+    # 1) Tam eşleşme
+    record = (
+        db.query(PanelProfile)
+        .filter(
+            PanelProfile.business_role == biz,
+            PanelProfile.system_role == sys,
+        )
+        .first()
+    )
+    # 2) sys uyuşmazlığı fallback (ör. channel_owner/tenant_owner ↔ tenant_member şablonu)
+    if not record:
+        record = (
+            db.query(PanelProfile)
+            .filter(PanelProfile.business_role == biz)
+            .first()
+        )
+
+    if record and record.profile_json:
+        try:
+            return json.loads(record.profile_json)
+        except (json.JSONDecodeError, TypeError):
+            pass
+    return {}
+
 
 @router.get("/panel-profiles", response_model=PanelProfileListResponse)
 def list_panel_profiles(

@@ -15,7 +15,8 @@ const ERROR_LABELS: Record<string, string> = {
   invalid_or_expired_code: "Oturum kodu süresi doldu. Lütfen tekrar giriş yapın.",
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1").replace(/\/$/, "");
+const _rawBase = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE = _rawBase.endsWith("/api/v1") ? _rawBase : `${_rawBase}/api/v1`;
 
 interface ExchangeResponse {
   access_token: string;

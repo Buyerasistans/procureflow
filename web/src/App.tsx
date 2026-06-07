@@ -32,7 +32,8 @@ const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const ForbiddenPage = lazy(() => import("./pages/ForbiddenPage"));
-const SupplierProfilePage = lazy(() => import("./pages/SupplierProfilePage"));
+const SupplierProfilePage = lazy(() => import("./pages/SupplierPersonalProfilePage"));
+const SupplierFirmProfilePage = lazy(() => import("./pages/SupplierProfilePage"));
 const SupplierFinancePage = lazy(() => import("./pages/SupplierFinancePage"));
 const SupplierWorkspacePage = lazy(() => import("./pages/SupplierWorkspacePage"));
 const SupplierEmailChangeConfirmPage = lazy(() => import("./pages/SupplierEmailChangeConfirmPage"));
@@ -177,6 +178,7 @@ export default function App() {
           <Route element={<SupplierRoute />}>
             <Route path="/supplier/dashboard" element={<SupplierDashboard />} />
             <Route path="/supplier/profile" element={<SupplierProfilePage />} />
+            <Route path="/supplier/firm-profile" element={<SupplierFirmProfilePage />} />
             <Route path="/supplier/finance" element={<SupplierFinancePage />} />
             <Route path="/supplier/workspace" element={<SupplierWorkspacePage />} />
             <Route path="/supplier/portal" element={<Navigate to="/supplier/workspace?tab=offers" replace />} />

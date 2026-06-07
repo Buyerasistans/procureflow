@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Copy, Plus, RefreshCcw, Save, Trash2 } from 
 import { pdChromeBg } from "../../admin/panel-designer.helpers";
 import { publishPanelProfile } from "../../admin/panel-colors";
 import { putPanelProfile } from "../../services/admin.service";
+import PublicBrandLogo from "../../components/PublicBrandLogo";
 import "./panelDesignerTab.css";
 
 // ── Tab catalogue ────────────────────────────────────────────────
@@ -60,8 +61,8 @@ const PD_ROLE_LABELS: Record<string, string> = {
   operasyon_admin: "Operasyon Admin", operasyon_yoneticisi: "Operasyon Yöneticisi", operasyon_uzmani: "Operasyon Uzmanı",
   finans_admin: "Finans Admin", finans_yoneticisi: "Finans Yöneticisi", finans_uzmani: "Finans Uzmanı",
   employer_company_admin: "İşveren Şirket Admin", employer_recruiter: "İşveren Recruiter",
-  ik_admin: "İK Admin", ik_yoneticisi: "İK Yöneticisi", ik_uzmani: "İK Uzmanı",
-  hr_manager: "HR Manager", hr_specialist: "HR Specialist",
+  ik_yoneticisi: "İK Yöneticisi", ik_uzmani: "İK Uzmanı",
+  aday: "Aday", aday_premium: "Premium Aday",
   tenant_owner: "Partner Sahibi", tenant_admin: "Partner Admin", tenant_member: "Partner Üyesi",
   finance_officer: "Finans Sorumlusu",
 };
@@ -94,10 +95,13 @@ const PD_ROLE_TEMPLATES: Array<{ biz: string; sys: string; category: string }> =
   { biz: "satinalmaci",              sys: "tenant_member",  category: "Stratejik Partner" },
   { biz: "proje_mimari",             sys: "tenant_member",  category: "Stratejik Partner" },
   { biz: "teknik_uzman",             sys: "tenant_member",  category: "Stratejik Partner" },
+  { biz: "ik_yoneticisi",            sys: "tenant_member",  category: "Stratejik Partner" },
+  { biz: "ik_uzmani",                sys: "tenant_member",  category: "Stratejik Partner" },
   { biz: "channel_owner",     sys: "tenant_member", category: "Kanal İş Ortağı" },
   { biz: "kanal_ekip_lideri", sys: "tenant_member", category: "Kanal İş Ortağı" },
   { biz: "channel_agent",     sys: "tenant_member", category: "Kanal İş Ortağı" },
   { biz: "kanal_finans",      sys: "tenant_member", category: "Kanal İş Ortağı" },
+  { biz: "ik_yoneticisi",     sys: "tenant_member", category: "Kanal İş Ortağı" },
   { biz: "supplier_admin",            sys: "supplier_user", category: "Tedarikçi" },
   { biz: "supplier_user",             sys: "supplier_user", category: "Tedarikçi" },
   { biz: "pazarlama_muduru",          sys: "supplier_user", category: "Tedarikçi" },
@@ -107,13 +111,11 @@ const PD_ROLE_TEMPLATES: Array<{ biz: string; sys: string; category: string }> =
   { biz: "pazarlama_uzmani",          sys: "supplier_user", category: "Tedarikçi" },
   { biz: "teknik_uzman_mimar",        sys: "supplier_user", category: "Tedarikçi" },
   { biz: "tedarikci_finans_izleyici", sys: "supplier_user", category: "Tedarikçi" },
+  { biz: "ik_yoneticisi",             sys: "supplier_user", category: "Tedarikçi" },
   { biz: "employer_company_admin", sys: "employer_company_admin", category: "Kariyer" },
   { biz: "employer_recruiter",     sys: "employer_recruiter",     category: "Kariyer" },
-  { biz: "ik_admin",               sys: "ik_admin",               category: "Kariyer" },
-  { biz: "ik_yoneticisi",          sys: "ik_admin",               category: "Kariyer" },
-  { biz: "ik_uzmani",              sys: "ik_admin",               category: "Kariyer" },
-  { biz: "hr_manager",             sys: "tenant_member",          category: "Kariyer" },
-  { biz: "hr_specialist",          sys: "tenant_member",          category: "Kariyer" },
+  { biz: "aday",         sys: "aday",         category: "Aday" },
+  { biz: "aday_premium", sys: "aday_premium", category: "Aday" },
 ];
 
 // ── Segment definitions ──────────────────────────────────────────
@@ -122,7 +124,8 @@ const SEGMENT_DEFS = [
   { key: "strategic", label: "Stratejik Partner",  color: "#134E37", cat: "Stratejik Partner" },
   { key: "supplier",  label: "Tedarikçi",          color: "#0E7490", cat: "Tedarikçi"         },
   { key: "channel",   label: "İş Ortağı",          color: "#7C2D12", cat: "Kanal İş Ortağı"   },
-  { key: "employer",  label: "Kariyer",             color: "#5B21B6", cat: "Kariyer"           },
+  { key: "employer",  label: "Kariyer / İşveren",  color: "#5B21B6", cat: "Kariyer"           },
+  { key: "seeker",    label: "Aday / İş Arayan",   color: "#9F1239", cat: "Aday"              },
 ] as const;
 
 // ── Types ────────────────────────────────────────────────────────
@@ -183,12 +186,14 @@ function pdRoleLabel(code: string): string {
 }
 
 // ── Segment-level color defaults ─────────────────────────────────
+// accent değerleri WCAG AA (≥4.5:1 textColor karşısında) gereksinimi için segment dark rengine eşlendi
 const _SEG_CLR: Record<string, { color: string; color2: string; accent: string; textColor: string; tabs: string[] }> = {
-  "Platform":           { color: "#1d2b4a", color2: "#3A4F86", accent: "#3b82f6", textColor: "#f8fafc",  tabs: ["panel_home","platform_overview","platform_operations","companies","roles","departments","personnel","reports","settings"] },
-  "Stratejik Partner":  { color: "#112a25", color2: "#D4AF37", accent: "#D4AF37", textColor: "#f8fafc",  tabs: ["panel_home","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"] },
-  "Tedarikçi":          { color: "#0c4a6e", color2: "#38bdf8", accent: "#38bdf8", textColor: "#f0f9ff",  tabs: ["panel_home"] },
-  "Kanal İş Ortağı":   { color: "#2f1a0d", color2: "#f59e0b", accent: "#f59e0b", textColor: "#fff7ed",  tabs: ["panel_home"] },
-  "Kariyer":            { color: "#312e81", color2: "#6366f1", accent: "#6366f1", textColor: "#eef2ff",  tabs: ["panel_home"] },
+  "Platform":           { color: "#1d2b4a", color2: "#3A4F86", accent: "#3A4F86", textColor: "#f8fafc",  tabs: ["panel_home","calisma_alani","platform_overview","platform_operations","companies","roles","departments","personnel","reports","settings"] },
+  "Stratejik Partner":  { color: "#112a25", color2: "#D4AF37", accent: "#134E37", textColor: "#f8fafc",  tabs: ["panel_home","calisma_alani","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"] },
+  "Tedarikçi":          { color: "#0c4a6e", color2: "#38bdf8", accent: "#0E7490", textColor: "#f0f9ff",  tabs: ["panel_home","calisma_alani"] },
+  "Kanal İş Ortağı":   { color: "#2f1a0d", color2: "#f59e0b", accent: "#7C2D12", textColor: "#fff7ed",  tabs: ["panel_home","calisma_alani"] },
+  "Kariyer":            { color: "#312e81", color2: "#6366f1", accent: "#5B21B6", textColor: "#eef2ff",  tabs: ["panel_home"] },
+  "Aday":               { color: "#7f1d1d", color2: "#fb7185", accent: "#9F1239", textColor: "#fff1f2",  tabs: ["panel_home", "kariyer_yonetimi"] },
 };
 
 // ── Special-case overrides for key roles ─────────────────────────
@@ -199,9 +204,9 @@ const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
     heroDesc: "Platform genelindeki tüm yönetim alanları, stratejik partner yönetimi ve panel tasarımı bu panelden yönetilir.",
     color: "#1d2b4a", color2: "#3A4F86", accent: "#dc2626", textColor: "#f8fafc",
     glow: 0.5, opacity: 0.92, fontTitle: 28,
-    tabs: ["panel_home","platform_overview","platform_operations","discovery_lab_operations","ai_lab","onboarding_studio","tenant_governance","platform_suppliers","deployment","platform_analytics","kariyer_yonetimi","talent_ecosystem","packages","public_pricing","campaigns","commission_admin","companies","roles","departments","personnel","projects","suppliers","approvals","reports","support_tickets","settings","panel_designer"],
+    tabs: ["panel_home","calisma_alani","platform_overview","platform_operations","discovery_lab_operations","ai_lab","onboarding_studio","tenant_governance","platform_suppliers","deployment","platform_analytics","kariyer_yonetimi","talent_ecosystem","packages","public_pricing","campaigns","commission_admin","companies","roles","departments","personnel","projects","suppliers","approvals","reports","support_tickets","settings","panel_designer"],
     quickLinks: [
-      { label: "Genel Bakış",    href: "/dashboard",                    desc: "Genel çalışma alanına dön" },
+      { label: "Çalışma Alanı",  href: "/admin?tab=calisma_alani",      desc: "Teklifler ve günlük iş akışı" },
       { label: "Tüm Tenants",    href: "/admin?tab=tenant_governance",  desc: "Stratejik partner yönetimi" },
       { label: "Panel Tasarımı", href: "/admin?tab=panel_designer",     desc: "Rol panellerini düzenle" },
     ],
@@ -211,7 +216,7 @@ const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
     title: "Platform Destek Paneli", navLabel: "Destek", wsLabel: "Platform Destek Alanı",
     heroTitle: "Platform Destek Paneli",
     heroDesc: "Destek kuyrukları, tenant governance ve discovery odaklarını destek perspektifinden yönetin.",
-    color: "#0c2745", color2: "#0ea5e9", accent: "#0ea5e9", textColor: "#f0f9ff",
+    color: "#0c2745", color2: "#0ea5e9", accent: "#0c2745", textColor: "#f0f9ff",
     tabs: ["panel_home","platform_overview","platform_operations","onboarding_studio","tenant_governance","companies","personnel","reports","support_tickets","settings"],
     quickLinks: [
       { label: "Destek Kuyruğu",  href: "/admin?tab=support_tickets",   desc: "Açık ticket'lar" },
@@ -223,11 +228,12 @@ const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
     title: "Stratejik Partner Admin Paneli", navLabel: "Ortak Admin", wsLabel: "Stratejik Partner Sahiplik Alanı",
     heroTitle: "Stratejik Partner Admin Paneli",
     heroDesc: "Firma, ekip üyesi, rol, proje ve tedarikçi operasyonlarını tenant odaklı olarak yönetin.",
-    color: "#112a25", color2: "#D4AF37", accent: "#D4AF37", textColor: "#f8fafc",
+    color: "#112a25", color2: "#D4AF37", accent: "#134E37", textColor: "#f8fafc",
+    tabs: ["panel_home","calisma_alani","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"],
     quickLinks: [
-      { label: "Genel Bakış", href: "/dashboard", desc: "Genel çalışma alanına dön" },
-      { label: "Teklifler",   href: "/quotes",    desc: "Teklif süreçlerini aç" },
-      { label: "Raporlar",    href: "/reports",   desc: "Rol bazlı raporları aç" },
+      { label: "Çalışma Alanı", href: "/admin?tab=calisma_alani", desc: "Teklifler ve günlük iş akışı" },
+      { label: "Ekip Üyeleri",  href: "/admin?tab=personnel",     desc: "Ekip yönetimi" },
+      { label: "Raporlar",      href: "/admin?tab=reports",       desc: "Rol bazlı raporlar" },
     ],
     users: 4,
   },
@@ -235,10 +241,11 @@ const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
     title: "Tenant Admin Paneli", navLabel: "Admin", wsLabel: "Tenant Yönetim Alanı",
     heroTitle: "Tenant Admin Paneli",
     heroDesc: "Kendi tenant yapınızın ekip üyesi, rol, departman ve operasyon alanlarını yönetin.",
-    color: "#1e293b", color2: "#22c55e", accent: "#22c55e", textColor: "#f8fafc",
+    color: "#1e293b", color2: "#22c55e", accent: "#1e293b", textColor: "#f8fafc",
+    tabs: ["panel_home","calisma_alani","companies","roles","departments","personnel","projects","suppliers","approvals","reports","settings"],
     quickLinks: [
-      { label: "Genel Bakış", href: "/dashboard", desc: "Genel çalışma alanına dön" },
-      { label: "Teklifler",   href: "/quotes",    desc: "Teklif süreçlerini aç" },
+      { label: "Çalışma Alanı", href: "/admin?tab=calisma_alani", desc: "Teklifler ve günlük iş akışı" },
+      { label: "Ekip Üyeleri",  href: "/admin?tab=personnel",     desc: "Ekip yönetimi" },
     ],
     users: 28,
   },
@@ -246,9 +253,10 @@ const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
     title: "Kanal Sahibi Paneli", navLabel: "Kanal Sahibi", wsLabel: "Kanal Partner Alanı",
     heroTitle: "Kanal Sahibi Paneli",
     heroDesc: "Kanal programı, partner yönlendirmeleri ve panel erişimleri bu profilden yönetilir.",
+    tabs: ["panel_home","calisma_alani"],
     quickLinks: [
-      { label: "İş Ortağı Programı", href: "/is-ortagi-programi", desc: "Kanal programı akışları" },
-      { label: "Programa Başvuru",   href: "/is-ortagi-basvuru",  desc: "Kanal başvuru" },
+      { label: "Çalışma Alanı",     href: "/admin?tab=calisma_alani",   desc: "Komisyon ve kanal metrikleri" },
+      { label: "İş Ortağı Programı", href: "/is-ortagi-programi",       desc: "Kanal programı akışları" },
     ],
     users: 18,
   },
@@ -272,6 +280,27 @@ const _PROFILE_OV: Record<string, Partial<PdProfile>> = {
       { label: "Yeni İlan",   href: "/jobs/new", desc: "Pozisyon yayınla" },
     ],
     users: 42,
+  },
+  "aday|aday": {
+    title: "Aday Paneli", navLabel: "Aday", wsLabel: "Aday Çalışma Alanı",
+    heroTitle: "Aday Paneli",
+    heroDesc: "İş ilanlarını keşfedin, başvurularınızı takip edin ve kariyer profilinizi yönetin.",
+    color: "#7f1d1d", color2: "#fb7185", accent: "#9F1239", textColor: "#fff1f2",
+    quickLinks: [
+      { label: "İş İlanları",   href: "/jobs",             desc: "Açık ilanlar" },
+      { label: "Başvurularım",  href: "/my-applications",  desc: "Başvuruları takip et" },
+      { label: "Profilim",      href: "/profile",          desc: "Kariyer profili" },
+    ],
+  },
+  "aday_premium|aday_premium": {
+    title: "Premium Aday Paneli", navLabel: "Premium Aday", wsLabel: "Premium Çalışma Alanı",
+    heroTitle: "Premium Aday Paneli",
+    heroDesc: "Premium üyeliğin tüm avantajlarıyla iş arama deneyiminizi güçlendirin.",
+    color: "#6b0f1a", color2: "#f43f5e", accent: "#6b0f1a", textColor: "#fff1f2",
+    quickLinks: [
+      { label: "Öne Çıkan İlanlar", href: "/jobs?premium=1", desc: "Öncelikli eşleşmeler" },
+      { label: "CV Asistanı",       href: "/cv-assistant",   desc: "AI destekli CV" },
+    ],
   },
 };
 
@@ -316,9 +345,7 @@ export default function PanelDesignerTab({
   });
   const [activeIdx, setActiveIdx]       = useState(0);
   const [rightTab, setRightTab]         = useState<"settings" | "preview">("settings");
-  const [expandedSegs, setExpandedSegs] = useState<Set<string>>(
-    () => new Set(SEGMENT_DEFS.map((s) => s.key)),
-  );
+  const [expandedSegs, setExpandedSegs] = useState<Set<string>>(() => new Set<string>());
   const [showAddModal, setShowAddModal] = useState(false);
   const [previewMode, setPreviewMode]   = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [dirty, setDirty]               = useState(false);
@@ -457,11 +484,17 @@ export default function PanelDesignerTab({
   }
 
   function reset() {
-    if (!confirm("Tüm profiller varsayılana sıfırlanacak. Emin misin?")) return;
-    try { localStorage.removeItem("pf_panel_profiles"); } catch { /* ignore */ }
-    setProfiles(structuredClone(PD_DEFAULT_PROFILES));
-    setActiveIdx(0);
-    setDirty(false);
+    const current = profiles[activeIdx];
+    if (!current) return;
+    if (!confirm(`"${current.title}" profili varsayılana sıfırlanacak. Emin misin?`)) return;
+    const def = PD_DEFAULT_PROFILES.find((p) => p.biz === current.biz && p.sys === current.sys);
+    if (!def) return;
+    setProfiles((prev) => {
+      const next = [...prev];
+      next[activeIdx] = structuredClone(def);
+      return next;
+    });
+    setDirty(true);
   }
 
   const profilesBySegment = useMemo<Map<string, { list: PdProfile[]; indices: number[] }>>(() => {
@@ -666,34 +699,81 @@ export default function PanelDesignerTab({
 }
 
 // ── Quick segment swatches ────────────────────────────────────────
+// accent = segment dark rengi → WCAG AA (≥4.5:1 vs textColor) garantisi
 const SEG_QUICK = [
-  { key: "platform",  color: "#3A4F86", color2: "#8fb3da", label: "Platform"  },
-  { key: "strategic", color: "#134E37", color2: "#D4AF37", label: "Stratejik" },
-  { key: "supplier",  color: "#0E7490", color2: "#38bdf8", label: "Tedarikçi" },
-  { key: "channel",   color: "#7C2D12", color2: "#f59e0b", label: "İş Ortağı" },
-  { key: "employer",  color: "#5B21B6", color2: "#6366f1", label: "Kariyer"   },
-  { key: "seeker",    color: "#9F1239", color2: "#fb7185", label: "Aday"      },
+  { key: "platform",  color: "#3A4F86", color2: "#8fb3da", accent: "#3A4F86", textColor: "#f8fafc",  label: "Platform"  },
+  { key: "strategic", color: "#134E37", color2: "#D4AF37", accent: "#134E37", textColor: "#f8fafc",  label: "Stratejik" },
+  { key: "supplier",  color: "#0E7490", color2: "#38bdf8", accent: "#0E7490", textColor: "#f0f9ff",  label: "Tedarikçi" },
+  { key: "channel",   color: "#7C2D12", color2: "#f59e0b", accent: "#7C2D12", textColor: "#fff7ed",  label: "İş Ortağı" },
+  { key: "employer",  color: "#5B21B6", color2: "#6366f1", accent: "#5B21B6", textColor: "#eef2ff",  label: "Kariyer"   },
+  { key: "seeker",    color: "#9F1239", color2: "#fb7185", accent: "#9F1239", textColor: "#fff1f2",  label: "Aday"      },
 ] as const;
 
 // ── Mini chrome preview ──────────────────────────────────────────
-function MiniChrome({ color, color2, mix, label }: { color: string; color2: string; mix: number; label: string }) {
+function MiniChrome({
+  color, color2, mix, label, accent, textColor,
+}: {
+  color: string; color2: string; mix: number; label: string; accent: string; textColor: string;
+}) {
   const topBg  = pdChromeBg("top",  color, color2, mix);
   const sideBg = pdChromeBg("side", color, color2, mix);
+  const heroBg = pdChromeBg("hero", color, color2, mix);
+  const cssVars = {
+    "--pd-mc-top":    topBg,
+    "--pd-mc-side":   sideBg,
+    "--pd-mc-hero":   heroBg,
+    "--pd-mc-accent": accent,
+    "--pd-mc-text":   textColor,
+    "--pd-mc-base":   color,
+  } as CSSProperties;
   return (
-    <div className="pd-mini-chrome">
-      <div className="pd-mini-chrome__top" style={{ "--pd-mc-top": topBg } as CSSProperties}>
-        <span className="pd-mini-chrome__brand">BUYERASISTANS✓</span>
-        <span className="pd-mini-chrome__panel-name">{label}</span>
-        <span className="pd-mini-chrome__greet">Hoş geldiniz</span>
-      </div>
-      <div className="pd-mini-chrome__body">
-        <div className="pd-mini-chrome__side" style={{ "--pd-mc-side": sideBg } as CSSProperties}>
-          <div className="pd-mini-chrome__nav-item pd-mini-chrome__nav-item--active" />
-          <div className="pd-mini-chrome__nav-item" />
-          <div className="pd-mini-chrome__nav-item" />
-          <div className="pd-mini-chrome__nav-item" />
+    <div className="pd-mini-chrome" style={cssVars}>
+      {/* Üst başlık */}
+      <div className="pd-mini-chrome__top">
+        <div className="pd-mini-chrome__logo-wrap"><PublicBrandLogo height={20} maxWidth={105} invert /></div>
+        <div className="pd-mini-chrome__topbar-mid">
+          <span className="pd-mini-chrome__panel-name">{label}</span>
+          <div className="pd-mini-chrome__tabs">
+            <span className="pd-mini-chrome__tab pd-mini-chrome__tab--active">Genel Bakış</span>
+            <span className="pd-mini-chrome__tab">Projeler</span>
+            <span className="pd-mini-chrome__tab">Raporlar</span>
+          </div>
         </div>
-        <div className="pd-mini-chrome__content" />
+        <div className="pd-mini-chrome__user">
+          <div className="pd-mini-chrome__avatar" />
+          <span className="pd-mini-chrome__greet">Hoş geldiniz</span>
+        </div>
+      </div>
+      {/* Gövde */}
+      <div className="pd-mini-chrome__body">
+        <div className="pd-mini-chrome__side">
+          <div className="pd-mini-chrome__nav-item pd-mini-chrome__nav-item--active">Panel Ana Sayfa</div>
+          <div className="pd-mini-chrome__nav-item">Platform Genel</div>
+          <div className="pd-mini-chrome__nav-item">Operasyon</div>
+          <div className="pd-mini-chrome__nav-item">Kariyer</div>
+          <div className="pd-mini-chrome__nav-item">Ticari</div>
+          <div className="pd-mini-chrome__nav-sep" />
+          <div className="pd-mini-chrome__nav-item">Yönetişim</div>
+          <div className="pd-mini-chrome__nav-item">Sistem</div>
+        </div>
+        <div className="pd-mini-chrome__content">
+          {/* Hero şerit — sağ üsten 2. renk glow */}
+          <div className="pd-mini-chrome__hero">
+            <div>
+              <div className="pd-mini-chrome__hero-eye">Panel Başlığı</div>
+              <div className="pd-mini-chrome__hero-h">{label}</div>
+            </div>
+            <button type="button" className="pd-mini-chrome__hero-btn">
+              Aksiyon
+            </button>
+          </div>
+          {/* Kart listesi */}
+          <div className="pd-mini-chrome__cards">
+            <div className="pd-mini-chrome__card" />
+            <div className="pd-mini-chrome__card" />
+            <div className="pd-mini-chrome__card pd-mini-chrome__card--dim" />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -802,7 +882,7 @@ function PdEditor({
         </div>
 
         {/* Mini chrome önizlemesi */}
-        <MiniChrome color={profile.color} color2={profile.color2} mix={profile.color2Mix} label={profile.navLabel} />
+        <MiniChrome color={profile.color} color2={profile.color2} mix={profile.color2Mix} label={profile.navLabel} accent={profile.accent} textColor={profile.textColor} />
 
         {/* Renk seçiciler */}
         <div className="pd-row-2">
@@ -816,7 +896,7 @@ function PdEditor({
             <label htmlFor="pd-color2-mix">2. renk oranı ({(profile.color2Mix * 100).toFixed(0)}%)</label>
             <input
               id="pd-color2-mix"
-              type="range" min={0} max={0.6} step={0.02}
+              type="range" min={0} max={1} step={0.05}
               value={profile.color2Mix}
               onChange={(e) => onUpdate("color2Mix", Number(e.target.value))}
               disabled={disabled}
@@ -831,9 +911,10 @@ function PdEditor({
                   type="button"
                   title={s.label}
                   className={`pd-swatch-btn pd-swatch-btn--${s.key}${profile.color === s.color ? " on" : ""}`}
+                  style={{ "--pd-sw-c1": s.color, "--pd-sw-c2": s.color2 } as CSSProperties}
                   disabled={disabled}
-                  onClick={() => { onUpdate("color", s.color); onUpdate("color2", s.color2); }}
-                />
+                  onClick={() => { onUpdate("color", s.color); onUpdate("color2", s.color2); onUpdate("accent", s.accent); onUpdate("textColor", s.textColor); }}
+                >{s.label}</button>
               ))}
             </div>
           </div>
@@ -954,7 +1035,7 @@ function PdEditor({
       </div>
 
       {/* 6. Görünür Sekmeler */}
-      <div className="pd-grp">
+      <div className="pd-grp" style={{ "--pd-tab-accent": profile.color } as CSSProperties}>
         <div className="pd-grp-h">
           Görünür Sekmeler · allowed_tabs ({profile.tabs.length}/{PD_TABS.length})
         </div>
@@ -1048,9 +1129,10 @@ function PdPreview({
       ? visibleTabs
       : visibleTabs.filter((t) => { const p = readNavItemPlacement(t.key); return p === "top" || p === "both"; });
 
-  const glowHex   = Math.floor(profile.glow * 255).toString(16).padStart(2, "0");
-  const topChrome = pdChromeBg("top",  profile.color, profile.color2, profile.color2Mix);
+  const glowHex    = Math.floor(profile.glow * 255).toString(16).padStart(2, "0");
+  const topChrome  = pdChromeBg("top",  profile.color, profile.color2, profile.color2Mix);
   const sideChrome = pdChromeBg("side", profile.color, profile.color2, profile.color2Mix);
+  const heroChrome = pdChromeBg("hero", profile.color, profile.color2, profile.color2Mix);
 
   return (
     <div className="pd-preview-wrap pd-preview-wrap--tab">
@@ -1076,6 +1158,8 @@ function PdPreview({
           "--pd-font-body":   profile.fontBody  + "px",
           "--pd-opacity":     String(profile.opacity),
           "--pd-color-ee":    profile.color + "ee",
+          "--pd-color2":      profile.color2,
+          "--pd-hero-chrome": heroChrome,
           "--pd-accent-glow": profile.accent + glowHex,
           "--pd-accent-22":   profile.accent + "22",
         } as CSSProperties}
@@ -1099,6 +1183,7 @@ function PdPreview({
         <div className="pd-mock-shell">
           {sideTabs.length > 0 && (
             <div className="pd-mock-sidenav" style={{ background: sideChrome }}>
+              <div className="pd-mock-sidenav__logo"><PublicBrandLogo height={16} maxWidth={86} invert /></div>
               {sideTabs.slice(0, 11).map((t, idx) => (
                 <span key={t.key} className={idx === 0 ? "pd-sn pd-sn--active" : "pd-sn"}>
                   {t.label}
