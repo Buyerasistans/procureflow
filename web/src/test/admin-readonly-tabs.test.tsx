@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { CompaniesTab } from "../pages/admin/CompaniesTab";
@@ -45,6 +45,7 @@ describe("Admin read-only tabs", () => {
     );
 
     expect(screen.getByRole("button", { name: /yeni firma/i })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /\d+ firma/i }));
     expect(screen.getByRole("button", { name: /detay/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /duzenle/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^sil$/i })).not.toBeInTheDocument();
@@ -62,6 +63,7 @@ describe("Admin read-only tabs", () => {
     );
 
     expect(screen.getByRole("button", { name: /yeni firma/i })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /\d+ firma/i }));
     expect(screen.getByLabelText(/duzenle/i)).toBeInTheDocument();
   });
 

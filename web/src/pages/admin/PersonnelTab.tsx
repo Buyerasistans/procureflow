@@ -720,6 +720,7 @@ export function PersonnelTab(props: PersonnelTabProps) {
           <button
             type="button"
             disabled={readOnly || loadingPersonId === person.id}
+            aria-label={`${person.full_name} durum kutusu`}
             className={"pe-status-btn" + (isActive ? " pe-status-btn--active" : " pe-status-btn--passive")}
             onClick={() => { void togglePersonnelActive(person, !isActive); }}
           >

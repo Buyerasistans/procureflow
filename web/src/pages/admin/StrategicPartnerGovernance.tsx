@@ -78,6 +78,12 @@ export default function StrategicPartnerGovernance(props: Props) {
     return () => clearTimeout(t);
   }, [toast]);
 
+  useEffect(() => {
+    if (rows.length > 0 && rows.length <= 5) {
+      setExpandedGroups(new Set(["direct", "channel", "supplier"]));
+    }
+  }, [rows.length]);
+
   const ql = search.trim().toLowerCase();
   const filtered = useMemo(() => rows.filter((p) => {
     if (status !== "all" && p.status !== status) return false;

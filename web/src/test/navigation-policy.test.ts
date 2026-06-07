@@ -308,6 +308,8 @@ describe("admin panel tab policy", () => {
     can_view_settings_tab: true,
     show_settings_workspace_links: false,
     can_use_panel_designer: true,
+    can_view_supplier_profile_tab: false,
+    can_view_kariyer_yonetimi_tab: false,
   };
 
   const tenantAdminFlags: PanelTabVisibilityFlags = {
@@ -318,6 +320,8 @@ describe("admin panel tab policy", () => {
     can_view_settings_tab: true,
     show_settings_workspace_links: true,
     can_use_panel_designer: false,
+    can_view_supplier_profile_tab: false,
+    can_view_kariyer_yonetimi_tab: false,
   };
 
   it("super_admin panel tab setini mevcut siralama ile policy uzerinden cozer", () => {
@@ -329,6 +333,7 @@ describe("admin panel tab policy", () => {
 
     expect(resolveVisiblePanelTabKeys(buildPolicyContext(user), superAdminFlags)).toEqual([
       "panel_home",
+      "calisma_alani",
       "platform_operations",
       "discovery_lab_operations",
       "onboarding_studio",
@@ -337,6 +342,9 @@ describe("admin panel tab policy", () => {
       "deployment",
       "platform_analytics",
       "platform_suppliers",
+      "is_ortaklari",
+      "personel_arayan",
+      "is_arayan",
       "public_pricing",
       "campaigns",
       "commission_admin",
@@ -362,6 +370,7 @@ describe("admin panel tab policy", () => {
 
     expect(resolveVisiblePanelTabKeys(buildPolicyContext(user), tenantAdminFlags)).toEqual([
       "panel_home",
+      "calisma_alani",
       "settings",
       "companies",
       "roles",

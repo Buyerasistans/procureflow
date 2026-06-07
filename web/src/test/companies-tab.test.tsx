@@ -91,13 +91,19 @@ describe("CompaniesTab firma kart aksiyonlari", () => {
     vi.spyOn(window, "alert").mockImplementation(() => undefined);
   });
 
+  function expandPortalGroups() {
+    screen.getAllByRole("button", { name: /\d+ firma/i }).forEach((btn) => fireEvent.click(btn));
+  }
+
   it("her firma icin Detay butonu render eder", () => {
     renderTab([activeCompany, passiveCompany]);
+    expandPortalGroups();
     expect(screen.getAllByRole("button", { name: /detay/i })).toHaveLength(2);
   });
 
   it("Detay butonuna basinca popup acar", () => {
     renderTab([activeCompany]);
+    expandPortalGroups();
     fireEvent.click(screen.getByRole("button", { name: /detay.*aktif firma/i }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByTitle("company-1-modal")).toBeInTheDocument();
@@ -105,6 +111,7 @@ describe("CompaniesTab firma kart aksiyonlari", () => {
 
   it("Duzenle butonuna basinca popup acar", () => {
     renderTab([activeCompany]);
+    expandPortalGroups();
     fireEvent.click(screen.getByRole("button", { name: /duzenle.*aktif firma/i }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByTitle("company-1-modal")).toBeInTheDocument();
@@ -117,22 +124,26 @@ describe("CompaniesTab firma kart aksiyonlari", () => {
 
   it("aktif firmada durum butonu 'Aktif' gosterir", () => {
     renderTab([activeCompany]);
+    expandPortalGroups();
     expect(screen.getByRole("button", { name: /✓ aktif/i })).toBeInTheDocument();
   });
 
   it("pasif firmada durum butonu 'Pasif' gosterir", () => {
     renderTab([passiveCompany]);
+    expandPortalGroups();
     expect(screen.getByRole("button", { name: /✗ pasif/i })).toBeInTheDocument();
   });
 
   it("aktif firmada Sil butonu disabled", () => {
     renderTab([activeCompany]);
+    expandPortalGroups();
     const silBtn = screen.getByRole("button", { name: /sil.*aktif firma/i });
     expect(silBtn).toBeDisabled();
   });
 
   it("pasif firmada Sil butonu aktif ve tiklanabilir", () => {
     renderTab([passiveCompany]);
+    expandPortalGroups();
     const silBtn = screen.getByRole("button", { name: /sil.*pasif firma/i });
     expect(silBtn).not.toBeDisabled();
   });
@@ -140,6 +151,7 @@ describe("CompaniesTab firma kart aksiyonlari", () => {
   it("durum butonuna tiklaninca updateCompany cagirilir", async () => {
     const { updateCompany } = await import("../services/admin.service");
     renderTab([activeCompany]);
+    expandPortalGroups();
     fireEvent.click(screen.getByRole("button", { name: /✓ aktif/i }));
     await waitFor(() => {
       expect(updateCompany).toHaveBeenCalledWith(1, { is_active: false });
@@ -148,6 +160,7 @@ describe("CompaniesTab firma kart aksiyonlari", () => {
 
   it("readOnly modda durum butonu disabled ve Sil butonu gosterilmez", () => {
     renderTab([activeCompany], { readOnly: true });
+    expandPortalGroups();
     const durumBtn = screen.getByRole("button", { name: /✓ aktif/i });
     expect(durumBtn).toBeDisabled();
     expect(screen.queryByRole("button", { name: /sil/i })).not.toBeInTheDocument();
@@ -165,14 +178,21 @@ describe("CompaniesTab tedarikci segment aksiyonlari", () => {
     window.sessionStorage.removeItem("procureflow.companies.segment");
   });
 
+  function expandSupplierGroup() {
+    const groupBtn = screen.getByRole("button", { name: /buyera asistans özel tedarikçi/i });
+    fireEvent.click(groupBtn);
+  }
+
   it("her tedarikci icin Detay butonu render eder", () => {
     renderSupplierTab([activeSupplier, passiveSupplier]);
+    expandSupplierGroup();
     const detayButtons = screen.getAllByRole("button", { name: /detay/i });
     expect(detayButtons.length).toBeGreaterThanOrEqual(2);
   });
 
   it("tedarikci Detay butonuna basinca popup acar", () => {
     renderSupplierTab([activeSupplier]);
+    expandSupplierGroup();
     fireEvent.click(screen.getByRole("button", { name: new RegExp(`detay.*${activeSupplier.company_name}`, "i") }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByTitle("supplier-10-modal")).toBeInTheDocument();
@@ -180,6 +200,7 @@ describe("CompaniesTab tedarikci segment aksiyonlari", () => {
 
   it("tedarikci Duzenle butonuna basinca popup acar", () => {
     renderSupplierTab([activeSupplier]);
+    expandSupplierGroup();
     fireEvent.click(screen.getByRole("button", { name: new RegExp(`duzenle.*${activeSupplier.company_name}`, "i") }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByTitle("supplier-10-modal")).toBeInTheDocument();
@@ -197,12 +218,14 @@ describe("CompaniesTab tedarikci segment aksiyonlari", () => {
 
   it("aktif tedarikci Sil butonu disabled", () => {
     renderSupplierTab([activeSupplier]);
+    expandSupplierGroup();
     const silBtn = screen.getByRole("button", { name: new RegExp(`sil.*${activeSupplier.company_name}`, "i") });
     expect(silBtn).toBeDisabled();
   });
 
   it("pasif tedarikci Sil butonuna tiklaninca deleteAdminSupplier cagirilir", async () => {
     renderSupplierTab([passiveSupplier]);
+    expandSupplierGroup();
     const silBtn = screen.getByRole("button", { name: new RegExp(`sil.*${passiveSupplier.company_name}`, "i") });
     fireEvent.click(silBtn);
     await waitFor(() => {
@@ -210,9 +233,10 @@ describe("CompaniesTab tedarikci segment aksiyonlari", () => {
     });
   });
 
-  it("tedarikci tablosunda Yetkili Kullanici kolonu gorunur", () => {
+  it("tedarikci segmentinde grup acilinca firma satiri gorunur", () => {
     renderSupplierTab([activeSupplier]);
-    expect(screen.getByRole("columnheader", { name: /Yetkili Kullanıcı/ })).toBeInTheDocument();
+    expandSupplierGroup();
+    expect(screen.getByText(/aktif tedarikci as/i)).toBeInTheDocument();
   });
 
   it("grup basligi tedarikci sayisini gosterir", () => {
