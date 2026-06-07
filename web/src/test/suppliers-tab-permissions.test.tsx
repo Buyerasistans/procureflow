@@ -119,8 +119,7 @@ describe("SuppliersTab permissions", () => {
       </MemoryRouter>,
     );
 
-    await screen.findByText(/tedarikçiler/i);
-    await user.click(screen.getByRole("button", { name: /yeni tedarikçi/i }));
+    await user.click(await screen.findByRole("button", { name: /yeni tedarikçi/i }));
 
     expect(screen.getByText(/hızlı tedarikçi daveti/i)).toBeInTheDocument();
 
