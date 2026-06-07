@@ -1,7 +1,7 @@
 ---
 title: Admin Governance Domain
 owned_by: platform
-last_verified_at: 2026-06-05
+last_verified_at: 2026-06-07
 confidence: 0.84
 stale_after_days: 14
 source_files:
@@ -30,29 +30,29 @@ Admin governance alanı; yönetici panelleri, yetki sınırları, tenant yöneti
 - Yönetim aksiyonları kayıt altına alınır.
 - Gerekirse ilgili alt bileşenler veya API uçları tetiklenir.
 
-## Bu PR'da ne değişti?
+## Bu PR'da ne değişti? (feat/strategic-partner-governance-redesign)
 
-- `api/routers/admin.py` içinde proje dosyası listeleme/silme metinleri UTF-8'e normalize edildi.
-- `web/src/components/admin` ve `web/src/pages/admin` kapsamındaki yönetim ekranları bu domain gate'ini tetikleyen dosyalar arasında kalıyor.
-- Agent guard, CODEOWNERS ve wiki memory akışı admin governance değişikliklerinin PR'da izlenmesini sürdürüyor.
+- `web/src/pages/admin/StrategicPartnerGovernance.tsx`: Az sayıda satır olduğunda origin grupları (direct/channel/supplier) otomatik açılır; accordion UX iyileştirmesi.
+- `web/src/pages/admin/PersonnelTab.tsx`: Durum butonuna `aria-label` eklendi — erişilebilirlik ve test tutarlılığı.
+- `web/src/components/admin/DeploymentPanel.tsx`, `WorkspacePanelDesignerTab.tsx`: Stratejik partner governance yeniden tasarımı kapsamında güncellendi.
+- `api/routers/admin_deployment.py`: Deployment yönetimi router güncellendi.
+- Test dosyaları (admin-governance domain): accordion genişletme adımları tüm test senaryolarına eklendi.
 
 ## Etki analizi
 
-- Kullanıcıya dönen hata/detail metinleri Türkçe karakterleri doğru gösterecek.
-- Admin panel davranışı veya yetki matrisi değiştirilmedi.
-- Wiki gate açısından admin governance dokümantasyonu güncel değişiklikle yeniden hizalandı.
+- Stratejik partner governance UI'ı artık küçük veri setlerinde grupları otomatik açarak UX geliştiriyor.
+- Accordion mantığı `rows.length <= 5` eşiğiyle yalnızca az satırlı görünümleri etkiliyor.
+- 317 test tümü geçiyor; mevcut admin panel davranışı veya yetki matrisi değiştirilmedi.
 
 ## Risk/Rollback
 
-- Risk düşük; değişiklik metin ve dokümantasyon odaklı.
-- Beklenmeyen encoding drift görülürse encoding commit'i `git revert` ile geri alınabilir.
-- Admin router davranışı değişmediği için runtime rollback gerektirmesi beklenmez.
+- Risk düşük; UI iyileştirme ve erişilebilirlik odaklı.
+- Accordion auto-expand kaldırılmak istenirse `useEffect` bloğu temizlenir.
 
 ## Test notu
 
+- `npx vitest run` → 317/317 geçti.
 - `python tools/memory/domain_coverage.py --base-ref origin/main`
-- `python tools/memory/check_pr_wiki_gate.py`
-- Admin dosya endpointleri için mevcut authorization testleri etkilenmemelidir.
 
 ## Kritik durumlar
 

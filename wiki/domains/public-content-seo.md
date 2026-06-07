@@ -1,7 +1,7 @@
 ---
 title: Public Content & SEO Domain
 owned_by: growth+frontend
-last_verified_at: 2026-06-05
+last_verified_at: 2026-06-07
 confidence: 0.72
 stale_after_days: 21
 source_files:
@@ -32,6 +32,15 @@ Public sayfalar, SEO yönetimi, telemetry ve localization.
 - SEO metadata drift
 - Telemetry event şema tutarsızlığı
 
+## Bu PR'da ne değişti? (feat/strategic-partner-governance-redesign)
+
+- `web/src/pages/PublicHomePage.tsx` ve ilgili CSS: stratejik
+  ortak tasarımı kapsamında genel stil düzenlemeleri.
+- `web/index.html`, `web/public/slider/Sunum_Slider.html`:
+  public sayfa slider içeriği güncellendi.
+- Davranış veya SEO metadata değiştirilmedi; görsel revizyon.
+
 ## TODO
-- [ ] owner: growth, target_date: 2026-05-27, SEO KPI mapping ekle
-- [ ] owner: frontend, target_date: 2026-05-27, locale fallback matrisi ekle
+
+- [ ] owner: growth, target_date: 2026-06-20, SEO KPI mapping ekle
+- [ ] owner: frontend, target_date: 2026-06-20, locale fallback matrisi ekle
