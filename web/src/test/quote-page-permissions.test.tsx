@@ -518,6 +518,7 @@ describe("Quote page permissions", () => {
     renderQuoteCreatePage();
 
     await screen.findByText("Yeni RFQ / Teklif Talebi");
+    await screen.findByRole("option", { name: /hammadde satin alma/i });
     const user = userEvent.setup();
     await user.selectOptions(screen.getByLabelText("Departman"), "8");
 
